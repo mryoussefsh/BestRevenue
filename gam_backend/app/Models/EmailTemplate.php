@@ -147,6 +147,21 @@ class EmailTemplate extends Model
 <p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Revenue Details</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
+            'manual_payment' => [
+                'subject' => '{{ site_name }} — Standalone Manual Payment Recorded',
+                'body'    => "<p>Hi {{ name }},</p>
+<p>An administrator has recorded a manual payment to your account on <strong>{{ site_name }}</strong>.</p>
+<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Method</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_method }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Reference</td><td style='padding:8px;border:1px solid #ddd;'>{{ reference }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Notes</td><td style='padding:8px;border:1px solid #ddd;'>{{ note }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Date</td><td style='padding:8px;border:1px solid #ddd;'>{{ paid_at }}</td></tr>
+</table>
+<p>This payment has been deducted from your upcoming period balance as a standalone adjustment.</p>
+<p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payout History</a></p>
+<p>Best regards,<br>The {{ site_name }} Team</p>",
+            ],
         ];
 
         return $defaults[$key] ?? [
@@ -171,6 +186,7 @@ class EmailTemplate extends Model
             'payout_rejected'       => 'Payout Rejected',
             'payout_paid'           => 'Payment Sent',
             'period_closed'         => 'Period Earnings Finalized',
+            'manual_payment'        => 'Manual Payment Recorded',
         ];
     }
 }
