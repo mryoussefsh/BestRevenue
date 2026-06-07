@@ -180,6 +180,7 @@ class PeriodAutoClose extends Command
             $totalImpressions = 0;
             $payoutsCreated   = 0;
             $rollovers        = 0;
+            $publisherEarningsMap = [];
 
             foreach ($publisherIds as $pubId) {
                 $publisher = Publisher::find($pubId);
@@ -223,6 +224,7 @@ class PeriodAutoClose extends Command
                 $adjustmentSum = (float) $adjustmentSum;
 
                 $finalAmount = $pubEarnings + $adjustmentSum;
+                $publisherEarningsMap[$pubId] = $finalAmount;
 
                 // ─────────────────────────────────────────────────────────────────
                 // STEP 4: ALWAYS lock revenue records to this period closing.
@@ -361,18 +363,14 @@ class PeriodAutoClose extends Command
             // ─────────────────────────────────────────────────────────────────────
             // STEP 8: Send email notifications
             // ─────────────────────────────────────────────────────────────────────
-            $period->load('payouts.publisher');
-
-            $earningsMap = [];
-            foreach ($period->payouts as $payout) {
-                $earningsMap[$payout->publisher_id] = $payout->final_amount;
-            }
+            // Query fresh payouts from database to bypass any Eloquent relation cache issues
+            $payouts = Payout::where('period_closing_id', $period->id)->with('publisher')->get();
 
             // All publishers in period → period_closed email
             foreach ($publisherIds as $pubId) {
                 $pub = Publisher::find($pubId);
                 if (!$pub || !$pub->email) continue;
-                $earnings = $earningsMap[$pubId] ?? 0.0;
+                $earnings = $publisherEarningsMap[$pubId] ?? 0.0;
                 try {
                     Mail::to($pub->email)->send(new \App\Mail\PeriodClosedMail($period, $pub, $earnings));
                     \App\Services\AuditLogService::log(
@@ -391,7 +389,7 @@ class PeriodAutoClose extends Command
             }
 
             // Only payout-eligible publishers → payout_created email
-            foreach ($period->payouts as $payout) {
+            foreach ($payouts as $payout) {
                 if ($payout->publisher && $payout->publisher->email) {
                     try {
                         Mail::to($payout->publisher->email)->send(new \App\Mail\PayoutCreatedMail($payout));
