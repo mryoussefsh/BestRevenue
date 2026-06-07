@@ -201,7 +201,6 @@ class PeriodAutoClose extends Command
                         $q->whereNull('period_closing_id')
                           ->orWhere('period_closing_id', '!=', $period->id);
                     })
-                    ->where('created_at', '<=', $endOfMonth . ' 23:59:59')
                     ->lockForUpdate()
                     ->get();
 
@@ -262,7 +261,6 @@ class PeriodAutoClose extends Command
                             $q->whereNull('period_closing_id')
                               ->orWhere('period_closing_id', '!=', $period->id);
                         })
-                        ->where('created_at', '<=', $endOfMonth . ' 23:59:59')
                         ->update([
                             'status'            => 'applied',
                             'period_closing_id' => $period->id,
@@ -315,7 +313,6 @@ class PeriodAutoClose extends Command
                         $q->whereNull('period_closing_id')
                           ->orWhere('period_closing_id', '!=', $period->id);
                     })
-                    ->where('created_at', '<=', $endOfMonth . ' 23:59:59')
                     ->update([
                         'status'            => 'applied',
                         'period_closing_id' => $period->id,
