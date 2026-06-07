@@ -54,6 +54,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Addressed manual payout rejection adjustment cleanup bugs (isolated deletion).
 - [x] Deferred all balance cache updates (`syncPendingBalance`) using `DB::afterCommit(...)`.
 - [x] Created the `FinancialConcurrencyTest` integration test suite to verify safety.
+- [x] Implemented platform-wide timezone setting dynamically loaded on boot and corresponding admin panel settings dropdown select.
 
 ---
 

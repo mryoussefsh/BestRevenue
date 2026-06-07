@@ -52,6 +52,9 @@ The backend is built around standard MVC and Service Layer patterns. Key respons
    - **Safety**: Generates payouts in a `pending` status. Supports unique `idempotency_key` headers/parameters to prevent double-submitting. Linked payouts are locked using `lockForUpdate()` during updates.
 4. **Security Cast Attribute**
    - Uses Laravel's encryption engine to automatically encrypt publisher payment details (IBAN, PayPal, crypto keys) when saved and decrypt them upon query, preventing database leak visibility.
+5. **Dynamic Platform Settings (Timezone Configuration)**
+   - Dynamically loads and sets the platform-wide timezone setting (`platform_timezone`) from the database during the Laravel booting lifecycle (in `AppServiceProvider.php`).
+   - Overrides both PHP default timezone (`date_default_timezone_set()`) and Laravel's timezone config (`config(['app.timezone' => ...])`) to ensure all datetime operations, cron schedules, and GAM sync ranges operate under the configured timezone.
 
 ---
 

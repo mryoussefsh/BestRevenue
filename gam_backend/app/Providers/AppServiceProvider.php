@@ -15,6 +15,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Dynamically load and configure the platform-wide timezone from settings
+        if (config('app.key') && \Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            try {
+                $timezone = \App\Models\Setting::get('platform_timezone', 'UTC');
+                date_default_timezone_set($timezone);
+                config(['app.timezone' => $timezone]);
+            } catch (\Exception $e) {}
+        }
+
         // Tell Sanctum to use the UUID-compatible PersonalAccessToken
         // This is required because our users.id is a UUID (string), not bigint
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);

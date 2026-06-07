@@ -98,6 +98,28 @@ export default function SettingsPage() {
                       <option value="hourly">Hourly</option>
                       <option value="minutes">Every X Minutes</option>
                     </select>
+                  ) : s.key === 'platform_timezone' ? (
+                    <select
+                      className="form-select"
+                      value={edited[s.key] ?? 'UTC'}
+                      onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
+                    >
+                      <option value="UTC">UTC (Coordinated Universal Time)</option>
+                      <option value="Africa/Cairo">Africa/Cairo</option>
+                      <option value="America/New_York">America/New_York (EST/EDT)</option>
+                      <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                      <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                      <option value="Asia/Dubai">Asia/Dubai</option>
+                      <option value="Asia/Riyadh">Asia/Riyadh</option>
+                      <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                      <option value="Asia/Singapore">Asia/Singapore</option>
+                      <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                      <option value="Australia/Sydney">Australia/Sydney</option>
+                      <option value="Europe/London">Europe/London (GMT/BST)</option>
+                      <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
+                      <option value="Europe/Kiev">Europe/Kiev (EET/EEST)</option>
+                      <option value="Europe/Istanbul">Europe/Istanbul (TRT)</option>
+                    </select>
                   ) : s.key === 'publisher_registration_status' ? (
                     <div>
                       <select

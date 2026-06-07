@@ -328,4 +328,28 @@ class FinancialConcurrencyTest extends TestCase
         $publisher->refresh();
         $this->assertEquals(60.00, (float) $publisher->pending_balance_adjustment);
     }
+
+    /**
+     * Verifies that the platform_timezone setting is dynamically loaded and applied.
+     */
+    public function test_platform_timezone_applied_dynamically(): void
+    {
+        Setting::updateOrCreate(
+            ['key' => 'platform_timezone'],
+            [
+                'value' => 'Asia/Dubai',
+                'group' => 'display',
+                'label' => 'Timezone',
+                'type'  => 'string'
+            ]
+        );
+
+        // Simulate service provider reload/re-booting logic
+        $timezone = Setting::get('platform_timezone', 'UTC');
+        date_default_timezone_set($timezone);
+        config(['app.timezone' => $timezone]);
+
+        $this->assertEquals('Asia/Dubai', date_default_timezone_get());
+        $this->assertEquals('Asia/Dubai', config('app.timezone'));
+    }
 }

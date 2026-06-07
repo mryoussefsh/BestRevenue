@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.1] - 2026-06-08
+
+### Added
+- **Platform-wide Timezone Configuration**: Added a new dynamic setting `platform_timezone` stored in the database. Loaded dynamically on boot within `AppServiceProvider` to apply globally to PHP and Laravel application timezone contexts.
+- **Admin Settings Timezone Dropdown**: Created a curated dropdown select box for common global timezones in the Admin Settings page interface.
+
 ## [1.1.0] - 2026-06-07
 
 ### Added

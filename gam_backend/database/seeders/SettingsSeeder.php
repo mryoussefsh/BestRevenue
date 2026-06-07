@@ -102,6 +102,13 @@ class SettingsSeeder extends Seeder
                 'label' => 'Platform Name',
                 'type'  => 'string',
             ],
+            [
+                'key'   => 'platform_timezone',
+                'value' => 'UTC',
+                'group' => 'display',
+                'label' => 'Platform Default Timezone',
+                'type'  => 'string',
+            ],
 
             // ── Registration ──────────────────────────────────────
             [
