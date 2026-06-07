@@ -42,9 +42,9 @@ class PeriodClosingController extends Controller
         $year  = (int) $request->year;
         $month = (int) $request->month;
 
-        // FIX [PC-6]: Validate the target is not the current or a future month (except in local or testing environments)
+        // FIX [PC-6]: Validate the target is not the current or a future month
         $targetDate = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
-        if ($targetDate->gte(now()->startOfMonth()) && !app()->environment('local', 'testing')) {
+        if ($targetDate->gte(now()->startOfMonth())) {
             return response()->json([
                 'message' => 'Cannot close the current or a future month.',
             ], 422);
