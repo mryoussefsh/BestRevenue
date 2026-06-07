@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.0] - 2026-06-07
+
+### Added
+- **Manual Payment Idempotency Keys**: API clients can now pass an `idempotency_key` via headers or body to prevent duplicate manual payout creations.
+- **Two-Layer Period Closing Locking**: Integrated application Cache locks and database transactional row locks (`lockForUpdate()`) for closing periods.
+- **Database Safety Constraints**: MySQL-conditional CHECK constraints ensuring numerical integrity (`final_amount >= 0`, `amount >= 0`, `adjustments.amount != 0`).
+- **Composite Index**: Added composite database index on `revenue_records(period_closing_id, date)` to accelerate month-end closing scans.
+- **Financial Concurrency Test Suite**: Added a robust integration test suite (`FinancialConcurrencyTest`) verifying race conditions, idempotency, sync lockout, and adjustment rejections.
+
+### Changed
+- **GAM Sync Lockout**: Blocked synchronization queries and flushes for any periods currently in `closing` or `closed` status.
+- **Deferred Balance Syncing**: Defer cached balance updates (`syncPendingBalance`) using `DB::afterCommit(...)` callbacks to prevent transaction deadlocks and dirty reads.
+- **Rerun Protection**: Recalculates `PeriodClosing` aggregates directly from DB `SUM` queries on locked records instead of additive accumulation to prevent double-counting on rerun attempts.
+
+### Fixed
+- **Targeted Manual Rejection**: Rejections of standalone manual payouts now clean up only their specific deduction adjustments without touching other adjustments or unlocking unclosed records.
+
+---
+
 ## [1.0.0] - 2026-06-07
 
 ### Added

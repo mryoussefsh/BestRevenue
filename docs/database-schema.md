@@ -103,10 +103,14 @@ Synchronized metrics capturing traffic and earnings. Unique on `(ad_unit_id, dat
 ### G. `period_closings`
 Locks a month of traffic, facilitating payout generation.
 - `id` (UUID, Primary Key).
-- `month` (char(7)): Standardized YYYY-MM code (e.g. `2026-05`).
-- `status` (enum('closing', 'closed'), Default: 'closing'): Helps control sync locking states.
-- `closed_by` (UUID, Foreign Key): References `users.id` (Admin user who executed closing).
-- `closed_at` (timestamp).
+- `period_year` (smallint): Year of the closed period (e.g. `2026`).
+- `period_month` (tinyint): Month of the closed period (e.g. `5` for May).
+- `status` (enum('closing', 'closed'), Default: 'closing'): Controls lock states.
+- `total_gross_revenue` (decimal(14,2), Default: 0.00).
+- `total_publisher_earnings` (decimal(14,2), Default: 0.00).
+- `total_impressions` (bigint, Default: 0).
+- `notes` (text, Nullable).
+- `closed_at` (timestamp, Nullable).
 - `timestamps` (created_at, updated_at).
 
 ### H. `payouts`
@@ -128,6 +132,7 @@ Monthly payment vouchers generated from closed periods, or standalone manual pay
 - `approved_by` (UUID, Foreign Key, Nullable): References `users.id`.
 - `approved_at` (timestamp, Nullable).
 - `paid_at` (timestamp, Nullable).
+- `idempotency_key` (varchar(64), Unique, Nullable): Key to prevent double submission.
 - `timestamps` (created_at, updated_at).
 
 ### I. `adjustments`
@@ -152,15 +157,23 @@ Maintains trail of publisher default revenue share percentage changes.
 
 ---
 
-## 3. Database Indexes
+## 3. Database Indexes & Integrity Constraints
 
+### A. Optimization Indices
 To maintain performance across millions of record metrics, the following indices are configured:
 1. **`revenue_records`**:
    - Unique Index: `revenue_unique` on `(ad_unit_id, date, hour, country)`.
    - Index: `(date, country)` for optimized regional dashboards.
-   - Index: `period_closing_id` to speed up locking reviews.
+   - Composite Index: `revenue_records_closing_date_index` on `(period_closing_id, date)` to speed up scanning during period closing processes.
 2. **`payouts`**:
    - Unique Index: `(publisher_id, period_closing_id)`.
+   - Unique Index: `payouts_idempotency_key_unique` on `(idempotency_key)` to secure API calls.
    - Index: `status` for queueing processing tables.
 3. **`adjustments`**:
    - Indexes on `publisher_id` and `status` to compute real-time pending balance balances quickly.
+
+### B. Database Integrity Constraints (MySQL check constraints)
+Raw constraints are configured on the database layer to enforce positive numerical states (SQLite tests execute driver-conditionally):
+- `chk_payouts_final_amount`: `final_amount >= 0` on `payouts` table.
+- `chk_payouts_amount`: `amount >= 0` on `payouts` table.
+- `chk_adjustments_amount`: `amount != 0` on `adjustments` table (prevents zero-value adjustment records).

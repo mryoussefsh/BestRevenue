@@ -5,9 +5,9 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 ---
 
 ## 🚦 Overall Project Status
-- **Current Phase**: Phase 4 - Polishing & Maintenance
-- **Completion Rate**: 95%
-- **Current Focus**: Platform deployment prep, CI/CD setup, API integration testing.
+- **Current Phase**: Phase 5 - Testing & Deployment
+- **Completion Rate**: 98%
+- **Current Focus**: Deployment configuration, staging setup, sandboxed end-to-end flow checks.
 
 ---
 
@@ -30,7 +30,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 
 ### Milestone 3: Earnings Closings & Payouts (Sprint 5)
 - [x] Built monthly Period Closing system, implementing secure database transaction blocks.
-- [x] Structured record-locking logic linking processed revenue logs to closing periods.
+- [x] Structuring record-locking logic linking processed revenue logs to closing periods.
 - [x] Implemented manual balance adjustments supporting Invalid Traffic (IVT) deductions and bonus payouts.
 - [x] Created stuck closing state recovery handlers (abort or complete).
 - [x] Built the Payout pipeline state machine (`pending` ➡️ `approved` ➡️ `paid` / `rejected`).
@@ -44,6 +44,16 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Encrypted publisher banking info using customcast attributes for privacy protection.
 - [x] Configured system-wide Audit Log tables recording critical administrator actions.
 - [x] Optimized paginated query performance using static caching mechanisms on setting values.
+
+### Milestone 5: Financial Safety & Concurrency Hardening (Sprint 10)
+- [x] Created database migration to add `idempotency_key` and composite indexes.
+- [x] Implemented MySQL CHECK constraints for value safety (`final_amount >= 0`, `amount >= 0`, `adjustments.amount != 0`).
+- [x] Integrated two-layer Period Closing locking (Cache lock + database `lockForUpdate()`).
+- [x] Implemented GAM Sync lockout rules to skip fetching/syncing for `closing` or `closed` months.
+- [x] Added API idempotency logic for manual payouts using `idempotency_key` headers.
+- [x] Addressed manual payout rejection adjustment cleanup bugs (isolated deletion).
+- [x] Deferred all balance cache updates (`syncPendingBalance`) using `DB::afterCommit(...)`.
+- [x] Created the `FinancialConcurrencyTest` integration test suite to verify safety.
 
 ---
 
