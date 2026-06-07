@@ -255,16 +255,13 @@ class PeriodAutoClose extends Command
                     }
 
                     // Mark old adjustments as applied so they are not double-counted next month
-                    Adjustment::where('publisher_id', $pubId)
-                        ->where('status', 'pending')
-                        ->where(function ($q) use ($period) {
-                            $q->whereNull('period_closing_id')
-                              ->orWhere('period_closing_id', '!=', $period->id);
-                        })
-                        ->update([
-                            'status'            => 'applied',
-                            'period_closing_id' => $period->id,
-                        ]);
+                    if ($pendingAdjustments->isNotEmpty()) {
+                        Adjustment::whereIn('id', $pendingAdjustments->pluck('id'))
+                            ->update([
+                                'status'            => 'applied',
+                                'period_closing_id' => $period->id,
+                            ]);
+                    }
 
                     // FIX [PC-1, PC-3]: Create a pending 'rollover' adjustment for the total balance
                     // ($finalAmount) so it carries forward to the next period.
@@ -307,16 +304,13 @@ class PeriodAutoClose extends Command
                 ]);
 
                 // Mark adjustments as applied for payout-eligible publishers
-                Adjustment::where('publisher_id', $pubId)
-                    ->where('status', 'pending')
-                    ->where(function ($q) use ($period) {
-                        $q->whereNull('period_closing_id')
-                          ->orWhere('period_closing_id', '!=', $period->id);
-                    })
-                    ->update([
-                        'status'            => 'applied',
-                        'period_closing_id' => $period->id,
-                    ]);
+                if ($pendingAdjustments->isNotEmpty()) {
+                    Adjustment::whereIn('id', $pendingAdjustments->pluck('id'))
+                        ->update([
+                            'status'            => 'applied',
+                            'period_closing_id' => $period->id,
+                        ]);
+                }
 
                 Publisher::syncPendingBalance($pubId);
 
