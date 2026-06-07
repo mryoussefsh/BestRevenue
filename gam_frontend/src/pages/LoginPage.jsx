@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useSettings } from '../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const { settings } = useSettings()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,8 +34,12 @@ export default function LoginPage() {
     <div className="auth-wrapper">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">💹</div>
-          <h1 className="auth-title">BestRevenue</h1>
+          {settings.site_logo ? (
+            <img src={settings.site_logo} alt="Logo" style={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain', marginBottom: 16 }} />
+          ) : (
+            <div className="auth-logo-icon">💹</div>
+          )}
+          <h1 className="auth-title">{settings.site_name || 'BestRevenue'}</h1>
           <p className="auth-subtitle">Sign in to your account</p>
         </div>
 
@@ -88,12 +94,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>
-          New to BestRevenue?{' '}
-          <Link to="/register" id="go-to-register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-            Create a Publisher Account
-          </Link>
-        </div>
+        {settings.registration_status !== 'closed' && (
+          <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>
+            New to {settings.site_name || 'BestRevenue'}?{' '}
+            <Link to="/register" id="go-to-register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+              Create a Publisher Account
+            </Link>
+          </div>
+        )}
 
         <div style={{ marginTop: 16, padding: '16px', background: 'var(--color-surface-3)', borderRadius: 'var(--radius-md)', fontSize: 12, color: 'var(--color-text-subtle)' }}>
           <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-muted)' }}>Demo Credentials</div>

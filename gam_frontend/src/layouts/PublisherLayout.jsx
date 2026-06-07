@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
 import AnnouncementsRenderer from '../components/AnnouncementsRenderer'
+import { useSettings } from '../contexts/SettingsContext'
 
 const navItems = [
   { to: '/publisher',          icon: '📊', label: 'Dashboard',   end: true },
@@ -13,6 +14,7 @@ const navItems = [
 export default function PublisherLayout({ children }) {
   const { user, logout, stopImpersonating } = useAuth()
   const { locale, switchLocale } = useI18n()
+  const { settings } = useSettings()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -24,8 +26,14 @@ export default function PublisherLayout({ children }) {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">💹</div>
-          <span className="sidebar-logo-text">BestRevenue</span>
+          {settings.site_logo ? (
+            <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
+          ) : (
+            <>
+              <div className="sidebar-logo-icon">💹</div>
+              <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
+            </>
+          )}
         </div>
 
         <nav className="sidebar-nav">

@@ -249,7 +249,6 @@ class PeriodAutoClose extends Command
                 // ─────────────────────────────────────────────────────────────────
                 // STEP 5: Check payout eligibility
                 // ─────────────────────────────────────────────────────────────────
-                $belowThreshold = $finalAmount < $threshold;
                 $hasPaymentMethod = $publisher->payment_info
                     && is_array($publisher->payment_info)
                     && !empty($publisher->payment_info['method']);
@@ -257,13 +256,32 @@ class PeriodAutoClose extends Command
                     && is_array($publisher->payment_info)
                     && !empty($publisher->payment_info['account']);
 
+                $customThreshold = null;
+                if ($hasPaymentMethod) {
+                    $selectedMethodName = $publisher->payment_info['method'];
+                    $paymentMethodsSetting = Setting::get('payment_methods', []);
+                    if (is_array($paymentMethodsSetting)) {
+                        foreach ($paymentMethodsSetting as $m) {
+                            if (isset($m['name']) && strtolower($m['name']) === strtolower($selectedMethodName)) {
+                                if (isset($m['minimum'])) {
+                                    $customThreshold = (float) $m['minimum'];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $activeThreshold = $customThreshold !== null ? $customThreshold : $threshold;
+                $belowThreshold = $finalAmount < $activeThreshold;
+
                 $payoutEligible = !$belowThreshold && $hasPaymentMethod && $hasPaymentAccount;
 
                 if (!$payoutEligible) {
                     // Publisher is ineligible for a payout this period, but records ARE locked.
                     // Their balance carries forward through the still-pending adjustment system.
                     if ($belowThreshold) {
-                        $this->info("Publisher {$publisher->name}: below threshold (\${$finalAmount} < \${$threshold}). Records locked, balance rolls over.");
+                        $this->info("Publisher {$publisher->name}: below threshold (\${$finalAmount} < \${$activeThreshold}). Records locked, balance rolls over.");
                     } else {
                         $this->info("Publisher {$publisher->name}: no payment method configured. Records locked, balance rolls over.");
                     }

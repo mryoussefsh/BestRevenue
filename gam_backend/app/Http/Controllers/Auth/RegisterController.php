@@ -25,6 +25,13 @@ class RegisterController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        $regStatus = Setting::get('registration_status', 'open');
+        if ($regStatus === 'closed') {
+            return response()->json([
+                'message' => 'Registration is currently closed.',
+            ], 422);
+        }
+
         $request->validate([
             'name'     => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email'    => 'required|email|unique:users,email|unique:publishers,email',

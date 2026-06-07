@@ -31,9 +31,14 @@ An enterprise-grade, multi-account Publisher Revenue Sharing Platform. The platf
 - Support for secure, encrypted storage of publisher payment credentials.
 - Export PDF summaries of monthly revenue sharing reports for publisher billing.
 
-### 6. Interactive Dashboards & Announcement Channels
+### 6. Interactive Dashboards & Settings Upgrades
 - Fully responsive Admin Dashboard to manage settings, configurations, translation files, and audit logs.
-- Dedicated Publisher Portal featuring interactive charts (Recharts), announcements, performance reports, and payout requests.
+- Platform-wide timezone settings dynamically loaded during backend boot for scheduler and logs alignment.
+- Dynamic SEO controls to set page title, description, and keywords, automatically injected in public authentication HTML headers.
+- Media uploaders for branding assets including Platform Logo, Favicon, and Open Graph (OG) social share images.
+- Registration toggle to dynamically open or close platform self-registration, enforcing blocks at both frontend UI and API endpoints.
+- Dedicated Publisher Portal featuring interactive charts (Recharts), announcements, performance reports, and self-managed payment configuration.
+- Method-specific payment settings (PayPal, Bank Transfer, Wise, etc.) allowing admins to specify guidance texts and minimum thresholds validated automatically during period closings.
 - Integrated translation system (i18n) enabling localization across multiple languages.
 
 ---

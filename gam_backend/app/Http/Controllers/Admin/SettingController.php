@@ -146,4 +146,80 @@ class SettingController extends Controller
             return response()->json(['message' => 'Failed to send test email: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * GET /api/v1/public/settings
+     */
+    public function getPublicSettings(): JsonResponse
+    {
+        $publicKeys = [
+            'site_name',
+            'site_description',
+            'site_logo',
+            'site_favicon',
+            'og_image',
+            'meta_title',
+            'meta_description',
+            'meta_keywords',
+            'registration_status',
+            'publisher_registration_status',
+            'publisher_pending_message',
+            'payment_methods',
+        ];
+
+        $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {
+            $value = $setting->value;
+            if ($setting->type === 'json' && $value) {
+                $decoded = json_decode($value, true);
+                $value = is_array($decoded) ? $decoded : $value;
+            }
+            return [
+                'key'   => $setting->key,
+                'value' => $value,
+                'type'  => $setting->type,
+            ];
+        });
+
+        // Convert key-value pair format to list or return object
+        $map = [];
+        foreach ($settings as $s) {
+            $map[$s['key']] = $s['value'];
+        }
+
+        return response()->json($map);
+    }
+
+    /**
+     * POST /api/v1/admin/settings/upload
+     */
+    public function uploadSettingFile(Request $request): JsonResponse
+    {
+        $request->validate([
+            'key'  => 'required|string|in:site_logo,site_favicon,og_image',
+            'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
+        ]);
+
+        $key = $request->key;
+        $file = $request->file('file');
+
+        $path = $file->store('settings', 'public');
+        $url = asset('storage/' . $path);
+
+        $setting = Setting::findOrFail($key);
+        $oldValue = $setting->value;
+
+        $setting->value = $url;
+        $setting->updated_at = now();
+        $setting->save();
+
+        Cache::forget("setting_{$key}");
+
+        \App\Services\AuditLogService::log('updated', 'Setting', $key, ['value' => $oldValue], ['value' => $url]);
+
+        return response()->json([
+            'message' => 'File uploaded and setting updated successfully.',
+            'key'     => $key,
+            'value'   => $url,
+        ]);
+    }
 }

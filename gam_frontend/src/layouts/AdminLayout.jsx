@@ -2,6 +2,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
+import { useSettings } from '../contexts/SettingsContext'
 import { adminApi } from '../api/endpoints'
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
 export default function AdminLayout({ children }) {
   const { user, logout } = useAuth()
   const { locale, switchLocale, t } = useI18n()
+  const { settings } = useSettings()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -46,8 +48,14 @@ export default function AdminLayout({ children }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">💹</div>
-          <span className="sidebar-logo-text">BestRevenue</span>
+          {settings.site_logo ? (
+            <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
+          ) : (
+            <>
+              <div className="sidebar-logo-icon">💹</div>
+              <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
+            </>
+          )}
         </div>
 
         <nav className="sidebar-nav">

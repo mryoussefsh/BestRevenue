@@ -56,6 +56,16 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Created the `FinancialConcurrencyTest` integration test suite to verify safety.
 - [x] Implemented platform-wide timezone setting dynamically loaded on boot and corresponding admin panel settings dropdown select.
 
+### Milestone 6: Platform Settings, Branding, SEO & Payout Setup (Sprint 11)
+- [x] Configured database migration and settings seed data for SEO tags, branding file URLs, and registration switches.
+- [x] Implemented public settings read endpoints and secure file uploads to storage for admin branding controls.
+- [x] Injected dynamic SEO tags and browser tab title overrides at runtime on public authentication screens (Login, Register, Password Reset).
+- [x] Added customizable branding logo and site title configurations that update header/sidebar layouts in real time.
+- [x] Implemented dynamic self-registration checks blocking new publisher registrations if status is set to `'closed'`.
+- [x] Activated publisher portal payment configuration form allowing publishers to self-setup payment details.
+- [x] Integrated method-specific payout validation where period auto-close calculations check individual publisher settings against payment method minimum thresholds before creating payouts.
+- [x] Added integration tests for registration block and auto-close minimum payout threshold enforcement.
+
 ---
 
 ## 📅 Remaining Roadmap Tasks

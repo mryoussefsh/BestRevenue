@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
+import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
@@ -9,6 +10,21 @@ export default function SettingsPage() {
   const [edited, setEdited] = useState({})
   const [testEmailRecipient, setTestEmailRecipient] = useState('')
   const [sendingTestMail, setSendingTestMail] = useState(false)
+  const { reload: reloadSettings } = useSettings()
+
+  async function handleFileUpload(key, file) {
+    if (!file) return
+    const toastId = toast.loading('Uploading file...')
+    try {
+      const res = await adminApi.uploadSettingFile(key, file)
+      toast.success('File uploaded successfully!', { id: toastId })
+      setSettings(ss => ss.map(s => s.key === key ? { ...s, value: res.data.value } : s))
+      setEdited(v => ({ ...v, [key]: res.data.value }))
+      reloadSettings()
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'File upload failed.', { id: toastId })
+    }
+  }
 
   async function handleSendTestEmail() {
     if (!testEmailRecipient) return
@@ -38,10 +54,14 @@ export default function SettingsPage() {
   async function handleSave(key) {
     setSaving(s => ({ ...s, [key]: true }))
     try {
-      await adminApi.updateSetting(key, edited[key])
+      // payment_methods is an object when edited in our custom list editor,
+      // but the API expects JSON or correct type format.
+      // SettingController will handle array-to-JSON parsing but let's be safe.
+      const val = edited[key]
+      await adminApi.updateSetting(key, val)
       toast.success(`Setting "${key}" saved!`)
-      // Update local list
-      setSettings(ss => ss.map(s => s.key === key ? { ...s, value: edited[key] } : s))
+      setSettings(ss => ss.map(s => s.key === key ? { ...s, value: val } : s))
+      reloadSettings()
     } catch { toast.error(`Failed to save ${key}`) }
     finally { setSaving(s => ({ ...s, [key]: false })) }
   }
@@ -49,7 +69,7 @@ export default function SettingsPage() {
   const groups = [...new Set(settings.map(s => s.group))].filter(g => g !== 'system_info')
   const projectPath = settings.find(s => s.key === 'project_path')?.value || '/path-to-your-project'
 
-  const groupIcon = { payout: '💳', gam: '📡', payment: '🏦', display: '🎨', localization: '🌍', registration: '📝', email: '📧' }
+  const groupIcon = { payout: '💳', gam: '📡', payment: '🏦', display: '🎨', localization: '🌍', registration: '📝', email: '📧', seo: '🔍' }
 
   if (loading) return (
     <div className="loading-screen"><div className="spinner"></div></div>
@@ -119,6 +139,165 @@ export default function SettingsPage() {
                       <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
                       <option value="Europe/Kiev">Europe/Kiev (EET/EEST)</option>
                       <option value="Europe/Istanbul">Europe/Istanbul (TRT)</option>
+                    </select>
+                  ) : ['site_logo', 'site_favicon', 'og_image'].includes(s.key) ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+                      {edited[s.key] && (
+                        <div style={{
+                          background: 'var(--color-surface-3)',
+                          padding: 10,
+                          borderRadius: 8,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          border: '1px dashed var(--color-border)',
+                          alignSelf: 'flex-start'
+                        }}>
+                          <img
+                            src={edited[s.key]}
+                            alt={s.label}
+                            style={{
+                              maxHeight: s.key === 'site_favicon' ? 32 : 50,
+                              maxWidth: 150,
+                              objectFit: 'contain',
+                              borderRadius: 4
+                            }}
+                          />
+                          <button
+                            className="btn btn-secondary btn-xs"
+                            onClick={() => {
+                              setEdited(v => ({ ...v, [s.key]: '' }))
+                            }}
+                            style={{ color: 'var(--color-danger)' }}
+                          >
+                            🗑️ Clear
+                          </button>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Or paste asset URL here..."
+                          value={edited[s.key] ?? ''}
+                          onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
+                        />
+                        <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap', margin: 0 }}>
+                          📁 Upload File
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={e => {
+                              const file = e.target.files?.[0]
+                              if (file) handleFileUpload(s.key, file)
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ) : s.key === 'payment_methods' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+                      {(() => {
+                        let list = []
+                        try {
+                          list = typeof edited[s.key] === 'string' ? JSON.parse(edited[s.key]) : edited[s.key]
+                        } catch {
+                          list = []
+                        }
+                        if (!Array.isArray(list)) list = []
+
+                        return (
+                          <>
+                            {list.map((m, idx) => (
+                              <div key={idx} style={{
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 8,
+                                padding: 16,
+                                background: 'var(--color-surface-2)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 12
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
+                                    💳 Method #{idx + 1}
+                                  </div>
+                                  <button
+                                    className="btn btn-secondary btn-xs"
+                                    style={{ color: 'var(--color-danger)' }}
+                                    onClick={() => {
+                                      const updated = list.filter((_, i) => i !== idx)
+                                      setEdited(v => ({ ...v, [s.key]: updated }))
+                                    }}
+                                  >
+                                    🗑️ Remove
+                                  </button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                  <div>
+                                    <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Name</label>
+                                    <input
+                                      type="text"
+                                      className="form-input text-sm"
+                                      value={m.name ?? ''}
+                                      onChange={e => {
+                                        const updated = list.map((item, i) => i === idx ? { ...item, name: e.target.value } : item)
+                                        setEdited(v => ({ ...v, [s.key]: updated }))
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Min Payout ($)</label>
+                                    <input
+                                      type="number"
+                                      className="form-input text-sm"
+                                      value={m.minimum ?? 0}
+                                      onChange={e => {
+                                        const updated = list.map((item, i) => i === idx ? { ...item, minimum: parseFloat(e.target.value) || 0 } : item)
+                                        setEdited(v => ({ ...v, [s.key]: updated }))
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Guidance Text</label>
+                                  <textarea
+                                    rows={2}
+                                    className="form-textarea text-sm"
+                                    value={m.guidance ?? ''}
+                                    onChange={e => {
+                                      const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
+                                      setEdited(v => ({ ...v, [s.key]: updated }))
+                                    }}
+                                    placeholder="Instructions shown to the publisher..."
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ alignSelf: 'flex-start' }}
+                              onClick={() => {
+                                const updated = [...list, { name: '', minimum: 0, guidance: '' }]
+                                setEdited(v => ({ ...v, [s.key]: updated }))
+                              }}
+                            >
+                              ➕ Add Payment Method
+                            </button>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  ) : s.key === 'registration_status' ? (
+                    <select
+                      className="form-select"
+                      value={edited[s.key] ?? 'open'}
+                      onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
+                    >
+                      <option value="open">🟢 Open — Anyone can register</option>
+                      <option value="closed">🔴 Closed — Registrations are disabled</option>
                     </select>
                   ) : s.key === 'publisher_registration_status' ? (
                     <div>

@@ -184,7 +184,7 @@ class PeriodAutoCloseTest extends TestCase
             'email' => 'test2@publisher.com',
             'status' => 'active',
             'default_ratio' => 0.80,
-            'payment_info' => ['method' => 'Wise', 'account' => 'test_account'],
+            'payment_info' => ['method' => 'Check', 'account' => 'test_account'],
         ]);
 
         // 2. Create Website and Ad Unit
@@ -1911,5 +1911,127 @@ class PeriodAutoCloseTest extends TestCase
         $response = $this->getJson("/api/v1/admin/period-closings");
         $response->assertStatus(200);
         $response->assertJsonPath('data.0.payouts_sum_final_amount', 15);
+    }
+
+    public function test_registration_fails_if_status_closed(): void
+    {
+        Setting::updateOrCreate(
+            ['key' => 'registration_status'],
+            ['value' => 'closed', 'group' => 'registration', 'label' => 'Reg Status', 'type' => 'string']
+        );
+
+        $payload = [
+            'name' => 'John Doe',
+            'email' => 'john_closed_test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'telegram' => '@johndoe',
+        ];
+
+        $response = $this->postJson('/api/v1/auth/register', $payload);
+        $response->assertStatus(422);
+        $response->assertJsonFragment(['message' => 'Registration is currently closed.']);
+    }
+
+    public function test_auto_close_validates_method_specific_minimum(): void
+    {
+        Setting::updateOrCreate(['key' => 'payout_threshold'], ['value' => '50.00', 'group' => 'payout', 'label' => 'Threshold', 'type' => 'string']);
+        Setting::updateOrCreate(['key' => 'payment_methods'], [
+            'value' => json_encode([
+                ['name' => 'Bank Transfer', 'minimum' => 100.00, 'guidance' => ''],
+                ['name' => 'PayPal', 'minimum' => 20.00, 'guidance' => ''],
+            ]),
+            'group' => 'payment',
+            'label' => 'Methods',
+            'type' => 'json'
+        ]);
+
+        $pubA = Publisher::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Pub A PayPal',
+            'email' => 'puba@paypal.com',
+            'status' => 'active',
+            'default_ratio' => 1.0,
+            'payment_info' => ['method' => 'PayPal', 'account' => 'paypal@puba.com'],
+        ]);
+
+        $pubB = Publisher::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Pub B Bank',
+            'email' => 'pubb@bank.com',
+            'status' => 'active',
+            'default_ratio' => 1.0,
+            'payment_info' => ['method' => 'Bank Transfer', 'account' => 'IBAN12345'],
+        ]);
+
+        $webA = Website::create([
+            'id' => Str::uuid()->toString(),
+            'publisher_id' => $pubA->id,
+            'domain' => 'puba.com',
+            'is_active' => true,
+            'gam_network_code' => '12345',
+        ]);
+        $adA = AdUnit::create([
+            'id' => Str::uuid()->toString(),
+            'website_id' => $webA->id,
+            'gam_ad_unit_name' => 'ad1',
+            'display_name' => 'ad1',
+            'is_active' => true,
+        ]);
+        RevenueRecord::create([
+            'id' => Str::uuid()->toString(),
+            'ad_unit_id' => $adA->id,
+            'date' => '2026-05-15',
+            'hour' => 12,
+            'impressions' => 1000,
+            'gross_revenue' => 25.00,
+            'ratio_applied' => 1.0,
+            'publisher_earnings' => 25.00,
+        ]);
+
+        $webB = Website::create([
+            'id' => Str::uuid()->toString(),
+            'publisher_id' => $pubB->id,
+            'domain' => 'pubb.com',
+            'is_active' => true,
+            'gam_network_code' => '12345',
+        ]);
+        $adB = AdUnit::create([
+            'id' => Str::uuid()->toString(),
+            'website_id' => $webB->id,
+            'gam_ad_unit_name' => 'ad2',
+            'display_name' => 'ad2',
+            'is_active' => true,
+        ]);
+        RevenueRecord::create([
+            'id' => Str::uuid()->toString(),
+            'ad_unit_id' => $adB->id,
+            'date' => '2026-05-15',
+            'hour' => 12,
+            'impressions' => 1000,
+            'gross_revenue' => 75.00,
+            'ratio_applied' => 1.0,
+            'publisher_earnings' => 75.00,
+        ]);
+
+        $exitCode = Artisan::call('period:auto-close', [
+            '--force-year' => 2026,
+            '--force-month' => 5,
+        ]);
+        $this->assertEquals(0, $exitCode);
+
+        $payoutA = Payout::where('publisher_id', $pubA->id)->first();
+        $this->assertNotNull($payoutA);
+        $this->assertEquals(25.00, (float)$payoutA->final_amount);
+        $this->assertEquals('PayPal', $payoutA->payment_method);
+
+        $payoutB = Payout::where('publisher_id', $pubB->id)->first();
+        $this->assertNull($payoutB);
+
+        $rolloverB = Adjustment::where('publisher_id', $pubB->id)
+            ->where('status', 'pending')
+            ->first();
+        $this->assertNotNull($rolloverB);
+        $this->assertEquals(75.00, (float)$rolloverB->amount);
     }
 }

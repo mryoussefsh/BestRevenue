@@ -4,8 +4,10 @@ import { authApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
+import { useSettings } from '../contexts/SettingsContext'
 
 export default function RegisterPage() {
+  const { settings } = useSettings()
 
   const [form, setForm] = useState({
     name: '',
@@ -140,14 +142,39 @@ export default function RegisterPage() {
     )
   }
 
+  if (settings.registration_status === 'closed') {
+    return (
+      <div className="auth-wrapper">
+        <div className="auth-card" style={{ maxWidth: 500 }}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ fontSize: 64, marginBottom: 12 }}>🔒</div>
+            <h1 className="auth-title" style={{ fontSize: 22 }}>Registration Closed</h1>
+            <p className="auth-subtitle">We are not accepting new publisher registrations at this time.</p>
+          </div>
+          <Link
+            to="/login"
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
+          >
+            🔑 Back to Login
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   // ── Registration Form ────────────────────────────────────────────────
   return (
     <div className="auth-wrapper">
       <div className="auth-card" style={{ maxWidth: 520 }}>
         <div className="auth-logo">
-          <div className="auth-logo-icon">💹</div>
+          {settings.site_logo ? (
+            <img src={settings.site_logo} alt="Logo" style={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain', marginBottom: 16 }} />
+          ) : (
+            <div className="auth-logo-icon">💹</div>
+          )}
           <h1 className="auth-title">Create Publisher Account</h1>
-          <p className="auth-subtitle">Join BestRevenue and start monetizing your traffic</p>
+          <p className="auth-subtitle">Join {settings.site_name || 'BestRevenue'} and start monetizing your traffic</p>
         </div>
 
         {errors.general && (

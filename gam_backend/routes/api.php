@@ -43,6 +43,7 @@ Route::prefix('v1')->group(function () {
     // Translations (public GET — used by React i18n)
     // ──────────────────────────────────────────────────────
     Route::get('translations/{locale}', [TranslationController::class, 'show']);
+    Route::get('public/settings', [SettingController::class, 'getPublicSettings']);
 
     // ──────────────────────────────────────────────────────
     // Google OAuth callback (public — Google redirects here)
@@ -57,6 +58,7 @@ Route::prefix('v1')->group(function () {
         // Settings
         Route::get('settings', [SettingController::class, 'index']);
         Route::put('settings/{key}', [SettingController::class, 'update']);
+        Route::post('settings/upload', [SettingController::class, 'uploadSettingFile']);
         Route::post('settings/test-email', [SettingController::class, 'testEmail']);
 
         // Email Templates
@@ -152,7 +154,7 @@ Route::prefix('v1')->group(function () {
 
         // Payouts — Sprint 6
         Route::get('payouts', [\App\Http\Controllers\Publisher\PublisherPayoutController::class, 'index']);
-        // Route::put('payment-info', [PublisherPayoutController::class, 'updatePaymentInfo']);
+        Route::put('payment-info', [\App\Http\Controllers\Publisher\PublisherPayoutController::class, 'updatePaymentInfo']);
 
         // Announcements
         Route::get('announcements', [\App\Http\Controllers\Publisher\AnnouncementController::class, 'index']);

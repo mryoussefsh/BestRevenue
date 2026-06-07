@@ -48,8 +48,16 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const updatePaymentInfo = useCallback((newPaymentInfo) => {
+    setUser(u => {
+      const updated = { ...u, payment_info: newPaymentInfo }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating }}>
+    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo }}>
       {children}
     </AuthContext.Provider>
   )

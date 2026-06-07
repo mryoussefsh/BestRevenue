@@ -81,9 +81,25 @@ class SettingsSeeder extends Seeder
             // ── Payment ───────────────────────────────────────
             [
                 'key'   => 'payment_methods',
-                'value' => json_encode(['Bank Transfer', 'PayPal', 'Wise']),
+                'value' => json_encode([
+                    [
+                        'name'     => 'Bank Transfer',
+                        'minimum'  => 50.00,
+                        'guidance' => 'Please provide Bank Name, Account Name, IBAN/AccountNumber, and BIC/SWIFT code.',
+                    ],
+                    [
+                        'name'     => 'PayPal',
+                        'minimum'  => 20.00,
+                        'guidance' => 'Please provide your registered PayPal email address.',
+                    ],
+                    [
+                        'name'     => 'Wise',
+                        'minimum'  => 30.00,
+                        'guidance' => 'Please provide your registered Wise email address or bank transfer details.',
+                    ],
+                ]),
                 'group' => 'payment',
-                'label' => 'Available Payment Methods (JSON array)',
+                'label' => 'Available Payment Methods (JSON config)',
                 'type'  => 'json',
             ],
 
@@ -103,14 +119,72 @@ class SettingsSeeder extends Seeder
                 'type'  => 'string',
             ],
             [
+                'key'   => 'site_description',
+                'value' => 'Enterprise-grade multi-account Google Ad Manager revenue sharing and publisher portal.',
+                'group' => 'display',
+                'label' => 'Website Description',
+                'type'  => 'string',
+            ],
+            [
                 'key'   => 'platform_timezone',
                 'value' => 'UTC',
                 'group' => 'display',
                 'label' => 'Platform Default Timezone',
                 'type'  => 'string',
             ],
+            [
+                'key'   => 'site_logo',
+                'value' => null,
+                'group' => 'display',
+                'label' => 'Platform Logo Image URL',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'site_favicon',
+                'value' => null,
+                'group' => 'display',
+                'label' => 'Platform Favicon URL',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'og_image',
+                'value' => null,
+                'group' => 'display',
+                'label' => 'OG Image URL (SEO Social Share)',
+                'type'  => 'string',
+            ],
+
+            // ── SEO ───────────────────────────────────────────
+            [
+                'key'   => 'meta_title',
+                'value' => 'BestRevenue - Publisher Revenue Sharing Platform',
+                'group' => 'seo',
+                'label' => 'SEO Meta Title',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'meta_description',
+                'value' => 'Monetize your websites with premium ads via Google Ad Manager and track your earnings transparently.',
+                'group' => 'seo',
+                'label' => 'SEO Meta Description',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'meta_keywords',
+                'value' => 'revenue sharing, publisher, google ad manager, gam sync, impressions, ad units, monetization',
+                'group' => 'seo',
+                'label' => 'SEO Meta Keywords',
+                'type'  => 'string',
+            ],
 
             // ── Registration ──────────────────────────────────────
+            [
+                'key'   => 'registration_status',
+                'value' => 'open',
+                'group' => 'registration',
+                'label' => 'Publisher Self-Registration Status (open or closed)',
+                'type'  => 'string',
+            ],
             [
                 'key'   => 'publisher_registration_status',
                 'value' => 'pending',

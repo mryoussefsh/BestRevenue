@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { I18nProvider } from './contexts/I18nContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 
 import PrivateRoute from './components/PrivateRoute'
 
@@ -49,7 +50,8 @@ function App() {
   return (
     <AuthProvider>
       <I18nProvider>
-        <BrowserRouter>
+        <SettingsProvider>
+          <BrowserRouter>
           <Toaster
             position="top-right"
             toastOptions={{
@@ -176,7 +178,8 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
+          </BrowserRouter>
+        </SettingsProvider>
       </I18nProvider>
     </AuthProvider>
   )

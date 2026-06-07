@@ -40,4 +40,46 @@ class PublisherPayoutController extends Controller
             })
         ]);
     }
+
+    /**
+     * PUT /api/v1/publisher/payment-info
+     */
+    public function updatePaymentInfo(Request $request): JsonResponse
+    {
+        $publisher = $request->user()->publisher;
+        if (!$publisher) {
+            return response()->json(['message' => 'Publisher profile not found.'], 404);
+        }
+
+        $request->validate([
+            'method'  => 'required|string',
+            'account' => 'required|string|max:1000',
+        ]);
+
+        // Validate that the method is allowed
+        $allowedMethods = \App\Models\Setting::get('payment_methods', []);
+        $methodNames = array_map(function ($m) {
+            return strtolower($m['name'] ?? '');
+        }, $allowedMethods);
+
+        if (!in_array(strtolower($request->method), $methodNames)) {
+            return response()->json([
+                'message' => 'Selected payment method is not allowed or supported by the platform.',
+                'errors' => [
+                    'method' => ['Selected payment method is not supported.']
+                ]
+            ], 422);
+        }
+
+        $publisher->payment_info = [
+            'method'  => $request->method,
+            'account' => $request->account,
+        ];
+        $publisher->save();
+
+        return response()->json([
+            'message'      => 'Payment information updated successfully.',
+            'payment_info' => $publisher->payment_info,
+        ]);
+    }
 }

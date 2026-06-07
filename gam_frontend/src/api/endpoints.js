@@ -9,6 +9,10 @@ export const authApi = {
   resetPassword: (data)            => api.post('/auth/reset-password', data),
 }
 
+export const publicApi = {
+  getSettings:   ()                => api.get('/public/settings'),
+}
+
 export const adminApi = {
   // Stats
   getSidebarStats:     ()       => api.get('/admin/sidebar-stats'),
@@ -62,6 +66,14 @@ export const adminApi = {
   // Settings
   getSettings:         ()        => api.get('/admin/settings'),
   updateSetting:       (key, value) => api.put(`/admin/settings/${key}`, { value }),
+  uploadSettingFile:   (key, file) => {
+    const formData = new FormData()
+    formData.append('key', key)
+    formData.append('file', file)
+    return api.post('/admin/settings/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
   testEmailSettings:   (email)   => api.post('/admin/settings/test-email', { email }),
 
   // Adjustments

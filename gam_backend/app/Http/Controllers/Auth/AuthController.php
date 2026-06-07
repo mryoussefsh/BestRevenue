@@ -80,6 +80,7 @@ class AuthController extends Controller
                 'role'         => $user->role,
                 'publisher_id' => $user->publisher_id,
                 'pending_balance' => $user->publisher ? (float) $user->publisher->pending_balance_adjustment : 0.0,
+                'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
             ],
         ]);
     }
@@ -109,6 +110,7 @@ class AuthController extends Controller
             'publisher_id' => $user->publisher_id,
             'is_active'    => $user->is_active,
             'pending_balance' => $user->publisher ? (float) $user->publisher->pending_balance_adjustment : 0.0,
+            'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
         ]);
     }
 }

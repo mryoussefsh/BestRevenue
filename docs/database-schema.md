@@ -155,6 +155,30 @@ Maintains trail of publisher default revenue share percentage changes.
 - `changed_by` (UUID, Foreign Key): References `users.id`.
 - `timestamps` (created_at, updated_at).
 
+### K. `settings`
+Stores dynamic global configurations for the platform.
+- `key` (varchar(100), Primary Key): Unique configuration identifier.
+- `value` (text, Nullable): Configuration value (can hold string, integer, boolean, or JSON array/object payloads).
+- `group` (varchar(50), Default: 'general'): Settings group for categorization (e.g. `general`, `display`, `seo`, `registration`, `payment`, `google`).
+- `label` (varchar(200)): Display label for administrators.
+- `type` (varchar(20), Default: 'string'): Data type validation guard (e.g. `string`, `integer`, `boolean`, `json`).
+- `updated_at` (timestamp, Nullable): Time when configuration was last updated.
+
+#### Seeded Keys & New Configurations (Sprint 11/12 Settings Upgrade):
+* **SEO Settings (`group: 'seo'`)**:
+  * `meta_title`: Dynamic HTML document title prefix.
+  * `meta_description`: HTML head meta tag description for public authentication pages.
+  * `meta_keywords`: HTML head meta tag keywords list.
+* **Branding Settings (`group: 'display'`)**:
+  * `site_description`: Text description of the platform.
+  * `site_logo`: Path/URL to the uploaded platform logo image (dynamic header/sidebar renders).
+  * `site_favicon`: Path/URL to the uploaded platform browser favicon.
+  * `og_image`: Open Graph image URL for social media share previews.
+* **Registration Controls (`group: 'registration'`)**:
+  * `registration_status`: Controls self-registration access (`'open'` or `'closed'`).
+* **Payment Configuration (`group: 'payment'`)**:
+  * `payment_methods`: JSON array of structured payment methods, each containing `name`, `minimum` payout threshold, and `guidance` instructions.
+
 ---
 
 ## 3. Database Indexes & Integrity Constraints

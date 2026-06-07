@@ -1,14 +1,37 @@
 import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 
 export default function PublisherPayouts() {
-  const { user } = useAuth()
+  const { user, updatePaymentInfo } = useAuth()
+  const { settings } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
+
+  const [method, setMethod] = useState(user?.payment_info?.method || '')
+  const [account, setAccount] = useState(user?.payment_info?.account || '')
+  const [savingPayment, setSavingPayment] = useState(false)
+
+  async function handleSavePayment(e) {
+    e.preventDefault()
+    if (!method) return toast.error('Please select a payment method')
+    if (!account.trim()) return toast.error('Please provide payment account details')
+
+    setSavingPayment(true)
+    try {
+      await publisherApi.updatePaymentInfo({ method, account })
+      updatePaymentInfo({ method, account })
+      toast.success('Payment details updated successfully!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update payment details')
+    } finally {
+      setSavingPayment(false)
+    }
+  }
 
   useEffect(() => {
     publisherApi.getPayouts()
@@ -129,6 +152,75 @@ export default function PublisherPayouts() {
           pageSize={15}
           onPageChange={setPage}
         />
+      </div>
+
+      {/* Payout Details Settings */}
+      <div className="card" style={{ marginTop: 24 }}>
+        <div className="card-header">
+          <div className="card-title">🏦 Payment Method Settings</div>
+        </div>
+        <form onSubmit={handleSavePayment} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20 }}>
+            <div>
+              <label className="form-label">Payout Method *</label>
+              <select
+                className="form-select"
+                value={method}
+                onChange={e => setMethod(e.target.value)}
+                required
+              >
+                <option value="">-- Select Payout Method --</option>
+                {(settings.payment_methods || []).map(m => (
+                  <option key={m.name} value={m.name}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Payment Account Details *</label>
+              <textarea
+                className="form-textarea"
+                rows={3}
+                placeholder="Paste your bank details, PayPal address, or cryptocurrency keys here..."
+                value={account}
+                onChange={e => setAccount(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {(() => {
+            const selected = (settings.payment_methods || []).find(m => m.name === method)
+            if (!selected) return null
+            return (
+              <div style={{
+                background: 'var(--color-surface-2)',
+                borderLeft: '4px solid var(--color-primary)',
+                padding: '12px 16px',
+                borderRadius: '0 var(--radius-md) var(--radius-md) 0',
+                fontSize: '13px'
+              }}>
+                <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', marginBottom: 4 }}>
+                  💡 {selected.name} Instructions
+                </div>
+                <div style={{ color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+                  {selected.guidance}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  Minimum payout amount: <strong>${parseFloat(selected.minimum).toFixed(2)}</strong>
+                </div>
+              </div>
+            )
+          })()}
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ alignSelf: 'flex-start' }}
+            disabled={savingPayment}
+          >
+            {savingPayment ? 'Saving...' : '💾 Save Payment Details'}
+          </button>
+        </form>
       </div>
     </div>
   )
