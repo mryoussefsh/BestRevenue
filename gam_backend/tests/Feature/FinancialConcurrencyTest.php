@@ -267,4 +267,65 @@ class FinancialConcurrencyTest extends TestCase
             'status' => 'pending',
         ]);
     }
+
+    /**
+     * Verifies that rejecting a manual payout that has already been applied under a closed period
+     * creates a new pending refund adjustment for the publisher.
+     */
+    public function test_payout_rejection_for_manual_payout_applied_to_closed_period_creates_refund(): void
+    {
+        $admin     = $this->makeAdmin();
+        $publisher = $this->makePublisher();
+        \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
+
+        // Record a manual payout (creates Payout + deduction adjustment of -$60.00)
+        $response = $this->postJson("/api/v1/admin/publishers/{$publisher->id}/manual-payment", [
+            'amount' => 60.00,
+            'method' => 'Wise',
+        ]);
+        $response->assertStatus(201);
+        $payoutId = $response->json('payout.id');
+
+        // Simulate period closing by setting the deduction adjustment status to 'applied'
+        $deduction = Adjustment::where('publisher_id', $publisher->id)
+            ->where('notes', 'Deduction for standalone manual payment ' . $payoutId)
+            ->firstOrFail();
+
+        $period = PeriodClosing::create([
+            'id'          => Str::uuid()->toString(),
+            'period_year' => 2026,
+            'period_month'=> 5,
+            'status'      => 'closed',
+        ]);
+
+        $deduction->update([
+            'status'            => 'applied',
+            'period_closing_id' => $period->id,
+        ]);
+
+        // Reject the manual payout
+        $rejectResponse = $this->postJson("/api/v1/admin/payouts/{$payoutId}/reject", [
+            'admin_note' => 'Rejection of manual payment after period close',
+        ]);
+        $rejectResponse->assertStatus(200);
+
+        // Verify that the original deduction adjustment is untouched (still applied)
+        $this->assertDatabaseHas('adjustments', [
+            'id'                => $deduction->id,
+            'status'            => 'applied',
+            'period_closing_id' => $period->id,
+        ]);
+
+        // Verify that a new pending adjustment was created carrying the +$60.00 refund
+        $this->assertDatabaseHas('adjustments', [
+            'publisher_id' => $publisher->id,
+            'amount'       => 60.00,
+            'status'       => 'pending',
+            'notes'        => 'Refund for rejected manual payment ' . $payoutId . ' (deduction was applied to closed period)',
+        ]);
+
+        // Verify publisher pending balance adjustment is back to 60.00
+        $publisher->refresh();
+        $this->assertEquals(60.00, (float) $publisher->pending_balance_adjustment);
+    }
 }

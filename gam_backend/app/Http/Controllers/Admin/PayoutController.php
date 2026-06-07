@@ -157,11 +157,26 @@ class PayoutController extends Controller
                 }
             } else {
                 // Standalone Manual Payment Rejection:
-                // Delete the associated pending deduction adjustment created for this manual payment.
-                \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
+                // If the negative deduction adjustment is still pending, we delete it.
+                // If it is already applied (the period closed), we must refund the amount by creating a positive pending adjustment.
+                $deduction = \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
                     ->where('notes', 'Deduction for standalone manual payment ' . $payout->id)
-                    ->where('status', 'pending')
-                    ->delete();
+                    ->first();
+
+                if ($deduction) {
+                    if ($deduction->status === 'pending') {
+                        $deduction->delete();
+                    } elseif ($deduction->status === 'applied') {
+                        \App\Models\Adjustment::create([
+                            'id'           => \Illuminate\Support\Str::uuid()->toString(),
+                            'publisher_id' => $payout->publisher_id,
+                            'amount'       => $payout->amount, // positive refund
+                            'notes'        => 'Refund for rejected manual payment ' . $payout->id . ' (deduction was applied to closed period)',
+                            'status'       => 'pending',
+                            'created_by'   => $request->user()->id,
+                        ]);
+                    }
+                }
             }
 
             // Sync balance after transaction commits
