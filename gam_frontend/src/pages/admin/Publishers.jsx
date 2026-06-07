@@ -18,6 +18,8 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
     telegram: publisher?.telegram || '',
     skype: publisher?.skype || '',
     country: publisher?.country || '',
+    payment_method: publisher?.payment_info?.method || '',
+    payment_account: publisher?.payment_info?.account || '',
   })
   const [loading, setLoading] = useState(false)
 
@@ -46,6 +48,10 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
         telegram: form.telegram,
         skype: form.skype,
         country: form.country,
+        payment_info: {
+          method: form.payment_method,
+          account: form.payment_account
+        }
       }
       if (!isEdit || form.password) payload.password = form.password
       if (isEdit) await adminApi.updatePublisher(publisher.id, payload)
@@ -108,6 +114,7 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
           </div>
           <div className="form-row">
             <div className="form-group">
+            <div className="form-group">
               <label className="form-label">Skype</label>
               <input className="form-input" value={form.skype}
                 onChange={e => setForm(f => ({ ...f, skype: e.target.value }))} placeholder="e.g. live:username" />
@@ -116,6 +123,18 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
               <label className="form-label">Country</label>
               <input className="form-input" value={form.country}
                 onChange={e => setForm(f => ({ ...f, country: e.target.value }))} placeholder="e.g. United States" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Payment Method</label>
+              <input className="form-input" value={form.payment_method}
+                onChange={e => setForm(f => ({ ...f, payment_method: e.target.value }))} placeholder="e.g. Wire Transfer, PayPal" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Payment Account</label>
+              <input className="form-input" value={form.payment_account}
+                onChange={e => setForm(f => ({ ...f, payment_account: e.target.value }))} placeholder="e.g. routing/account info" />
             </div>
           </div>
           <div className="form-row">
