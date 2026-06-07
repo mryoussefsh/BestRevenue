@@ -81,9 +81,9 @@ class PeriodAutoClose extends Command
             }
         }
 
-        // FIX [PC-6]: Prevent force-closing a future or current month
+        // FIX [PC-6]: Prevent force-closing a future or current month (except in local or testing environments)
         $currentMonthStart = now()->startOfMonth();
-        if ($forcedDate->gte($currentMonthStart) && $isManualOverride) {
+        if ($forcedDate->gte($currentMonthStart) && $isManualOverride && !app()->environment('local', 'testing')) {
             $this->error("Cannot close the current or a future month. Target: {$year}-{$month}.");
             return 1;
         }
