@@ -170,9 +170,10 @@ export default function PublisherPayouts() {
                 required
               >
                 <option value="">-- Select Payout Method --</option>
-                {(settings.payment_methods || []).map(m => (
-                  <option key={m.name} value={m.name}>{m.name}</option>
-                ))}
+                {(settings.payment_methods || []).map(m => {
+                  const name = typeof m === 'object' && m !== null ? m.name : m
+                  return <option key={name} value={name}>{name}</option>
+                })}
               </select>
             </div>
             <div>
@@ -189,8 +190,16 @@ export default function PublisherPayouts() {
           </div>
 
           {(() => {
-            const selected = (settings.payment_methods || []).find(m => m.name === method)
+            const selected = (settings.payment_methods || []).find(m => {
+              const name = typeof m === 'object' && m !== null ? m.name : m
+              return name === method
+            })
             if (!selected) return null
+            const isObject = typeof selected === 'object' && selected !== null
+            const name = isObject ? selected.name : selected
+            const guidance = isObject ? selected.guidance : 'Please provide your account details.'
+            const minimum = isObject ? parseFloat(selected.minimum || 0) : 50.00
+
             return (
               <div style={{
                 background: 'var(--color-surface-2)',
@@ -200,13 +209,13 @@ export default function PublisherPayouts() {
                 fontSize: '13px'
               }}>
                 <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', marginBottom: 4 }}>
-                  💡 {selected.name} Instructions
+                  💡 {name} Instructions
                 </div>
                 <div style={{ color: 'var(--color-text-secondary)', marginBottom: 6 }}>
-                  {selected.guidance}
+                  {guidance}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                  Minimum payout amount: <strong>${parseFloat(selected.minimum).toFixed(2)}</strong>
+                  Minimum payout amount: <strong>${minimum.toFixed(2)}</strong>
                 </div>
               </div>
             )

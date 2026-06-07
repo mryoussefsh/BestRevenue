@@ -2034,4 +2034,49 @@ class PeriodAutoCloseTest extends TestCase
         $this->assertNotNull($rolloverB);
         $this->assertEquals(75.00, (float)$rolloverB->amount);
     }
+
+    public function test_payment_methods_validation_handles_simple_string_arrays(): void
+    {
+        \App\Models\Setting::updateOrCreate(['key' => 'payment_methods'], [
+            'value' => json_encode(['PayPal', 'Bank Transfer', 'Wise']),
+            'group' => 'payment',
+            'label' => 'Methods',
+            'type' => 'json'
+        ]);
+
+        $publisher = \App\Models\Publisher::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'name' => 'Pub String Test',
+            'email' => 'pubstringtest@example.com',
+            'status' => 'active',
+            'default_ratio' => 1.0,
+        ]);
+
+        $user = \App\Models\User::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'name' => 'Pub String Test User',
+            'email' => 'pubstringtest@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'publisher',
+            'publisher_id' => $publisher->id,
+            'is_active' => true,
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($user, ['*']);
+
+        $response = $this->putJson('/api/v1/publisher/payment-info', [
+            'method' => 'PayPal',
+            'account' => 'paypal@pubstringtest.com'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['message' => 'Payment information updated successfully.']);
+
+        $publisher->refresh();
+        $this->assertEquals([
+            'method' => 'PayPal',
+            'account' => 'paypal@pubstringtest.com'
+        ], $publisher->payment_info);
+    }
 }
+

@@ -58,9 +58,18 @@ class PublisherPayoutController extends Controller
 
         // Validate that the method is allowed
         $allowedMethods = \App\Models\Setting::get('payment_methods', []);
-        $methodNames = array_map(function ($m) {
-            return strtolower($m['name'] ?? '');
-        }, $allowedMethods);
+        $methodNames = [];
+        if (is_array($allowedMethods)) {
+            foreach ($allowedMethods as $m) {
+                if (is_array($m)) {
+                    if (isset($m['name'])) {
+                        $methodNames[] = strtolower($m['name']);
+                    }
+                } elseif (is_string($m)) {
+                    $methodNames[] = strtolower($m);
+                }
+            }
+        }
 
         if (!in_array(strtolower($request->method), $methodNames)) {
             return response()->json([

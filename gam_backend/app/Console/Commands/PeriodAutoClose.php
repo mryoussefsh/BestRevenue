@@ -262,9 +262,18 @@ class PeriodAutoClose extends Command
                     $paymentMethodsSetting = Setting::get('payment_methods', []);
                     if (is_array($paymentMethodsSetting)) {
                         foreach ($paymentMethodsSetting as $m) {
-                            if (isset($m['name']) && strtolower($m['name']) === strtolower($selectedMethodName)) {
-                                if (isset($m['minimum'])) {
-                                    $customThreshold = (float) $m['minimum'];
+                            $mName = null;
+                            $mMin = null;
+                            if (is_array($m)) {
+                                $mName = $m['name'] ?? null;
+                                $mMin = $m['minimum'] ?? null;
+                            } elseif (is_string($m)) {
+                                $mName = $m;
+                            }
+
+                            if ($mName !== null && strtolower($mName) === strtolower($selectedMethodName)) {
+                                if ($mMin !== null) {
+                                    $customThreshold = (float) $mMin;
                                 }
                                 break;
                             }
