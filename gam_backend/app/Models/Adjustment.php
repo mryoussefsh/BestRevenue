@@ -63,7 +63,9 @@ class Adjustment extends Model
     public function syncPublisherPendingBalance()
     {
         if ($this->publisher_id) {
-            Publisher::syncPendingBalance($this->publisher_id);
+            \Illuminate\Support\Facades\DB::afterCommit(function () {
+                Publisher::syncPendingBalance($this->publisher_id);
+            });
         }
     }
 }

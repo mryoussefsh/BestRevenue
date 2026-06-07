@@ -114,8 +114,8 @@ class GamSync extends Command
         $upsertBatch = [];
         $batchSize = 1000;
 
-        // FIX [GS-1]: Load closedPeriods initially. Refreshed before each batch flush.
-        $closedPeriods = PeriodClosing::where('status', 'closed')
+        // FIX [GS-1]: Load lockedPeriods initially. Refreshed before each batch flush.
+        $lockedPeriods = PeriodClosing::whereIn('status', ['closed', 'closing'])
             ->get(['period_year', 'period_month'])
             ->map(fn($p) => "{$p->period_year}-{$p->period_month}")
             ->toArray();
@@ -165,11 +165,11 @@ class GamSync extends Command
 
                         $rowsMatched++;
 
-                        // 2. Check if period is closed
+                        // 2. Check if period is closed or closing
                         $date = Carbon::parse($row['date']);
-                        if (in_array("{$date->year}-{$date->month}", $closedPeriods)) {
+                        if (in_array("{$date->year}-{$date->month}", $lockedPeriods)) {
                             $rowsLocked++;
-                            continue; // Skip updating closed periods
+                            continue; // Skip updating closed or closing periods
                         }
 
                         // 3. Resolve Ratio
@@ -201,16 +201,16 @@ class GamSync extends Command
                         ];
 
                         if (count($upsertBatch) >= $batchSize) {
-                            // Reload closed periods before each batch flush to catch concurrent closings
-                            $closedPeriods = PeriodClosing::where('status', 'closed')
+                            // Reload locked periods before each batch flush to catch concurrent closings
+                            $lockedPeriods = PeriodClosing::whereIn('status', ['closed', 'closing'])
                                 ->get(['period_year', 'period_month'])
                                 ->map(fn($p) => "{$p->period_year}-{$p->period_month}")
                                 ->toArray();
 
-                            $upsertBatch = array_filter($upsertBatch, function ($record) use ($closedPeriods, &$rowsLocked) {
+                            $upsertBatch = array_filter($upsertBatch, function ($record) use ($lockedPeriods, &$rowsLocked) {
                                 $date = Carbon::parse($record['date']);
                                 $periodKey = "{$date->year}-{$date->month}";
-                                if (in_array($periodKey, $closedPeriods)) {
+                                if (in_array($periodKey, $lockedPeriods)) {
                                     $rowsLocked++;
                                     return false;
                                 }
@@ -238,18 +238,18 @@ class GamSync extends Command
 
             // Flush remaining upserts
             if (!empty($upsertBatch)) {
-                // FIX [GS-1]: Reload closed periods one final time before the last flush
+                // FIX [GS-1]: Reload locked periods one final time before the last flush
                 // to catch any period closings that occurred during this sync run.
-                $closedPeriods = PeriodClosing::where('status', 'closed')
+                $lockedPeriods = PeriodClosing::whereIn('status', ['closed', 'closing'])
                     ->get(['period_year', 'period_month'])
                     ->map(fn($p) => "{$p->period_year}-{$p->period_month}")
                     ->toArray();
 
-                // Filter out any records that fell into a newly-closed period
-                $upsertBatch = array_filter($upsertBatch, function ($record) use ($closedPeriods, &$rowsLocked) {
+                // Filter out any records that fell into a newly-locked period
+                $upsertBatch = array_filter($upsertBatch, function ($record) use ($lockedPeriods, &$rowsLocked) {
                     $date = Carbon::parse($record['date']);
                     $periodKey = "{$date->year}-{$date->month}";
-                    if (in_array($periodKey, $closedPeriods)) {
+                    if (in_array($periodKey, $lockedPeriods)) {
                         $rowsLocked++;
                         return false;
                     }

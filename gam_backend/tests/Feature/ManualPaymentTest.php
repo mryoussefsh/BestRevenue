@@ -191,8 +191,8 @@ class ManualPaymentTest extends TestCase
         $this->assertEquals('pending', $adj->status, 'Adjustment status must not be changed by a manual payment.');
         $this->assertNull($adj->period_closing_id, 'Adjustment period_closing_id must not be set by a manual payment.');
 
-        // No new adjustments should have been created
-        $this->assertDatabaseCount('adjustments', 1);
+        // Total adjustments count should be 2 (the pre-existing one + the new deduction adjustment)
+        $this->assertDatabaseCount('adjustments', 2);
     }
 
     // ─── Test 4 ──────────────────────────────────────────────────────────────
@@ -267,7 +267,7 @@ class ManualPaymentTest extends TestCase
             'final_amount'      => 123.45,
             'payment_method'    => 'Wise',
             'payment_reference' => 'WISE-TX-12345',
-            'status'            => 'paid',
+            'status'            => 'pending',
             'is_manual_payment' => 1,
             'manual_paid_by'    => $admin->id,
         ]);
@@ -322,7 +322,7 @@ class ManualPaymentTest extends TestCase
             'publisher_id'      => $publisher->id,
             'period_closing_id' => null,
             'is_manual_payment' => 1,
-            'status'            => 'paid',
+            'status'            => 'pending',
         ]);
 
         // PeriodClosing must remain untouched
@@ -374,7 +374,7 @@ class ManualPaymentTest extends TestCase
             ->where('is_manual_payment', false)
             ->first();
         $this->assertNotNull($periodPayout);
-        $this->assertEquals(100.00, (float) $periodPayout->final_amount);
+        $this->assertEquals(70.00, (float) $periodPayout->final_amount);
         $this->assertEquals('pending', $periodPayout->status);
 
         // The manual payment Payout must still exist independently

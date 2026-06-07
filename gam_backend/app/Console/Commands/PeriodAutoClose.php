@@ -138,11 +138,12 @@ class PeriodAutoClose extends Command
 
         $this->info("Starting closing process for $year-$month...");
 
-        $threshold   = (float) Setting::get('payout_threshold', 50.00);
-
-        DB::beginTransaction();
-
         try {
+            $threshold   = (float) Setting::get('payout_threshold', 50.00);
+
+            DB::beginTransaction();
+
+            try {
             // ─────────────────────────────────────────────────────────────────────
             // STEP 2: Retrieve or Create PeriodClosing record and lock it
             // ─────────────────────────────────────────────────────────────────────
@@ -278,7 +279,9 @@ class PeriodAutoClose extends Command
                         ]);
                     }
 
-                    Publisher::syncPendingBalance($pubId);
+                    DB::afterCommit(function () use ($pubId) {
+                        Publisher::syncPendingBalance($pubId);
+                    });
 
                     $rollovers++;
                     continue;
@@ -312,7 +315,9 @@ class PeriodAutoClose extends Command
                         ]);
                 }
 
-                Publisher::syncPendingBalance($pubId);
+                DB::afterCommit(function () use ($pubId) {
+                    Publisher::syncPendingBalance($pubId);
+                });
 
                 $payoutsCreated++;
 
@@ -322,16 +327,18 @@ class PeriodAutoClose extends Command
             // ─────────────────────────────────────────────────────────────────────
             // STEP 7: Mark PeriodClosing as 'closed' with aggregate totals
             // ─────────────────────────────────────────────────────────────────────
+            $stats = RevenueRecord::where('period_closing_id', $period->id)
+                ->select(
+                    DB::raw('SUM(gross_revenue) as total_gross'),
+                    DB::raw('SUM(publisher_earnings) as total_earnings'),
+                    DB::raw('SUM(impressions) as total_impressions')
+                )
+                ->first();
+
             $period->update([
-                // FIX [PC-3]: Cast bcadd string results back to float for DB storage.
-                // For re-runs on partial periods, use bcadd to combine existing totals too.
-                'total_gross_revenue'      => (float) ($existing
-                    ? bcadd((string) $period->total_gross_revenue, $totalGross, 6)
-                    : $totalGross),
-                'total_publisher_earnings' => (float) ($existing
-                    ? bcadd((string) $period->total_publisher_earnings, $totalEarnings, 6)
-                    : $totalEarnings),
-                'total_impressions'        => $existing ? ($period->total_impressions + $totalImpressions) : $totalImpressions,
+                'total_gross_revenue'      => (float) ($stats->total_gross ?? 0),
+                'total_publisher_earnings' => (float) ($stats->total_earnings ?? 0),
+                'total_impressions'        => (int)   ($stats->total_impressions ?? 0),
                 'status'                   => 'closed',
                 'closed_at'                => now(),
             ]);
@@ -401,10 +408,13 @@ class PeriodAutoClose extends Command
 
             return 0;
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $this->error("Failed to close period: " . $e->getMessage());
-            return 1;
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $this->error("Failed to close period: " . $e->getMessage());
+                return 1;
+            }
+        } finally {
+            \Illuminate\Support\Facades\Cache::lock("period_close_lock_{$year}_{$month}")->forceRelease();
         }
     }
 }

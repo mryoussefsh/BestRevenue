@@ -49,38 +49,46 @@ class ManualPaymentService
         $reference     = $data['reference'] ?? null;
         $notes         = $data['notes'] ?? null;
         $linkedPayoutId = $data['payout_id'] ?? null;
+        $idempotencyKey = $data['idempotency_key'] ?? null;
+
+        if ($idempotencyKey) {
+            $existingPayout = Payout::where('idempotency_key', $idempotencyKey)->first();
+            if ($existingPayout) {
+                return $existingPayout->load('publisher', 'manualPayer');
+            }
+        }
 
         $method = $data['method'] ?? null;
         if (!$method && is_array($publisher->payment_info) && isset($publisher->payment_info['method'])) {
             $method = $publisher->payment_info['method'];
         }
 
-        $linkedPayout = null;
-
-        // Validate the optional linked payout before opening a transaction.
-        if ($linkedPayoutId) {
-            $linkedPayout = Payout::find($linkedPayoutId);
-
-            if (!$linkedPayout) {
-                throw new \RuntimeException("Payout [{$linkedPayoutId}] not found.");
-            }
-
-            if ($linkedPayout->publisher_id !== $publisher->id) {
-                throw new \RuntimeException("Payout [{$linkedPayoutId}] does not belong to publisher [{$publisher->id}].");
-            }
-
-            if ($linkedPayout->status === 'paid') {
-                throw new \RuntimeException("Payout [{$linkedPayoutId}] is already marked as paid.");
-            }
-
-            if ($linkedPayout->status === 'rejected') {
-                throw new \RuntimeException("Payout [{$linkedPayoutId}] is rejected and cannot be linked to a manual payment.");
-            }
-        }
-
         DB::beginTransaction();
 
         try {
+            $linkedPayout = null;
+
+            // Validate the optional linked payout inside the transaction under lock.
+            if ($linkedPayoutId) {
+                $linkedPayout = Payout::lockForUpdate()->find($linkedPayoutId);
+
+                if (!$linkedPayout) {
+                    throw new \RuntimeException("Payout [{$linkedPayoutId}] not found.");
+                }
+
+                if ($linkedPayout->publisher_id !== $publisher->id) {
+                    throw new \RuntimeException("Payout [{$linkedPayoutId}] does not belong to publisher [{$publisher->id}].");
+                }
+
+                if ($linkedPayout->status === 'paid') {
+                    throw new \RuntimeException("Payout [{$linkedPayoutId}] is already marked as paid.");
+                }
+
+                if ($linkedPayout->status === 'rejected') {
+                    throw new \RuntimeException("Payout [{$linkedPayoutId}] is rejected and cannot be linked to a manual payment.");
+                }
+            }
+
             // Create the standalone manual payment record.
             // period_closing_id is intentionally NULL — this is a standalone payment.
             $manualPayout = Payout::create([
@@ -99,6 +107,7 @@ class ManualPaymentService
                 'paid_at'           => null,      // Not paid yet
                 'is_manual_payment' => true,
                 'manual_paid_by'    => $admin->id,
+                'idempotency_key'   => $idempotencyKey,
             ]);
 
             // Deduct the manual payout from the publisher's upcoming period earnings
@@ -112,8 +121,10 @@ class ManualPaymentService
                 'created_by'   => $admin->id,
             ]);
 
-            // Sync the cached adjustment balance
-            Publisher::syncPendingBalance($publisher->id);
+            // Sync the cached adjustment balance after transaction commits
+            DB::afterCommit(function () use ($publisher) {
+                Publisher::syncPendingBalance($publisher->id);
+            });
 
             // If a linked payout was provided, update its status to 'paid' and
             // record the payment details on it. This does NOT create or modify

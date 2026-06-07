@@ -31,6 +31,7 @@ class Payout extends Model
         // REFACTOR [MPAY-1]: Manual payment fields
         'is_manual_payment',   // true = standalone manual payment, no period involved
         'manual_paid_by',      // UUID of admin who initiated the manual payment
+        'idempotency_key',
     ];
 
     protected function casts(): array

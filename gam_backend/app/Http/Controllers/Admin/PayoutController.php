@@ -111,51 +111,63 @@ class PayoutController extends Controller
         \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
-            // Find all locked revenue records for this publisher under this closing
-            $revenueQuery = \App\Models\RevenueRecord::where('period_closing_id', $payout->period_closing_id)
-                ->whereHas('adUnit.website', function ($q) use ($payout) {
-                    $q->where('publisher_id', $payout->publisher_id);
-                });
+            if ($payout->period_closing_id) {
+                // Find all locked revenue records for this publisher under this closing
+                $revenueQuery = \App\Models\RevenueRecord::where('period_closing_id', $payout->period_closing_id)
+                    ->whereHas('adUnit.website', function ($q) use ($payout) {
+                        $q->where('publisher_id', $payout->publisher_id);
+                    });
 
-            $revenueStats = (clone $revenueQuery)->select(
-                \Illuminate\Support\Facades\DB::raw('SUM(gross_revenue) as total_gross'),
-                \Illuminate\Support\Facades\DB::raw('SUM(publisher_earnings) as total_earnings'),
-                \Illuminate\Support\Facades\DB::raw('SUM(impressions) as total_impressions')
-            )->first();
+                $revenueStats = (clone $revenueQuery)->select(
+                    \Illuminate\Support\Facades\DB::raw('SUM(gross_revenue) as total_gross'),
+                    \Illuminate\Support\Facades\DB::raw('SUM(publisher_earnings) as total_earnings'),
+                    \Illuminate\Support\Facades\DB::raw('SUM(impressions) as total_impressions')
+                )->first();
 
-            $pubGross = (float) ($revenueStats->total_gross ?? 0);
-            $pubEarnings = (float) ($revenueStats->total_earnings ?? 0);
-            $pubImpressions = (int) ($revenueStats->total_impressions ?? 0);
+                $pubGross = (float) ($revenueStats->total_gross ?? 0);
+                $pubEarnings = (float) ($revenueStats->total_earnings ?? 0);
+                $pubImpressions = (int) ($revenueStats->total_impressions ?? 0);
 
-            // Unlock revenue records (set period_closing_id to null)
-            $revenueQuery->update(['period_closing_id' => null]);
+                // Unlock revenue records (set period_closing_id to null)
+                $revenueQuery->update(['period_closing_id' => null]);
 
-            // Delete pending carry-over adjustments created in this closing
-            \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
-                ->where('period_closing_id', $payout->period_closing_id)
-                ->where('status', 'pending')
-                ->delete();
+                // Delete pending carry-over adjustments created in this closing
+                \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
+                    ->where('period_closing_id', $payout->period_closing_id)
+                    ->where('status', 'pending')
+                    ->delete();
 
-            // Reset manual adjustments that were applied in this closing back to pending and unlocked
-            \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
-                ->where('period_closing_id', $payout->period_closing_id)
-                ->where('status', 'applied')
-                ->update([
-                    'status' => 'pending',
-                    'period_closing_id' => null
-                ]);
+                // Reset manual adjustments that were applied in this closing back to pending and unlocked
+                \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
+                    ->where('period_closing_id', $payout->period_closing_id)
+                    ->where('status', 'applied')
+                    ->update([
+                        'status' => 'pending',
+                        'period_closing_id' => null
+                    ]);
 
-            \App\Models\Publisher::syncPendingBalance($payout->publisher_id);
-
-            // Deduct these totals from the corresponding PeriodClosing record to keep aggregate statistics accurate
-            $periodClosing = $payout->periodClosing;
-            if ($periodClosing) {
-                $periodClosing->update([
-                    'total_gross_revenue'      => max(0, $periodClosing->total_gross_revenue - $pubGross),
-                    'total_publisher_earnings' => max(0, $periodClosing->total_publisher_earnings - $pubEarnings),
-                    'total_impressions'        => max(0, $periodClosing->total_impressions - $pubImpressions),
-                ]);
+                // Deduct these totals from the corresponding PeriodClosing record to keep aggregate statistics accurate
+                $periodClosing = $payout->periodClosing;
+                if ($periodClosing) {
+                    $periodClosing->update([
+                        'total_gross_revenue'      => max(0.0, (float) bcsub((string) $periodClosing->total_gross_revenue, (string) $pubGross, 6)),
+                        'total_publisher_earnings' => max(0.0, (float) bcsub((string) $periodClosing->total_publisher_earnings, (string) $pubEarnings, 6)),
+                        'total_impressions'        => max(0, $periodClosing->total_impressions - $pubImpressions),
+                    ]);
+                }
+            } else {
+                // Standalone Manual Payment Rejection:
+                // Delete the associated pending deduction adjustment created for this manual payment.
+                \App\Models\Adjustment::where('publisher_id', $payout->publisher_id)
+                    ->where('notes', 'Deduction for standalone manual payment ' . $payout->id)
+                    ->where('status', 'pending')
+                    ->delete();
             }
+
+            // Sync balance after transaction commits
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($payout) {
+                \App\Models\Publisher::syncPendingBalance($payout->publisher_id);
+            });
 
             // Update payout status to rejected
             $payout->update([

@@ -655,12 +655,15 @@ class PublisherController extends Controller
     public function manualPayment(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
-            'amount'    => 'required|numeric|min:0.01',
-            'method'    => 'nullable|string|max:100',
-            'reference' => 'nullable|string|max:255',
-            'notes'     => 'nullable|string',
-            'payout_id' => 'nullable|uuid|exists:payouts,id',
+            'amount'            => 'required|numeric|min:0.01',
+            'method'            => 'nullable|string|max:100',
+            'reference'         => 'nullable|string|max:255',
+            'notes'             => 'nullable|string',
+            'payout_id'         => 'nullable|uuid|exists:payouts,id',
+            'idempotency_key'   => 'nullable|string|max:64',
         ]);
+
+        $validated['idempotency_key'] = $validated['idempotency_key'] ?? $request->header('Idempotency-Key');
 
         $publisher = Publisher::findOrFail($id);
 
