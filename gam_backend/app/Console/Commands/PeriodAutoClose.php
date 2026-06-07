@@ -132,7 +132,18 @@ class PeriodAutoClose extends Command
         $publisherIds = array_unique(array_merge($revenuePublishers, $adjustmentPublishers));
 
         if ($existing && count($publisherIds) === 0) {
-            $this->info("Period $year-$month is already {$existing->status} and no unclosed records remain. Skipping.");
+            if ($existing->status === 'closing') {
+                $existing->update([
+                    'status' => 'closed',
+                    'closed_at' => now(),
+                    'total_gross_revenue' => 0.00,
+                    'total_publisher_earnings' => 0.00,
+                    'total_impressions' => 0,
+                ]);
+                $this->info("Period $year-$month has no unclosed records. Marked as closed.");
+            } else {
+                $this->info("Period $year-$month is already {$existing->status} and no unclosed records remain. Skipping.");
+            }
             return 0;
         }
 
