@@ -46,10 +46,14 @@ class ManualPaymentService
     public function create(Publisher $publisher, array $data, User $admin): Payout
     {
         $amount        = (float) $data['amount'];
-        $method        = $data['method'];
         $reference     = $data['reference'] ?? null;
         $notes         = $data['notes'] ?? null;
         $linkedPayoutId = $data['payout_id'] ?? null;
+
+        $method = $data['method'] ?? null;
+        if (!$method && is_array($publisher->payment_info) && isset($publisher->payment_info['method'])) {
+            $method = $publisher->payment_info['method'];
+        }
 
         $linkedPayout = null;
 
@@ -88,14 +92,28 @@ class ManualPaymentService
                 'amount'            => $amount,
                 'adjustment'        => 0,
                 'final_amount'      => $amount,
-                'status'            => 'paid',    // Manual payments are immediately "paid"
+                'status'            => 'pending', // Pending so it flows through approval queue
                 'admin_note'        => $notes,
                 'payment_method'    => $method,
                 'payment_reference' => $reference,
-                'paid_at'           => now(),
+                'paid_at'           => null,      // Not paid yet
                 'is_manual_payment' => true,
                 'manual_paid_by'    => $admin->id,
             ]);
+
+            // Deduct the manual payout from the publisher's upcoming period earnings
+            // so they are not double-paid for unclosed revenue.
+            $adjustment = \App\Models\Adjustment::create([
+                'id'           => Str::uuid()->toString(),
+                'publisher_id' => $publisher->id,
+                'amount'       => -$amount,
+                'notes'        => 'Deduction for standalone manual payment ' . $manualPayout->id,
+                'status'       => 'pending',
+                'created_by'   => $admin->id,
+            ]);
+
+            // Sync the cached adjustment balance
+            Publisher::syncPendingBalance($publisher->id);
 
             // If a linked payout was provided, update its status to 'paid' and
             // record the payment details on it. This does NOT create or modify

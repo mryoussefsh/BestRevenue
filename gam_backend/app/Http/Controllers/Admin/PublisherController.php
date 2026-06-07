@@ -656,7 +656,7 @@ class PublisherController extends Controller
     {
         $validated = $request->validate([
             'amount'    => 'required|numeric|min:0.01',
-            'method'    => 'required|string|max:100',
+            'method'    => 'nullable|string|max:100',
             'reference' => 'nullable|string|max:255',
             'notes'     => 'nullable|string',
             'payout_id' => 'nullable|uuid|exists:payouts,id',

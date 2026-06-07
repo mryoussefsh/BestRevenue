@@ -798,7 +798,6 @@ export default function PublisherProfile() {
 
 function ManualPayoutModal({ publisher, onClose, onSaved }) {
   const [amount, setAmount] = useState('0.00')
-  const [method, setMethod] = useState('')
   const [reference, setReference] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
@@ -814,15 +813,10 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
       toast.error('Please enter a valid payout amount')
       return
     }
-    if (!method.trim()) {
-      toast.error('Please enter a payment method')
-      return
-    }
     setSaving(true)
     try {
       await adminApi.manualPayment(publisher.id, {
         amount: parseFloat(amount),
-        method: method.trim(),
         reference: reference.trim() || undefined,
         notes: note.trim() || undefined,
       })
@@ -856,17 +850,10 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
             </span>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Payment Method *</label>
-              <input className="form-input" type="text" value={method}
-                onChange={e => setMethod(e.target.value)} placeholder="e.g. Wise, Bank Transfer, PayPal" required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Reference ID (optional)</label>
-              <input className="form-input" type="text" value={reference}
-                onChange={e => setReference(e.target.value)} placeholder="Transaction hash or ID" />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Reference ID (optional)</label>
+            <input className="form-input" type="text" value={reference}
+              onChange={e => setReference(e.target.value)} placeholder="Transaction hash or ID" />
           </div>
 
           <div className="form-group">
