@@ -114,7 +114,6 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
           </div>
           <div className="form-row">
             <div className="form-group">
-            <div className="form-group">
               <label className="form-label">Skype</label>
               <input className="form-input" value={form.skype}
                 onChange={e => setForm(f => ({ ...f, skype: e.target.value }))} placeholder="e.g. live:username" />
