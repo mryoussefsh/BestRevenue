@@ -1,0 +1,48 @@
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignore IDE settings
+.idea
+.vscode
+.fleet
+.nova
+.zed
+
+# Ignore backend-specific files
+gam_backend/.env
+gam_backend/.env.backup
+gam_backend/.env.production
+gam_backend/.phpunit.result.cache
+gam_backend/.phpunit.cache
+gam_backend/auth.json
+gam_backend/node_modules/
+gam_backend/public/build/
+gam_backend/public/hot/
+gam_backend/public/storage/
+gam_backend/storage/*.key
+gam_backend/storage/pail
+gam_backend/vendor/
+gam_backend/Homestead.json
+gam_backend/Homestead.yaml
+
+# Ignore frontend-specific files
+gam_frontend/node_modules/
+gam_frontend/dist/
+gam_frontend/dist-ssr/
+gam_frontend/*.local
+gam_frontend/logs/
+gam_frontend/*.log
+gam_frontend/npm-debug.log*
+gam_frontend/yarn-debug.log*
+gam_frontend/yarn-error.log*
+gam_frontend/pnpm-debug.log*
+gam_frontend/lerna-debug.log*
+
+# Logs
+*.log

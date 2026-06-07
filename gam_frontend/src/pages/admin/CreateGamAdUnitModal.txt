@@ -1,0 +1,147 @@
+function CreateGamAdUnitModal({ websites, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    website_id: '',
+    gam_ad_unit_name: '',
+    display_name: '',
+    sizes: [],
+    custom_size: '',
+    ratio_override: '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const PRESET_SIZES = ['300x250', '320x50', '728x90', '160x600', 'Fluid', '1x1']
+
+  function toggleSize(size) {
+    setForm(f => ({
+      ...f,
+      sizes: f.sizes.includes(size)
+        ? f.sizes.filter(s => s !== size)
+        : [...f.sizes, size]
+    }))
+  }
+
+  function addCustomSize() {
+    if (!form.custom_size) return
+    if (!form.sizes.includes(form.custom_size)) {
+      setForm(f => ({
+        ...f,
+        sizes: [...f.sizes, f.custom_size],
+        custom_size: ''
+      }))
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (form.sizes.length === 0) {
+      toast.error('Please select or enter at least one size.')
+      return
+    }
+    setSaving(true)
+    try {
+      const payload = {
+        website_id: form.website_id,
+        gam_ad_unit_name: form.gam_ad_unit_name,
+        display_name: form.display_name,
+        sizes: form.sizes,
+        ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
+      }
+      const res = await adminApi.createGamAdUnit(payload)
+      toast.success(res.data?.message || 'Ad Unit created in GAM!')
+      onSaved()
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed to create in GAM')
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">✨ Create Ad Unit in GAM</span>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Website (Target GAM Account) *</label>
+            <select className="form-select" value={form.website_id}
+              onChange={e => setForm(f => ({ ...f, website_id: e.target.value }))} required>
+              <option value="">Select website…</option>
+              {websites.map(w => (
+                <option key={w.id} value={w.id}>{w.domain}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">GAM Ad Unit Code *</label>
+              <input className="form-input" placeholder="e.g. homepage_banner_1"
+                value={form.gam_ad_unit_name}
+                onChange={e => setForm(f => ({ ...f, gam_ad_unit_name: e.target.value }))} required />
+              <span className="form-hint">Must be unique in GAM (letters, numbers, underscores)</span>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Display Name *</label>
+              <input className="form-input" placeholder="Homepage Banner" value={form.display_name}
+                onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} required />
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Ad Unit Sizes *</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              {PRESET_SIZES.map(s => (
+                <button type="button" key={s} 
+                  onClick={() => toggleSize(s)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 20,
+                    border: '1px solid ' + (form.sizes.includes(s) ? 'var(--color-primary)' : 'var(--color-border)'),
+                    background: form.sizes.includes(s) ? 'var(--color-primary-light)' : 'transparent',
+                    color: form.sizes.includes(s) ? 'white' : 'inherit',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}>
+                  {s}
+                </button>
+              ))}
+              {form.sizes.filter(s => !PRESET_SIZES.includes(s)).map(s => (
+                <button type="button" key={s} 
+                  onClick={() => toggleSize(s)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 20,
+                    border: '1px solid var(--color-primary)', background: 'var(--color-primary-light)',
+                    color: 'white', cursor: 'pointer', fontSize: 13,
+                  }}>
+                  {s} (custom)
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="form-input" placeholder="Custom size e.g. 970x250"
+                value={form.custom_size}
+                onChange={e => setForm(f => ({ ...f, custom_size: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomSize())}
+              />
+              <button type="button" className="btn btn-secondary" onClick={addCustomSize}>Add</button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Ratio Override % <span className="text-muted text-xs">(optional)</span></label>
+            <input className="form-input" type="number" min="1" max="100" placeholder="Inherit"
+              value={form.ratio_override}
+              onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Creating in GAM…' : '✨ Create in GAM'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
