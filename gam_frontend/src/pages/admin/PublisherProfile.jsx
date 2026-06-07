@@ -788,7 +788,15 @@ export default function PublisherProfile() {
         <AdUnitModal
           adUnit={adModal === 'create' ? null : adModal}
           websites={websites}
-          onClose={() => setAdfunction ManualPayoutModal({ publisher, onClose, onSaved }) {
+          onClose={() => setAdModal(null)}
+          onSaved={() => { setAdModal(null); loadAllData(true) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function ManualPayoutModal({ publisher, onClose, onSaved }) {
   const [amount, setAmount] = useState('0.00')
   const [method, setMethod] = useState('')
   const [reference, setReference] = useState('')
