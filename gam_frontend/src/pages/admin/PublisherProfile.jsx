@@ -788,73 +788,40 @@ export default function PublisherProfile() {
         <AdUnitModal
           adUnit={adModal === 'create' ? null : adModal}
           websites={websites}
-          onClose={() => setAdModal(null)}
-          onSaved={() => { setAdModal(null); loadAllData(true) }}
-        />
-      )}
-    </div>
-  )
-}
-
-function ManualPayoutModal({ publisher, onClose, onSaved }) {
-  const now = new Date()
-  const defaultYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
-  const defaultMonth = now.getMonth() === 0 ? 12 : now.getMonth()
-
-  const [year, setYear] = useState(defaultYear)
-  const [month, setMonth] = useState(defaultMonth)
+          onClose={() => setAdfunction ManualPayoutModal({ publisher, onClose, onSaved }) {
   const [amount, setAmount] = useState('0.00')
+  const [method, setMethod] = useState('')
+  const [reference, setReference] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
-  const [walletBalance, setWalletBalance] = useState(0.0)
-  const [loadingBalance, setLoadingBalance] = useState(false)
+  const walletBalance = publisher.approved_balance || 0.0
 
   useEffect(() => {
-    let active = true
-    const lastDay = new Date(year, month, 0)
-    const yyyy = lastDay.getFullYear()
-    const mm = String(lastDay.getMonth() + 1).padStart(2, '0')
-    const dd = String(lastDay.getDate()).padStart(2, '0')
-    const dateToStr = `${yyyy}-${mm}-${dd}`
-
-    setLoadingBalance(true)
-    adminApi.getPublisher(publisher.id, { date_to: dateToStr })
-      .then(res => {
-        if (!active) return
-        const bal = res.data?.data?.approved_balance ?? 0.0
-        setWalletBalance(bal)
-        setAmount(bal.toFixed(2))
-      })
-      .catch(() => {
-        toast.error('Failed to fetch wallet balance for selected period')
-      })
-      .finally(() => {
-        if (active) setLoadingBalance(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [year, month, publisher.id])
+    setAmount(walletBalance.toFixed(2))
+  }, [walletBalance])
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!amount || isNaN(amount) || parseFloat(amount) < 0) {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid payout amount')
+      return
+    }
+    if (!method.trim()) {
+      toast.error('Please enter a payment method')
       return
     }
     setSaving(true)
     try {
-      await adminApi.createManualPayout(publisher.id, {
-        period_year: year,
-        period_month: month,
+      await adminApi.manualPayment(publisher.id, {
         amount: parseFloat(amount),
-        admin_note: note || undefined,
+        method: method.trim(),
+        reference: reference.trim() || undefined,
+        notes: note.trim() || undefined,
       })
-      toast.success('Manual payout created successfully!')
+      toast.success('Manual payment recorded successfully!')
       onSaved()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create manual payout')
+      toast.error(err.response?.data?.message || 'Failed to create manual payment')
     } finally {
       setSaving(false)
     }
@@ -864,50 +831,38 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">💸 Create Manual Payout</span>
+          <span className="modal-title">💸 Record Manual Payment</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="alert alert-info" style={{ fontSize: 13, marginBottom: 16 }}>
-            💡 This will force a payout creation for <strong>{publisher.name}</strong>, ignoring the minimum threshold. It will lock their approved revenue and adjustments up to the selected period.
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Year</label>
-              <input className="form-input" type="number" min="2024" value={year}
-                onChange={e => setYear(parseInt(e.target.value))} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Month</label>
-              <select className="form-select" value={month}
-                onChange={e => setMonth(parseInt(e.target.value))} required>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                  <option key={m} value={m}>
-                    {new Date(2000, m-1).toLocaleString('default', { month: 'long' })} ({m})
-                  </option>
-                ))}
-              </select>
-            </div>
+            💡 This will record an out-of-cycle manual payment for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. It will be immediately logged as Paid.
           </div>
 
           <div className="form-group">
             <label className="form-label">Payout Amount ($) *</label>
-            <input className="form-input" type="number" step="0.01" min="0" value={amount}
+            <input className="form-input" type="number" step="0.01" min="0.01" value={amount}
               onChange={e => setAmount(e.target.value)} required />
             <span className="form-hint">
-              {loadingBalance ? (
-                <span>Loading available balance…</span>
-              ) : (
-                <span>
-                  Current wallet balance: <strong>${walletBalance.toFixed(2)}</strong>
-                </span>
-              )}
+              Current approved wallet balance: <strong>${walletBalance.toFixed(2)}</strong>
             </span>
           </div>
 
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Payment Method *</label>
+              <input className="form-input" type="text" value={method}
+                onChange={e => setMethod(e.target.value)} placeholder="e.g. Wise, Bank Transfer, PayPal" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Reference ID (optional)</label>
+              <input className="form-input" type="text" value={reference}
+                onChange={e => setReference(e.target.value)} placeholder="Transaction hash or ID" />
+            </div>
+          </div>
+
           <div className="form-group">
-            <label className="form-label">Admin Note (internal)</label>
+            <label className="form-label">Admin Note / Memo (internal)</label>
             <textarea className="form-textarea" rows={2} value={note}
               onChange={e => setNote(e.target.value)} placeholder="e.g. Special manual payout request override…" />
           </div>
@@ -915,7 +870,7 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Creating…' : '💸 Create Payout'}
+              {saving ? 'Recording…' : '💸 Record Payment'}
             </button>
           </div>
         </form>

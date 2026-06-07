@@ -26,6 +26,7 @@ export const adminApi = {
   adjustPublisherBalance: (id, amount, notes) => api.post(`/admin/publishers/${id}/adjust-balance`, { amount, notes }),
   impersonatePublisher: (id) => api.post(`/admin/publishers/${id}/impersonate`),
   createManualPayout:  (id, data) => api.post(`/admin/publishers/${id}/create-payout`, data),
+  manualPayment:       (id, data) => api.post(`/admin/publishers/${id}/manual-payment`, data),
 
   // Websites
   getWebsites:         (params) => api.get('/admin/websites', { params }),
