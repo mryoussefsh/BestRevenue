@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Multi-Language Support (i18n)**: Interface translating dynamically between English and multiple custom locales with an integrated admin Translation Editor.
 
 ### Changed
+- **Decoupled Manual Payments**: Completely decoupled manual payments from the Period Closing engine. Admins can now record standalone manual payments at any time without creating or referencing a period close, and without affecting future automatic period closes.
 - Refactored `Setting::get` to cache static config lookup within a request lifecycle, reducing database query overhead on paginated views.
 - Upgraded Google Ads PHP SDK to version 73.0.
 - Enhanced database transaction integrity on Period Closing jobs.

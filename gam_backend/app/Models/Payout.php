@@ -15,7 +15,7 @@ class Payout extends Model
 
     protected $fillable = [
         'publisher_id',
-        'period_closing_id',
+        'period_closing_id',   // nullable for standalone manual payments
         'period_year',
         'period_month',
         'amount',
@@ -28,16 +28,20 @@ class Payout extends Model
         'approved_by',
         'approved_at',
         'paid_at',
+        // REFACTOR [MPAY-1]: Manual payment fields
+        'is_manual_payment',   // true = standalone manual payment, no period involved
+        'manual_paid_by',      // UUID of admin who initiated the manual payment
     ];
 
     protected function casts(): array
     {
         return [
-            'amount'       => 'decimal:2',
-            'adjustment'   => 'decimal:2',
-            'final_amount' => 'decimal:2',
-            'approved_at'  => 'datetime',
-            'paid_at'      => 'datetime',
+            'amount'            => 'decimal:2',
+            'adjustment'        => 'decimal:2',
+            'final_amount'      => 'decimal:2',
+            'approved_at'       => 'datetime',
+            'paid_at'           => 'datetime',
+            'is_manual_payment' => 'boolean',
         ];
     }
 
@@ -49,5 +53,23 @@ class Payout extends Model
     public function periodClosing(): BelongsTo
     {
         return $this->belongsTo(PeriodClosing::class);
+    }
+
+    /**
+     * The admin user who initiated this as a manual payment.
+     * Distinct from approved_by which tracks the approval step.
+     */
+    public function manualPayer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manual_paid_by');
+    }
+
+    /**
+     * Convenience: true if this payout is a standalone manual payment
+     * that has no associated PeriodClosing.
+     */
+    public function isManualPayment(): bool
+    {
+        return (bool) $this->is_manual_payment;
     }
 }

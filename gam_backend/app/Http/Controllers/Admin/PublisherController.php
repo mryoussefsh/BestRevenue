@@ -16,13 +16,14 @@ use App\Models\Payout;
 use App\Models\PeriodClosing;
 use App\Models\RevenueRecord;
 use App\Models\Setting;
+use App\Services\AuditLogService;
+use App\Services\ManualPaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PublisherController extends Controller
@@ -483,19 +484,35 @@ class PublisherController extends Controller
 
     /**
      * POST /api/v1/admin/publishers/{id}/create-payout
+     *
+     * REFACTOR [MPAY-1]: Hardened admin payout override.
+     *
+     * This endpoint creates a Payout record for a specific publisher against an
+     * ALREADY-CLOSED PeriodClosing. It is an administrative override tool only.
+     *
+     * STRICTLY PROHIBITED:
+     *   - NEVER creates a PeriodClosing (returns 422 if none exists for the target month).
+     *   - NEVER locks RevenueRecords.
+     *   - NEVER applies or creates Adjustment records.
+     *   - NEVER creates rollover adjustments.
+     *   - NEVER updates PeriodClosing aggregate statistics.
+     *   - NEVER affects any publisher other than the one specified.
+     *
+     * For standalone payments without a closed period, use POST publishers/{id}/manual-payment.
      */
     public function createPayout(Request $request, string $id): JsonResponse
     {
         $request->validate([
             'period_year'  => 'required|integer|min:2024',
             'period_month' => 'required|integer|min:1|max:12',
-            'amount'       => 'required|numeric|min:0',
+            'amount'       => 'required|numeric|min:0.01',
             'admin_note'   => 'nullable|string',
         ]);
 
-        // FIX [PAY-5]: Prevent creating payouts for the current or future months.
         $year  = (int) $request->period_year;
         $month = (int) $request->period_month;
+
+        // Guard: Cannot create payouts for the current or future months.
         $targetDate = Carbon::create($year, $month, 1)->startOfMonth();
         if ($targetDate->gte(now()->startOfMonth())) {
             return response()->json([
@@ -503,209 +520,162 @@ class PublisherController extends Controller
             ], 422);
         }
 
-        $publisher = Publisher::findOrFail($id);
-
+        $publisher   = Publisher::findOrFail($id);
         $inputAmount = (float) $request->amount;
         $adminNote   = $request->admin_note;
 
-        // FIX [PAY-1, PAY-2]: Move the entire PeriodClosing lookup/create INSIDE the
-        // DB::beginTransaction() block. Previously, firstOrCreate() ran BEFORE beginTransaction(),
-        // meaning a transaction rollback left an orphan PeriodClosing record in the DB.
-        //
-        // FIX [PAY-2]: If the PeriodClosing is newly created here, it means this period
-        // has never been through the full two-pass closing process. Other publishers'
-        // revenue records in this period may NOT be locked. We warn via the audit log
-        // and the API response, but allow it so admins can still issue individual payouts.
         DB::beginTransaction();
 
         try {
-            // Attempt to find an existing PeriodClosing for this year/month with a lock.
-            // If none exists, create it atomically inside this transaction.
+            // REFACTOR [MPAY-1]: Require an existing closed PeriodClosing.
+            // DO NOT create one if it doesn't exist — that is a Period Closing concern.
             $period = PeriodClosing::lockForUpdate()
                 ->where('period_year', $year)
                 ->where('period_month', $month)
                 ->first();
 
-            $isNewPeriod = false;
             if (!$period) {
-                $isNewPeriod = true;
-                $period = PeriodClosing::create([
-                    'id'         => Str::uuid()->toString(),
-                    'period_year'  => $year,
-                    'period_month' => $month,
-                    'status'     => 'closed',
-                    'notes'      => 'Created via manual publisher payout — other publishers in this period may not be locked.',
-                    'closed_at'  => now(),
-                ]);
+                DB::rollBack();
+                return response()->json([
+                    'message' => "No closed PeriodClosing found for {$year}-" . str_pad($month, 2, '0', STR_PAD_LEFT) . ". "
+                               . "Run the full period close first, or use the manual-payment endpoint for out-of-cycle payments.",
+                ], 422);
             }
 
-            // Check unique constraint: one active payout per publisher per closing
-            // (inside the lock so the check and create are atomic)
+            if ($period->status !== 'closed') {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "PeriodClosing for {$year}-" . str_pad($month, 2, '0', STR_PAD_LEFT) . " is in '{$period->status}' status. Only 'closed' periods can receive admin payout overrides.",
+                ], 422);
+            }
+
+            // Guard: one active payout per publisher per closing (atomically checked under lock).
             $existingActivePayout = Payout::where('publisher_id', $publisher->id)
                 ->where('period_closing_id', $period->id)
                 ->where('status', '!=', 'rejected')
+                ->where('is_manual_payment', false)
                 ->first();
 
             if ($existingActivePayout) {
                 DB::rollBack();
                 return response()->json([
-                    'message' => "A payout already exists for this publisher in period $year-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "."
+                    'message' => "A non-manual payout already exists for this publisher in period {$year}-" . str_pad($month, 2, '0', STR_PAD_LEFT) . ".",
                 ], 422);
             }
 
-            // Calculate actual approved revenue records up to this period
-            $endOfMonth = Carbon::create($year, $month, 1)->endOfMonth()->format('Y-m-d');
-            $limitDate = RevenueRecord::getApprovedLimitDate()->startOfDay()->format('Y-m-d');
-
-            $statsQuery = RevenueRecord::whereNull('period_closing_id')
-                ->where('date', '<=', $endOfMonth)
-                ->where('date', '<=', $limitDate);
-
-            $revenueStats = $statsQuery
+            // Read-only: calculate the publisher's locked earnings for this period.
+            // We do NOT lock any revenue records here — they were already locked by the period close.
+            $lockedRevenueStats = RevenueRecord::where('period_closing_id', $period->id)
                 ->join('ad_units', 'revenue_records.ad_unit_id', '=', 'ad_units.id')
                 ->join('websites', 'ad_units.website_id', '=', 'websites.id')
                 ->where('websites.publisher_id', $publisher->id)
                 ->select(
-                    DB::raw('SUM(revenue_records.gross_revenue) as total_gross'),
-                    DB::raw('SUM(revenue_records.publisher_earnings) as total_earnings'),
-                    DB::raw('SUM(revenue_records.impressions) as total_impressions')
+                    DB::raw('SUM(revenue_records.publisher_earnings) as total_earnings')
                 )
                 ->first();
 
-            $pubGross = (float) ($revenueStats->total_gross ?? 0);
-            $pubEarnings = (float) ($revenueStats->total_earnings ?? 0);
-            $pubImpressions = (int) ($revenueStats->total_impressions ?? 0);
+            $lockedEarnings = (float) ($lockedRevenueStats->total_earnings ?? 0);
 
-            // Calculate remainder to carry over (only including pending adjustments up to the target period)
-            $prePayoutAdjustments = (float) \App\Models\Adjustment::where('publisher_id', $publisher->id)
-                ->where('status', 'pending')
-                ->where('created_at', '<=', $endOfMonth . ' 23:59:59')
-                ->sum('amount');
-            $walletBalance = $pubEarnings + $prePayoutAdjustments;
-
-            if ($inputAmount > max(0.0, $walletBalance)) {
+            // Guard: amount must not exceed locked earnings for this period
+            // (adjustments are already applied by the period close; this is a pure earnings payout).
+            if ($inputAmount > max(0.0, $lockedEarnings)) {
                 DB::rollBack();
                 return response()->json([
-                    'message' => "The payout amount cannot exceed the available wallet balance of $" . number_format(max(0.0, $walletBalance), 2) . "."
+                    'message' => "The payout amount (\${$inputAmount}) cannot exceed the publisher's locked earnings for this period (\$" . number_format(max(0.0, $lockedEarnings), 2) . ").",
                 ], 422);
             }
 
-            $remainder = $walletBalance - $inputAmount;
-
-            // Lock revenue records for this publisher
-            $lockQuery = RevenueRecord::whereNull('period_closing_id')
-                ->where('date', '<=', $endOfMonth)
-                ->where('date', '<=', $limitDate);
-
-            $lockQuery->whereHas('adUnit.website', function ($q) use ($publisher) {
-                $q->where('publisher_id', $publisher->id);
-            })->update(['period_closing_id' => $period->id]);
-
-            // Set amount & adjustment to balance out to inputAmount
-            $baseAmount = $pubEarnings;
-            $payoutAdjustment = $inputAmount - $baseAmount;
-
-            // Mark pending adjustments as applied
-            \App\Models\Adjustment::where('publisher_id', $publisher->id)
-                ->where('status', 'pending')
-                ->where('created_at', '<=', $endOfMonth . ' 23:59:59')
-                ->update([
-                    'status' => 'applied',
-                    'period_closing_id' => $period->id,
-                ]);
-
-            Publisher::syncPendingBalance($publisher->id);
-
-            // Create carry-over adjustment for any remainder
-            if (abs($remainder) >= 0.01) {
-                \App\Models\Adjustment::create([
-                    'id'                => Str::uuid()->toString(),
-                    'publisher_id'      => $publisher->id,
-                    'amount'            => $remainder,
-                    'notes'             => "Carry-over balance from payout manual override (Period {$year}-" . str_pad($month, 2, '0', STR_PAD_LEFT) . ")",
-                    'status'            => 'pending',
-                    'period_closing_id' => $period->id,
-                    'created_by'        => $request->user()->id ?? null,
-                ]);
-            }
-
-            // Create Payout
             $paymentMethod = null;
             if ($publisher->payment_info && is_array($publisher->payment_info) && isset($publisher->payment_info['method'])) {
                 $paymentMethod = $publisher->payment_info['method'];
             }
 
+            // Create the payout record ONLY — no revenue locking, no adjustments, no period updates.
             $payout = Payout::create([
                 'id'                => Str::uuid()->toString(),
                 'publisher_id'      => $publisher->id,
                 'period_closing_id' => $period->id,
                 'period_year'       => $year,
                 'period_month'      => $month,
-                'amount'            => $baseAmount,
-                'adjustment'        => $payoutAdjustment,
+                'amount'            => $inputAmount,
+                'adjustment'        => 0,
                 'final_amount'      => $inputAmount,
                 'status'            => 'pending',
-                'admin_note'        => $adminNote ?: 'Manually created by administrator.',
+                'admin_note'        => $adminNote ?: 'Created via admin payout override.',
                 'payment_method'    => $paymentMethod,
+                'is_manual_payment' => false,
             ]);
 
-            // FIX [NEW-03]: Use bcadd() for monetary aggregates — consistent with PeriodAutoClose.
-            // Float + arithmetic on decimal-precise values accumulates rounding drift.
-            $period->update([
-                'total_gross_revenue'      => (float) bcadd((string) $period->total_gross_revenue, (string) $pubGross, 6),
-                'total_publisher_earnings' => (float) bcadd((string) $period->total_publisher_earnings, (string) $pubEarnings, 6),
-                'total_impressions'        => $period->total_impressions + $pubImpressions,
-            ]);
+            AuditLogService::log('created', 'Payout', $payout->id, null, array_merge($payout->toArray(), [
+                'trigger' => 'admin_payout_override',
+            ]));
 
-            // Fix indentation (cosmetic)
             DB::commit();
-
-            // FIX [PAY-2]: If a new PeriodClosing was created by this manual payout,
-            // warn the admin that other publishers' records in this period are NOT locked.
-            $warning = null;
-            if ($isNewPeriod) {
-                $warning = "Warning: A new PeriodClosing record was created for {$year}-" . str_pad($month, 2, '0', STR_PAD_LEFT) . " because none existed. Other publishers' revenue records for this period are NOT locked. Run the full period close (period:auto-close) to lock all publishers.";
-                AuditLogService::log('manual_payout_partial_period', 'PeriodClosing', $period->id, null, [
-                    'publisher_id' => $publisher->id,
-                    'payout_id'    => $payout->id,
-                    'warning'      => 'Period was newly created; other publishers may have unlocked records.',
-                ]);
-            }
-
-            AuditLogService::log('created', 'Payout', $payout->id, null, $payout->toArray());
-
-            try {
-                Mail::to($publisher->email)->send(new PayoutCreatedMail($payout->load('publisher')));
-                AuditLogService::log(
-                    'email_sent',
-                    'Payout',
-                    $payout->id,
-                    null,
-                    [
-                        'email_type' => 'payout_created',
-                        'recipient'  => $publisher->email,
-                        'trigger'    => 'manual_admin',
-                        'payout_id'  => $payout->id,
-                    ]
-                );
-            } catch (\Exception $e) {}
-
-            $response = [
-                'message' => 'Payout created successfully.',
-                'payout'  => $payout,
-            ];
-            if ($warning) {
-                $response['warning'] = $warning;
-            }
-
-            return response()->json($response);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create payout.',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
+
+        // Send email outside transaction so a mail failure does not roll back the payout.
+        try {
+            Mail::to($publisher->email)->send(new PayoutCreatedMail($payout->load('publisher')));
+            AuditLogService::log('email_sent', 'Payout', $payout->id, null, [
+                'email_type' => 'payout_created',
+                'recipient'  => $publisher->email,
+                'trigger'    => 'admin_payout_override',
+                'payout_id'  => $payout->id,
+            ]);
+        } catch (\Exception $e) {}
+
+        return response()->json([
+            'message' => 'Payout created successfully.',
+            'payout'  => $payout,
+        ]);
+    }
+
+    /**
+     * POST /api/v1/admin/publishers/{id}/manual-payment
+     *
+     * REFACTOR [MPAY-1]: Standalone manual payment — completely independent of Period Closing.
+     *
+     * Creates a Payout record with is_manual_payment = true and period_closing_id = NULL.
+     * Optionally links to an existing Payout record (updates its status to 'paid') for
+     * traceability, but NEVER creates or modifies a PeriodClosing.
+     *
+     * GUARANTEES:
+     *   - NEVER creates a PeriodClosing.
+     *   - NEVER locks RevenueRecords.
+     *   - NEVER applies or creates Adjustment records.
+     *   - NEVER affects any publisher other than the one specified.
+     */
+    public function manualPayment(Request $request, string $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount'    => 'required|numeric|min:0.01',
+            'method'    => 'required|string|max:100',
+            'reference' => 'nullable|string|max:255',
+            'notes'     => 'nullable|string',
+            'payout_id' => 'nullable|uuid|exists:payouts,id',
+        ]);
+
+        $publisher = Publisher::findOrFail($id);
+
+        try {
+            $service = new ManualPaymentService();
+            $manualPayout = $service->create($publisher, $validated, $request->user());
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create manual payment.', 'error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'message' => 'Manual payment recorded successfully.',
+            'payout'  => $manualPayout,
+        ], 201);
     }
 }

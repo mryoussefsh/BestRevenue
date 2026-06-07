@@ -105,3 +105,19 @@ sequenceDiagram
     Note over Job: Set period status to 'closed'
     Job-->>Admin: Period Close Successfully Completed
 ```
+
+### C. Manual Payment Workflow
+```mermaid
+sequenceDiagram
+    participant Admin as Admin Panel
+    participant Svc as ManualPaymentService
+    participant DB as Database
+    participant Mail as Mail Server
+    
+    Admin->>Svc: Trigger Manual Payment (Amount, Method)
+    Svc->>Svc: Validate Input (No PeriodClosing involved)
+    Svc->>DB: Upsert Payout (is_manual_payment = true, period_closing_id = null)
+    Svc->>DB: Log Audit Event
+    Svc->>Mail: Send Payment Notification to Publisher
+    Svc-->>Admin: Manual Payment Success
+```

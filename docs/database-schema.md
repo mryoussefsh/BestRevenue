@@ -110,12 +110,14 @@ Locks a month of traffic, facilitating payout generation.
 - `timestamps` (created_at, updated_at).
 
 ### H. `payouts`
-Monthly payment vouchers generated from closed periods. Unique on `(publisher_id, period_closing_id)`.
+Monthly payment vouchers generated from closed periods, or standalone manual payments.
 - `id` (UUID, Primary Key).
 - `publisher_id` (UUID, Foreign Key): References `publishers.id`.
-- `period_closing_id` (UUID, Foreign Key): References `period_closings.id`.
-- `period_year` (smallint): Year of performance.
-- `period_month` (tinyint): Month of performance.
+- `period_closing_id` (UUID, Foreign Key, Nullable): References `period_closings.id`. Null for manual payments.
+- `is_manual_payment` (boolean, Default: false): Indicates if this is a standalone manual payment.
+- `manual_paid_by` (UUID, Foreign Key, Nullable): References `users.id` (Admin who initiated the manual payment).
+- `period_year` (smallint, Nullable): Year of performance.
+- `period_month` (tinyint, Nullable): Month of performance.
 - `amount` (decimal(12,2), Default: 0.00): Base calculated publisher earnings.
 - `adjustment` (decimal(12,2), Default: 0.00): Net sum of manual adjustments applied.
 - `final_amount` (decimal(12,2), Default: 0.00): Final balance payout (`amount + adjustment`).

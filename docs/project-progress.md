@@ -34,6 +34,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented manual balance adjustments supporting Invalid Traffic (IVT) deductions and bonus payouts.
 - [x] Created stuck closing state recovery handlers (abort or complete).
 - [x] Built the Payout pipeline state machine (`pending` ➡️ `approved` ➡️ `paid` / `rejected`).
+- [x] Decoupled standalone manual payments from period closing engine (MPAY-1).
 
 ### Milestone 4: Portals, Reports & Notifications (Sprints 6 - 9)
 - [x] Programmed Publisher Portal home displaying traffic analysis and Recharts revenue metrics.

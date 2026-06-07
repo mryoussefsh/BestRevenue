@@ -79,7 +79,10 @@ Route::prefix('v1')->group(function () {
         Route::post('publishers/{id}/activate', [\App\Http\Controllers\Admin\PublisherController::class, 'activate']);
         Route::post('publishers/{id}/adjust-balance', [\App\Http\Controllers\Admin\PublisherController::class, 'adjustBalance']);
         Route::post('publishers/{id}/impersonate', [\App\Http\Controllers\Admin\PublisherController::class, 'impersonate']);
+        // REFACTOR [MPAY-1]: Hardened admin payout override (requires existing closed PeriodClosing)
         Route::post('publishers/{id}/create-payout', [\App\Http\Controllers\Admin\PublisherController::class, 'createPayout']);
+        // REFACTOR [MPAY-1]: Standalone manual payment — no Period Closing involvement
+        Route::post('publishers/{id}/manual-payment', [\App\Http\Controllers\Admin\PublisherController::class, 'manualPayment']);
         Route::apiResource('publishers', \App\Http\Controllers\Admin\PublisherController::class);
         Route::post('adjustments/apply-ivt', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyIvt']);
         Route::post('adjustments/apply-bonus', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyBonus']);
