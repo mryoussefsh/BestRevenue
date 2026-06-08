@@ -7,9 +7,10 @@ import { useSettings } from '../../contexts/SettingsContext'
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
-  const { settings, formatDate } = useSettings()
+  const { settings, formatDate, formatDateTime } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
+  const [lastSyncAt, setLastSyncAt] = useState(null)
   
   const [initialLoading, setInitialLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -113,6 +114,7 @@ export default function PublisherDashboard() {
       ])
       setPayouts(payRes.data?.data || [])
       setRevenue(revRes.data?.data || [])
+      setLastSyncAt(revRes.data?.last_sync_at || null)
     } catch {
       toast.error('Failed to load dashboard data')
     }
@@ -283,6 +285,14 @@ export default function PublisherDashboard() {
                 <span style={{ margin: '0 8px', color: '#94a3b8' }}>•</span>
                 <span className="live-clock" style={{ color: '#6366f1', fontWeight: '500' }}>
                   Platform Time: {currentTime}
+                </span>
+              </>
+            )}
+            {lastSyncAt && (
+              <>
+                <span style={{ margin: '0 8px', color: '#94a3b8' }}>•</span>
+                <span className="last-sync-time" style={{ color: '#10b981', fontWeight: '500' }}>
+                  Last Updated: {formatDateTime(lastSyncAt)}
                 </span>
               </>
             )}

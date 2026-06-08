@@ -17,6 +17,17 @@ class PublisherRevenueController extends Controller
     {
         $publisherId = $request->user()->publisher_id;
 
+        $lastSyncTime = RevenueRecord::join('ad_units', 'revenue_records.ad_unit_id', '=', 'ad_units.id')
+            ->join('websites', 'ad_units.website_id', '=', 'websites.id')
+            ->where('websites.publisher_id', $publisherId)
+            ->max('revenue_records.synced_at');
+
+        if (!$lastSyncTime) {
+            $lastSyncTime = \App\Models\GamAccount::whereHas('websites', function($q) use ($publisherId) {
+                $q->where('publisher_id', $publisherId);
+            })->max('last_synced_at');
+        }
+
         $query = RevenueRecord::select('revenue_records.*')
             ->join('ad_units', 'revenue_records.ad_unit_id', '=', 'ad_units.id')
             ->join('websites', 'ad_units.website_id', '=', 'websites.id')
@@ -94,7 +105,8 @@ class PublisherRevenueController extends Controller
                 ];
             }),
             'last_page' => $records->lastPage(),
-            'total'     => $records->total()
+            'total'     => $records->total(),
+            'last_sync_at' => $lastSyncTime ? \Carbon\Carbon::parse($lastSyncTime)->toIso8601String() : null
         ]);
     }
 
