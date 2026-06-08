@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.0] - 2026-06-09
+
+### Added
+- **Compact Amount & Number Formatting**: Introduced a reusable frontend component `CompactAmount.jsx` to automatically format values greater than 1,000 (e.g. `1k`, `1.5M`) across all Admin and Publisher views.
+  - Implemented dynamic circle info icon (`ⓘ` SVG) showing the exact full amount on hover and toggling between compact and full formats inline when clicked.
+  - Integrated support for configuring decimal counts (`decimals`) and robust input parsing to handle pre-formatted string commas.
+- **Platform-wide Portal Integration**:
+  - **Publisher Portal**: Applied formatting to stats cards (earnings, payouts, impressions, clicks) and daily logs/table rows.
+  - **Admin Portal**: Integrated formatting on the main dashboard metrics, publishers list columns, publisher details/adjustments/payout tables, period closings, manual payment modals, and revenue logs.
+
 ## [1.2.0] - 2026-06-08
 
 ### Changed
