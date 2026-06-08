@@ -76,6 +76,20 @@ class SettingsSeeder extends Seeder
                 'label' => 'GAM Sync Interval (Hours or Minutes multiplier)',
                 'type'  => 'integer',
             ],
+            [
+                'key'   => 'google_client_id',
+                'value' => '',
+                'group' => 'gam',
+                'label' => 'Google OAuth Client ID',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'google_client_secret',
+                'value' => '',
+                'group' => 'gam',
+                'label' => 'Google OAuth Client Secret',
+                'type'  => 'string',
+            ],
 
 
             // ── Payment ───────────────────────────────────────
