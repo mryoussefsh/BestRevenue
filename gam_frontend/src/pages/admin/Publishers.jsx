@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { adminApi } from '../../api/endpoints'
+import { adminApi, publicApi } from '../../api/endpoints'
 import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
@@ -22,6 +22,21 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
     payment_account: publisher?.payment_info?.account || '',
   })
   const [loading, setLoading] = useState(false)
+  const [paymentMethods, setPaymentMethods] = useState([])
+
+  useEffect(() => {
+    publicApi.getSettings().then(res => {
+      let methods = res.data?.payment_methods || []
+      if (typeof methods === 'string') {
+        try {
+          methods = JSON.parse(methods)
+        } catch (e) {
+          methods = []
+        }
+      }
+      setPaymentMethods(methods)
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!isEdit) {
@@ -33,6 +48,11 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
       }).catch(() => {})
     }
   }, [isEdit])
+
+  const methodNames = paymentMethods.map(m => {
+    if (typeof m === 'object' && m !== null) return m.name
+    return m
+  }).filter(Boolean)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -127,8 +147,19 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Payment Method</label>
-              <input className="form-input" value={form.payment_method}
-                onChange={e => setForm(f => ({ ...f, payment_method: e.target.value }))} placeholder="e.g. Wire Transfer, PayPal" />
+              <select 
+                className="form-select" 
+                value={form.payment_method}
+                onChange={e => setForm(f => ({ ...f, payment_method: e.target.value }))}
+              >
+                <option value="">Select Payment Method...</option>
+                {methodNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+                {form.payment_method && !methodNames.some(n => n.toLowerCase() === form.payment_method.toLowerCase()) && (
+                  <option value={form.payment_method}>{form.payment_method}</option>
+                )}
+              </select>
             </div>
             <div className="form-group">
               <label className="form-label">Payment Account</label>
