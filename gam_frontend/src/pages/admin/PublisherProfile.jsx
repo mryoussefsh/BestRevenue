@@ -33,6 +33,7 @@ export default function PublisherProfile() {
   const [bulkAdModalOpen, setBulkAdModalOpen] = useState(false)
   const [websiteModal, setWebsiteModal] = useState(null)
   const [adModal, setAdModal] = useState(null)
+  const [impersonateModalOpen, setImpersonateModalOpen] = useState(false)
 
   // Tab State
   const [activeTab, setActiveTab] = useState('websites')
@@ -224,7 +225,7 @@ export default function PublisherProfile() {
             </button>
             <button className="btn btn-secondary"
               style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)' }}
-              onClick={handleImpersonate}>
+              onClick={() => setImpersonateModalOpen(true)}>
               👤 Log In
             </button>
             <button className="btn"
@@ -878,6 +879,110 @@ export default function PublisherProfile() {
           onSaved={() => { setAdModal(null); loadAllData(true) }}
         />
       )}
+      {impersonateModalOpen && (
+        <ImpersonateModal
+          publisher={publisher}
+          onClose={() => setImpersonateModalOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ImpersonateModal({ publisher, onClose }) {
+  const [loading, setLoading] = useState(false)
+  const { impersonate } = useAuth()
+
+  async function handleImpersonate(newTab) {
+    setLoading(true)
+    try {
+      const res = await adminApi.impersonatePublisher(publisher.id)
+      const { access_token, user: publisherUser } = res.data
+      
+      // Save admin credentials
+      localStorage.setItem('admin_token', localStorage.getItem('token'))
+      localStorage.setItem('admin_user', localStorage.getItem('user'))
+      
+      // Set publisher credentials
+      localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(publisherUser))
+      
+      if (newTab) {
+        window.open('/', '_blank')
+        toast.success(`Logged in as ${publisher.name} in a new tab`)
+        onClose()
+        // Reload current tab to reflect updated localStorage session in header/sidebar if needed
+        window.location.reload()
+      } else {
+        impersonate(access_token, publisherUser)
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed to impersonate publisher')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: '480px' }}>
+        <div className="modal-header">
+          <span className="modal-title">👤 Log In as Publisher</span>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div style={{ padding: '20px 0' }}>
+          <p style={{ fontSize: 15 }}>
+            You are about to log in as publisher <strong>{publisher.name}</strong> ({publisher.email}).
+          </p>
+          <p style={{ marginTop: 12, color: 'var(--color-text-muted)', fontSize: 13, lineHeight: '1.5' }}>
+            Choose whether to open the publisher dashboard in a new tab or redirect the current tab.
+          </p>
+        </div>
+        <div className="modal-footer" style={{ justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
+          <button 
+            type="button" 
+            className="hover-link" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--color-text-muted)', 
+              cursor: 'pointer',
+              fontSize: 14 
+            }} 
+            onClick={onClose} 
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          
+          <button 
+            type="button"
+            className="hover-link"
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--color-primary-light)', 
+              textDecoration: 'underline', 
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500
+            }}
+            onClick={() => handleImpersonate(false)}
+            disabled={loading}
+          >
+            Open in Current Tab
+          </button>
+          
+          <button 
+            type="button"
+            className="btn btn-primary" 
+            onClick={() => handleImpersonate(true)} 
+            disabled={loading}
+          >
+            {loading ? 'Logging in…' : '🚀 Open in New Tab'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
