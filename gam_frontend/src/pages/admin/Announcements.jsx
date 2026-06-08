@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useSettings } from '../../contexts/SettingsContext'
 
 // Lightweight built-in rich text editor (no external deps)
 function RichEditor({ value, onChange }) {
@@ -108,6 +109,7 @@ const TYPE_COLORS = { banner: '#6366f1', modal: '#10b981' }
 const TYPE_LABELS = { banner: '📌 Fixed Banner', modal: '💬 Modal Popup' }
 
 export default function AdminAnnouncements() {
+  const { formatDate, formatDateTimeLocal } = useSettings()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -146,8 +148,8 @@ export default function AdminAnnouncements() {
       type: item.type || 'banner',
       priority: item.priority ?? 0,
       is_active: item.is_active ?? true,
-      start_date: item.start_date ? item.start_date.slice(0, 16) : '',
-      end_date: item.end_date ? item.end_date.slice(0, 16) : '',
+      start_date: item.start_date ? formatDateTimeLocal(item.start_date) : '',
+      end_date: item.end_date ? formatDateTimeLocal(item.end_date) : '',
       allow_dismiss: item.allow_dismiss ?? true,
       buttons: item.buttons || [],
       target_type: item.target_type || 'all',
@@ -397,8 +399,8 @@ export default function AdminAnnouncements() {
                   <td style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
                     {item.start_date || item.end_date ? (
                       <div>
-                        {item.start_date && <div>From: {item.start_date.slice(0, 10)}</div>}
-                        {item.end_date && <div>To: {item.end_date.slice(0, 10)}</div>}
+                         {item.start_date && <div>From: {formatDate(item.start_date)}</div>}
+                         {item.end_date && <div>To: {formatDate(item.end_date)}</div>}
                       </div>
                     ) : <span>Lifetime</span>}
                   </td>

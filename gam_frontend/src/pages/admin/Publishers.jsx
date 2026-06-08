@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi, publicApi } from '../../api/endpoints'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 
@@ -197,6 +198,7 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
 
 export default function PublishersPage() {
   const { impersonate } = useAuth()
+  const { formatDate } = useSettings()
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null) // null | 'create' | publisher obj
@@ -393,7 +395,7 @@ export default function PublishersPage() {
                       </span>
                     </td>
                     <td className="text-muted text-sm">
-                      {pub.created_at?.slice(0,10)}
+                      {formatDate(pub.created_at)}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

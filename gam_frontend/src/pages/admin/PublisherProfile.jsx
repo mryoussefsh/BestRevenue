@@ -12,7 +12,7 @@ export default function PublisherProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { impersonate } = useAuth()
-  const { settings } = useSettings()
+  const { settings, formatDate, formatDateTime } = useSettings()
 
   const [publisher, setPublisher] = useState(null)
   const [websites, setWebsites] = useState([])
@@ -165,38 +165,6 @@ export default function PublisherProfile() {
     }
     adUnitsByWebsite[ad.website_id].push(ad)
   })
-
-  const formatDateTime = (dateStr, includeSeconds = false) => {
-    if (!dateStr) return ''
-    try {
-      const timezone = settings.platform_timezone || 'UTC'
-      const d = new Date(dateStr)
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      })
-      const parts = formatter.formatToParts(d)
-      const getPart = (type) => parts.find(p => p.type === type)?.value || '00'
-      const year = parts.find(p => p.type === 'year')?.value || ''
-      const month = getPart('month')
-      const day = getPart('day')
-      const hour = getPart('hour')
-      const minute = getPart('minute')
-      if (includeSeconds) {
-        const second = getPart('second')
-        return `${year}-${month}-${day} ${hour}:${minute}:${second}`
-      }
-      return `${year}-${month}-${day} ${hour}:${minute}`
-    } catch {
-      return dateStr?.slice(0, includeSeconds ? 19 : 16).replace('T', ' ')
-    }
-  }
 
   return (
     <div>
@@ -739,7 +707,7 @@ export default function PublisherProfile() {
                                 {p.status}
                               </span>
                             </td>
-                            <td className="text-muted text-sm">{p.paid_at ? p.paid_at.slice(0, 10) : '—'}</td>
+                            <td className="text-muted text-sm">{p.paid_at ? formatDate(p.paid_at) : '—'}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.7] - 2026-06-08
+
+### Added
+- **Dynamic Timezone Formatting Context Helpers**: Implemented `formatDate`, `formatDateTime`, and `formatDateTimeLocal` functions inside `SettingsContext.jsx` to dynamically align UTC timestamps with the admin-configured `platform_timezone` setting. Pure calendar dates are preserved as-is.
+
+### Fixed
+- **Platform-wide Timezone Support**: Updated Audit Logs, Payouts, Adjustments, Closings, Announcements, Sync history, Publisher Profile, and Payout sheets to consume the dynamic timezone formatting helpers, replacing raw timezone-ignorant string slicing.
+
 ## [1.1.6] - 2026-06-08
 
 ### Added

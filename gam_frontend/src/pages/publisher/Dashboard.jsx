@@ -7,7 +7,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
-  const { settings } = useSettings()
+  const { settings, formatDate } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   
@@ -504,7 +504,7 @@ export default function PublisherDashboard() {
                       <span className={`badge badge-${p.status}`}>{p.status}</span>
                     </td>
                     <td className="text-muted text-sm">
-                      {p.paid_at ? p.paid_at.slice(0,10) : '—'}
+                      {p.paid_at ? formatDate(p.paid_at) : '—'}
                     </td>
                   </tr>
                 ))}

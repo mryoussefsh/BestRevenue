@@ -7,7 +7,7 @@ import Pagination from '../../components/Pagination'
 
 export default function PublisherPayouts() {
   const { user, updatePaymentInfo } = useAuth()
-  const { settings } = useSettings()
+  const { settings, formatDate } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -159,7 +159,7 @@ export default function PublisherPayouts() {
                         : <span className="text-muted text-xs">—</span>}
                     </td>
                     <td className="text-sm text-muted">
-                      {p.paid_at ? p.paid_at.slice(0,10) : '—'}
+                      {p.paid_at ? formatDate(p.paid_at) : '—'}
                     </td>
                   </tr>
                 ))}

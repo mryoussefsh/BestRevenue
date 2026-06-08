@@ -5,7 +5,7 @@ import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
 
 export default function AuditLogsPage() {
-  const { settings } = useSettings()
+  const { formatDateTime } = useSettings()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ action: '', entity_type: '' })
@@ -39,33 +39,6 @@ export default function AuditLogsPage() {
     paid: 'badge-paid',
     rejected: 'badge-rejected',
     closed: 'badge-closed'
-  }
-
-  const formatDateTime = (dateStr) => {
-    if (!dateStr) return ''
-    try {
-      const timezone = settings.platform_timezone || 'UTC'
-      const d = new Date(dateStr)
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })
-      const parts = formatter.formatToParts(d)
-      const getPart = (type) => parts.find(p => p.type === type)?.value || '00'
-      const year = parts.find(p => p.type === 'year')?.value || ''
-      const month = getPart('month')
-      const day = getPart('day')
-      const hour = getPart('hour')
-      const minute = getPart('minute')
-      return `${year}-${month}-${day} ${hour}:${minute}`
-    } catch {
-      return dateStr?.slice(0, 16).replace('T', ' ')
-    }
   }
 
   return (

@@ -74,6 +74,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Configured defensive fallback to text-based brand name in PDF rendering if PHP GD extension is missing or disabled.
 - [x] Removed time component from record dates in PDF statements.
 - [x] Created a live timezone-aware ticking clock on the publisher dashboard header reflecting the active platform timezone.
+- [x] Integrated platform-wide timezone support in all date/time views (Audit Logs, Payouts, Adjustments, Closings, Announcements, Sync history) using dynamic context formatting utilities.
 
 ---
 

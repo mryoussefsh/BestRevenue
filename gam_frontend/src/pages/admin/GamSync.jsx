@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useSettings } from '../../contexts/SettingsContext'
 
-function fmt(dt) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleString()
-}
+
 
 function fmtDuration(sec) {
   if (sec == null) return '—'
@@ -48,6 +46,11 @@ function TriggerBadge({ triggeredBy }) {
 }
 
 export default function GamSyncPage() {
+  const { formatDateTime } = useSettings()
+  const fmt = (dt) => {
+    if (!dt) return '—'
+    return formatDateTime(dt, true)
+  }
   const today = new Date().toISOString().slice(0, 10)
   const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10)
 

@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
+import { useSettings } from '../../contexts/SettingsContext'
 
 export default function AdjustmentsPage() {
+  const { formatDate } = useSettings()
   const [adjustments, setAdjustments] = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -156,7 +158,7 @@ export default function AdjustmentsPage() {
                       </div>
                     </td>
                     <td className="text-muted">{adj.creator?.name || 'System / Admin'}</td>
-                    <td className="text-muted text-sm">{adj.created_at?.slice(0, 10)}</td>
+                    <td className="text-muted text-sm">{formatDate(adj.created_at)}</td>
                     <td>
                       <span className={`badge ${adj.status === 'applied' ? 'badge-active' : 'badge-pending'}`}
                             style={{

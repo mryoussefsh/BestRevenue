@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import { useSettings } from '../../contexts/SettingsContext'
 
 function CloseModal({ onClose, onDone }) {
   const now = new Date()
@@ -62,6 +63,7 @@ function CloseModal({ onClose, onDone }) {
 }
 
 export default function PeriodClosingsPage() {
+  const { formatDate } = useSettings()
   const [closings, setClosings] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -149,7 +151,7 @@ export default function PeriodClosingsPage() {
                           ${parseFloat(c.payouts_sum_final_amount || 0).toFixed(2)}
                         </td>
                         <td className="money">{parseInt(c.total_impressions || 0).toLocaleString()}</td>
-                        <td className="text-sm text-muted">{c.closed_at?.slice(0,10) || '—'}</td>
+                        <td className="text-sm text-muted">{c.closed_at ? formatDate(c.closed_at) : '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button className="btn btn-secondary btn-xs" onClick={() => loadDetail(c.id)}>
