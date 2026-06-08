@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - `AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS`
   - `AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS`
   Note that unfilled impressions remain at the inventory level (`TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS`) since there is no source-specific unfilled equivalent.
+- **Publisher Dashboard CPM Display**: Renamed "Average CPM" card to "Monetized CPM" and added an information tooltip explaining that this CPM is calculated based on net earnings after the platform share has been applied.
 
 ## [1.1.8] - 2026-06-08
 

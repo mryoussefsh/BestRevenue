@@ -485,7 +485,15 @@ export default function PublisherDashboard() {
 
           <div className="stat-card primary">
             <div className="stat-icon">📊</div>
-            <div className="stat-label">Average CPM</div>
+            <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Monetized CPM
+              <span 
+                style={{ cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}
+                title="Your net earnings per 1,000 served (monetized) impressions after the platform share has been applied."
+              >
+                ⓘ
+              </span>
+            </div>
             <div className="stat-value money">${averageCpm.toFixed(2)}</div>
             <div className="stat-change text-muted">Earnings per 1k impressions</div>
           </div>
