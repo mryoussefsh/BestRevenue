@@ -23,11 +23,25 @@ export default function PublisherPayouts() {
 
     setSavingPayment(true)
     try {
-      await publisherApi.updatePaymentInfo({ method, account })
-      updatePaymentInfo({ method, account })
+      console.log('Sending payment update request:', { method, account })
+      const res = await publisherApi.updatePaymentInfo({ method, account })
+      console.log('Payment update API success:', res.data)
+      
+      if (typeof updatePaymentInfo === 'function') {
+        updatePaymentInfo({ method, account })
+      } else {
+        console.warn('updatePaymentInfo is not a function in AuthContext')
+      }
+      
       toast.success('Payment details updated successfully!')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update payment details')
+      console.error('Failed to update payment details:', err)
+      if (err.response) {
+        console.error('API Error Response Status:', err.response.status)
+        console.error('API Error Response Data:', err.response.data)
+      }
+      const errMsg = err.response?.data?.message || err.message || 'Failed to update payment details'
+      toast.error(errMsg)
     } finally {
       setSavingPayment(false)
     }
