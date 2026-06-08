@@ -223,9 +223,87 @@ export default function PayoutsPage() {
                       )}
                     </td>
                     <td className="text-sm text-muted">
-                      {p.payment_method || '—'}
+                      <div style={{ fontWeight: 600 }}>{p.payment_method || '—'}</div>
+                      {(() => {
+                        const publisher = p.publisher;
+                        if (!publisher) return null;
+                        let info = publisher.payment_info;
+                        let account = null;
+                        if (info) {
+                          if (typeof info === 'string') {
+                            try {
+                              info = JSON.parse(info);
+                            } catch (e) {
+                              account = info;
+                            }
+                          }
+                          if (typeof info === 'object' && info !== null) {
+                            account = info.account;
+                          }
+                        }
+                        if (!account) return null;
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                            <code 
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+                                color: '#e2e8f0',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '140px',
+                              }} 
+                              title={account}
+                            >
+                              {account}
+                            </code>
+                            <button
+                              className="btn btn-secondary btn-xs"
+                              style={{
+                                padding: '2px 8px',
+                                height: '22px',
+                                lineHeight: '18px',
+                                fontSize: '10px',
+                                fontWeight: '600',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                borderRadius: '6px',
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                color: '#f8fafc',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(account);
+                                toast.success('Copied to clipboard!');
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                              }}
+                              title="Copy account details"
+                            >
+                              📋 Copy
+                            </button>
+                          </div>
+                        );
+                      })()}
                       {p.payment_reference && (
-                        <div style={{ fontFamily: 'monospace', fontSize: 11 }}>{p.payment_reference}</div>
+                        <div style={{ fontFamily: 'monospace', fontSize: 11, marginTop: 4 }}>
+                          Ref: {p.payment_reference}
+                        </div>
                       )}
                     </td>
                     <td>
