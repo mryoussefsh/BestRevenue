@@ -83,6 +83,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Upgraded publisher earnings chart from a single-series area to a dual-series split showing Approved (solid green) and Pending (dashed amber) earnings per day with legend and updated tooltip.
 - [x] Switched GAM report metrics fetching from combined `TOTAL_*` columns to source-specific `AD_EXCHANGE_*` columns to ensure only Ad Exchange (AdX) metrics are imported.
 - [x] Renamed the publisher dashboard card to "Monetized CPM" and added a tooltip explanation about the net earnings basis to avoid publisher confusion.
+- [x] Removed the "Recent Payouts (Account-wide)" table section from the publisher dashboard page.
 
 ---
 

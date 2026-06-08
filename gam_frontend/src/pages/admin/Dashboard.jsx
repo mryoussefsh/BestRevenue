@@ -585,7 +585,7 @@ export default function AdminDashboard() {
             </div>
             <div className="stat-change text-muted">
               {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
-                ? `${(stats.totalAvViewable || 0).toLocaleString()} / ${(stats.totalAvEligible || 0).toLocaleString()} eligible`
+                ? `${(stats.totalAvViewable || 0).toLocaleString()} / ${(stats.totalAvEligible || 0).toLocaleString()} measurable`
                 : 'No Active View data'}
             </div>
           </div>

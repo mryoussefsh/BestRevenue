@@ -7,7 +7,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
-  const { settings, formatDate, formatDateTime } = useSettings()
+  const { settings, formatDateTime } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   const [lastSyncAt, setLastSyncAt] = useState(null)
@@ -478,7 +478,7 @@ export default function PublisherDashboard() {
             </div>
             <div className="stat-change text-muted">
               {viewabilityRate !== null
-                ? `${totalAvViewable.toLocaleString()} / ${totalAvEligible.toLocaleString()} eligible`
+                ? `${totalAvViewable.toLocaleString()} / ${totalAvEligible.toLocaleString()} measurable`
                 : 'No Active View data'}
             </div>
           </div>
@@ -577,34 +577,6 @@ export default function PublisherDashboard() {
             </div>
           )}
         </div>
-
-        {/* Recent Payouts */}
-        {payouts.length > 0 && (
-          <div className="card" style={{ marginTop: 24 }}>
-            <div className="card-header">
-              <div className="card-title">💳 Recent Payouts (Account-wide)</div>
-            </div>
-            <table className="table">
-              <thead><tr><th>Period</th><th>Amount</th><th>Status</th><th>Paid At</th></tr></thead>
-              <tbody>
-                {payouts.slice(0, 5).map(p => (
-                  <tr key={p.id}>
-                    <td className="money">{p.period_year}-{String(p.period_month).padStart(2,'0')}</td>
-                    <td className="money positive" style={{ fontWeight: 700 }}>
-                      ${parseFloat(p.final_amount).toFixed(2)}
-                    </td>
-                    <td>
-                      <span className={`badge badge-${p.status}`}>{p.status}</span>
-                    </td>
-                    <td className="text-muted text-sm">
-                      {p.paid_at ? formatDate(p.paid_at) : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   )

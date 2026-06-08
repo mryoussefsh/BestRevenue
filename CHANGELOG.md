@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.2.0] - 2026-06-08
+
+### Changed
+- **Publisher Dashboard Recent Payouts**: Removed the "Recent Payouts (Account-wide)" table section from the bottom of the publisher dashboard page.
+
 ## [1.1.9] - 2026-06-08
 
 ### Changed

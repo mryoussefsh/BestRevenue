@@ -160,7 +160,7 @@ class GamApiService
             Column::AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE,           // AdX gross revenue only
             Column::TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS,    // Unfilled is inventory-level (no per-source equivalent)
             Column::AD_EXCHANGE_LINE_ITEM_LEVEL_AVERAGE_ECPM,      // AdX average eCPM
-            Column::AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS,  // AdX Active View eligible
+            Column::AD_EXCHANGE_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS,// AdX Active View measurable
             Column::AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS,  // AdX Active View viewable
         ]);
 
@@ -237,7 +237,7 @@ class GamApiService
             $grossRevenue     = (float) ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE']] ?? 0) / 1000000;
             $unfilled         = (int)   ($row[$headerMap['Column.TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS']] ?? 0);
             $cpm              = (float) ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_AVERAGE_ECPM']] ?? 0) / 1000000;
-            $avEligible       = (int)   ($row[$headerMap['Column.AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS']] ?? 0);
+            $avMeasurable     = (int)   ($row[$headerMap['Column.AD_EXCHANGE_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS']] ?? 0);
             $avViewable       = (int)   ($row[$headerMap['Column.AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS']] ?? 0);
 
             if ($date && $adUnitName) {
@@ -249,7 +249,7 @@ class GamApiService
                     'gross_revenue'                     => $grossRevenue,
                     'unfilled_impressions'              => $unfilled,
                     'cpm'                               => $cpm,
-                    'active_view_eligible_impressions'  => $avEligible,
+                    'active_view_eligible_impressions'  => $avMeasurable,
                     'active_view_viewable_impressions'  => $avViewable,
                 ];
             }
