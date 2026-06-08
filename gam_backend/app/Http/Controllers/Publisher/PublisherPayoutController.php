@@ -46,49 +46,62 @@ class PublisherPayoutController extends Controller
      */
     public function updatePaymentInfo(Request $request): JsonResponse
     {
-        $publisher = $request->user()->publisher;
-        if (!$publisher) {
-            return response()->json(['message' => 'Publisher profile not found.'], 404);
-        }
+        \Log::info("updatePaymentInfo called. Input: " . json_encode($request->all()) . ", User: " . ($request->user() ? $request->user()->email : 'none'));
+        try {
+            $publisher = $request->user()->publisher;
+            if (!$publisher) {
+                \Log::warning("updatePaymentInfo: Publisher profile not found for user: " . ($request->user() ? $request->user()->email : 'none'));
+                return response()->json(['message' => 'Publisher profile not found.'], 404);
+            }
 
-        $request->validate([
-            'method'  => 'required|string',
-            'account' => 'required|string|max:1000',
-        ]);
+            $request->validate([
+                'method'  => 'required|string',
+                'account' => 'required|string|max:1000',
+            ]);
 
-        // Validate that the method is allowed
-        $allowedMethods = \App\Models\Setting::get('payment_methods', []);
-        $methodNames = [];
-        if (is_array($allowedMethods)) {
-            foreach ($allowedMethods as $m) {
-                if (is_array($m)) {
-                    if (isset($m['name'])) {
-                        $methodNames[] = strtolower($m['name']);
+            // Validate that the method is allowed
+            $allowedMethods = \App\Models\Setting::get('payment_methods', []);
+            $methodNames = [];
+            if (is_array($allowedMethods)) {
+                foreach ($allowedMethods as $m) {
+                    if (is_array($m)) {
+                        if (isset($m['name'])) {
+                            $methodNames[] = strtolower($m['name']);
+                        }
+                    } elseif (is_string($m)) {
+                        $methodNames[] = strtolower($m);
                     }
-                } elseif (is_string($m)) {
-                    $methodNames[] = strtolower($m);
                 }
             }
-        }
 
-        if (!in_array(strtolower($request->method), $methodNames)) {
+            if (!in_array(strtolower($request->method), $methodNames)) {
+                \Log::warning("updatePaymentInfo: Method not allowed. Selected: {$request->method}, Allowed: " . implode(', ', $methodNames));
+                return response()->json([
+                    'message' => 'Selected payment method is not allowed or supported by the platform.',
+                    'errors' => [
+                        'method' => ['Selected payment method is not supported.']
+                    ]
+                ], 422);
+            }
+
+            $publisher->payment_info = [
+                'method'  => $request->method,
+                'account' => $request->account,
+            ];
+            $publisher->save();
+
+            \Log::info("updatePaymentInfo: Saved successfully for publisher {$publisher->id}");
+
             return response()->json([
-                'message' => 'Selected payment method is not allowed or supported by the platform.',
-                'errors' => [
-                    'method' => ['Selected payment method is not supported.']
-                ]
-            ], 422);
+                'message'      => 'Payment information updated successfully.',
+                'payment_info' => $publisher->payment_info,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning("updatePaymentInfo validation failed: " . json_encode($e->errors()));
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error("updatePaymentInfo error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
-
-        $publisher->payment_info = [
-            'method'  => $request->method,
-            'account' => $request->account,
-        ];
-        $publisher->save();
-
-        return response()->json([
-            'message'      => 'Payment information updated successfully.',
-            'payment_info' => $publisher->payment_info,
-        ]);
     }
 }
