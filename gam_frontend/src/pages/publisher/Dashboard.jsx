@@ -350,6 +350,15 @@ export default function PublisherDashboard() {
 
   const paginatedDailyRecords = sortedDailyRecords.slice((dailyPage - 1) * 10, dailyPage * 10)
 
+  const dailyTotals = sortedDailyRecords.reduce((acc, r) => {
+    acc.impressions += r.impressions
+    acc.clicks += r.clicks
+    acc.approved += r.approved
+    acc.pending += r.pending
+    acc.earnings += r.earnings
+    return acc
+  }, { impressions: 0, clicks: 0, approved: 0, pending: 0, earnings: 0 })
+
   const handleDailySort = (field) => {
     if (dailySortField === field) {
       setDailySortOrder(dailySortOrder === 'asc' ? 'desc' : 'asc')
@@ -743,6 +752,34 @@ export default function PublisherDashboard() {
                   })
                 )}
               </tbody>
+              {sortedDailyRecords.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({sortedDailyRecords.length}d)</td>
+                    <td className="money">
+                      <CompactAmount value={dailyTotals.impressions} prefix="" decimals={0} />
+                    </td>
+                    <td className="money">
+                      <CompactAmount value={dailyTotals.clicks} prefix="" decimals={0} />
+                    </td>
+                    <td className="money">
+                      {(dailyTotals.impressions > 0 ? (dailyTotals.clicks / dailyTotals.impressions) * 100 : 0).toFixed(2)}%
+                    </td>
+                    <td className="money">
+                      ${(dailyTotals.impressions > 0 ? (dailyTotals.earnings / dailyTotals.impressions) * 1000 : 0).toFixed(2)}
+                    </td>
+                    <td className="money positive" style={{ fontWeight: '600' }}>
+                      <CompactAmount value={dailyTotals.approved} />
+                    </td>
+                    <td className="money" style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
+                      <CompactAmount value={dailyTotals.pending} />
+                    </td>
+                    <td className="money positive" style={{ fontWeight: '800' }}>
+                      <CompactAmount value={dailyTotals.earnings} />
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
           {sortedDailyRecords.length > 0 && (

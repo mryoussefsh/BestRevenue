@@ -85,7 +85,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Renamed the publisher dashboard card to "Monetized CPM" and added a tooltip explanation about the net earnings basis to avoid publisher confusion.
 - [x] Removed the "Recent Payouts (Account-wide)" table section from the publisher dashboard page.
 - [x] Added a paginated Daily Performance table under the charts in the publisher dashboard supporting sorting by date, impressions, clicks, CTR, CPM, approved, pending, and total earnings.
-- [x] Implemented platform-wide compact amount and number formatting (compaction >= 1,000 to `k`, >= 1,000,000 to `M`) across both Publisher and Admin portals, featuring interactive circle-i info icons, hover tooltips, and click-to-toggle behaviors with safe comma sanitation and customizable decimals.
+- [x] Implemented platform-wide compact amount and number formatting (compaction >= 1,000 to `k`, >= 1,000,000 to `M`) across both Publisher and Admin portals, featuring interactive circle-i info icons, hover tooltips, and click-to-toggle behaviors with safe comma sanitation and customizable decimals, and added a totals footer row to the publisher daily performance table.
 
 ---
 
