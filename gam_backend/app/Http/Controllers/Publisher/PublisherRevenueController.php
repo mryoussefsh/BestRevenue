@@ -87,6 +87,7 @@ class PublisherRevenueController extends Controller
                     // FIX [PUB-VIEW-1]: 'country' removed — column was dropped in migration
                     // 2026_06_04_225937_remove_country_from_revenue_records_table.php
                     'impressions'        => $record->impressions,
+                    'unfilled_impressions' => $record->unfilled_impressions,
                     'clicks'             => $record->clicks,
                     'ctr'                => (float) $record->ctr,
                     'publisher_earnings' => (float) $record->publisher_earnings,

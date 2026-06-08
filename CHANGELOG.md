@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Dynamic Timezone Formatting Context Helpers**: Implemented `formatDate`, `formatDateTime`, and `formatDateTimeLocal` functions inside `SettingsContext.jsx` to dynamically align UTC timestamps with the admin-configured `platform_timezone` setting. Pure calendar dates are preserved as-is.
 - **Publisher Dashboard Last Sync Time**: Added a timezone-aware update timestamp display in the publisher dashboard header reflecting the maximum `synced_at` date of this publisher's revenue records, with a fallback to the max `last_synced_at` of GAM accounts linked to their websites.
 - **Publisher Last Sync API Metadata**: Exposes the computed `last_sync_at` timestamp inside `PublisherRevenueController@index` payload.
+- **Publisher Dashboard Metric Cards**: Expanded the publisher dashboard statistics grid to render missing metrics: Total Clicks, Average CTR, Average CPM, and Unfilled Impressions.
+- **Exposed Unfilled Impressions API Parameter**: Modified `PublisherRevenueController` to include `unfilled_impressions` inside the fetched records mapped arrays.
 
 ### Fixed
 - **Platform-wide Timezone Support**: Updated Audit Logs, Payouts, Adjustments, Closings, Announcements, Sync history, Publisher Profile, and Payout sheets to consume the dynamic timezone formatting helpers, replacing raw timezone-ignorant string slicing.

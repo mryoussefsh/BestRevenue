@@ -226,6 +226,12 @@ export default function PublisherDashboard() {
   const totalImpressions = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
   const lastPayout      = payouts[0]
 
+  const totalClicks = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
+  const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
+  const totalEarnings = totalApprovedEarnings + totalPendingEarnings
+  const averageCpm = totalImpressions > 0 ? (totalEarnings / totalImpressions) * 1000 : 0
+  const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
+
   // Chart data aggregation
   const byDate = {}
   revenue.forEach(r => {
@@ -434,6 +440,35 @@ export default function PublisherDashboard() {
             <div className="stat-icon">👀</div>
             <div className="stat-label">Total Impressions</div>
             <div className="stat-value">{totalImpressions.toLocaleString()}</div>
+            <div className="stat-change text-muted">Page ad loads</div>
+          </div>
+          
+          <div className="stat-card info">
+            <div className="stat-icon">💨</div>
+            <div className="stat-label">Unfilled Impressions</div>
+            <div className="stat-value">{totalUnfilled.toLocaleString()}</div>
+            <div className="stat-change text-muted">Unserved inventory</div>
+          </div>
+
+          <div className="stat-card info">
+            <div className="stat-icon">🖱️</div>
+            <div className="stat-label">Total Clicks</div>
+            <div className="stat-value">{totalClicks.toLocaleString()}</div>
+            <div className="stat-change text-muted">Selected period</div>
+          </div>
+
+          <div className="stat-card primary">
+            <div className="stat-icon">🎯</div>
+            <div className="stat-label">Average CTR</div>
+            <div className="stat-value">{averageCtr.toFixed(2)}%</div>
+            <div className="stat-change text-muted">Click-through rate</div>
+          </div>
+
+          <div className="stat-card primary">
+            <div className="stat-icon">📊</div>
+            <div className="stat-label">Average CPM</div>
+            <div className="stat-value money">${averageCpm.toFixed(2)}</div>
+            <div className="stat-change text-muted">Earnings per 1k impressions</div>
           </div>
           
           <div className="stat-card primary">
