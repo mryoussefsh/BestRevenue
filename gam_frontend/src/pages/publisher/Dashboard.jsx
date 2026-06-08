@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -459,32 +460,30 @@ export default function PublisherDashboard() {
           {/* Website Filter */}
           <div style={{ flex: '1 1 170px' }}>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Website</label>
-            <select
-              className="form-select"
+            <SearchableSelect
               value={filters.website_id}
-              onChange={e => handleWebsiteChange(e.target.value)}
-            >
-              <option value="">All Websites</option>
-              {websites.map(w => (
-                <option key={w.id} value={w.id}>{w.domain}</option>
-              ))}
-            </select>
+              onChange={handleWebsiteChange}
+              options={websites.map(w => ({ value: w.id, label: w.domain }))}
+              placeholder="All Websites"
+              emptyMessage="No websites found"
+              isOptional={true}
+              clearLabel="All Websites"
+            />
           </div>
 
           {/* Ad Unit Filter */}
           <div style={{ flex: '1 1 170px' }}>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Ad Unit</label>
-            <select
-              className="form-select"
+            <SearchableSelect
               value={filters.ad_unit_id}
+              onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
+              options={adUnits.map(au => ({ value: au.id, label: au.display_name }))}
+              placeholder="All Ad Units"
+              emptyMessage={!filters.website_id ? "Select a website first" : "No ad units found"}
+              isOptional={true}
+              clearLabel="All Ad Units"
               disabled={!filters.website_id}
-              onChange={e => setFilters(f => ({ ...f, ad_unit_id: e.target.value }))}
-            >
-              <option value="">All Ad Units</option>
-              {adUnits.map(au => (
-                <option key={au.id} value={au.id}>{au.display_name}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Status Filter */}

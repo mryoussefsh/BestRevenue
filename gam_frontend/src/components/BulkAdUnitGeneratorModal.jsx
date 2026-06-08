@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
 
-export function SearchableSelect({ value, onChange, options, placeholder, emptyMessage, isOptional, clearLabel, style }) {
+export function SearchableSelect({ value, onChange, options, placeholder, emptyMessage, isOptional, clearLabel, style, disabled }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const containerRef = useRef(null)
@@ -34,12 +34,13 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
     <div className="searchable-select-container" ref={containerRef} style={{ position: 'relative', ...style }}>
       <div
         className="form-select searchable-select-trigger"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.65 : 1,
           userSelect: 'none'
         }}
       >
