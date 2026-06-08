@@ -3,6 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
+import CompactAmount from '../../components/CompactAmount'
 
 function CloseModal({ onClose, onDone }) {
   const now = new Date()
@@ -145,12 +146,14 @@ export default function PeriodClosingsPage() {
                             {c.status === 'closed' ? '🔒 Closed' : '🔄 ' + c.status}
                           </span>
                         </td>
-                        <td className="money positive">${parseFloat(c.total_gross_revenue || 0).toFixed(2)}</td>
-                        <td className="money positive">${parseFloat(c.total_publisher_earnings || 0).toFixed(2)}</td>
+                        <td className="money positive"><CompactAmount value={c.total_gross_revenue || 0} /></td>
+                        <td className="money positive"><CompactAmount value={c.total_publisher_earnings || 0} /></td>
                         <td className="money positive" style={{ fontWeight: 700, color: 'var(--color-accent)' }}>
-                          ${parseFloat(c.payouts_sum_final_amount || 0).toFixed(2)}
+                          <CompactAmount value={c.payouts_sum_final_amount || 0} />
                         </td>
-                        <td className="money">{parseInt(c.total_impressions || 0).toLocaleString()}</td>
+                        <td className="money">
+                          <CompactAmount value={c.total_impressions || 0} prefix="" decimals={0} />
+                        </td>
                         <td className="text-sm text-muted">{c.closed_at ? formatDate(c.closed_at) : '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
@@ -199,7 +202,7 @@ export default function PeriodClosingsPage() {
                         <div className="text-muted text-sm">{p.publisher?.email}</div>
                       </td>
                       <td className="money positive" style={{ fontWeight: 700 }}>
-                        ${parseFloat(p.final_amount).toFixed(2)}
+                        <CompactAmount value={p.final_amount} />
                       </td>
                       <td>
                         <span className={`badge badge-${p.status}`}>

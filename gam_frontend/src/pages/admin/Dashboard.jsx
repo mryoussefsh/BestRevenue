@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
+import CompactAmount from '../../components/CompactAmount'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
 // Use local-timezone formatting to avoid UTC shift (e.g. UTC+3 offset causing day-1 errors)
@@ -302,9 +303,9 @@ export default function AdminDashboard() {
         totalApproved: totalApproved.toFixed(2),
         totalPending:  totalPendingAmt.toFixed(2),
         readyForPayout: readyForPayout.toFixed(2),
-        totalImpressions: totalImpr.toLocaleString(),
-        totalClicks:   totalClicks.toLocaleString(),
-        totalUnfilled: totalUnfilled.toLocaleString(),
+        totalImpressions: totalImpr,
+        totalClicks:   totalClicks,
+        totalUnfilled: totalUnfilled,
         totalAvEligible,
         totalAvViewable,
         viewabilityRate,
@@ -509,31 +510,31 @@ export default function AdminDashboard() {
           <div className="stat-card primary">
             <div className="stat-icon">💰</div>
             <div className="stat-label">Total Gross Revenue</div>
-            <div className="stat-value money">${stats?.totalGross ?? '—'}</div>
+            <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
             <div className="stat-change up">▲ Selected period</div>
           </div>
           <div className="stat-card accent">
             <div className="stat-icon">🤝</div>
             <div className="stat-label">Total Pub. Earnings</div>
-            <div className="stat-value money">${stats?.totalEarnings ?? '—'}</div>
+            <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
             <div className="stat-change up">▲ Ratio split</div>
           </div>
           <div className="stat-card accent">
             <div className="stat-icon">🟢</div>
             <div className="stat-label">Approved Earnings</div>
-            <div className="stat-value money">${stats?.totalApproved ?? '—'}</div>
+            <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
             <div className="stat-change up">✓ Approved</div>
           </div>
           <div className="stat-card warning">
             <div className="stat-icon">⏳</div>
             <div className="stat-label">Pending Earnings</div>
-            <div className="stat-value money">${stats?.totalPending ?? '—'}</div>
+            <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
             <div className="stat-change">⏳ Holding period</div>
           </div>
           <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
             <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>💵</div>
             <div className="stat-label">Ready for Payout</div>
-            <div className="stat-value money" style={{ color: 'var(--color-accent)' }}>${stats?.readyForPayout ?? '—'}</div>
+            <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
             <div className="stat-change text-muted">Filtered wallet balance</div>
           </div>
         </div>
@@ -548,19 +549,25 @@ export default function AdminDashboard() {
           <div className="stat-card info">
             <div className="stat-icon">👀</div>
             <div className="stat-label">Total Impressions</div>
-            <div className="stat-value">{stats?.totalImpressions ?? '—'}</div>
+            <div className="stat-value">
+              {stats?.totalImpressions !== undefined ? <CompactAmount value={stats.totalImpressions} prefix="" decimals={0} /> : '—'}
+            </div>
             <div className="stat-change up">▲ All ad units</div>
           </div>
           <div className="stat-card info">
             <div className="stat-icon">🖱️</div>
             <div className="stat-label">Total Clicks</div>
-            <div className="stat-value">{stats?.totalClicks ?? '—'}</div>
+            <div className="stat-value">
+              {stats?.totalClicks !== undefined ? <CompactAmount value={stats.totalClicks} prefix="" decimals={0} /> : '—'}
+            </div>
             <div className="stat-change up">▲ All ad units</div>
           </div>
           <div className="stat-card info">
             <div className="stat-icon">💨</div>
             <div className="stat-label">Unfilled Impressions</div>
-            <div className="stat-value">{stats?.totalUnfilled ?? '—'}</div>
+            <div className="stat-value">
+              {stats?.totalUnfilled !== undefined ? <CompactAmount value={stats.totalUnfilled} prefix="" decimals={0} /> : '—'}
+            </div>
             <div className="stat-change text-muted">Unserved inventory</div>
           </div>
           <div className="stat-card primary">
@@ -608,7 +615,7 @@ export default function AdminDashboard() {
             <div className="stat-icon">💳</div>
             <div className="stat-label">Pending Payouts</div>
             <div className="stat-value money" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              ${stats?.pendingPayoutsTotal ?? '—'}
+              <CompactAmount value={stats?.pendingPayoutsTotal} />
               {stats?.pendingPayouts > 0 && (
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
                   ({stats.pendingPayouts} req.)
@@ -651,7 +658,7 @@ export default function AdminDashboard() {
           }}>
             <div className="stat-icon">📆</div>
             <div className="stat-label">Daily Avg. Pub. Earnings</div>
-            <div className="stat-value money">${stats?.avgDailyEarnings ?? '—'}</div>
+            <div className="stat-value money"><CompactAmount value={stats?.avgDailyEarnings} /></div>
             {stats?.periodChangePct !== null && stats?.periodChangePct !== undefined ? (
               <div className="stat-change" style={{
                 color: parseFloat(stats.periodChangePct) >= 0 ? '#10b981' : '#ef4444',
@@ -674,7 +681,7 @@ export default function AdminDashboard() {
             <div className="stat-label">Best Day (Pub. Earnings)</div>
             {stats?.bestDay ? (
               <>
-                <div className="stat-value money" style={{ color: '#f59e0b' }}>${stats.bestDay.earnings}</div>
+                <div className="stat-value money" style={{ color: '#f59e0b' }}><CompactAmount value={stats.bestDay.earnings} /></div>
                 <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>{stats.bestDay.date}</span>
                   <span style={{
@@ -881,14 +888,16 @@ function DailyTable({ rows, bestDay }) {
                       <span style={{
                         marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 6,
                         background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 700,
-                      }}>🏆 Best</span>
+                       }}>🏆 Best</span>
                     )}
                   </td>
-                  <td className="money">{parseInt(row.impressions).toLocaleString()}</td>
-                  <td className="money" style={{ color: '#6366f1' }}>${parseFloat(row.gross).toFixed(2)}</td>
-                  <td className="money positive" style={{ fontWeight: 700 }}>${parseFloat(row.earnings).toFixed(2)}</td>
-                  <td className="money" style={{ color: '#22d3ee' }}>${parseFloat(row.approved).toFixed(2)}</td>
-                  <td className="money" style={{ color: '#f59e0b' }}>${parseFloat(row.pending).toFixed(2)}</td>
+                  <td className="money">
+                    <CompactAmount value={row.impressions} prefix="" decimals={0} />
+                  </td>
+                  <td className="money" style={{ color: '#6366f1' }}><CompactAmount value={row.gross} /></td>
+                  <td className="money positive" style={{ fontWeight: 700 }}><CompactAmount value={row.earnings} /></td>
+                  <td className="money" style={{ color: '#22d3ee' }}><CompactAmount value={row.approved} /></td>
+                  <td className="money" style={{ color: '#f59e0b' }}><CompactAmount value={row.pending} /></td>
                 </tr>
               )
             })}
@@ -896,11 +905,13 @@ function DailyTable({ rows, bestDay }) {
           <tfoot>
             <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
               <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({rows.length}d)</td>
-              <td className="money">{totals.impressions.toLocaleString()}</td>
-              <td className="money" style={{ color: '#6366f1' }}>${totals.gross.toFixed(2)}</td>
-              <td className="money positive">${totals.earnings.toFixed(2)}</td>
-              <td className="money" style={{ color: '#22d3ee' }}>${totals.approved.toFixed(2)}</td>
-              <td className="money" style={{ color: '#f59e0b' }}>${totals.pending.toFixed(2)}</td>
+              <td className="money">
+                <CompactAmount value={totals.impressions} prefix="" decimals={0} />
+              </td>
+              <td className="money" style={{ color: '#6366f1' }}><CompactAmount value={totals.gross} /></td>
+              <td className="money positive"><CompactAmount value={totals.earnings} /></td>
+              <td className="money" style={{ color: '#22d3ee' }}><CompactAmount value={totals.approved} /></td>
+              <td className="money" style={{ color: '#f59e0b' }}><CompactAmount value={totals.pending} /></td>
             </tr>
           </tfoot>
         </table>
@@ -977,7 +988,7 @@ function Top10Publishers({ rows }) {
                     </div>
                   </td>
                   <td className="money positive" style={{ fontWeight: 700, fontSize: 14 }}>
-                    ${pub.earnings.toFixed(2)}
+                    <CompactAmount value={pub.earnings} />
                   </td>
                   <td style={{ minWidth: 140 }}>
                     {/* Approved vs Pending stacked mini bar */}
@@ -989,10 +1000,12 @@ function Top10Publishers({ rows }) {
                       <span style={{ fontSize: 10, color: '#22d3ee', whiteSpace: 'nowrap' }}>{approvedPct.toFixed(0)}%</span>
                     </div>
                   </td>
-                  <td className="money" style={{ color: '#22d3ee' }}>${pub.approved.toFixed(2)}</td>
-                  <td className="money" style={{ color: '#f59e0b' }}>${pub.pending.toFixed(2)}</td>
-                  <td className="money" style={{ color: '#6366f1' }}>${pub.gross.toFixed(2)}</td>
-                  <td className="money">{pub.impressions.toLocaleString()}</td>
+                  <td className="money" style={{ color: '#22d3ee' }}><CompactAmount value={pub.approved} /></td>
+                  <td className="money" style={{ color: '#f59e0b' }}><CompactAmount value={pub.pending} /></td>
+                  <td className="money" style={{ color: '#6366f1' }}><CompactAmount value={pub.gross} /></td>
+                  <td className="money">
+                    <CompactAmount value={pub.impressions} prefix="" decimals={0} />
+                  </td>
                 </tr>
               )
             })}
@@ -1002,20 +1015,20 @@ function Top10Publishers({ rows }) {
               <td />
               <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals</td>
               <td className="money positive">
-                ${rows.reduce((s, r) => s + r.earnings, 0).toFixed(2)}
+                <CompactAmount value={rows.reduce((s, r) => s + r.earnings, 0)} />
               </td>
               <td />
               <td className="money" style={{ color: '#22d3ee' }}>
-                ${rows.reduce((s, r) => s + r.approved, 0).toFixed(2)}
+                <CompactAmount value={rows.reduce((s, r) => s + r.approved, 0)} />
               </td>
               <td className="money" style={{ color: '#f59e0b' }}>
-                ${rows.reduce((s, r) => s + r.pending, 0).toFixed(2)}
+                <CompactAmount value={rows.reduce((s, r) => s + r.pending, 0)} />
               </td>
               <td className="money" style={{ color: '#6366f1' }}>
-                ${rows.reduce((s, r) => s + r.gross, 0).toFixed(2)}
+                <CompactAmount value={rows.reduce((s, r) => s + r.gross, 0)} />
               </td>
               <td className="money">
-                {rows.reduce((s, r) => s + r.impressions, 0).toLocaleString()}
+                <CompactAmount value={rows.reduce((s, r) => s + r.impressions, 0)} prefix="" decimals={0} />
               </td>
             </tr>
           </tfoot>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import CompactAmount from '../../components/CompactAmount'
 
 function PublisherSelect({ publishers, value, onChange }) {
   const [search, setSearch] = useState('')
@@ -154,19 +155,20 @@ export default function RevenuePage() {
         </button>
       </div>
 
-      {/* Summary */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 24 }}>
         <div className="stat-card primary">
           <div className="stat-label">Total Gross Revenue</div>
-          <div className="stat-value money">${totalGross.toFixed(2)}</div>
+          <div className="stat-value money"><CompactAmount value={totalGross} /></div>
         </div>
         <div className="stat-card accent">
           <div className="stat-label">Publisher Earnings</div>
-          <div className="stat-value money">${totalEarnings.toFixed(2)}</div>
+          <div className="stat-value money"><CompactAmount value={totalEarnings} /></div>
         </div>
         <div className="stat-card info">
           <div className="stat-label">Total Impressions</div>
-          <div className="stat-value">{totalImpr.toLocaleString()}</div>
+          <div className="stat-value">
+            <CompactAmount value={totalImpr} prefix="" decimals={0} />
+          </div>
         </div>
       </div>
 
@@ -231,17 +233,19 @@ export default function RevenuePage() {
                       <div style={{ fontWeight: 600 }}>{r.ad_unit?.display_name || '—'}</div>
                       <div className="text-muted" style={{ fontSize: 11 }}>{r.ad_unit?.website?.domain}</div>
                     </td>
-                    <td className="money">{parseInt(r.impressions).toLocaleString()}</td>
+                     <td className="money">
+                       <CompactAmount value={r.impressions} prefix="" decimals={0} />
+                     </td>
                     <td className="money">{(parseFloat(r.ctr) * 100).toFixed(2)}%</td>
                     <td className="money">${parseFloat(r.cpm).toFixed(2)}</td>
-                    <td className="money positive">${parseFloat(r.gross_revenue).toFixed(4)}</td>
+                    <td className="money positive"><CompactAmount value={r.gross_revenue} /></td>
                     <td>
                       <span className="badge badge-approved">
                         {(parseFloat(r.ratio_applied) * 100).toFixed(0)}%
                       </span>
                     </td>
                     <td className="money positive" style={{ fontWeight: 700 }}>
-                      ${parseFloat(r.publisher_earnings).toFixed(4)}
+                      <CompactAmount value={r.publisher_earnings} />
                     </td>
                     <td>
                       {r.period_closing_id ? (

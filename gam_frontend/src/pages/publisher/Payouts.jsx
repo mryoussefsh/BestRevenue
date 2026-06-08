@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import CompactAmount from '../../components/CompactAmount'
 
 export default function PublisherPayouts() {
   const { user, updatePaymentInfo } = useAuth()
@@ -79,7 +80,7 @@ export default function PublisherPayouts() {
       <div className="page-header">
         <div>
           <h1 className="page-title">💳 My Payouts</h1>
-          <p className="page-subtitle">{payouts.length} payouts · ${totalPaid.toFixed(2)} total paid</p>
+          <p className="page-subtitle">{payouts.length} payouts · <CompactAmount value={totalPaid} /> total paid</p>
         </div>
       </div>
 
@@ -87,7 +88,7 @@ export default function PublisherPayouts() {
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
         <div className="stat-card accent">
           <div className="stat-label">Total Paid Out</div>
-          <div className="stat-value money">${totalPaid.toFixed(2)}</div>
+          <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
         </div>
         <div className="stat-card warning">
           <div className="stat-label">Pending</div>
@@ -104,7 +105,7 @@ export default function PublisherPayouts() {
         <div className="stat-card primary">
           <div className="stat-label">Upcoming Adjustment</div>
           <div className="stat-value money" style={{ color: (user?.pending_balance || 0) >= 0 ? 'var(--color-accent)' : 'var(--color-warning)' }}>
-            {(user?.pending_balance || 0) >= 0 ? '+' : ''}${(user?.pending_balance || 0).toFixed(2)}
+            {(user?.pending_balance || 0) >= 0 ? '+' : ''}<CompactAmount value={user?.pending_balance || 0} />
           </div>
         </div>
       </div>
@@ -137,12 +138,12 @@ export default function PublisherPayouts() {
                     <td className="money" style={{ fontWeight: 700 }}>
                       {p.period_year}-{String(p.period_month).padStart(2,'0')}
                     </td>
-                    <td className="money">${parseFloat(p.amount).toFixed(2)}</td>
+                    <td className="money"><CompactAmount value={p.amount} /></td>
                     <td className={`money ${parseFloat(p.adjustment) >= 0 ? 'positive' : 'negative'}`}>
-                      {parseFloat(p.adjustment) >= 0 ? '+' : ''}${parseFloat(p.adjustment).toFixed(2)}
+                      {parseFloat(p.adjustment) >= 0 ? '+' : ''}<CompactAmount value={p.adjustment} />
                     </td>
                     <td className="money positive" style={{ fontWeight: 800, fontSize: 16 }}>
-                      ${parseFloat(p.final_amount).toFixed(2)}
+                      <CompactAmount value={p.final_amount} />
                     </td>
                     <td className="text-sm text-muted">{p.payment_method || '—'}</td>
                     <td>

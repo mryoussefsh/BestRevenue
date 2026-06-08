@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import CompactAmount from '../../components/CompactAmount'
 
 function ApproveModal({ payout, onClose, onDone }) {
   const [note, setNote] = useState('')
@@ -35,7 +36,7 @@ function ApproveModal({ payout, onClose, onDone }) {
         <div className="form-group">
           <label className="form-label">Base Amount</label>
           <div className="form-input" style={{ background: 'var(--color-surface-3)', cursor: 'default' }}>
-            ${parseFloat(payout.amount).toFixed(2)}
+            <CompactAmount value={payout.amount} />
           </div>
         </div>
         {parseFloat(payout.adjustment) !== 0 && (
@@ -46,7 +47,7 @@ function ApproveModal({ payout, onClose, onDone }) {
               cursor: 'default',
               color: parseFloat(payout.adjustment) > 0 ? 'var(--color-accent)' : 'var(--color-danger)'
             }}>
-              {parseFloat(payout.adjustment) > 0 ? '+' : ''}${parseFloat(payout.adjustment).toFixed(2)}
+              {parseFloat(payout.adjustment) > 0 ? '+' : ''}<CompactAmount value={payout.adjustment} />
             </div>
           </div>
         )}
@@ -57,7 +58,7 @@ function ApproveModal({ payout, onClose, onDone }) {
             fontWeight: 700, fontSize: 18,
             color: 'var(--color-accent)'
           }}>
-            ${final}
+            <CompactAmount value={payout.final_amount} />
           </div>
         </div>
         <div className="form-group">
@@ -68,7 +69,7 @@ function ApproveModal({ payout, onClose, onDone }) {
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button id="confirm-approve-btn" className="btn btn-success" onClick={handleApprove} disabled={saving}>
-            {saving ? 'Approving…' : '✅ Approve $' + final}
+            {saving ? 'Approving…' : <>✅ Approve <CompactAmount value={payout.final_amount} /></>}
           </button>
         </div>
       </div>
@@ -99,7 +100,7 @@ function MarkPaidModal({ payout, onClose, onDone }) {
         </div>
         <p style={{ marginBottom: 20, color: 'var(--color-text-muted)', fontSize: 14 }}>
           Publisher: <strong>{payout.publisher?.name}</strong> ·
-          Amount: <strong className="money positive"> ${parseFloat(payout.final_amount).toFixed(2)}</strong>
+          Amount: <strong className="money positive"> <CompactAmount value={payout.final_amount} /></strong>
         </p>
         <div className="form-group">
           <label className="form-label">Payment Reference / Transaction ID *</label>
@@ -207,12 +208,12 @@ export default function PayoutsPage() {
                     <td className="money text-sm">
                       {p.period_year}-{String(p.period_month).padStart(2,'0')}
                     </td>
-                    <td className="money">${parseFloat(p.amount).toFixed(2)}</td>
+                    <td className="money"><CompactAmount value={p.amount} /></td>
                     <td className={`money ${parseFloat(p.adjustment) >= 0 ? 'positive' : 'negative'}`}>
-                      {parseFloat(p.adjustment) >= 0 ? '+' : ''}${parseFloat(p.adjustment).toFixed(2)}
+                      {parseFloat(p.adjustment) >= 0 ? '+' : ''}<CompactAmount value={p.adjustment} />
                     </td>
                     <td className="money positive" style={{ fontWeight: 700 }}>
-                      ${parseFloat(p.final_amount).toFixed(2)}
+                      <CompactAmount value={p.final_amount} />
                     </td>
                     <td>
                       <span className={`badge ${statusBadge(p.status)}`}>

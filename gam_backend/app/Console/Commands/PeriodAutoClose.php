@@ -61,7 +61,8 @@ class PeriodAutoClose extends Command
         }
 
         // We close the *previous* month (or the forced month)
-        $targetDate = now()->subMonth();
+        // FIX: startOfMonth() prevents day-of-month overflows when now() is on a 31st day
+        $targetDate = now()->startOfMonth()->subMonth();
         $year  = $this->option('force-year')  ?: $targetDate->year;
         $month = $this->option('force-month') ?: $targetDate->month;
 
@@ -70,7 +71,7 @@ class PeriodAutoClose extends Command
         $todayDay = (int) now()->format('j');
 
         $isTargetApproved = false;
-        $prevMonthDate = now()->subMonth()->startOfMonth();
+        $prevMonthDate = now()->startOfMonth()->subMonth();
         $forcedDate    = Carbon::create($year, $month, 1)->startOfMonth();
 
         if ($forcedDate->lt($prevMonthDate)) {

@@ -5,6 +5,14 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import Pagination from '../../components/Pagination'
+import CompactAmount from '../../components/CompactAmount'
+
+const toLocalYYYYMMDD = (date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
@@ -20,8 +28,8 @@ export default function PublisherDashboard() {
   
   const [filters, setFilters] = useState({
     preset: '30d',
-    date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10),
-    date_to: new Date().toISOString().slice(0, 10),
+    date_from: toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+    date_to: toLocalYYYYMMDD(new Date()),
     website_id: '',
     ad_unit_id: '',
     status: '',
@@ -59,8 +67,8 @@ export default function PublisherDashboard() {
     }
 
     return {
-      date_from: from.toISOString().slice(0, 10),
-      date_to: to.toISOString().slice(0, 10)
+      date_from: toLocalYYYYMMDD(from),
+      date_to: toLocalYYYYMMDD(to)
     }
   }
 
@@ -211,11 +219,19 @@ export default function PublisherDashboard() {
   const formatDateString = (dateStr) => {
     if (!dateStr) return ''
     try {
-      return new Date(dateStr).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      })
+      const cleanDate = dateStr.slice(0, 10)
+      const parts = cleanDate.split('-')
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10)
+        const month = parseInt(parts[1], 10) - 1 // 0-indexed month
+        const day = parseInt(parts[2], 10)
+        return new Date(year, month, day).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      }
+      return dateStr
     } catch {
       return dateStr
     }
@@ -500,35 +516,41 @@ export default function PublisherDashboard() {
           <div className="stat-card accent">
             <div className="stat-icon">💰</div>
             <div className="stat-label">Approved Earnings</div>
-            <div className="stat-value money">${totalApprovedEarnings.toFixed(2)}</div>
+            <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
             <div className="stat-change up">▲ Approved</div>
           </div>
           
           <div className="stat-card warning">
             <div className="stat-icon">⏳</div>
             <div className="stat-label">Pending Earnings</div>
-            <div className="stat-value money">${totalPendingEarnings.toFixed(2)}</div>
+            <div className="stat-value money"><CompactAmount value={totalPendingEarnings} /></div>
             <div className="stat-change">⏳ Holding</div>
           </div>
           
           <div className="stat-card info">
             <div className="stat-icon">👀</div>
             <div className="stat-label">Total Impressions</div>
-            <div className="stat-value">{totalImpressions.toLocaleString()}</div>
+            <div className="stat-value">
+              <CompactAmount value={totalImpressions} prefix="" decimals={0} />
+            </div>
             <div className="stat-change text-muted">Page ad loads</div>
           </div>
           
           <div className="stat-card info">
             <div className="stat-icon">💨</div>
             <div className="stat-label">Unfilled Impressions</div>
-            <div className="stat-value">{totalUnfilled.toLocaleString()}</div>
+            <div className="stat-value">
+              <CompactAmount value={totalUnfilled} prefix="" decimals={0} />
+            </div>
             <div className="stat-change text-muted">Unserved inventory</div>
           </div>
 
           <div className="stat-card info">
             <div className="stat-icon">🖱️</div>
             <div className="stat-label">Total Clicks</div>
-            <div className="stat-value">{totalClicks.toLocaleString()}</div>
+            <div className="stat-value">
+              <CompactAmount value={totalClicks} prefix="" decimals={0} />
+            </div>
             <div className="stat-change text-muted">Selected period</div>
           </div>
 
@@ -571,7 +593,7 @@ export default function PublisherDashboard() {
             <div className="stat-icon">💳</div>
             <div className="stat-label">Last Payout</div>
             <div className="stat-value money">
-              {lastPayout ? `$${parseFloat(lastPayout.final_amount).toFixed(2)}` : '—'}
+              {lastPayout ? <CompactAmount value={lastPayout.final_amount} /> : '—'}
             </div>
             <div className="stat-change">
               {lastPayout ? (
@@ -699,18 +721,22 @@ export default function PublisherDashboard() {
                     return (
                       <tr key={r.date}>
                         <td className="text-sm" style={{ fontWeight: '500' }}>{formatDateString(r.date)}</td>
-                        <td className="money">{r.impressions.toLocaleString()}</td>
-                        <td className="money">{r.clicks.toLocaleString()}</td>
+                        <td className="money">
+                          <CompactAmount value={r.impressions} prefix="" decimals={0} />
+                        </td>
+                        <td className="money">
+                          <CompactAmount value={r.clicks} prefix="" decimals={0} />
+                        </td>
                         <td className="money">{ctr.toFixed(2)}%</td>
                         <td className="money">${cpm.toFixed(2)}</td>
                         <td className="money positive" style={{ fontWeight: '600' }}>
-                          ${r.approved.toFixed(2)}
+                          <CompactAmount value={r.approved} />
                         </td>
                         <td className="money" style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
-                          ${r.pending.toFixed(2)}
+                          <CompactAmount value={r.pending} />
                         </td>
                         <td className="money positive" style={{ fontWeight: '800' }}>
-                          ${r.earnings.toFixed(2)}
+                          <CompactAmount value={r.earnings} />
                         </td>
                       </tr>
                     )

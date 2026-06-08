@@ -74,7 +74,6 @@ class MockDataSeeder extends Seeder
                     'ad_unit_id'         => $adUnitId,
                     'date'               => $previousMonth->copy()->day($day)->format('Y-m-d'),
                     'hour'               => str_pad($hour, 2, '0', STR_PAD_LEFT),
-                    'country'            => 'US',
                     'impressions'        => $impressions,
                     'gross_revenue'      => $grossRevenue,
                     'publisher_earnings' => $publisherEarnings,

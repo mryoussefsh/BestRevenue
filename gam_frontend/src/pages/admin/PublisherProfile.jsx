@@ -4,6 +4,7 @@ import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
+import CompactAmount from '../../components/CompactAmount'
 import { PublisherModal, AdjustBalanceModal } from './Publishers'
 import { BulkAdUnitGeneratorModal } from '../../components/BulkAdUnitGeneratorModal'
 import { WebsiteModal, AdUnitModal } from './Websites'
@@ -324,19 +325,25 @@ export default function PublisherProfile() {
         <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))' }}>
           <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>💵</div>
           <div className="stat-label">Ready for Payout</div>
-          <div className="stat-value money" style={{ color: 'var(--color-accent)' }}>${(publisher.ready_for_payout_balance || 0).toFixed(2)}</div>
+          <div className="stat-value money" style={{ color: 'var(--color-accent)' }}>
+            <CompactAmount value={publisher.ready_for_payout_balance || 0} />
+          </div>
           <div className="stat-change text-muted">Total wallet balance</div>
         </div>
         <div className="stat-card info">
           <div className="stat-icon">🟢</div>
           <div className="stat-label">Approved Balance</div>
-          <div className="stat-value money">${(publisher.approved_balance || 0).toFixed(2)}</div>
+          <div className="stat-value money">
+            <CompactAmount value={publisher.approved_balance || 0} />
+          </div>
           <div className="stat-change text-muted">Filtered for period</div>
         </div>
         <div className="stat-card warning">
           <div className="stat-icon">⏳</div>
           <div className="stat-label">Pending Balance</div>
-          <div className="stat-value money">${(publisher.pending_balance || 0).toFixed(2)}</div>
+          <div className="stat-value money">
+            <CompactAmount value={publisher.pending_balance || 0} />
+          </div>
           <div className="stat-change text-muted">Holding period</div>
         </div>
         <div className="stat-card primary">
@@ -345,14 +352,16 @@ export default function PublisherProfile() {
           <div className="stat-value money" style={{
             color: publisher.pending_balance_adjustment > 0 ? 'var(--color-accent)' : publisher.pending_balance_adjustment < 0 ? 'var(--color-danger)' : 'inherit'
           }}>
-            {publisher.pending_balance_adjustment > 0 ? '+' : ''}${publisher.pending_balance_adjustment.toFixed(2)}
+            {publisher.pending_balance_adjustment > 0 ? '+' : ''}<CompactAmount value={publisher.pending_balance_adjustment} />
           </div>
           <div className="stat-change text-muted">Pending balance adjust</div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid var(--color-text-subtle)' }}>
           <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)' }}>💳</div>
           <div className="stat-label">Total Payouts Paid</div>
-          <div className="stat-value money">${publisher.total_payout.toFixed(2)}</div>
+          <div className="stat-value money">
+            <CompactAmount value={publisher.total_payout || 0} />
+          </div>
           <div className="stat-change text-muted">Paid to date</div>
         </div>
       </div>
@@ -695,13 +704,13 @@ export default function PublisherProfile() {
                         {payouts.map(p => (
                           <tr key={p.id}>
                             <td style={{ fontWeight: 600 }}>{p.period_year}-{String(p.period_month).padStart(2, '0')}</td>
-                            <td>${parseFloat(p.amount).toFixed(2)}</td>
+                            <td><CompactAmount value={p.amount} /></td>
                             <td style={{
                               color: parseFloat(p.adjustment) > 0 ? 'var(--color-accent)' : parseFloat(p.adjustment) < 0 ? 'var(--color-danger)' : 'inherit'
                             }}>
-                              {parseFloat(p.adjustment) > 0 ? '+' : ''}${parseFloat(p.adjustment).toFixed(2)}
+                              {parseFloat(p.adjustment) > 0 ? '+' : ''}<CompactAmount value={p.adjustment} />
                             </td>
-                            <td style={{ fontWeight: 700 }} className="positive">${parseFloat(p.final_amount).toFixed(2)}</td>
+                            <td style={{ fontWeight: 700 }} className="positive"><CompactAmount value={p.final_amount} /></td>
                             <td>
                               <span className={`badge badge-${p.status}`}>
                                 {p.status}
@@ -749,13 +758,13 @@ export default function PublisherProfile() {
                               <div className="text-muted text-xs">{r.ad_unit?.website?.domain || 'N/A'}</div>
                             </td>
                             <td style={{ textAlign: 'right', paddingRight: 24, verticalAlign: 'middle', fontFamily: 'monospace' }}>
-                              {parseInt(r.impressions || 0).toLocaleString()}
+                              <CompactAmount value={r.impressions || 0} prefix="" decimals={0} />
                             </td>
                             <td className="money" style={{ textAlign: 'right', paddingRight: 24, verticalAlign: 'middle' }}>
-                              ${parseFloat(r.gross_revenue).toFixed(2)}
+                              <CompactAmount value={r.gross_revenue} />
                             </td>
                             <td className="money positive" style={{ textAlign: 'right', paddingRight: 24, verticalAlign: 'middle', fontWeight: 700 }}>
-                              ${parseFloat(r.publisher_earnings).toFixed(2)}
+                              <CompactAmount value={r.publisher_earnings} />
                             </td>
                             <td style={{ textAlign: 'center', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                               <span className={`badge ${r.period_closing_id !== null ? 'badge-inactive' : r.is_approved ? 'badge-active' : 'badge-inactive'}`}
@@ -1031,7 +1040,7 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
             <input className="form-input" type="number" step="0.01" min="0.01" value={amount}
               onChange={e => setAmount(e.target.value)} required />
             <span className="form-hint">
-              Current approved wallet balance: <strong>${walletBalance.toFixed(2)}</strong>
+              Current approved wallet balance: <strong><CompactAmount value={walletBalance} /></strong>
             </span>
           </div>
 

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import { useSettings } from '../../contexts/SettingsContext'
+import CompactAmount from '../../components/CompactAmount'
 
 export default function AdjustmentsPage() {
   const { formatDate } = useSettings()
@@ -149,7 +150,7 @@ export default function AdjustmentsPage() {
                               color: adj.amount >= 0 ? 'var(--color-accent)' : 'var(--color-danger)',
                               fontWeight: 700
                             }}>
-                        {adj.amount >= 0 ? '+' : ''}${parseFloat(adj.amount).toFixed(2)}
+                        {adj.amount >= 0 ? '+' : ''}<CompactAmount value={adj.amount} />
                       </span>
                     </td>
                     <td>

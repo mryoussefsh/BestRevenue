@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import CompactAmount from '../../components/CompactAmount'
 
 export function PublisherModal({ publisher, onClose, onSaved }) {
   const isEdit = !!publisher?.id
@@ -386,12 +387,12 @@ export default function PublishersPage() {
                     </td>
                     <td>
                       <span className="money positive" style={{ fontWeight: 700 }}>
-                        ${parseFloat(pub.approved_balance || 0).toFixed(2)}
+                        <CompactAmount value={pub.approved_balance || 0} />
                       </span>
                     </td>
                     <td>
                       <span className="money" style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                        ${parseFloat(pub.pending_balance || 0).toFixed(2)}
+                        <CompactAmount value={pub.pending_balance || 0} />
                       </span>
                     </td>
                     <td className="text-muted text-sm">

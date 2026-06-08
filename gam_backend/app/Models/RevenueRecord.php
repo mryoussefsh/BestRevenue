@@ -73,9 +73,6 @@ class RevenueRecord extends Model
         return $this->period_closing_id !== null;
     }
 
-    /**
-     * Get the maximum date up to which revenue records are approved.
-     */
     public static function getApprovedLimitDate(): \Carbon\Carbon
     {
         $approveEarningsDay = (int) Setting::get('approve_earnings_day', 1);
@@ -83,10 +80,11 @@ class RevenueRecord extends Model
 
         if ($todayDay >= $approveEarningsDay) {
             // Previous month and older are approved
-            return now()->subMonth()->endOfMonth();
+            // FIX: Calling startOfMonth() before subMonth() avoids day-of-month overflow on 31-day months.
+            return now()->startOfMonth()->subMonth()->endOfMonth();
         } else {
             // Two months ago and older are approved
-            return now()->subMonths(2)->endOfMonth();
+            return now()->startOfMonth()->subMonths(2)->endOfMonth();
         }
     }
 
