@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.8] - 2026-06-08
+
+### Added
+- **GAM Active View (Viewability) Metrics**: Extended the GAM report query to fetch `TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS` and `TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS` columns alongside existing traffic metrics.
+- **Database Migration — Viewability Columns**: Added `active_view_eligible_impressions` (bigint) and `active_view_viewable_impressions` (bigint) columns to `revenue_records` table, defaulting to 0.
+- **Viewability Rate Card — Publisher Dashboard**: Added a new stat card computing viewability rate (`viewable ÷ eligible × 100`), showing `N/A` gracefully when no eligible impressions exist. Subtitle displays raw counts (`X,XXX / Y,YYY eligible`).
+- **Viewability Rate Card — Admin Dashboard**: Added the same Viewability Rate card to the Performance Metrics section of the admin dashboard, computed from aggregated revenue records across all publishers.
+- **Unfilled Impressions Card — Admin Dashboard**: Added an Unfilled Impressions stat card in the Performance Metrics section of the admin dashboard, showing total unserved inventory for the selected period and filters.
+- **Publisher Chart — Approved vs. Pending Split**: Replaced the single-series earnings area chart in the publisher dashboard with two separate area series: Approved Earnings (solid green) and Pending Earnings (dashed amber). Added a visual legend in the chart card header and updated tooltip labels accordingly.
+
+### Fixed
+- **Wrong GAM Column Constants**: Fixed `Undefined constant` sync crash caused by incorrect Active View column names. The correct constants in the v202605 library are `Column::TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS` and `Column::TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS` (not the unprefixed `ACTIVE_VIEW_*` variants).
+
 ## [1.1.7] - 2026-06-08
 
 ### Added

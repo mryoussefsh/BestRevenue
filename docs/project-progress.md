@@ -77,6 +77,10 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated platform-wide timezone support in all date/time views (Audit Logs, Payouts, Adjustments, Closings, Announcements, Sync history) using dynamic context formatting utilities.
 - [x] Added dynamic last sync/update time timestamp to the publisher dashboard header with robust fallbacks.
 - [x] Integrated missing dashboard cards (Total Clicks, Average CTR, Average CPM, and Unfilled Impressions) to the publisher portal statistics grid.
+- [x] Extended GAM report query with Active View metrics (`TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS`, `TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS`) and stored them in new `revenue_records` columns.
+- [x] Added Viewability Rate stat card to both publisher and admin dashboards with graceful `N/A` fallback and eligible impression count subtitle.
+- [x] Added Unfilled Impressions stat card to the admin dashboard Performance Metrics section.
+- [x] Upgraded publisher earnings chart from a single-series area to a dual-series split showing Approved (solid green) and Pending (dashed amber) earnings per day with legend and updated tooltip.
 
 ---
 

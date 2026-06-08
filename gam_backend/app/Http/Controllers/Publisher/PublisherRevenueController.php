@@ -88,6 +88,8 @@ class PublisherRevenueController extends Controller
                     // 2026_06_04_225937_remove_country_from_revenue_records_table.php
                     'impressions'        => $record->impressions,
                     'unfilled_impressions' => $record->unfilled_impressions,
+                    'active_view_eligible_impressions' => (int) $record->active_view_eligible_impressions,
+                    'active_view_viewable_impressions' => (int) $record->active_view_viewable_impressions,
                     'clicks'             => $record->clicks,
                     'ctr'                => (float) $record->ctr,
                     'publisher_earnings' => (float) $record->publisher_earnings,

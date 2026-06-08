@@ -184,20 +184,22 @@ class GamSync extends Command
 
                         // 5. Add to batch
                         $upsertBatch[] = [
-                            'id'                   => Str::uuid()->toString(),
-                            'ad_unit_id'           => $adUnit->id,
-                            'date'                 => $row['date'],
-                            'hour'                 => 0,
-                            'impressions'          => $row['impressions'],
-                            'unfilled_impressions' => $row['unfilled_impressions'],
-                            'clicks'               => $row['clicks'],
-                            'ctr'                  => $ctr,
-                            'cpm'                  => $row['cpm'], // Real GAM eCPM
-                            'gross_revenue'        => $grossRevenue,
-                            'ratio_applied'        => $ratio,
-                            'publisher_earnings'   => $publisherEarnings,
-                            'publisher_cpm'        => $publisherCpm,
-                            'synced_at'            => now(),
+                            'id'                                => Str::uuid()->toString(),
+                            'ad_unit_id'                        => $adUnit->id,
+                            'date'                              => $row['date'],
+                            'hour'                              => 0,
+                            'impressions'                       => $row['impressions'],
+                            'unfilled_impressions'              => $row['unfilled_impressions'],
+                            'active_view_eligible_impressions'  => $row['active_view_eligible_impressions'] ?? 0,
+                            'active_view_viewable_impressions'  => $row['active_view_viewable_impressions'] ?? 0,
+                            'clicks'                            => $row['clicks'],
+                            'ctr'                               => $ctr,
+                            'cpm'                               => $row['cpm'], // Real GAM eCPM
+                            'gross_revenue'                     => $grossRevenue,
+                            'ratio_applied'                     => $ratio,
+                            'publisher_earnings'                => $publisherEarnings,
+                            'publisher_cpm'                     => $publisherCpm,
+                            'synced_at'                         => now(),
                         ];
 
                         if (count($upsertBatch) >= $batchSize) {
@@ -322,7 +324,7 @@ class GamSync extends Command
             ['ad_unit_id', 'date', 'hour'], // unique key
             // FIX [GS-1]: Traffic-only update columns — safe to overwrite always.
             // Financial columns intentionally excluded to prevent overwriting historical ratios.
-            ['impressions', 'unfilled_impressions', 'clicks', 'ctr', 'cpm', 'synced_at']
+            ['impressions', 'unfilled_impressions', 'active_view_eligible_impressions', 'active_view_viewable_impressions', 'clicks', 'ctr', 'cpm', 'synced_at']
         );
 
         // Step 2: For records that are OPEN (period_closing_id IS NULL) and have

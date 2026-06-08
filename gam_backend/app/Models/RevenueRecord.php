@@ -23,6 +23,8 @@ class RevenueRecord extends Model
         'country',
         'impressions',
         'unfilled_impressions',
+        'active_view_eligible_impressions',
+        'active_view_viewable_impressions',
         'clicks',
         'ctr',
         'gross_revenue',
@@ -37,16 +39,19 @@ class RevenueRecord extends Model
     protected function casts(): array
     {
         return [
-            'date'               => 'date',
-            'impressions'        => 'integer',
-            'clicks'             => 'integer',
-            'ctr'                => 'decimal:6',
-            'gross_revenue'      => 'decimal:6',
-            'cpm'                => 'decimal:4',
-            'ratio_applied'      => 'decimal:4',
-            'publisher_earnings' => 'decimal:6',
-            'publisher_cpm'      => 'decimal:4',
-            'synced_at'          => 'datetime',
+            'date'                              => 'date',
+            'impressions'                       => 'integer',
+            'unfilled_impressions'              => 'integer',
+            'active_view_eligible_impressions'  => 'integer',
+            'active_view_viewable_impressions'  => 'integer',
+            'clicks'                            => 'integer',
+            'ctr'                               => 'decimal:6',
+            'gross_revenue'                     => 'decimal:6',
+            'cpm'                               => 'decimal:4',
+            'ratio_applied'                     => 'decimal:4',
+            'publisher_earnings'                => 'decimal:6',
+            'publisher_cpm'                     => 'decimal:4',
+            'synced_at'                         => 'datetime',
         ];
     }
 

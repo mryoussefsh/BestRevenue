@@ -90,6 +90,8 @@ Synchronized metrics capturing traffic and earnings. Unique on `(ad_unit_id, dat
 - `country` (char(2), Default: '--'): ISO 3166-1 alpha-2 country code.
 - `impressions` (bigint, Default: 0).
 - `unfilled_impressions` (bigint, Default: 0).
+- `active_view_eligible_impressions` (bigint, Default: 0): Impressions measurable by GAM Active View technology.
+- `active_view_viewable_impressions` (bigint, Default: 0): Impressions confirmed viewable (≥50% visible for ≥1 second, IAB standard).
 - `clicks` (integer, Default: 0).
 - `ctr` (decimal(8,6), Default: 0.000000): Clicks divided by impressions.
 - `gross_revenue` (decimal(14,6), Default: 0.000000): Raw earnings reported by GAM.

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 
@@ -232,17 +232,23 @@ export default function PublisherDashboard() {
   const averageCpm = totalImpressions > 0 ? (totalEarnings / totalImpressions) * 1000 : 0
   const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
 
-  // Chart data aggregation
+  const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)
+  const totalAvViewable = revenue.reduce((s, r) => s + parseInt(r.active_view_viewable_impressions || 0), 0)
+  const viewabilityRate = totalAvEligible > 0 ? (totalAvViewable / totalAvEligible) * 100 : null
+
+  // Chart data aggregation — split by approved vs pending per day
   const byDate = {}
   revenue.forEach(r => {
     const d = r.date?.slice?.(0, 10) || r.date
-    if (!byDate[d]) byDate[d] = { date: d, earnings: 0, impressions: 0 }
-    byDate[d].earnings    += parseFloat(r.publisher_earnings || 0)
+    const isApproved = r.is_closed || r.is_approved
+    if (!byDate[d]) byDate[d] = { date: d, approved: 0, pending: 0, impressions: 0 }
     byDate[d].impressions += parseInt(r.impressions || 0)
+    if (isApproved) byDate[d].approved += parseFloat(r.publisher_earnings || 0)
+    else            byDate[d].pending  += parseFloat(r.publisher_earnings || 0)
   })
   const chart = Object.values(byDate)
     .sort((a, b) => a.date < b.date ? -1 : 1)
-    .map(d => ({ ...d, earnings: +d.earnings.toFixed(2) }))
+    .map(d => ({ ...d, approved: +d.approved.toFixed(2), pending: +d.pending.toFixed(2) }))
 
   const [currentTime, setCurrentTime] = useState('')
 
@@ -465,6 +471,19 @@ export default function PublisherDashboard() {
           </div>
 
           <div className="stat-card primary">
+            <div className="stat-icon">👁️</div>
+            <div className="stat-label">Viewability Rate</div>
+            <div className="stat-value">
+              {viewabilityRate !== null ? `${viewabilityRate.toFixed(1)}%` : 'N/A'}
+            </div>
+            <div className="stat-change text-muted">
+              {viewabilityRate !== null
+                ? `${totalAvViewable.toLocaleString()} / ${totalAvEligible.toLocaleString()} eligible`
+                : 'No Active View data'}
+            </div>
+          </div>
+
+          <div className="stat-card primary">
             <div className="stat-icon">📊</div>
             <div className="stat-label">Average CPM</div>
             <div className="stat-value money">${averageCpm.toFixed(2)}</div>
@@ -487,7 +506,7 @@ export default function PublisherDashboard() {
 
         {/* Charts Section */}
         <div className="card">
-          <div className="card-header">
+          <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div className="card-title">
               📈 Earnings Trend ({
                 filters.preset === 'today' ? 'Today' :
@@ -499,14 +518,29 @@ export default function PublisherDashboard() {
                 'Filtered Range'
               })
             </div>
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#10b981' }}>
+                <span style={{ width: 24, height: 2, background: '#10b981', display: 'inline-block', borderRadius: 2 }} />
+                ✅ Approved
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#f59e0b' }}>
+                <span style={{ width: 24, height: 2, background: '#f59e0b', display: 'inline-block', borderRadius: 2, borderTop: '2px dashed #f59e0b', boxSizing: 'border-box' }} />
+                ⏳ Pending
+              </div>
+            </div>
           </div>
           {chart.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={chart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="pubGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.3}/>
+                  <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.35}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
@@ -516,10 +550,16 @@ export default function PublisherDashboard() {
                   tickFormatter={v => `$${v}`} />
                 <Tooltip
                   contentStyle={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 8 }}
-                  formatter={(v) => [`$${v}`, 'Earnings']}
+                  labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
+                  formatter={(v, name) => [
+                    `$${v}`,
+                    name === 'approved' ? '✅ Approved' : '⏳ Pending'
+                  ]}
                 />
-                <Area type="monotone" dataKey="earnings" stroke="#10b981"
-                  fill="url(#pubGrad)" strokeWidth={2} />
+                <Area type="monotone" dataKey="approved" stroke="#10b981"
+                  fill="url(#approvedGrad)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="pending" stroke="#f59e0b"
+                  fill="url(#pendingGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (

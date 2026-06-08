@@ -254,9 +254,13 @@ export default function AdminDashboard() {
         .filter(r => r.period_closing_id === null && !r.is_approved)
         .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
       const totalImpr   = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
-      const totalClicks = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
+      const totalClicks  = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
+      const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
+      const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)
+      const totalAvViewable = revenue.reduce((s, r) => s + parseInt(r.active_view_viewable_impressions || 0), 0)
       const avgCPM      = totalImpr > 0 ? (totalGross / totalImpr) * 1000 : 0
       const avgCTR      = totalImpr > 0 ? (totalClicks / totalImpr) * 100  : 0
+      const viewabilityRate = totalAvEligible > 0 ? (totalAvViewable / totalAvEligible) * 100 : null
       const avgRatio    = revenue.length > 0
         ? revenue.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / revenue.length
         : 0
@@ -300,6 +304,10 @@ export default function AdminDashboard() {
         readyForPayout: readyForPayout.toFixed(2),
         totalImpressions: totalImpr.toLocaleString(),
         totalClicks:   totalClicks.toLocaleString(),
+        totalUnfilled: totalUnfilled.toLocaleString(),
+        totalAvEligible,
+        totalAvViewable,
+        viewabilityRate,
         avgCPM:        avgCPM.toFixed(2),
         avgCTR:        avgCTR.toFixed(3),
         avgRatio:      (avgRatio * 100).toFixed(1),
@@ -549,6 +557,12 @@ export default function AdminDashboard() {
             <div className="stat-value">{stats?.totalClicks ?? '—'}</div>
             <div className="stat-change up">▲ All ad units</div>
           </div>
+          <div className="stat-card info">
+            <div className="stat-icon">💨</div>
+            <div className="stat-label">Unfilled Impressions</div>
+            <div className="stat-value">{stats?.totalUnfilled ?? '—'}</div>
+            <div className="stat-change text-muted">Unserved inventory</div>
+          </div>
           <div className="stat-card primary">
             <div className="stat-icon">📊</div>
             <div className="stat-label">Avg. Gross CPM</div>
@@ -560,6 +574,20 @@ export default function AdminDashboard() {
             <div className="stat-label">Avg. CTR</div>
             <div className="stat-value">{stats?.avgCTR ?? '—'}%</div>
             <div className="stat-change">Click-through rate</div>
+          </div>
+          <div className="stat-card primary">
+            <div className="stat-icon">👁️</div>
+            <div className="stat-label">Viewability Rate</div>
+            <div className="stat-value">
+              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
+                ? `${parseFloat(stats.viewabilityRate).toFixed(1)}%`
+                : 'N/A'}
+            </div>
+            <div className="stat-change text-muted">
+              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
+                ? `${(stats.totalAvViewable || 0).toLocaleString()} / ${(stats.totalAvEligible || 0).toLocaleString()} eligible`
+                : 'No Active View data'}
+            </div>
           </div>
           <div className="stat-card accent">
             <div className="stat-icon">⚖️</div>

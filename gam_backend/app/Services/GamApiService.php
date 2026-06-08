@@ -160,6 +160,8 @@ class GamApiService
             Column::TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE,
             Column::TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS,
             Column::TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM,
+            Column::TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS,
+            Column::TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS,
         ]);
 
         $reportQuery->setStatement($statementBuilder->toStatement());
@@ -230,21 +232,25 @@ class GamApiService
             $date        = $row[$headerMap['Dimension.DATE']] ?? null;
             $adUnitName  = $row[$headerMap['Dimension.AD_UNIT_NAME']] ?? null;
 
-            $impressions  = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS']] ?? 0);
-            $clicks       = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CLICKS']] ?? 0);
-            $grossRevenue = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE']] ?? 0) / 1000000;
-            $unfilled     = (int)   ($row[$headerMap['Column.TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS']] ?? 0);
-            $cpm          = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM']] ?? 0) / 1000000;
+            $impressions      = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS']] ?? 0);
+            $clicks           = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CLICKS']] ?? 0);
+            $grossRevenue     = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE']] ?? 0) / 1000000;
+            $unfilled         = (int)   ($row[$headerMap['Column.TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS']] ?? 0);
+            $cpm              = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM']] ?? 0) / 1000000;
+            $avEligible       = (int)   ($row[$headerMap['Column.TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS']] ?? 0);
+            $avViewable       = (int)   ($row[$headerMap['Column.TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS']] ?? 0);
 
             if ($date && $adUnitName) {
                 $data[] = [
-                    'date'                 => $date,
-                    'ad_unit_name'         => $adUnitName,
-                    'impressions'          => $impressions,
-                    'clicks'               => $clicks,
-                    'gross_revenue'        => $grossRevenue,
-                    'unfilled_impressions' => $unfilled,
-                    'cpm'                  => $cpm,
+                    'date'                              => $date,
+                    'ad_unit_name'                      => $adUnitName,
+                    'impressions'                       => $impressions,
+                    'clicks'                            => $clicks,
+                    'gross_revenue'                     => $grossRevenue,
+                    'unfilled_impressions'              => $unfilled,
+                    'cpm'                               => $cpm,
+                    'active_view_eligible_impressions'  => $avEligible,
+                    'active_view_viewable_impressions'  => $avViewable,
                 ];
             }
         }
