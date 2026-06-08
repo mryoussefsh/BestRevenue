@@ -424,13 +424,13 @@ export default function PublisherDashboard() {
               value={filters.preset}
               onChange={e => handlePresetChange(e.target.value)}
             >
+              {!filters.preset && <option value="" disabled>Custom Range</option>}
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
               <option value="this_month">This Month</option>
               <option value="last_month">Last Month</option>
-              <option value="custom">Custom Range</option>
             </select>
           </div>
 
@@ -441,8 +441,7 @@ export default function PublisherDashboard() {
               type="date"
               className="form-input"
               value={filters.date_from}
-              disabled={filters.preset !== 'custom'}
-              onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
+              onChange={e => setFilters(f => ({ ...f, date_from: e.target.value, preset: '' }))}
             />
           </div>
 
@@ -453,8 +452,7 @@ export default function PublisherDashboard() {
               type="date"
               className="form-input"
               value={filters.date_to}
-              disabled={filters.preset !== 'custom'}
-              onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
+              onChange={e => setFilters(f => ({ ...f, date_to: e.target.value, preset: '' }))}
             />
           </div>
 

@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Platform-wide Portal Integration**:
   - **Publisher Portal**: Applied formatting to stats cards (earnings, payouts, impressions, clicks) and daily logs/table rows. Added a totals footer row (`<tfoot>`) to the daily performance table aggregating impressions, clicks, average CTR, average monetized CPM, approved earnings, pending earnings, and total earnings across all filtered days.
   - **Admin Portal**: Integrated formatting on the main dashboard metrics, publishers list columns, publisher details/adjustments/payout tables, period closings, manual payment modals, and revenue logs.
+- **Improved Date Range Controls**: Removed "Custom Range" from the Time Range dropdown menu and enabled direct manual editing of Start and End Date date pickers at any time, which automatically switches the active preset to "Custom Range".
 
 ## [1.2.0] - 2026-06-08
 
