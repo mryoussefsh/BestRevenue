@@ -291,12 +291,21 @@ export default function PublisherDashboard() {
         date: d,
         impressions: 0,
         clicks: 0,
+        approved: 0,
+        pending: 0,
         earnings: 0
       }
     }
+    const val = parseFloat(r.publisher_earnings || 0)
+    const isApproved = r.is_closed || r.is_approved
     dailyData[d].impressions += parseInt(r.impressions || 0)
     dailyData[d].clicks += parseInt(r.clicks || 0)
-    dailyData[d].earnings += parseFloat(r.publisher_earnings || 0)
+    dailyData[d].earnings += val
+    if (isApproved) {
+      dailyData[d].approved += val
+    } else {
+      dailyData[d].pending += val
+    }
   })
 
   const dailyRecords = Object.values(dailyData)
@@ -662,15 +671,21 @@ export default function PublisherDashboard() {
                   <th onClick={() => handleDailySort('cpm')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     Monetized CPM {dailySortField === 'cpm' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
+                  <th onClick={() => handleDailySort('approved')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Approved {dailySortField === 'approved' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('pending')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Pending {dailySortField === 'pending' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
                   <th onClick={() => handleDailySort('earnings')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Earnings {dailySortField === 'earnings' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    Total Earnings {dailySortField === 'earnings' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {sortedDailyRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={8}>
                       <div className="empty-state">
                         <div className="empty-state-icon">📊</div>
                         <div className="empty-state-text">No performance data for this selection</div>
@@ -688,7 +703,13 @@ export default function PublisherDashboard() {
                         <td className="money">{r.clicks.toLocaleString()}</td>
                         <td className="money">{ctr.toFixed(2)}%</td>
                         <td className="money">${cpm.toFixed(2)}</td>
-                        <td className="money positive" style={{ fontWeight: '700' }}>
+                        <td className="money positive" style={{ fontWeight: '600' }}>
+                          ${r.approved.toFixed(2)}
+                        </td>
+                        <td className="money" style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
+                          ${r.pending.toFixed(2)}
+                        </td>
+                        <td className="money positive" style={{ fontWeight: '800' }}>
                           ${r.earnings.toFixed(2)}
                         </td>
                       </tr>

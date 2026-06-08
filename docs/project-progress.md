@@ -84,7 +84,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Switched GAM report metrics fetching from combined `TOTAL_*` columns to source-specific `AD_EXCHANGE_*` columns to ensure only Ad Exchange (AdX) metrics are imported.
 - [x] Renamed the publisher dashboard card to "Monetized CPM" and added a tooltip explanation about the net earnings basis to avoid publisher confusion.
 - [x] Removed the "Recent Payouts (Account-wide)" table section from the publisher dashboard page.
-- [x] Added a paginated Daily Performance table under the charts in the publisher dashboard supporting sorting by date, impressions, clicks, CTR, CPM, and earnings.
+- [x] Added a paginated Daily Performance table under the charts in the publisher dashboard supporting sorting by date, impressions, clicks, CTR, CPM, approved, pending, and total earnings.
 
 ---
 
