@@ -7,6 +7,7 @@ export default function GamAccountsPage() {
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [savingSettings, setSavingSettings] = useState(false)
+  const [showConfig, setShowConfig] = useState(false)
   const [credentials, setCredentials] = useState({
     google_client_id: '',
     google_client_secret: ''
@@ -78,6 +79,7 @@ export default function GamAccountsPage() {
       await adminApi.updateSetting('google_client_id', credentials.google_client_id)
       await adminApi.updateSetting('google_client_secret', credentials.google_client_secret)
       toast.success('Google API Credentials saved!')
+      setShowConfig(false)
     } catch (err) {
       toast.error('Failed to save credentials')
     } finally {
@@ -173,42 +175,75 @@ export default function GamAccountsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div className="card-header">
-          <div className="card-title">🔑 Google API Configuration</div>
+      {credentials.google_client_id && credentials.google_client_secret && !showConfig ? (
+        <div style={{ marginBottom: 24 }}>
+          <button 
+            className="btn"
+            style={{
+              background: 'rgba(16, 185, 129, 0.15)',
+              color: 'var(--color-success)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => setShowConfig(true)}
+          >
+            ✅ Google API Configured (Click to edit)
+          </button>
         </div>
-        <form onSubmit={handleSaveSettings} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div className="form-group">
-            <label className="form-label">Google OAuth Client ID *</label>
-            <input 
-              className="form-input" 
-              placeholder="e.g. 123456789.apps.googleusercontent.com"
-              value={credentials.google_client_id}
-              onChange={e => setCredentials(c => ({...c, google_client_id: e.target.value}))}
-              required
-            />
+      ) : (
+        <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-title">🔑 Google API Configuration</div>
+            {credentials.google_client_id && credentials.google_client_secret && (
+              <button 
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowConfig(false)}
+              >
+                Hide
+              </button>
+            )}
           </div>
-          <div className="form-group">
-            <label className="form-label">Google OAuth Client Secret *</label>
-            <input 
-              className="form-input" 
-              type="password"
-              placeholder="e.g. GOCSPX-12345abcdef"
-              value={credentials.google_client_secret}
-              onChange={e => setCredentials(c => ({...c, google_client_secret: e.target.value}))}
-              required
-            />
-          </div>
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
-            <div className="text-muted text-sm">
-              Redirect URI must be configured as: <code style={{ userSelect: 'all' }}>http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback</code>
+          <form onSubmit={handleSaveSettings} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Google OAuth Client ID *</label>
+              <input 
+                className="form-input" 
+                placeholder="e.g. 123456789.apps.googleusercontent.com"
+                value={credentials.google_client_id}
+                onChange={e => setCredentials(c => ({...c, google_client_id: e.target.value}))}
+                required
+              />
             </div>
-            <button className="btn btn-secondary" type="submit" disabled={savingSettings}>
-              {savingSettings ? 'Saving...' : 'Save API Keys'}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="form-group">
+              <label className="form-label">Google OAuth Client Secret *</label>
+              <input 
+                className="form-input" 
+                type="password"
+                placeholder="e.g. GOCSPX-12345abcdef"
+                value={credentials.google_client_secret}
+                onChange={e => setCredentials(c => ({...c, google_client_secret: e.target.value}))}
+                required
+              />
+            </div>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
+              <div className="text-muted text-sm">
+                Redirect URI must be configured as: <code style={{ userSelect: 'all' }}>http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback</code>
+              </div>
+              <button className="btn btn-secondary" type="submit" disabled={savingSettings}>
+                {savingSettings ? 'Saving...' : 'Save API Keys'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading-screen"><div className="spinner"></div></div>
