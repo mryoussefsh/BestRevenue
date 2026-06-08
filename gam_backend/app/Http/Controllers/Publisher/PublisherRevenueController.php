@@ -30,6 +30,23 @@ class PublisherRevenueController extends Controller
             $query->where('ad_units.website_id', $request->query('website_id'));
         }
 
+        if ($request->filled('ad_unit_id')) {
+            $query->where('revenue_records.ad_unit_id', $request->query('ad_unit_id'));
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->query('status');
+            if ($status === 'closed') {
+                $query->whereNotNull('revenue_records.period_closing_id');
+            } elseif ($status === 'approved') {
+                $query->whereNull('revenue_records.period_closing_id')
+                      ->where('revenue_records.approval_status', 'approved');
+            } elseif ($status === 'pending') {
+                $query->whereNull('revenue_records.period_closing_id')
+                      ->where('revenue_records.approval_status', 'pending');
+            }
+        }
+
         if ($request->filled('date_from')) {
             $query->where('revenue_records.date', '>=', $request->query('date_from'));
         }
@@ -38,9 +55,14 @@ class PublisherRevenueController extends Controller
             $query->where('revenue_records.date', '<=', $request->query('date_to'));
         }
 
+        $perPage = (int) $request->query('per_page', 100);
+        if ($perPage < 1 || $perPage > 2000) {
+            $perPage = 100;
+        }
+
         $records = $query->orderBy('revenue_records.date', 'desc')
                          ->orderBy('revenue_records.hour', 'desc')
-                         ->paginate(100);
+                         ->paginate($perPage);
 
         // Map to hide admin fields
         return response()->json([
@@ -94,14 +116,34 @@ class PublisherRevenueController extends Controller
             ], 422);
         }
 
-        // FIX [PUB-VIEW-2]: Hard cap of 5000 records. If truncated, a note is added to the PDF.
-        $records = RevenueRecord::select('revenue_records.*')
+        $query = RevenueRecord::select('revenue_records.*')
             ->join('ad_units', 'revenue_records.ad_unit_id', '=', 'ad_units.id')
             ->join('websites', 'ad_units.website_id', '=', 'websites.id')
             ->where('websites.publisher_id', $publisher->id)
-            ->whereBetween('revenue_records.date', [$dateFrom, $dateTo])
-            ->limit(5000)
-            ->get();
+            ->whereBetween('revenue_records.date', [$dateFrom, $dateTo]);
+
+        if ($request->filled('website_id')) {
+            $query->where('ad_units.website_id', $request->query('website_id'));
+        }
+
+        if ($request->filled('ad_unit_id')) {
+            $query->where('revenue_records.ad_unit_id', $request->query('ad_unit_id'));
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->query('status');
+            if ($status === 'closed') {
+                $query->whereNotNull('revenue_records.period_closing_id');
+            } elseif ($status === 'approved') {
+                $query->whereNull('revenue_records.period_closing_id')
+                      ->where('revenue_records.approval_status', 'approved');
+            } elseif ($status === 'pending') {
+                $query->whereNull('revenue_records.period_closing_id')
+                      ->where('revenue_records.approval_status', 'pending');
+            }
+        }
+
+        $records = $query->limit(5000)->get();
 
         $isTruncated   = count($records) >= 5000;
         $totalEarnings = $records->sum('publisher_earnings');

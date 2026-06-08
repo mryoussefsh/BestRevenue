@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.3] - 2026-06-08
+
+### Added
+- **Publisher Dashboard Filter System**: Added a comprehensive filtering panel to the publisher dashboard allowing users to filter statistics cards, charts, and table rows by preset date ranges, start/end dates, website domain, individual ad unit, and approval status.
+- **Backend Filter Parameters**: Extended backend publisher revenue API and PDF statement generation query handlers to support website, ad unit, status, and dynamic per-page limits.
+
 ## [1.1.2] - 2026-06-08
 
 ### Added
