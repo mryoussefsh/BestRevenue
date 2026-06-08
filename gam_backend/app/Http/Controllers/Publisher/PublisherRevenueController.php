@@ -151,6 +151,30 @@ class PublisherRevenueController extends Controller
         $totalEarnings = $records->sum('publisher_earnings');
         $totalImpressions = $records->sum('impressions');
 
+        $logoUrl = \App\Models\Setting::get('site_logo');
+        $siteLogoBase64 = null;
+        if ($logoUrl) {
+            if (str_contains($logoUrl, '/storage/')) {
+                $relativePath = explode('/storage/', $logoUrl)[1] ?? null;
+                if ($relativePath) {
+                    $localPath = storage_path('app/public/' . $relativePath);
+                    if (file_exists($localPath)) {
+                        $type = pathinfo($localPath, PATHINFO_EXTENSION);
+                        $fileData = @file_get_contents($localPath);
+                        if ($fileData) {
+                            $siteLogoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($fileData);
+                        }
+                    }
+                }
+            }
+            if (!$siteLogoBase64) {
+                $siteLogoBase64 = $logoUrl;
+            }
+        }
+
+        $siteDescription = \App\Models\Setting::get('site_description', 'Enterprise-grade multi-account Google Ad Manager revenue sharing and publisher portal.');
+        $siteName = \App\Models\Setting::get('site_name', 'BestRevenue');
+
         $data = [
             'publisher'        => $publisher,
             'dateFrom'         => $dateFrom,
@@ -159,7 +183,10 @@ class PublisherRevenueController extends Controller
             'totalEarnings'    => $totalEarnings,
             'totalImpressions' => $totalImpressions,
             'locale'           => $locale,
-            'isTruncated'      => $isTruncated, // Pass to view for optional notice
+            'isTruncated'      => $isTruncated,
+            'siteLogo'         => $siteLogoBase64,
+            'siteDescription'  => $siteDescription,
+            'siteName'         => $siteName,
         ];
 
         // Ensure the view exists: resources/views/pdf/statement.blade.php
