@@ -3,9 +3,11 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSettings } from '../../contexts/SettingsContext'
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
+  const { settings } = useSettings()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   
@@ -234,6 +236,31 @@ export default function PublisherDashboard() {
     .sort((a, b) => a.date < b.date ? -1 : 1)
     .map(d => ({ ...d, earnings: +d.earnings.toFixed(2) }))
 
+  const [currentTime, setCurrentTime] = useState('')
+
+  useEffect(() => {
+    const timezone = settings.platform_timezone || 'UTC'
+    const updateClock = () => {
+      try {
+        const formatted = new Date().toLocaleTimeString([], {
+          timeZone: timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZoneName: 'short'
+        })
+        setCurrentTime(formatted)
+      } catch (err) {
+        console.error('Timezone formatting error:', err)
+        setCurrentTime(new Date().toLocaleTimeString())
+      }
+    }
+    updateClock()
+    const interval = setInterval(updateClock, 1000)
+    return () => clearInterval(interval)
+  }, [settings.platform_timezone])
+
   if (initialLoading) {
     return (
       <div className="loading-screen">
@@ -251,6 +278,14 @@ export default function PublisherDashboard() {
           <h1 className="page-title">👋 {getGreeting()}, {user?.name || 'Publisher'}!</h1>
           <p className="page-subtitle">
             Here's your earnings overview — {formatDateString(filters.date_from)} to {formatDateString(filters.date_to)}
+            {currentTime && (
+              <>
+                <span style={{ margin: '0 8px', color: '#94a3b8' }}>•</span>
+                <span className="live-clock" style={{ color: '#6366f1', fontWeight: '500' }}>
+                  Platform Time: {currentTime}
+                </span>
+              </>
+            )}
           </p>
         </div>
         <button

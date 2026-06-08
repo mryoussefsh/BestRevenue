@@ -165,6 +165,7 @@ class SettingController extends Controller
             'publisher_registration_status',
             'publisher_pending_message',
             'payment_methods',
+            'platform_timezone',
         ];
 
         $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {
