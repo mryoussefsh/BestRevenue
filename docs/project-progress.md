@@ -66,6 +66,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated method-specific payout validation where period auto-close calculations check individual publisher settings against payment method minimum thresholds before creating payouts.
 - [x] Added integration tests for registration block and auto-close minimum payout threshold enforcement.
 - [x] Implemented robust publisher payment account details viewer and copy button in the Admin Payout Manager with multi-format parsing support.
+- [x] Integrated personalized time-of-day welcome greetings dynamically tailored for publishers on the dashboard header.
 
 ---
 

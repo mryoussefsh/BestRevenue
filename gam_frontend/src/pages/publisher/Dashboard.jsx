@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function PublisherDashboard() {
+  const { user } = useAuth()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,12 +54,19 @@ export default function PublisherDashboard() {
     <div className="loading-screen"><div className="spinner"></div></div>
   )
 
+  const getGreeting = () => {
+    const hr = new Date().getHours()
+    if (hr < 12) return 'Good morning'
+    if (hr < 18) return 'Good afternoon'
+    return 'Good evening'
+  }
+
   return (
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📊 My Dashboard</h1>
-          <p className="page-subtitle">Your earnings overview — last 30 days</p>
+          <h1 className="page-title">👋 {getGreeting()}, {user?.name || 'Publisher'}!</h1>
+          <p className="page-subtitle">Here's your earnings overview for the last 30 days</p>
         </div>
         <a
           className="btn btn-secondary"

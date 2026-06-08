@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.2] - 2026-06-08
+
+### Added
+- **Publisher Welcome Greeting**: Integrated a dynamic welcome message header at the top of the publisher dashboard that greets the publisher using their registered name and adjusts based on the time of day (Good morning / afternoon / evening).
+
 ## [1.1.1] - 2026-06-08
 
 ### Added
