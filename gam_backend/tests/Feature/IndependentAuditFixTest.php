@@ -208,4 +208,43 @@ class IndependentAuditFixTest extends TestCase
         $this->publisher->refresh();
         $this->assertEquals(100.50, (float)$this->publisher->pending_balance_adjustment);
     }
+
+    /**
+     * Test that impersonate payload includes payment_info attribute.
+     */
+    public function test_impersonate_payload_includes_payment_info(): void
+    {
+        // Set payment info on publisher
+        $this->publisher->update([
+            'payment_info' => [
+                'method'  => 'PayPal',
+                'account' => 'paypal@test.com',
+            ],
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin, ['*']);
+
+        $response = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/impersonate");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'access_token',
+            'token_type',
+            'user' => [
+                'id',
+                'name',
+                'email',
+                'role',
+                'publisher_id',
+                'pending_balance',
+                'payment_info' => [
+                    'method',
+                    'account',
+                ],
+            ],
+        ]);
+
+        $this->assertEquals('PayPal', $response->json('user.payment_info.method'));
+        $this->assertEquals('paypal@test.com', $response->json('user.payment_info.account'));
+    }
 }

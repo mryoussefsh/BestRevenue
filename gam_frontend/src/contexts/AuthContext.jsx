@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { authApi } from '../api/endpoints'
 
 const AuthContext = createContext(null)
@@ -7,6 +7,21 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')) } catch { return null }
   })
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      authApi.me()
+        .then(res => {
+          const userData = res.data
+          localStorage.setItem('user', JSON.stringify(userData))
+          setUser(userData)
+        })
+        .catch(err => {
+          console.error('Failed to sync user session on mount:', err)
+        })
+    }
+  }, [])
 
   const login = useCallback(async (email, password) => {
     const res = await authApi.login(email, password)

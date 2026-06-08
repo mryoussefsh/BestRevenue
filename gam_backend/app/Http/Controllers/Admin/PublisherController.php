@@ -478,6 +478,7 @@ class PublisherController extends Controller
                 'role'         => $user->role,
                 'publisher_id' => $user->publisher_id,
                 'pending_balance' => (float) $publisher->adjustments()->where('status', 'pending')->sum('amount'),
+                'payment_info' => $publisher->payment_info,
             ]
         ]);
     }

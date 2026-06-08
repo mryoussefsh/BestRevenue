@@ -48,6 +48,13 @@ export default function PublisherPayouts() {
   }
 
   useEffect(() => {
+    if (user?.payment_info) {
+      setMethod(user.payment_info.method || '')
+      setAccount(user.payment_info.account || '')
+    }
+  }, [user])
+
+  useEffect(() => {
     publisherApi.getPayouts()
       .then(r => setPayouts(r.data?.data || []))
       .catch(() => toast.error('Failed to load payouts'))
