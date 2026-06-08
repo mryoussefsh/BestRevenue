@@ -264,7 +264,7 @@
             @else
                 @foreach($records as $record)
                 <tr>
-                    <td>{{ $record->date }}</td>
+                    <td>{{ \Carbon\Carbon::parse($record->date)->format('Y-m-d') }}</td>
                     <td>
                         <strong style="color: #334155;">{{ $record->adUnit->display_name ?? 'N/A' }}</strong>
                         @if(isset($record->adUnit->website->domain))
