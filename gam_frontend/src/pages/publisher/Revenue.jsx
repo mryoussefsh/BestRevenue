@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
-import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 
 export default function PublisherRevenue() {
-  const { user } = useAuth()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
@@ -68,7 +66,6 @@ export default function PublisherRevenue() {
   const totalImpressions = records.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
 
   function handleExportPDF() {
-    const token = localStorage.getItem('token')
     const url = `/api/v1/publisher/revenue/pdf?date_from=${filters.date_from}&date_to=${filters.date_to}`
     // Open in new tab with auth header workaround (direct link)
     window.open(url, '_blank')

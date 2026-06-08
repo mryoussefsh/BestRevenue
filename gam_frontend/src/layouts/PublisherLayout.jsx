@@ -70,7 +70,7 @@ export default function PublisherLayout({ children }) {
       </aside>
 
       <div className="main-content">
-        {localStorage.getItem('admin_token') && (
+        {(sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')) && (
           <div style={{
             background: 'linear-gradient(90deg, #f59e0b, #d97706)',
             color: '#1a1a2e',

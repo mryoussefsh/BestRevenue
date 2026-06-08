@@ -899,20 +899,12 @@ function ImpersonateModal({ publisher, onClose }) {
       const res = await adminApi.impersonatePublisher(publisher.id)
       const { access_token, user: publisherUser } = res.data
       
-      // Save admin credentials
-      localStorage.setItem('admin_token', localStorage.getItem('token'))
-      localStorage.setItem('admin_user', localStorage.getItem('user'))
-      
-      // Set publisher credentials
-      localStorage.setItem('token', access_token)
-      localStorage.setItem('user', JSON.stringify(publisherUser))
-      
       if (newTab) {
-        window.open('/', '_blank')
+        // Open the publisher dashboard in a new tab, passing the token and user in URL parameters
+        const url = `/publisher?impersonate_token=${access_token}&impersonate_user=${encodeURIComponent(JSON.stringify(publisherUser))}`
+        window.open(url, '_blank')
         toast.success(`Logged in as ${publisher.name} in a new tab`)
         onClose()
-        // Reload current tab to reflect updated localStorage session in header/sidebar if needed
-        window.location.reload()
       } else {
         impersonate(access_token, publisherUser)
       }
