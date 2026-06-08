@@ -402,6 +402,92 @@ export default function PublisherProfile() {
                   <span className="text-muted text-sm" style={{ display: 'block' }}>Created Account</span>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{publisher.created_at?.slice(0, 19).replace('T', ' ')}</span>
                 </div>
+                {(() => {
+                  let paymentMethod = 'Not Set';
+                  let paymentAccount = 'Not Set';
+                  if (publisher.payment_info) {
+                    let info = publisher.payment_info;
+                    if (typeof info === 'string') {
+                      try {
+                        info = JSON.parse(info);
+                      } catch (e) {
+                        paymentAccount = info;
+                      }
+                    }
+                    if (typeof info === 'object' && info !== null) {
+                      paymentMethod = info.method || 'Not Set';
+                      paymentAccount = info.account || 'Not Set';
+                    }
+                  }
+                  return (
+                    <>
+                      <hr style={{ border: 0, borderTop: '1px solid var(--color-border)' }} />
+                      <div>
+                        <span className="text-muted text-sm" style={{ display: 'block' }}>Payment Method</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{paymentMethod}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted text-sm" style={{ display: 'block' }}>Payment Account</span>
+                        {paymentAccount !== 'Not Set' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                            <code style={{
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              fontSize: '11px',
+                              fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+                              color: '#e2e8f0',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              maxWidth: '180px'
+                            }} title={paymentAccount}>
+                              {paymentAccount}
+                            </code>
+                            <button
+                              className="btn btn-secondary btn-xs"
+                              style={{
+                                padding: '2px 8px',
+                                height: '22px',
+                                lineHeight: '18px',
+                                fontSize: '10px',
+                                fontWeight: '600',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                borderRadius: '6px',
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                color: '#f8fafc',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(paymentAccount);
+                                toast.success('Copied to clipboard!');
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                              }}
+                              title="Copy account details"
+                            >
+                              📋 Copy
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontWeight: 500 }}>Not Set</span>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
