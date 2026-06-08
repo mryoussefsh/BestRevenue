@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - **Publisher Dashboard Recent Payouts**: Removed the "Recent Payouts (Account-wide)" table section from the bottom of the publisher dashboard page.
+- **Publisher Dashboard Daily Performance Table**: Added an interactive Daily Performance table underneath the charts in the publisher dashboard, displaying date, impressions, clicks, CTR, CPM, and earnings with full sorting and pagination controls.
 
 ## [1.1.9] - 2026-06-08
 

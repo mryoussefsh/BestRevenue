@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
+import Pagination from '../../components/Pagination'
 
 export default function PublisherDashboard() {
   const { user } = useAuth()
@@ -27,6 +28,10 @@ export default function PublisherDashboard() {
   })
 
   const isFirstRun = useRef(true)
+
+  const [dailyPage, setDailyPage] = useState(1)
+  const [dailySortField, setDailySortField] = useState('date')
+  const [dailySortOrder, setDailySortOrder] = useState('desc')
 
   // Date range presets helper
   const getPresetDates = (preset) => {
@@ -91,6 +96,7 @@ export default function PublisherDashboard() {
 
     async function reloadData() {
       setRefreshing(true)
+      setDailyPage(1)
       await fetchDashboardData(filters)
       setRefreshing(false)
     }
@@ -160,6 +166,7 @@ export default function PublisherDashboard() {
       status: '',
     })
     setAdUnits([])
+    setDailyPage(1)
   }
 
   // Secure PDF Export handler using Axios blob download to pass Bearer tokens
@@ -274,6 +281,59 @@ export default function PublisherDashboard() {
     const interval = setInterval(updateClock, 1000)
     return () => clearInterval(interval)
   }, [settings.platform_timezone])
+
+  // Group daily performance records
+  const dailyData = {}
+  revenue.forEach(r => {
+    const d = r.date?.slice?.(0, 10) || r.date
+    if (!dailyData[d]) {
+      dailyData[d] = {
+        date: d,
+        impressions: 0,
+        clicks: 0,
+        earnings: 0
+      }
+    }
+    dailyData[d].impressions += parseInt(r.impressions || 0)
+    dailyData[d].clicks += parseInt(r.clicks || 0)
+    dailyData[d].earnings += parseFloat(r.publisher_earnings || 0)
+  })
+
+  const dailyRecords = Object.values(dailyData)
+
+  // Sort daily performance records
+  const sortedDailyRecords = [...dailyRecords].sort((a, b) => {
+    let valA = a[dailySortField]
+    let valB = b[dailySortField]
+
+    if (dailySortField === 'ctr') {
+      const ctrA = a.impressions > 0 ? (a.clicks / a.impressions) : 0
+      const ctrB = b.impressions > 0 ? (b.clicks / b.impressions) : 0
+      valA = ctrA
+      valB = ctrB
+    } else if (dailySortField === 'cpm') {
+      const cpmA = a.impressions > 0 ? (a.earnings / a.impressions) * 1000 : 0
+      const cpmB = b.impressions > 0 ? (b.earnings / b.impressions) * 1000 : 0
+      valA = cpmA
+      valB = cpmB
+    }
+
+    if (valA < valB) return dailySortOrder === 'asc' ? -1 : 1
+    if (valA > valB) return dailySortOrder === 'asc' ? 1 : -1
+    return 0
+  })
+
+  const paginatedDailyRecords = sortedDailyRecords.slice((dailyPage - 1) * 10, dailyPage * 10)
+
+  const handleDailySort = (field) => {
+    if (dailySortField === field) {
+      setDailySortOrder(dailySortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setDailySortField(field)
+      setDailySortOrder('desc')
+    }
+    setDailyPage(1)
+  }
 
   if (initialLoading) {
     return (
@@ -575,6 +635,76 @@ export default function PublisherDashboard() {
               <div className="empty-state-icon">📊</div>
               <div className="empty-state-text">No earnings data for this selection</div>
             </div>
+          )}
+        </div>
+
+        {/* Daily Performance Table */}
+        <div className="card" style={{ marginTop: 24, padding: 0 }}>
+          <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+            <div className="card-title">📅 Daily Performance</div>
+          </div>
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th onClick={() => handleDailySort('date')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Date {dailySortField === 'date' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('impressions')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Impressions {dailySortField === 'impressions' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('clicks')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Clicks {dailySortField === 'clicks' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('ctr')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    CTR {dailySortField === 'ctr' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('cpm')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Monetized CPM {dailySortField === 'cpm' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th onClick={() => handleDailySort('earnings')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    Earnings {dailySortField === 'earnings' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedDailyRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="empty-state">
+                        <div className="empty-state-icon">📊</div>
+                        <div className="empty-state-text">No performance data for this selection</div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedDailyRecords.map(r => {
+                    const ctr = r.impressions > 0 ? (r.clicks / r.impressions) * 100 : 0
+                    const cpm = r.impressions > 0 ? (r.earnings / r.impressions) * 1000 : 0
+                    return (
+                      <tr key={r.date}>
+                        <td className="text-sm" style={{ fontWeight: '500' }}>{formatDateString(r.date)}</td>
+                        <td className="money">{r.impressions.toLocaleString()}</td>
+                        <td className="money">{r.clicks.toLocaleString()}</td>
+                        <td className="money">{ctr.toFixed(2)}%</td>
+                        <td className="money">${cpm.toFixed(2)}</td>
+                        <td className="money positive" style={{ fontWeight: '700' }}>
+                          ${r.earnings.toFixed(2)}
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+          {sortedDailyRecords.length > 0 && (
+            <Pagination
+              currentPage={dailyPage}
+              totalItems={sortedDailyRecords.length}
+              pageSize={10}
+              onPageChange={setDailyPage}
+            />
           )}
         </div>
       </div>
