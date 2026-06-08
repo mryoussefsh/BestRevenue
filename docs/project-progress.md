@@ -70,6 +70,10 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated comprehensive metrics filter panel (date range, presets, websites, ad units, and status) with backend parameter mapping on the publisher dashboard.
 - [x] Fixed dashboard status queries by resolving virtual accessors to database queries, and added Today/Yesterday range presets.
 - [x] Implemented authenticated Axios blob download flow for PDF statements in the publisher dashboard and revenue pages, resolving route redirection errors.
+- [x] Redesigned the publisher PDF statement with a professional corporate-grade template (site logo, name, and description support).
+- [x] Configured defensive fallback to text-based brand name in PDF rendering if PHP GD extension is missing or disabled.
+- [x] Removed time component from record dates in PDF statements.
+- [x] Created a live timezone-aware ticking clock on the publisher dashboard header reflecting the active platform timezone.
 
 ---
 

@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.6] - 2026-06-08
+
+### Added
+- **Branded PDF Statement Layout**: Overhauled the publisher PDF statement template to feature a professional corporate style with dynamic platform branding. It now automatically pulls and displays the site logo, site description, and site name from the backend configuration.
+- **Defensive GD Fallback**: Added dynamic detection of the PHP GD extension (`extension_loaded('gd')`) to prevent Dompdf crashes. If GD is disabled, the layout cleanly falls back to a text-based brand logo.
+- **Live Platform Timezone Clock**: Added a live ticking clock to the publisher dashboard header displaying the current platform time in the configured `platform_timezone` setting.
+
+### Fixed
+- **Clean PDF Date Format**: Stripped the time component (`00:00:00`) from the record dates in the PDF statement grid to display only the date part.
+
 ## [1.1.5] - 2026-06-08
 
 ### Fixed
