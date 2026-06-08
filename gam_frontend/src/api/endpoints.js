@@ -124,6 +124,7 @@ export const publisherApi = {
   getAdUnits:     (webId)   => api.get(`/publisher/websites/${webId}/ad-units`),
   getRevenue:     (params)  => api.get('/publisher/revenue', { params }),
   getPayouts:     ()        => api.get('/publisher/payouts'),
+  exportPdf:      (params)  => api.get('/publisher/revenue/pdf', { params, responseType: 'blob' }),
   updatePaymentInfo: (data) => api.put('/publisher/payment-info', data),
   getTranslations:(locale)  => api.get(`/translations/${locale}`),
 

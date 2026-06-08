@@ -158,15 +158,36 @@ export default function PublisherDashboard() {
     setAdUnits([])
   }
 
-  // Construct PDF Statement URL
-  const getPdfUrl = () => {
-    const params = new URLSearchParams()
-    if (filters.date_from) params.append('date_from', filters.date_from)
-    if (filters.date_to) params.append('date_to', filters.date_to)
-    if (filters.website_id) params.append('website_id', filters.website_id)
-    if (filters.ad_unit_id) params.append('ad_unit_id', filters.ad_unit_id)
-    if (filters.status) params.append('status', filters.status)
-    return `/api/v1/publisher/revenue/pdf?${params.toString()}`
+  // Secure PDF Export handler using Axios blob download to pass Bearer tokens
+  const handleExportPDF = async () => {
+    try {
+      const toastId = toast.loading('Generating PDF statement...')
+      const queryParams = {
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        website_id: filters.website_id,
+        ad_unit_id: filters.ad_unit_id,
+        status: filters.status,
+      }
+      
+      const res = await publisherApi.exportPdf(queryParams)
+      
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.setAttribute('download', `earnings_statement_${filters.date_from}_to_${filters.date_to}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      toast.dismiss(toastId)
+      toast.success('PDF downloaded successfully')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export PDF statement')
+    }
   }
 
   const getGreeting = () => {
@@ -232,14 +253,12 @@ export default function PublisherDashboard() {
             Here's your earnings overview — {formatDateString(filters.date_from)} to {formatDateString(filters.date_to)}
           </p>
         </div>
-        <a
+        <button
           className="btn btn-secondary"
-          href={getPdfUrl()}
-          target="_blank"
-          rel="noreferrer"
+          onClick={handleExportPDF}
         >
           📄 Export PDF Statement
-        </a>
+        </button>
       </div>
 
       {/* Filter Panel */}

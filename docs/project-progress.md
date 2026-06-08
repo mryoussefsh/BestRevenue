@@ -69,6 +69,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated personalized time-of-day welcome greetings dynamically tailored for publishers on the dashboard header.
 - [x] Integrated comprehensive metrics filter panel (date range, presets, websites, ad units, and status) with backend parameter mapping on the publisher dashboard.
 - [x] Fixed dashboard status queries by resolving virtual accessors to database queries, and added Today/Yesterday range presets.
+- [x] Implemented authenticated Axios blob download flow for PDF statements in the publisher dashboard and revenue pages, resolving route redirection errors.
 
 ---
 

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.5] - 2026-06-08
+
+### Fixed
+- **PDF Export Sanctum Authentication**: Resolved the `Route [login] not defined` error when clicking `Export PDF Statement`. Replaced direct browser tab navigation (which stripped out JWT/Bearer tokens) with an authenticated Axios blob file download stream in both the Publisher Dashboard and Revenue views.
+
 ## [1.1.4] - 2026-06-08
 
 ### Added

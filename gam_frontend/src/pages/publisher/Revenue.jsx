@@ -65,10 +65,27 @@ export default function PublisherRevenue() {
 
   const totalImpressions = records.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
 
-  function handleExportPDF() {
-    const url = `/api/v1/publisher/revenue/pdf?date_from=${filters.date_from}&date_to=${filters.date_to}`
-    // Open in new tab with auth header workaround (direct link)
-    window.open(url, '_blank')
+  const handleExportPDF = async () => {
+    try {
+      const toastId = toast.loading('Generating PDF statement...')
+      const res = await publisherApi.exportPdf(filters)
+      
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.setAttribute('download', `earnings_statement_${filters.date_from}_to_${filters.date_to}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      toast.dismiss(toastId)
+      toast.success('PDF downloaded successfully')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export PDF statement')
+    }
   }
 
   return (
