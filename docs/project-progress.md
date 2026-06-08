@@ -81,6 +81,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Added Viewability Rate stat card to both publisher and admin dashboards with graceful `N/A` fallback and eligible impression count subtitle.
 - [x] Added Unfilled Impressions stat card to the admin dashboard Performance Metrics section.
 - [x] Upgraded publisher earnings chart from a single-series area to a dual-series split showing Approved (solid green) and Pending (dashed amber) earnings per day with legend and updated tooltip.
+- [x] Switched GAM report metrics fetching from combined `TOTAL_*` columns to source-specific `AD_EXCHANGE_*` columns to ensure only Ad Exchange (AdX) metrics are imported.
 
 ---
 

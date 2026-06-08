@@ -155,13 +155,13 @@ class GamApiService
             Dimension::AD_UNIT_NAME,
         ]);
         $reportQuery->setColumns([
-            Column::TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS,
-            Column::TOTAL_LINE_ITEM_LEVEL_CLICKS,
-            Column::TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE,
-            Column::TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS,
-            Column::TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM,
-            Column::TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS,
-            Column::TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS,
+            Column::AD_EXCHANGE_LINE_ITEM_LEVEL_IMPRESSIONS,       // AdX impressions only
+            Column::AD_EXCHANGE_LINE_ITEM_LEVEL_CLICKS,            // AdX clicks only
+            Column::AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE,           // AdX gross revenue only
+            Column::TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS,    // Unfilled is inventory-level (no per-source equivalent)
+            Column::AD_EXCHANGE_LINE_ITEM_LEVEL_AVERAGE_ECPM,      // AdX average eCPM
+            Column::AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS,  // AdX Active View eligible
+            Column::AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS,  // AdX Active View viewable
         ]);
 
         $reportQuery->setStatement($statementBuilder->toStatement());
@@ -232,13 +232,13 @@ class GamApiService
             $date        = $row[$headerMap['Dimension.DATE']] ?? null;
             $adUnitName  = $row[$headerMap['Dimension.AD_UNIT_NAME']] ?? null;
 
-            $impressions      = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS']] ?? 0);
-            $clicks           = (int)   ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CLICKS']] ?? 0);
-            $grossRevenue     = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE']] ?? 0) / 1000000;
+            $impressions      = (int)   ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_IMPRESSIONS']] ?? 0);
+            $clicks           = (int)   ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_CLICKS']] ?? 0);
+            $grossRevenue     = (float) ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE']] ?? 0) / 1000000;
             $unfilled         = (int)   ($row[$headerMap['Column.TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS']] ?? 0);
-            $cpm              = (float) ($row[$headerMap['Column.TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM']] ?? 0) / 1000000;
-            $avEligible       = (int)   ($row[$headerMap['Column.TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS']] ?? 0);
-            $avViewable       = (int)   ($row[$headerMap['Column.TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS']] ?? 0);
+            $cpm              = (float) ($row[$headerMap['Column.AD_EXCHANGE_LINE_ITEM_LEVEL_AVERAGE_ECPM']] ?? 0) / 1000000;
+            $avEligible       = (int)   ($row[$headerMap['Column.AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS']] ?? 0);
+            $avViewable       = (int)   ($row[$headerMap['Column.AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS']] ?? 0);
 
             if ($date && $adUnitName) {
                 $data[] = [

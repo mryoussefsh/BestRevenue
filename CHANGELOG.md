@@ -6,7 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.9] - 2026-06-08
+
+### Changed
+- **GAM Ad Exchange (AdX) Only Fetching**: Updated GAM report query to pull metrics exclusively from Ad Exchange (AdX) sources. Replaced `TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS`, `TOTAL_LINE_ITEM_LEVEL_CLICKS`, `TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE`, `TOTAL_LINE_ITEM_LEVEL_WITH_CPD_AVERAGE_ECPM`, `TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS`, and `TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS` with their corresponding `AD_EXCHANGE_*` variants:
+  - `AD_EXCHANGE_LINE_ITEM_LEVEL_IMPRESSIONS`
+  - `AD_EXCHANGE_LINE_ITEM_LEVEL_CLICKS`
+  - `AD_EXCHANGE_LINE_ITEM_LEVEL_REVENUE`
+  - `AD_EXCHANGE_LINE_ITEM_LEVEL_AVERAGE_ECPM`
+  - `AD_EXCHANGE_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS`
+  - `AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS`
+  Note that unfilled impressions remain at the inventory level (`TOTAL_INVENTORY_LEVEL_UNFILLED_IMPRESSIONS`) since there is no source-specific unfilled equivalent.
+
 ## [1.1.8] - 2026-06-08
+
 
 ### Added
 - **GAM Active View (Viewability) Metrics**: Extended the GAM report query to fetch `TOTAL_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS` and `TOTAL_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS` columns alongside existing traffic metrics.
