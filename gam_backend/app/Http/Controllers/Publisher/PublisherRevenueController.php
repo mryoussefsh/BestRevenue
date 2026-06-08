@@ -153,7 +153,7 @@ class PublisherRevenueController extends Controller
 
         $logoUrl = \App\Models\Setting::get('site_logo');
         $siteLogoBase64 = null;
-        if ($logoUrl) {
+        if ($logoUrl && extension_loaded('gd')) {
             if (str_contains($logoUrl, '/storage/')) {
                 $relativePath = explode('/storage/', $logoUrl)[1] ?? null;
                 if ($relativePath) {
