@@ -87,6 +87,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Added a paginated Daily Performance table under the charts in the publisher dashboard supporting sorting by date, impressions, clicks, CTR, CPM, approved, pending, and total earnings.
 - [x] Implemented platform-wide compact amount and number formatting (compaction >= 1,000 to `k`, >= 1,000,000 to `M`) across both Publisher and Admin portals, featuring interactive circle-i info icons, hover tooltips, and click-to-toggle behaviors with safe comma sanitation and customizable decimals, added a totals footer row to the publisher daily performance table, removed "Custom Range" dropdown choice in favor of direct Start Date and End Date selections, and integrated searchable website/ad-unit select dropdown elements with parent-dependent disabling.
 - [x] Fixed Google API Configuration credentials saving failure under Admin Settings by pre-seeding `google_client_id` and `google_client_secret` rows in the database settings table.
+- [x] Resolved Google OAuth redirect URI mismatch (Error 400: `redirect_uri_mismatch`) by standardizing the default config redirect URIs to `http://127.0.0.1:8000/...` instead of `http://localhost:8000/...` in `.env` and `config/services.php`.
 
 ---
 
