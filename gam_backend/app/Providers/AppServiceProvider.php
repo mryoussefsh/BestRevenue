@@ -21,6 +21,21 @@ class AppServiceProvider extends ServiceProvider
                 $timezone = \App\Models\Setting::get('platform_timezone', 'UTC');
                 date_default_timezone_set($timezone);
                 config(['app.timezone' => $timezone]);
+                
+                // Configure Database Connection timezone configs
+                config(['database.connections.mysql.timezone' => $timezone]);
+                config(['database.connections.pgsql.timezone' => $timezone]);
+
+                // Sync timezone on the already active database connection
+                $connection = \Illuminate\Support\Facades\DB::connection();
+                if ($connection && $connection->getPdo()) {
+                    $driver = $connection->getDriverName();
+                    if ($driver === 'mysql') {
+                        $connection->unprepared("SET time_zone = '{$timezone}'");
+                    } elseif ($driver === 'pgsql') {
+                        $connection->unprepared("SET timezone TO '{$timezone}'");
+                    }
+                }
             } catch (\Exception $e) {}
         }
 
