@@ -22,8 +22,18 @@ class AppServiceProvider extends ServiceProvider
                 date_default_timezone_set($timezone);
                 config(['app.timezone' => $timezone]);
                 
+                // Calculate dynamic timezone offset (e.g. +03:00) to bypass missing named timezone tables in MySQL
+                $offsetString = '+00:00';
+                try {
+                    $tz = new \DateTimeZone($timezone);
+                    $offsetSeconds = $tz->getOffset(new \DateTime('now', new \DateTimeZone('UTC')));
+                    $hours = intval($offsetSeconds / 3600);
+                    $minutes = abs(intval(($offsetSeconds % 3600) / 60));
+                    $offsetString = sprintf('%s%02d:%02d', ($hours >= 0 ? '+' : '-'), abs($hours), $minutes);
+                } catch (\Exception $ex) {}
+
                 // Configure Database Connection timezone configs
-                config(['database.connections.mysql.timezone' => $timezone]);
+                config(['database.connections.mysql.timezone' => $offsetString]);
                 config(['database.connections.pgsql.timezone' => $timezone]);
 
                 // Sync timezone on the already active database connection
@@ -31,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
                 if ($connection && $connection->getPdo()) {
                     $driver = $connection->getDriverName();
                     if ($driver === 'mysql') {
-                        $connection->unprepared("SET time_zone = '{$timezone}'");
+                        $connection->unprepared("SET time_zone = '{$offsetString}'");
                     } elseif ($driver === 'pgsql') {
                         $connection->unprepared("SET timezone TO '{$timezone}'");
                     }

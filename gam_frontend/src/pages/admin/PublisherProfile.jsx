@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import { PublisherModal, AdjustBalanceModal } from './Publishers'
 import { BulkAdUnitGeneratorModal } from '../../components/BulkAdUnitGeneratorModal'
@@ -11,6 +12,7 @@ export default function PublisherProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { impersonate } = useAuth()
+  const { settings } = useSettings()
 
   const [publisher, setPublisher] = useState(null)
   const [websites, setWebsites] = useState([])
@@ -163,6 +165,38 @@ export default function PublisherProfile() {
     }
     adUnitsByWebsite[ad.website_id].push(ad)
   })
+
+  const formatDateTime = (dateStr, includeSeconds = false) => {
+    if (!dateStr) return ''
+    try {
+      const timezone = settings.platform_timezone || 'UTC'
+      const d = new Date(dateStr)
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      })
+      const parts = formatter.formatToParts(d)
+      const getPart = (type) => parts.find(p => p.type === type)?.value || '00'
+      const year = parts.find(p => p.type === 'year')?.value || ''
+      const month = getPart('month')
+      const day = getPart('day')
+      const hour = getPart('hour')
+      const minute = getPart('minute')
+      if (includeSeconds) {
+        const second = getPart('second')
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+      }
+      return `${year}-${month}-${day} ${hour}:${minute}`
+    } catch {
+      return dateStr?.slice(0, includeSeconds ? 19 : 16).replace('T', ' ')
+    }
+  }
 
   return (
     <div>
@@ -401,7 +435,7 @@ export default function PublisherProfile() {
                 </div>
                 <div>
                   <span className="text-muted text-sm" style={{ display: 'block' }}>Created Account</span>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>{publisher.created_at?.slice(0, 19).replace('T', ' ')}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>{formatDateTime(publisher.created_at, true)}</span>
                 </div>
                 {(() => {
                   let paymentMethod = 'Not Set';
@@ -807,7 +841,7 @@ export default function PublisherProfile() {
                       <tbody>
                         {ratioHistory.map(h => (
                           <tr key={h.id}>
-                            <td>{h.changed_at?.slice(0, 16).replace('T', ' ')}</td>
+                            <td>{formatDateTime(h.changed_at, false)}</td>
                             <td style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>{h.target || 'General Profile'}</td>
                             <td style={{ fontWeight: 500 }}>
                               {h.old_ratio ? `${(parseFloat(h.old_ratio) * 100).toFixed(0)}%` : '—'}
