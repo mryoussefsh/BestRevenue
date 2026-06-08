@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.4] - 2026-06-08
+
+### Added
+- **Today & Yesterday Date Presets**: Added "Today" and "Yesterday" as options in the dashboard's Time Range preset dropdown.
+
+### Fixed
+- **Status Filter Query Bug**: Fixed a SQL exception when filtering the dashboard by status by mapping virtual runtime attributes (`approval_status`) to actual database column criteria (`period_closing_id` and date thresholds relative to the approved limit date) in the backend.
+
 ## [1.1.3] - 2026-06-08
 
 ### Added

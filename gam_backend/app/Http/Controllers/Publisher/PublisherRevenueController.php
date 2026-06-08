@@ -36,14 +36,15 @@ class PublisherRevenueController extends Controller
 
         if ($request->filled('status')) {
             $status = $request->query('status');
+            $approvedLimitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->format('Y-m-d');
             if ($status === 'closed') {
                 $query->whereNotNull('revenue_records.period_closing_id');
             } elseif ($status === 'approved') {
                 $query->whereNull('revenue_records.period_closing_id')
-                      ->where('revenue_records.approval_status', 'approved');
+                      ->where('revenue_records.date', '<=', $approvedLimitDate);
             } elseif ($status === 'pending') {
                 $query->whereNull('revenue_records.period_closing_id')
-                      ->where('revenue_records.approval_status', 'pending');
+                      ->where('revenue_records.date', '>', $approvedLimitDate);
             }
         }
 
@@ -132,14 +133,15 @@ class PublisherRevenueController extends Controller
 
         if ($request->filled('status')) {
             $status = $request->query('status');
+            $approvedLimitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->format('Y-m-d');
             if ($status === 'closed') {
                 $query->whereNotNull('revenue_records.period_closing_id');
             } elseif ($status === 'approved') {
                 $query->whereNull('revenue_records.period_closing_id')
-                      ->where('revenue_records.approval_status', 'approved');
+                      ->where('revenue_records.date', '<=', $approvedLimitDate);
             } elseif ($status === 'pending') {
                 $query->whereNull('revenue_records.period_closing_id')
-                      ->where('revenue_records.approval_status', 'pending');
+                      ->where('revenue_records.date', '>', $approvedLimitDate);
             }
         }
 

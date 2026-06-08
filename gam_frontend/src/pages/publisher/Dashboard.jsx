@@ -31,7 +31,13 @@ export default function PublisherDashboard() {
     let from = new Date()
     let to = today
 
-    if (preset === '7d') {
+    if (preset === 'today') {
+      from = today
+      to = today
+    } else if (preset === 'yesterday') {
+      from = new Date(Date.now() - 1 * 86400000)
+      to = new Date(Date.now() - 1 * 86400000)
+    } else if (preset === '7d') {
       from = new Date(Date.now() - 7 * 86400000)
     } else if (preset === '30d') {
       from = new Date(Date.now() - 30 * 86400000)
@@ -248,6 +254,8 @@ export default function PublisherDashboard() {
               value={filters.preset}
               onChange={e => handlePresetChange(e.target.value)}
             >
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
               <option value="this_month">This Month</option>
@@ -382,7 +390,15 @@ export default function PublisherDashboard() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              📈 Earnings Trend ({filters.preset === 'custom' ? 'Filtered Range' : `Last ${filters.preset === '7d' ? '7' : '30'} Days`})
+              📈 Earnings Trend ({
+                filters.preset === 'today' ? 'Today' :
+                filters.preset === 'yesterday' ? 'Yesterday' :
+                filters.preset === '7d' ? 'Last 7 Days' :
+                filters.preset === '30d' ? 'Last 30 Days' :
+                filters.preset === 'this_month' ? 'This Month' :
+                filters.preset === 'last_month' ? 'Last Month' :
+                'Filtered Range'
+              })
             </div>
           </div>
           {chart.length > 0 ? (

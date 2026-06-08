@@ -68,6 +68,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented robust publisher payment account details viewer and copy button in the Admin Payout Manager with multi-format parsing support.
 - [x] Integrated personalized time-of-day welcome greetings dynamically tailored for publishers on the dashboard header.
 - [x] Integrated comprehensive metrics filter panel (date range, presets, websites, ad units, and status) with backend parameter mapping on the publisher dashboard.
+- [x] Fixed dashboard status queries by resolving virtual accessors to database queries, and added Today/Yesterday range presets.
 
 ---
 
