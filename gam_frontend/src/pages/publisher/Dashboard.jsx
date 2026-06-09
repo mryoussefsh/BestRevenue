@@ -274,8 +274,9 @@ export default function PublisherDashboard() {
   }
 
   // Aggregate stats from filtered revenue
+  // Approved earnings that have NOT gone to payout yet (excludes closed records)
   const totalApprovedEarnings = revenue
-    .filter(r => r.is_closed || r.is_approved)
+    .filter(r => !r.is_closed && r.is_approved)
     .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
 
   const totalPendingEarnings = revenue
@@ -287,8 +288,14 @@ export default function PublisherDashboard() {
 
   const totalClicks = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
   const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
-  const totalEarnings = totalApprovedEarnings + totalPendingEarnings
-  const averageCpm = totalImpressions > 0 ? (totalEarnings / totalImpressions) * 1000 : 0
+  
+  // Real total earnings in the period (including closed records) to calculate average CPM correctly
+  const totalHistoricalApprovedEarnings = revenue
+    .filter(r => r.is_closed || r.is_approved)
+    .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+  const totalHistoricalEarnings = totalHistoricalApprovedEarnings + totalPendingEarnings
+
+  const averageCpm = totalImpressions > 0 ? (totalHistoricalEarnings / totalImpressions) * 1000 : 0
   const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
 
   const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)

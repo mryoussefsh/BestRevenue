@@ -109,11 +109,11 @@ export default function PublisherRevenue() {
   const paginated = sortedRecords.slice((page - 1) * 15, page * 15)
 
   const totalApprovedEarnings = records
-    .filter(r => r.is_closed || r.approval_status === 'approved')
+    .filter(r => r.approval_status === 'approved')
     .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
 
   const totalPendingEarnings = records
-    .filter(r => !r.is_closed && r.approval_status === 'pending')
+    .filter(r => r.approval_status === 'pending')
     .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
 
   const totalImpressions = records.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
