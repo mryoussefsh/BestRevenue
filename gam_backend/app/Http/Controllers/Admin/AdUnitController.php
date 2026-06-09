@@ -41,7 +41,13 @@ class AdUnitController extends Controller
             });
         }
 
-        $adUnits = $query->orderBy('gam_ad_unit_name')->paginate(100);
+        $perPage = $request->query('per_page', 100);
+        if ($perPage === 'all') {
+            $adUnits = $query->orderBy('gam_ad_unit_name')->get();
+            return AdUnitResource::collection($adUnits);
+        }
+
+        $adUnits = $query->orderBy('gam_ad_unit_name')->paginate((int)$perPage);
 
         return AdUnitResource::collection($adUnits);
     }

@@ -164,6 +164,7 @@ export default function AdminDashboard() {
   const [revenueChart, setRevenueChart] = useState([])
   const [publishers, setPublishers] = useState([])
   const [websites, setWebsites]     = useState([])
+  const [adUnits, setAdUnits]       = useState([])
   const [syncing, setSyncing]       = useState(false)
   const [loading, setLoading]       = useState(true)
   const [visibleSeries, setVisibleSeries] = useState({ gross: true, earnings: true, approved: true, pending: true })
@@ -178,6 +179,7 @@ export default function AdminDashboard() {
     ...getPresetRange('30d'),
     publisher_id: '',
     website_id: '',
+    ad_unit_id: '',
     status: '',
   })
 
@@ -201,6 +203,21 @@ export default function AdminDashboard() {
       })
   }, [])
 
+  // Load ad units dynamically when filters.publisher_id or filters.website_id changes
+  useEffect(() => {
+    const params = { per_page: 'all' }
+    if (filters.publisher_id) params.publisher_id = filters.publisher_id
+    if (filters.website_id)   params.website_id   = filters.website_id
+
+    adminApi.getAdUnits(params)
+      .then(res => {
+        setAdUnits(res.data?.data || [])
+      })
+      .catch(err => {
+        console.error('Failed to load ad units:', err)
+      })
+  }, [filters.publisher_id, filters.website_id])
+
   // Reload stats whenever filters change (debounced 300ms)
   useEffect(() => {
     const t = setTimeout(() => loadData(), 300)
@@ -215,6 +232,7 @@ export default function AdminDashboard() {
       if (filters.date_to)      params.date_to      = filters.date_to
       if (filters.publisher_id) params.publisher_id = filters.publisher_id
       if (filters.website_id)   params.website_id   = filters.website_id
+      if (filters.ad_unit_id)   params.ad_unit_id   = filters.ad_unit_id
       if (filters.status)       params.status       = filters.status
 
       // Compute previous period date range (same length, immediately before)
@@ -412,10 +430,10 @@ export default function AdminDashboard() {
 
   function resetFilters() {
     setPreset('30d')
-    setFilters({ ...getPresetRange('30d', settings.platform_timezone), publisher_id: '', website_id: '', status: '' })
+    setFilters({ ...getPresetRange('30d', settings.platform_timezone), publisher_id: '', website_id: '', ad_unit_id: '', status: '' })
   }
 
-  const hasFilters = filters.publisher_id || filters.website_id || filters.status || preset !== '30d'
+  const hasFilters = filters.publisher_id || filters.website_id || filters.ad_unit_id || filters.status || preset !== '30d'
 
   // Filter website dropdown to selected publisher
   const websiteOptions = websites
@@ -423,6 +441,15 @@ export default function AdminDashboard() {
     .map(w => ({ value: w.id, label: w.domain, sub: w.gam_network_code || '' }))
 
   const publisherOptions = publishers.map(p => ({ value: p.id, label: p.name, sub: p.email }))
+
+  const adUnitOptions = adUnits.map(a => {
+    const web = websites.find(w => w.id === a.website_id)
+    return {
+      value: a.id,
+      label: a.display_name,
+      sub: `${web ? web.domain + ' · ' : ''}${a.gam_ad_unit_name}`
+    }
+  })
 
   return (
     <div>
@@ -492,7 +519,7 @@ export default function AdminDashboard() {
           {/* Publisher */}
           <SearchDropdown
             value={filters.publisher_id}
-            onChange={val => setFilters(f => ({ ...f, publisher_id: val, website_id: '' }))}
+            onChange={val => setFilters(f => ({ ...f, publisher_id: val, website_id: '', ad_unit_id: '' }))}
             options={publisherOptions}
             allLabel="All Publishers"
             placeholder="All Publishers"
@@ -501,10 +528,19 @@ export default function AdminDashboard() {
           {/* Website */}
           <SearchDropdown
             value={filters.website_id}
-            onChange={val => setFilters(f => ({ ...f, website_id: val }))}
+            onChange={val => setFilters(f => ({ ...f, website_id: val, ad_unit_id: '' }))}
             options={websiteOptions}
             allLabel="All Websites"
             placeholder="All Websites"
+          />
+
+          {/* Ad Unit */}
+          <SearchDropdown
+            value={filters.ad_unit_id}
+            onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
+            options={adUnitOptions}
+            allLabel="All Ad Units"
+            placeholder="All Ad Units"
           />
 
           {/* Revenue Status */}
@@ -740,6 +776,7 @@ export default function AdminDashboard() {
               {filters.date_from} → {filters.date_to}
               {filters.publisher_id && ` · ${publishers.find(p => p.id === filters.publisher_id)?.name}`}
               {filters.website_id   && ` · ${websites.find(w => w.id === filters.website_id)?.domain}`}
+              {filters.ad_unit_id   && ` · ${adUnits.find(a => a.id === filters.ad_unit_id)?.display_name}`}
             </div>
           </div>
           {/* Series toggles */}
