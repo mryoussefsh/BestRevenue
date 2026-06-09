@@ -278,9 +278,10 @@ export default function AdminDashboard() {
       // Stat aggregations
       const totalGross      = revenue.reduce((s, r) => s + parseFloat(r.gross_revenue || 0), 0)
       const totalEarnings   = revenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
-      const totalApproved   = revenue
-        .filter(r => r.period_closing_id !== null || r.is_approved)
-        .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+      const filteredApprovedPubs = filters.publisher_id
+        ? allPublishers.filter(p => p.id === filters.publisher_id)
+        : allPublishers
+      const totalApproved = filteredApprovedPubs.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
       const totalPendingAmt = revenue
         .filter(r => r.period_closing_id === null && !r.is_approved)
         .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
