@@ -59,11 +59,6 @@ export default function PublisherWebsites() {
                     <div style={{ fontWeight: 700, fontSize: 18 }}>🌐 {w.domain}</div>
                     <div className="text-muted text-sm" style={{ marginTop: 4 }}>
                       GAM: <code>{w.gam_network_code}</code>
-                      {w.ratio_override && (
-                        <span className="badge badge-approved" style={{ marginInlineStart: 8 }}>
-                          {(w.ratio_override * 100).toFixed(0)}% ratio
-                        </span>
-                      )}
                     </div>
                   </div>
                   <div className="flex gap-3 items-center">
@@ -94,7 +89,6 @@ export default function PublisherWebsites() {
                           <tr>
                             <th>Ad Unit Name</th>
                             <th>GAM Path</th>
-                            <th>Ratio Override</th>
                             <th>Status</th>
                           </tr>
                         </thead>
@@ -103,11 +97,6 @@ export default function PublisherWebsites() {
                             <tr key={a.id}>
                               <td style={{ fontWeight: 600 }}>{a.display_name}</td>
                               <td><code style={{ fontSize: 12 }}>{a.gam_ad_unit_name}</code></td>
-                              <td>
-                                {a.ratio_override
-                                  ? <span className="badge badge-approved">{(a.ratio_override*100).toFixed(0)}%</span>
-                                  : <span className="text-muted text-xs">Inherited</span>}
-                              </td>
                               <td>
                                 <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
                                   {a.is_active ? '🟢 Active' : '⚫ Inactive'}
