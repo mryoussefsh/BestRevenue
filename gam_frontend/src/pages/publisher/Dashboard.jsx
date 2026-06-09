@@ -7,6 +7,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
+import AnnouncementsRenderer from '../../components/AnnouncementsRenderer'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -422,6 +423,7 @@ export default function PublisherDashboard() {
 
   return (
     <div>
+      <AnnouncementsRenderer />
       {/* Welcome Header */}
       <div className="page-header">
         <div>

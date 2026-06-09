@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
-import AnnouncementsRenderer from '../components/AnnouncementsRenderer'
 import { useSettings } from '../contexts/SettingsContext'
 
 const navItems = [
@@ -17,6 +17,11 @@ export default function PublisherLayout({ children }) {
   const { locale, switchLocale } = useI18n()
   const { settings } = useSettings()
   const navigate = useNavigate()
+
+  const [isImpersonating, setIsImpersonating] = useState(false)
+  useEffect(() => {
+    setIsImpersonating(!!(sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')))
+  }, [])
 
   const handleLogout = async () => {
     await logout()
@@ -71,7 +76,7 @@ export default function PublisherLayout({ children }) {
       </aside>
 
       <div className="main-content">
-        {(sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')) && (
+        {isImpersonating && (
           <div style={{
             background: 'linear-gradient(90deg, #f59e0b, #d97706)',
             color: '#1a1a2e',
@@ -114,7 +119,6 @@ export default function PublisherLayout({ children }) {
           </div>
         </header>
         <main className="page-container">
-          <AnnouncementsRenderer />
           {children}
         </main>
       </div>

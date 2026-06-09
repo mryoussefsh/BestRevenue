@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Dependent Filter Resetting**: Implemented cascade resetting of filters (selecting/changing a Publisher resets Website and Ad Unit filters; selecting/changing a Website resets the Ad Unit filter).
 - **Backend All Ad Units Retrieval**: Added support for a `per_page=all` query parameter in `AdUnitController@index` to retrieve all matching ad units without pagination for dropdown lists.
 
+### Fixed
+- **Publisher Impersonation Banner Visibility**: Resolved an issue where closing a publisher announcement banner hid the top "Impersonation Mode" warning label by migrating the impersonation status check to a reactive React state variable inside `PublisherLayout`.
+- **Publisher Announcement Scoping**: Restricted the rendering of publisher announcements to only display on the main `Dashboard` page, rather than on every page layout across the publisher portal.
+
 ## [1.3.3] - 2026-06-09
 
 ### Added

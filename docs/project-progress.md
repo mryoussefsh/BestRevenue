@@ -98,6 +98,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Added reactive "Total Paid Out" and "Available Balance" statistics cards on the admin payouts page that dynamically refresh after actions like Approve, Reject, or Mark Paid.
 - [x] Created a new publisher Settings page featuring Profile Info (name, email (read-only), phone with country-code dropdown search, telegram, and read-only country), password security tabs, and a side-by-side Active Payout Setup status card displaying the current payment method, account, and minimum threshold. Completely removed Skype ID from the platform (including all admin list views, modals, profile sheets, and database models), updated the phone number in the admin publisher profile to be a click-to-chat WhatsApp link, and placed the Country field under the Created Account date.
 - [x] Integrated searchable Ad Unit dropdown filter on the admin dashboard with backend parameter mapping, supporting dependent filter resets (publisher -> website -> ad unit) and updating all charts and daily performance tables dynamically.
+- [x] Restructured publisher announcements to display only on the publisher dashboard page (moved from layout to page component), and resolved the issue where closing announcements hid the top impersonation banner by tracking the impersonation state inside a local React state variable.
 
 ---
 
