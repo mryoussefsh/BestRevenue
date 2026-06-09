@@ -9,6 +9,7 @@ export default function PublisherWebsites() {
   const [expanded, setExpanded] = useState(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
+  const [selectedAdsTxt, setSelectedAdsTxt] = useState(null)
 
   useEffect(() => {
     publisherApi.getWebsites()
@@ -65,6 +66,14 @@ export default function PublisherWebsites() {
                     <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`}>
                       {w.is_active ? '🟢 Active' : '⚫ Inactive'}
                     </span>
+                    {w.ads_txt && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setSelectedAdsTxt({ domain: w.domain, content: w.ads_txt })}
+                      >
+                        📋 Show ads.txt
+                      </button>
+                    )}
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => toggleAdUnits(w.id)}
@@ -119,6 +128,53 @@ export default function PublisherWebsites() {
             onPageChange={setPage}
           />
         </>
+      )}
+
+      {selectedAdsTxt && (
+        <div className="modal-backdrop">
+          <div className="modal" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h2>📋 Ads.txt for {selectedAdsTxt.domain}</h2>
+              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAdsTxt(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p className="text-muted text-sm" style={{ margin: 0 }}>
+                Copy the entries below and append them to your site's root <code>ads.txt</code> file:
+              </p>
+              <textarea
+                className="form-input"
+                style={{
+                  height: '200px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  whiteSpace: 'pre',
+                  background: '#161e2e',
+                  color: '#e2e8f0',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '4px',
+                  padding: '12px',
+                  resize: 'vertical'
+                }}
+                readOnly
+                value={selectedAdsTxt.content}
+                onClick={e => e.target.select()}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedAdsTxt.content)
+                    toast.success('Ads.txt copied to clipboard!')
+                  }}
+                >
+                  Copy Content
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdsTxt(null)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

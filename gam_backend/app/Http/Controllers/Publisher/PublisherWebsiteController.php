@@ -17,6 +17,7 @@ class PublisherWebsiteController extends Controller
         $publisherId = $request->user()->publisher_id;
 
         $websites = Website::where('publisher_id', $publisherId)
+            ->with(['gamAccount'])
             ->withCount('adUnits')
             ->orderBy('domain')
             ->get();
@@ -30,6 +31,7 @@ class PublisherWebsiteController extends Controller
                     'gam_network_code' => $website->gam_network_code,
                     'is_active'        => $website->is_active,
                     'ad_units_count'   => $website->ad_units_count,
+                    'ads_txt'          => $website->gamAccount ? $website->gamAccount->ads_txt : null,
                 ];
             })
         ]);

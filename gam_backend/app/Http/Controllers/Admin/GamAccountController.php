@@ -41,6 +41,7 @@ class GamAccountController extends Controller
             'email'        => 'required|email',
             'network_code' => 'nullable|string|max:50',
             'notes'        => 'nullable|string',
+            'ads_txt'      => 'nullable|string',
         ]);
 
         $account = GamAccount::create([
@@ -49,6 +50,7 @@ class GamAccountController extends Controller
             'email'        => $data['email'],
             'network_code' => $data['network_code'] ?? null,
             'notes'        => $data['notes'] ?? null,
+            'ads_txt'      => $data['ads_txt'] ?? null,
             'status'       => 'active',
         ]);
 
@@ -72,6 +74,7 @@ class GamAccountController extends Controller
             'name'         => 'sometimes|string|max:255',
             'network_code' => 'sometimes|nullable|string|max:50',
             'notes'        => 'sometimes|nullable|string',
+            'ads_txt'      => 'sometimes|nullable|string',
         ]);
 
         $account->update($data);

@@ -100,6 +100,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated searchable Ad Unit dropdown filter on the admin dashboard with backend parameter mapping, supporting dependent filter resets (publisher -> website -> ad unit) and updating all charts and daily performance tables dynamically.
 - [x] Restructured publisher announcements to display only on the publisher dashboard page (moved from layout to page component), replaced the large top impersonation banner with a premium bottom-centered capsule pill indicator (showing "Viewing as [Publisher Name]" with a green status dot and a red "✕ Exit" button) to maximize viewport space and match modern aesthetics, and hid all internal revenue sharing ratio percentages and ratio override values from the publisher portal websites and ad units view.
 - [x] Secured backend APIs and resources to completely prevent exposure of revenue sharing ratios, default ratios, and override values to publishers (via network inspection, API endpoint guessing, or developer console), verified with comprehensive integration test coverage in `IndependentAuditFixTest`.
+- [x] Added `ads.txt` content management to Google Ad Manager (GAM) accounts in the admin dashboard, allowing publishers to view and copy the configured ads.txt entries from their "My Websites" dashboard view via a modal clipboard-copy dialog.
 
 ---
 

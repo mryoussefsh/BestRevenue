@@ -324,4 +324,52 @@ class IndependentAuditFixTest extends TestCase
         $adResponse->assertJsonMissing(['ratio_override']);
         $adResponse->assertJsonMissingPath('data.0.ratio_override');
     }
+
+    /**
+     * Test the ads.txt setup from Admin creation/updating to Publisher list retrieval.
+     */
+    public function test_ads_txt_flow(): void
+    {
+        // 1. Authenticate as Admin
+        $this->actingAs($this->admin);
+
+        // Create GAM account with ads_txt
+        $storeResponse = $this->postJson('/api/v1/admin/gam-accounts', [
+            'name'         => 'Test GAM Account',
+            'email'        => 'gam-test@test.com',
+            'network_code' => '12345678',
+            'ads_txt'      => "google.com, pub-100, DIRECT",
+        ]);
+        $storeResponse->assertStatus(201);
+        $gamAccountId = $storeResponse->json('account.id');
+        $this->assertEquals("google.com, pub-100, DIRECT", $storeResponse->json('account.ads_txt'));
+
+        // Update GAM account ads_txt
+        $updateResponse = $this->putJson("/api/v1/admin/gam-accounts/{$gamAccountId}", [
+            'ads_txt' => "google.com, pub-100, DIRECT\ngoogle.com, pub-200, RESELLER",
+        ]);
+        $updateResponse->assertStatus(200);
+        $this->assertEquals("google.com, pub-100, DIRECT\ngoogle.com, pub-200, RESELLER", $updateResponse->json('account.ads_txt'));
+
+        // 2. Setup website for publisher linked to this GAM Account
+        $website = \App\Models\Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $this->publisher->id,
+            'gam_account_id'   => $gamAccountId,
+            'domain'           => 'securedomain2.com',
+            'gam_network_code' => '12345678',
+            'is_active'        => true,
+        ]);
+
+        // 3. Authenticate as Publisher
+        $this->actingAs($this->publisherUser);
+
+        // Fetch websites list and verify ads_txt is present and matches the updated content
+        $webResponse = $this->getJson('/api/v1/publisher/websites');
+        $webResponse->assertStatus(200);
+        $webResponse->assertJsonFragment([
+            'domain'  => 'securedomain2.com',
+            'ads_txt' => "google.com, pub-100, DIRECT\ngoogle.com, pub-200, RESELLER",
+        ]);
+    }
 }

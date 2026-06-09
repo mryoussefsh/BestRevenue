@@ -21,6 +21,7 @@ class GamAccount extends Model
         'status',
         'last_synced_at',
         'notes',
+        'ads_txt',
     ];
 
     protected $casts = [
@@ -71,6 +72,7 @@ class GamAccount extends Model
             'token_expires_at'=> $this->token_expires_at,
             'websites_count'  => $this->websites_count ?? 0,
             'notes'           => $this->notes,
+            'ads_txt'         => $this->ads_txt,
             'created_at'      => $this->created_at,
         ];
     }

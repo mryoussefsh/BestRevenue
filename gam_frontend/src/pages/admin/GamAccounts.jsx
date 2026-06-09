@@ -13,7 +13,7 @@ export default function GamAccountsPage() {
     google_client_secret: ''
   })
   const [editingAccount, setEditingAccount] = useState(null)
-  const [editForm, setEditForm] = useState({ name: '', network_code: '' })
+  const [editForm, setEditForm] = useState({ name: '', network_code: '', ads_txt: '' })
   const [syncing, setSyncing] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -128,7 +128,8 @@ export default function GamAccountsPage() {
     setEditingAccount(acc)
     setEditForm({
       name: acc.name || '',
-      network_code: acc.network_code || ''
+      network_code: acc.network_code || '',
+      ads_txt: acc.ads_txt || ''
     })
   }
 
@@ -338,6 +339,16 @@ export default function GamAccountsPage() {
                 <div className="text-muted text-xs" style={{ marginTop: 4 }}>
                   Found in your Google Ad Manager URL: <br/><code>admanager.google.com/YOUR_NETWORK_CODE</code>
                 </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Ads.txt Content</label>
+                <textarea 
+                  className="form-input" 
+                  style={{ minHeight: '120px', fontFamily: 'monospace', fontSize: '13px' }}
+                  placeholder="e.g. google.com, pub-1234567890, DIRECT, f08c47fec0942fa0"
+                  value={editForm.ads_txt}
+                  onChange={e => setEditForm(f => ({...f, ads_txt: e.target.value}))}
+                />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setEditingAccount(null)}>Cancel</button>
