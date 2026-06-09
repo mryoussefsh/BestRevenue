@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **GAM Account Ads.txt Management**: Added `ads_txt` field to Google Ad Manager (GAM) Accounts. Administrators can configure custom ads.txt contents when creating or editing GAM accounts in the admin dashboard.
 - **Publisher Ads.txt Display**: Rendered a "📋 Show ads.txt" button next to each website on the publisher's "My Websites" view when an ads.txt configuration is present.
 - **Interactive Ads.txt Clipboard Copy**: Created a premium monospaced modal popup dialog inside the publisher portal websites page displaying the ads.txt entries, with a single-click "Copy Content" action button and success toast feedback.
+- **Interactive GPT Ad Tag Code Modal**: Added a **"Get Code"** action button to the publisher websites ad units table. Clicking it opens a modal overlay generating copy-pasteable Google Publisher Tag (GPT) Header and Body script blocks, with individual and full block copy-to-clipboard actions.
 - **Cleaned Publisher Inventory View**: Removed the internal **GAM Path** column from the Ad Units details table inside the publisher websites page to keep their portal dashboard clean and focused.
 - **Automated Integration Testing**: Wrote feature tests inside `IndependentAuditFixTest` verifying database migrations, validation logic, and the complete ads.txt admin-to-publisher flow.
 

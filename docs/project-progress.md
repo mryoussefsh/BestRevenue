@@ -102,6 +102,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Secured backend APIs and resources to completely prevent exposure of revenue sharing ratios, default ratios, and override values to publishers (via network inspection, API endpoint guessing, or developer console), verified with comprehensive integration test coverage in `IndependentAuditFixTest`.
 - [x] Added `ads.txt` content management to Google Ad Manager (GAM) accounts in the admin dashboard, allowing publishers to view and copy the configured ads.txt entries from their "My Websites" dashboard view via a modal clipboard-copy dialog.
 - [x] Removed the internal "GAM Path" column from the ad units breakdown table on the publisher websites portal page for a cleaner UI layout.
+- [x] Integrated a "Get Code" button inside the publisher websites ad units table that displays a dynamic GPT tag generator modal containing copy-pasteable Header and Body scripts with clipboard copy shortcuts.
 
 ---
 
