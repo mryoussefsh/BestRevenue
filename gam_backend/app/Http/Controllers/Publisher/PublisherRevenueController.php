@@ -82,7 +82,7 @@ class PublisherRevenueController extends Controller
             'data' => $records->map(function ($record) {
                 return [
                     'id'                 => $record->id,
-                    'date'               => $record->date,
+                    'date'               => $record->date ? $record->date->format('Y-m-d') : null,
                     'hour'               => $record->hour,
                     // FIX [PUB-VIEW-1]: 'country' removed — column was dropped in migration
                     // 2026_06_04_225937_remove_country_from_revenue_records_table.php

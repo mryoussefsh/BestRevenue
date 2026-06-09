@@ -46,13 +46,39 @@ function TriggerBadge({ triggeredBy }) {
 }
 
 export default function GamSyncPage() {
-  const { formatDateTime } = useSettings()
+  const { settings, formatDateTime } = useSettings()
   const fmt = (dt) => {
     if (!dt) return '—'
     return formatDateTime(dt, true)
   }
-  const today = new Date().toISOString().slice(0, 10)
-  const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10)
+
+  const getPlatformDateStr = (daysAgo = 0) => {
+    const timezone = settings.platform_timezone || 'UTC'
+    try {
+      const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const formatted = formatter.format(new Date())
+      if (daysAgo === 0) {
+        return formatted
+      }
+      const parts = formatted.split('-')
+      const localDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10) - daysAgo)
+      const y = localDate.getFullYear()
+      const m = String(localDate.getMonth() + 1).padStart(2, '0')
+      const d = String(localDate.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    } catch (err) {
+      console.error('Timezone offset error:', err)
+      return new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10)
+    }
+  }
+
+  const today = getPlatformDateStr(0)
+  const threeDaysAgo = getPlatformDateStr(3)
 
   const [syncing,   setSyncing]   = useState(false)
   const [logs,      setLogs]      = useState([])
@@ -68,6 +94,17 @@ export default function GamSyncPage() {
     publisher_id:   '',
     gam_account_id: '',
   })
+
+  // Re-align default range when timezone settings load
+  useEffect(() => {
+    if (settings.platform_timezone) {
+      setFilters(f => ({
+        ...f,
+        date_from: getPlatformDateStr(3),
+        date_to: getPlatformDateStr(0)
+      }))
+    }
+  }, [settings.platform_timezone])
 
   const outputRef = useRef(null)
 
@@ -290,7 +327,7 @@ export default function GamSyncPage() {
               key={label}
               className="btn btn-secondary btn-xs"
               onClick={() => {
-                const from = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)
+                const from = getPlatformDateStr(days)
                 setFilters(f => ({ ...f, date_from: from, date_to: today }))
               }}
             >

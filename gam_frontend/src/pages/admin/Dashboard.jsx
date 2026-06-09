@@ -5,6 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import CompactAmount from '../../components/CompactAmount'
+import { useSettings } from '../../contexts/SettingsContext'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
 // Use local-timezone formatting to avoid UTC shift (e.g. UTC+3 offset causing day-1 errors)
@@ -15,10 +16,27 @@ function fmtLocal(d) {
   return `${y}-${m}-${day}`
 }
 
-function getPresetRange(preset) {
-  const now = new Date()
-  const today = fmtLocal(now)
-  const daysAgo = n => fmtLocal(new Date(now.getFullYear(), now.getMonth(), now.getDate() - n))
+function getPlatformDate(timezone) {
+  try {
+    const formatter = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: timezone || 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    const formatted = formatter.format(new Date()) // e.g. "2026-06-09"
+    const parts = formatted.split('-')
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+  } catch (err) {
+    console.error('Timezone offset error:', err)
+    return new Date()
+  }
+}
+
+function getPresetRange(preset, timezone) {
+  const platDate = getPlatformDate(timezone)
+  const today = fmtLocal(platDate)
+  const daysAgo = n => fmtLocal(new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - n))
   switch (preset) {
     case 'today':
       return { date_from: today, date_to: today }
@@ -35,12 +53,12 @@ function getPresetRange(preset) {
     case '90d':
       return { date_from: daysAgo(90), date_to: today }
     case 'this_month': {
-      const s = new Date(now.getFullYear(), now.getMonth(), 1)
+      const s = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
       return { date_from: fmtLocal(s), date_to: today }
     }
     case 'last_month': {
-      const s = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      const e = new Date(now.getFullYear(), now.getMonth(), 0)
+      const s = new Date(platDate.getFullYear(), platDate.getMonth() - 1, 1)
+      const e = new Date(platDate.getFullYear(), platDate.getMonth(), 0)
       return { date_from: fmtLocal(s), date_to: fmtLocal(e) }
     }
     default:
@@ -141,6 +159,7 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
 
 // ── Main Dashboard ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const { settings } = useSettings()
   const [stats, setStats]           = useState(null)
   const [revenueChart, setRevenueChart] = useState([])
   const [publishers, setPublishers] = useState([])
@@ -161,6 +180,17 @@ export default function AdminDashboard() {
     website_id: '',
     status: '',
   })
+
+  // Re-align default/preset dates once settings.platform_timezone loads
+  useEffect(() => {
+    if (settings.platform_timezone) {
+      const range = getPresetRange(preset, settings.platform_timezone)
+      setFilters(f => ({
+        ...f,
+        ...range
+      }))
+    }
+  }, [settings.platform_timezone])
 
   // Load publishers & websites once for dropdowns
   useEffect(() => {
@@ -375,13 +405,13 @@ export default function AdminDashboard() {
   function applyPreset(key) {
     setPreset(key)
     if (key !== 'custom') {
-      setFilters(f => ({ ...f, ...getPresetRange(key) }))
+      setFilters(f => ({ ...f, ...getPresetRange(key, settings.platform_timezone) }))
     }
   }
 
   function resetFilters() {
     setPreset('30d')
-    setFilters({ ...getPresetRange('30d'), publisher_id: '', website_id: '', status: '' })
+    setFilters({ ...getPresetRange('30d', settings.platform_timezone), publisher_id: '', website_id: '', status: '' })
   }
 
   const hasFilters = filters.publisher_id || filters.website_id || filters.status || preset !== '30d'

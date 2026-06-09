@@ -247,4 +247,43 @@ class IndependentAuditFixTest extends TestCase
         $this->assertEquals('PayPal', $response->json('user.payment_info.method'));
         $this->assertEquals('paypal@test.com', $response->json('user.payment_info.account'));
     }
+
+    /**
+     * Test that publisher revenue endpoint returns the exact date string.
+     */
+    public function test_publisher_revenue_endpoint_returns_exact_date_string(): void
+    {
+        $website = \App\Models\Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $this->publisher->id,
+            'domain'           => 'publisherdomain.com',
+            'gam_network_code' => '987654321',
+            'is_active'        => true,
+        ]);
+
+        $adUnit = \App\Models\AdUnit::create([
+            'id'                => Str::uuid()->toString(),
+            'website_id'        => $website->id,
+            'display_name'      => 'Leaderboard',
+            'gam_ad_unit_name'  => 'leaderboard_unit',
+            'is_active'         => true,
+        ]);
+
+        $record = RevenueRecord::create([
+            'id'                               => Str::uuid()->toString(),
+            'ad_unit_id'                       => $adUnit->id,
+            'date'                             => '2026-06-08',
+            'hour'                             => 0,
+            'impressions'                      => 1000,
+            'clicks'                           => 10,
+            'publisher_earnings'               => 1.25,
+        ]);
+
+        $this->actingAs($this->publisherUser);
+
+        $response = $this->getJson('/api/v1/publisher/revenue');
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.0.date', '2026-06-08');
+    }
 }

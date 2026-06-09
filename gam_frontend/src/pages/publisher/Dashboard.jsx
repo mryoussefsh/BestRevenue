@@ -42,27 +42,48 @@ export default function PublisherDashboard() {
   const [dailySortField, setDailySortField] = useState('date')
   const [dailySortOrder, setDailySortOrder] = useState('desc')
 
+  const getPlatformDate = () => {
+    const timezone = settings.platform_timezone || 'UTC'
+    try {
+      const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const formatted = formatter.format(new Date())
+      const parts = formatted.split('-')
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+    } catch (err) {
+      console.error('Timezone offset error:', err)
+      return new Date()
+    }
+  }
+
   // Date range presets helper
   const getPresetDates = (preset) => {
-    const today = new Date()
-    let from = new Date()
-    let to = today
+    const platDate = getPlatformDate()
+    let from = platDate
+    let to = platDate
 
     if (preset === 'today') {
-      from = today
-      to = today
+      from = platDate
+      to = platDate
     } else if (preset === 'yesterday') {
-      from = new Date(Date.now() - 1 * 86400000)
-      to = new Date(Date.now() - 1 * 86400000)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
+      to = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
     } else if (preset === '7d') {
-      from = new Date(Date.now() - 7 * 86400000)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 7)
+      to = platDate
     } else if (preset === '30d') {
-      from = new Date(Date.now() - 30 * 86400000)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 30)
+      to = platDate
     } else if (preset === 'this_month') {
-      from = new Date(today.getFullYear(), today.getMonth(), 1)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
+      to = platDate
     } else if (preset === 'last_month') {
-      from = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-      to = new Date(today.getFullYear(), today.getMonth(), 0)
+      from = new Date(platDate.getFullYear(), platDate.getMonth() - 1, 1)
+      to = new Date(platDate.getFullYear(), platDate.getMonth(), 0)
     } else {
       return null // custom
     }
@@ -72,6 +93,20 @@ export default function PublisherDashboard() {
       date_to: toLocalYYYYMMDD(to)
     }
   }
+
+  // Re-align default/preset dates once settings.platform_timezone loads
+  useEffect(() => {
+    if (settings.platform_timezone) {
+      const dates = getPresetDates(filters.preset || '30d')
+      if (dates) {
+        setFilters(f => ({
+          ...f,
+          date_from: dates.date_from,
+          date_to: dates.date_to
+        }))
+      }
+    }
+  }, [settings.platform_timezone])
 
   // Initial loader: fetch websites and first batch of stats
   useEffect(() => {

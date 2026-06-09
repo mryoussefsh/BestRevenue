@@ -3,8 +3,10 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { useSettings } from '../../contexts/SettingsContext'
 
 export default function PublisherRevenue() {
+  const { settings } = useSettings()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
@@ -16,7 +18,57 @@ export default function PublisherRevenue() {
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  useEffect(() => { load() }, [])
+  const getPlatformDateStr = (daysAgo = 0) => {
+    const timezone = settings.platform_timezone || 'UTC'
+    try {
+      const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const formatted = formatter.format(new Date())
+      if (daysAgo === 0) {
+        return formatted
+      }
+      const parts = formatted.split('-')
+      const localDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10) - daysAgo)
+      const y = localDate.getFullYear()
+      const m = String(localDate.getMonth() + 1).padStart(2, '0')
+      const d = String(localDate.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    } catch (err) {
+      console.error('Timezone offset error:', err)
+      return new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10)
+    }
+  }
+
+  useEffect(() => {
+    if (settings.platform_timezone) {
+      const from = getPlatformDateStr(30)
+      const to = getPlatformDateStr(0)
+      setFilters(f => ({
+        ...f,
+        date_from: from,
+        date_to: to
+      }))
+      setLoading(true)
+      publisherApi.getRevenue({
+        date_from: from,
+        date_to: to,
+        ad_unit_id: filters.ad_unit_id
+      }).then(res => {
+        setRecords(res.data?.data || [])
+        setPage(1)
+        setLoading(false)
+      }).catch(() => {
+        toast.error('Failed to load revenue')
+        setLoading(false)
+      })
+    } else {
+      load()
+    }
+  }, [settings.platform_timezone])
 
   async function load() {
     setLoading(true)
