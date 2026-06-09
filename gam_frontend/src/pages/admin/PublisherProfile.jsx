@@ -98,6 +98,14 @@ export default function PublisherProfile() {
     }
   }
 
+  const totalPayoutBase = payouts.reduce((s, p) => s + parseFloat(p.amount || 0), 0)
+  const totalPayoutAdj = payouts.reduce((s, p) => s + parseFloat(p.adjustment || 0), 0)
+  const totalPayoutFinal = payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)
+
+  const totalRevImpr = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
+  const totalRevGross = revenue.reduce((s, r) => s + parseFloat(r.gross_revenue || 0), 0)
+  const totalRevPub = revenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+
   async function handleDelete() {
     if (!confirm(`Delete publisher "${publisher?.name}"? This cannot be undone.`)) return
     try {
@@ -720,6 +728,19 @@ export default function PublisherProfile() {
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot>
+                        <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                          <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({payouts.length})</td>
+                          <td><CompactAmount value={totalPayoutBase} /></td>
+                          <td style={{
+                            color: totalPayoutAdj > 0 ? 'var(--color-accent)' : totalPayoutAdj < 0 ? 'var(--color-danger)' : 'inherit'
+                          }}>
+                            {totalPayoutAdj > 0 ? '+' : ''}<CompactAmount value={totalPayoutAdj} />
+                          </td>
+                          <td className="positive" style={{ fontWeight: 700 }}><CompactAmount value={totalPayoutFinal} /></td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
                 )}
@@ -784,6 +805,23 @@ export default function PublisherProfile() {
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot>
+                        <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                          <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>
+                            📊 Totals {revenue.length > 50 ? `(all ${revenue.length} logs)` : ''}
+                          </td>
+                          <td style={{ textAlign: 'right', paddingRight: 24, fontFamily: 'monospace' }}>
+                            <CompactAmount value={totalRevImpr} prefix="" decimals={0} />
+                          </td>
+                          <td className="money" style={{ textAlign: 'right', paddingRight: 24 }}>
+                            <CompactAmount value={totalRevGross} />
+                          </td>
+                          <td className="money positive" style={{ textAlign: 'right', paddingRight: 24, fontWeight: 700 }}>
+                            <CompactAmount value={totalRevPub} />
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
                     </table>
                     {revenue.length > 50 && (
                       <div className="text-muted text-center text-sm" style={{ padding: 12 }}>

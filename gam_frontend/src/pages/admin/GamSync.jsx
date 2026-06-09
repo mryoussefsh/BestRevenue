@@ -445,6 +445,26 @@ export default function GamSyncPage() {
                   </tr>
                 ))}
               </tbody>
+              {logs.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={5}>📊 Totals ({logs.length})</td>
+                    <td style={{ color: '#94a3b8' }}>
+                      {logs.reduce((s, l) => s + (l.rows_fetched || 0), 0).toLocaleString()}
+                    </td>
+                    <td style={{ color: '#10b981', fontWeight: 600 }}>
+                      {logs.reduce((s, l) => s + (l.rows_matched || 0), 0).toLocaleString()}
+                    </td>
+                    <td style={{ color: '#f59e0b' }}>
+                      {logs.reduce((s, l) => s + (l.rows_skipped || 0), 0).toLocaleString()}
+                    </td>
+                    <td style={{ color: '#64748b' }}>
+                      {logs.reduce((s, l) => s + (l.rows_locked || 0), 0).toLocaleString()}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         )}

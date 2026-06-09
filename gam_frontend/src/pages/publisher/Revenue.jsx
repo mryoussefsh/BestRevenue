@@ -1,24 +1,52 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 
+const toLocalYYYYMMDD = (date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 export default function PublisherRevenue() {
   const { settings } = useSettings()
   const [records, setRecords] = useState([])
   const [pendingAdjustment, setPendingAdjustment] = useState(0)
+  const [payoutsSum, setPayoutsSum] = useState(0)
   const [aggregates, setAggregates] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
-    date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10),
-    date_to: new Date().toISOString().slice(0,10),
-    ad_unit_id: ''
+    preset: '30d',
+    date_from: toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+    date_to: toLocalYYYYMMDD(new Date()),
+    ad_unit_id: '',
+    status: ''
   })
   const [page, setPage] = useState(1)
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
+
+  const getPlatformDate = () => {
+    const timezone = settings.platform_timezone || 'UTC'
+    try {
+      const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const formatted = formatter.format(new Date())
+      const parts = formatted.split('-')
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+    } catch (err) {
+      console.error('Timezone offset error:', err)
+      return new Date()
+    }
+  }
 
   const getPlatformDateStr = (daysAgo = 0) => {
     const timezone = settings.platform_timezone || 'UTC'
@@ -45,34 +73,102 @@ export default function PublisherRevenue() {
     }
   }
 
-  useEffect(() => {
-    if (settings.platform_timezone) {
-      const from = getPlatformDateStr(30)
-      const to = getPlatformDateStr(0)
+  const getPresetDates = (preset) => {
+    const platDate = getPlatformDate()
+    let from = platDate
+    let to = platDate
+
+    if (preset === 'today') {
+      from = platDate
+      to = platDate
+    } else if (preset === 'yesterday') {
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
+      to = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
+    } else if (preset === '7d') {
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 7)
+      to = platDate
+    } else if (preset === '30d') {
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 30)
+      to = platDate
+    } else if (preset === 'this_month') {
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
+      to = platDate
+    } else if (preset === 'last_month') {
+      from = new Date(platDate.getFullYear(), platDate.getMonth() - 1, 1)
+      to = new Date(platDate.getFullYear(), platDate.getMonth(), 0)
+    } else {
+      return null
+    }
+
+    return {
+      date_from: toLocalYYYYMMDD(from),
+      date_to: toLocalYYYYMMDD(to)
+    }
+  }
+
+  const handlePresetChange = (newPreset) => {
+    const dates = getPresetDates(newPreset)
+    if (dates) {
       setFilters(f => ({
         ...f,
-        date_from: from,
-        date_to: to
+        preset: newPreset,
+        date_from: dates.date_from,
+        date_to: dates.date_to
       }))
-      setLoading(true)
-      publisherApi.getRevenue({
-        date_from: from,
-        date_to: to,
-        ad_unit_id: filters.ad_unit_id
-      }).then(res => {
-        setRecords(res.data?.data || [])
-        setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
-        setAggregates(res.data?.aggregates || null)
-        setPage(1)
-        setLoading(false)
-      }).catch(() => {
-        toast.error('Failed to load revenue')
-        setLoading(false)
-      })
     } else {
-      load()
+      setFilters(f => ({ ...f, preset: newPreset }))
+    }
+  }
+
+  const isFirstRun = useRef(true)
+
+  // Re-align default/preset dates once settings.platform_timezone loads
+  useEffect(() => {
+    if (settings.platform_timezone) {
+      const dates = getPresetDates(filters.preset || '30d')
+      if (dates) {
+        setFilters(f => ({
+          ...f,
+          date_from: dates.date_from,
+          date_to: dates.date_to
+        }))
+      }
     }
   }, [settings.platform_timezone])
+
+  // Initial load
+  useEffect(() => {
+    const dates = getPresetDates('30d')
+    const initialFilters = {
+      preset: '30d',
+      date_from: dates ? dates.date_from : toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+      date_to: dates ? dates.date_to : toLocalYYYYMMDD(new Date()),
+      ad_unit_id: '',
+      status: ''
+    }
+    
+    setLoading(true)
+    publisherApi.getRevenue(initialFilters).then(res => {
+      setRecords(res.data?.data || [])
+      setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
+      setPayoutsSum(res.data?.payouts_sum || 0)
+      setAggregates(res.data?.aggregates || null)
+      setPage(1)
+      setLoading(false)
+    }).catch(() => {
+      toast.error('Failed to load revenue')
+      setLoading(false)
+    })
+  }, [])
+
+  // Refetch when filters change (live updates)
+  useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false
+      return
+    }
+    load()
+  }, [filters.date_from, filters.date_to, filters.status])
 
   async function load() {
     setLoading(true)
@@ -80,10 +176,22 @@ export default function PublisherRevenue() {
       const res = await publisherApi.getRevenue(filters)
       setRecords(res.data?.data || [])
       setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
+      setPayoutsSum(res.data?.payouts_sum || 0)
       setAggregates(res.data?.aggregates || null)
       setPage(1)
     } catch { toast.error('Failed to load revenue') }
     finally { setLoading(false) }
+  }
+
+  const handleResetFilters = () => {
+    const dates = getPresetDates('30d')
+    setFilters({
+      preset: '30d',
+      date_from: dates ? dates.date_from : toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+      date_to: dates ? dates.date_to : toLocalYYYYMMDD(new Date()),
+      ad_unit_id: '',
+      status: ''
+    })
   }
 
   function handleSort(field) {
@@ -121,6 +229,11 @@ export default function PublisherRevenue() {
   const totalApprovedEarnings = Math.max(0, approvedEarningsTotal + pendingAdjustment)
   const totalPendingEarnings = pendingEarningsTotal
   const totalImpressions = impressionsTotal
+  const totalEarningsCard = Math.max(0, approvedEarningsTotal + pendingAdjustment) + pendingEarningsTotal + payoutsSum
+
+  const totalEarnings = aggregates ? (aggregates.approved_earnings + aggregates.pending_earnings + aggregates.closed_earnings) : 0
+  const avgCtr = impressionsTotal > 0 ? (aggregates.total_clicks / impressionsTotal) * 100 : 0
+  const avgCpm = impressionsTotal > 0 ? (totalEarnings / impressionsTotal) * 1000 : 0
 
   const handleExportPDF = async () => {
     try {
@@ -157,7 +270,84 @@ export default function PublisherRevenue() {
         </button>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 24 }}>
+      {/* Filter Panel */}
+      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+          
+          {/* Preset Selector */}
+          <div style={{ flex: '1 1 140px' }}>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Time Range</label>
+            <select
+              className="form-select"
+              value={filters.preset}
+              onChange={e => handlePresetChange(e.target.value)}
+            >
+              {!filters.preset && <option value="" disabled>Custom Range</option>}
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="this_month">This Month</option>
+              <option value="last_month">Last Month</option>
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div style={{ flex: '1 1 140px' }}>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Start Date</label>
+            <input
+              type="date"
+              className="form-input"
+              value={filters.date_from}
+              onChange={e => setFilters(f => ({ ...f, date_from: e.target.value, preset: '' }))}
+            />
+          </div>
+
+          {/* End Date */}
+          <div style={{ flex: '1 1 140px' }}>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>End Date</label>
+            <input
+              type="date"
+              className="form-input"
+              value={filters.date_to}
+              onChange={e => setFilters(f => ({ ...f, date_to: e.target.value, preset: '' }))}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div style={{ flex: '1 1 140px' }}>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Status</label>
+            <select
+              className="form-select"
+              value={filters.status}
+              onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+            >
+              <option value="">All Statuses</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          {/* Reset Button */}
+          <div>
+            <button
+              id="reset-pub-revenue-filter-btn"
+              className="btn btn-secondary"
+              style={{ width: '100%', padding: '10px 16px' }}
+              onClick={handleResetFilters}
+            >
+              🧹 Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
+        <div className="stat-card primary">
+          <div className="stat-label">Total Earnings</div>
+          <div className="stat-value money"><CompactAmount value={totalEarningsCard} /></div>
+        </div>
         <div className="stat-card accent">
           <div className="stat-label">Approved Earnings</div>
           <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
@@ -172,14 +362,6 @@ export default function PublisherRevenue() {
             <CompactAmount value={totalImpressions} prefix="" decimals={0} />
           </div>
         </div>
-      </div>
-
-      <div className="filter-bar">
-        <input type="date" className="form-input" value={filters.date_from}
-          onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} />
-        <input type="date" className="form-input" value={filters.date_to}
-          onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} />
-        <button id="apply-pub-revenue-filter-btn" className="btn btn-primary" onClick={load}>🔍 Apply</button>
       </div>
 
       <div className="card" style={{ padding: 0 }}>
@@ -235,6 +417,22 @@ export default function PublisherRevenue() {
                   </tr>
                 ))}
               </tbody>
+              {records.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals</td>
+                    <td className="money">
+                      <CompactAmount value={impressionsTotal} prefix="" decimals={0} />
+                    </td>
+                    <td className="money">{avgCtr.toFixed(2)}%</td>
+                    <td className="money">${avgCpm.toFixed(3)}</td>
+                    <td className="money positive" style={{ fontWeight: 700 }}>
+                      <CompactAmount value={totalEarnings} />
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           )}
         </div>

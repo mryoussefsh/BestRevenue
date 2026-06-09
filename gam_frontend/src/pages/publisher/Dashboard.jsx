@@ -35,7 +35,6 @@ export default function PublisherDashboard() {
     date_to: toLocalYYYYMMDD(new Date()),
     website_id: '',
     ad_unit_id: '',
-    status: '',
   })
 
   const isFirstRun = useRef(true)
@@ -126,7 +125,6 @@ export default function PublisherDashboard() {
         date_to: defaultDates.date_to,
         website_id: '',
         ad_unit_id: '',
-        status: '',
       })
       setInitialLoading(false)
     }
@@ -147,7 +145,7 @@ export default function PublisherDashboard() {
       setRefreshing(false)
     }
     reloadData()
-  }, [filters.date_from, filters.date_to, filters.website_id, filters.ad_unit_id, filters.status])
+  }, [filters.date_from, filters.date_to, filters.website_id, filters.ad_unit_id])
 
   // Core API loader
   async function fetchDashboardData(activeFilters) {
@@ -157,7 +155,6 @@ export default function PublisherDashboard() {
         date_to: activeFilters.date_to,
         website_id: activeFilters.website_id,
         ad_unit_id: activeFilters.ad_unit_id,
-        status: activeFilters.status,
         per_page: 1000, // retrieve larger dataset for accurate dashboard aggregate calculations
       }
       const [payRes, revRes] = await Promise.all([
@@ -211,7 +208,6 @@ export default function PublisherDashboard() {
       date_to: defaultDates.date_to,
       website_id: '',
       ad_unit_id: '',
-      status: '',
     })
     setAdUnits([])
     setDailyPage(1)
@@ -226,7 +222,6 @@ export default function PublisherDashboard() {
         date_to: filters.date_to,
         website_id: filters.website_id,
         ad_unit_id: filters.ad_unit_id,
-        status: filters.status,
       }
       
       const res = await publisherApi.exportPdf(queryParams)
@@ -532,20 +527,7 @@ export default function PublisherDashboard() {
             />
           </div>
 
-          {/* Status Filter */}
-          <div style={{ flex: '1 1 140px' }}>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Status</label>
-            <select
-              className="form-select"
-              value={filters.status}
-              onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
-            >
-              <option value="">All Statuses</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="closed">Closed</option>
-            </select>
-          </div>
+
 
           {/* Reset Action */}
           <div>

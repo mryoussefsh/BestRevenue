@@ -586,9 +586,11 @@ class PublisherController extends Controller
                 ], 422);
             }
 
-            $paymentMethod = null;
-            if ($publisher->payment_info && is_array($publisher->payment_info) && isset($publisher->payment_info['method'])) {
-                $paymentMethod = $publisher->payment_info['method'];
+            $paymentMethod  = null;
+            $paymentAccount = null;
+            if ($publisher->payment_info && is_array($publisher->payment_info)) {
+                $paymentMethod  = $publisher->payment_info['method']  ?? null;
+                $paymentAccount = $publisher->payment_info['account'] ?? null;
             }
 
             // Create the payout record ONLY — no revenue locking, no adjustments, no period updates.
@@ -604,6 +606,7 @@ class PublisherController extends Controller
                 'status'            => 'pending',
                 'admin_note'        => $adminNote ?: 'Created via admin payout override.',
                 'payment_method'    => $paymentMethod,
+                'payment_account'   => $paymentAccount,
                 'is_manual_payment' => false,
             ]);
 

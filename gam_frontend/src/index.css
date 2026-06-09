@@ -339,6 +339,12 @@ input, select, textarea { outline: none; }
   gap: 4px;
 }
 
+.stat-sub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
 .stat-change.up   { color: var(--color-accent); }
 .stat-change.down { color: var(--color-danger); }
 

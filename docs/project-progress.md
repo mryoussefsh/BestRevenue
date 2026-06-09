@@ -90,6 +90,12 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Resolved Google OAuth redirect URI mismatch (Error 400: `redirect_uri_mismatch`) by standardizing the default config redirect URIs to `http://127.0.0.1:8000/...` instead of `http://localhost:8000/...` in `.env` and `config/services.php`.
 - [x] Added Google API Credentials Form Toggle to conditionally collapse the Google API Configuration setup card once configured, replacing it with a premium status button ("✅ Google API Configured") that expands the form when clicked.
 - [x] Fixed timezone shift date alignment bug on the daily performance table where dates were displayed 1 day behind actual database dates (e.g. showing May 31 instead of June 1 as pending) due to backend Eloquent model date cast converting calendar dates to ISO-8601 UTC strings. Standardized casts to `date:Y-m-d` and custom controller mapping to format Carbon instances to string `Y-m-d` values. Refactored publisher and admin dashboard preset/initial date range selectors to calculate values strictly relative to the configured platform timezone instead of browser-local time.
+- [x] Standardized available balance metrics to show Approved Earnings on the publisher dashboard and payouts page (representing what will be paid in the next cycle).
+- [x] Streamlined the payouts listing interface by moving rejection reasons inline with the status badge (as a warnings-styled mini-pill) instead of underneath the table row.
+- [x] Added a filters header bar (Status, Year, Month) placed above the stats cards on the publisher payouts page.
+- [x] Cleaned up the publisher payouts page by removing the Payment Method Settings section entirely.
+- [x] Implemented a filter bar on the admin payouts page featuring backend status and searchable publisher dropdown select (`PublisherSelect` with inline search) along with client-side year and month options.
+- [x] Added reactive "Total Paid Out" and "Available Balance" statistics cards on the admin payouts page that dynamically refresh after actions like Approve, Reject, or Mark Paid.
 
 ---
 

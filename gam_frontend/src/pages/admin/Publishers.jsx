@@ -269,6 +269,10 @@ export default function PublishersPage() {
 
   const paginated = filtered.slice((page - 1) * 15, page * 15)
 
+  const totalApproved = filtered.reduce((s, p) => s + parseFloat(p.approved_balance || 0), 0)
+  const totalPending = filtered.reduce((s, p) => s + parseFloat(p.pending_balance || 0), 0)
+  const avgRatio = filtered.length > 0 ? filtered.reduce((s, p) => s + parseFloat(p.default_ratio || 0), 0) / filtered.length : 0
+
   const statusBadge = s => s === 'active'
     ? 'badge-active'
     : s === 'pending'
@@ -418,6 +422,23 @@ export default function PublishersPage() {
                   </tr>
                 ))}
               </tbody>
+              {filtered.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals ({filtered.length})</td>
+                    <td className="money" style={{ fontWeight: 700 }}>
+                      {(avgRatio * 100).toFixed(0)}%
+                    </td>
+                    <td className="money positive" style={{ fontWeight: 700 }}>
+                      <CompactAmount value={totalApproved} />
+                    </td>
+                    <td className="money" style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                      <CompactAmount value={totalPending} />
+                    </td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           )}
         </div>

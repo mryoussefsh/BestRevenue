@@ -7,70 +7,73 @@ import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 
 export default function PublisherPayouts() {
-  const { user, updatePaymentInfo } = useAuth()
-  const { settings, formatDate } = useSettings()
+  const { user } = useAuth()
+  const { formatDate } = useSettings()
   const [payouts, setPayouts] = useState([])
+  const [aggregates, setAggregates] = useState(null)
+  const [pendingAdjustment, setPendingAdjustment] = useState(0)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
 
-  const [method, setMethod] = useState(user?.payment_info?.method || '')
-  const [account, setAccount] = useState(user?.payment_info?.account || '')
-  const [savingPayment, setSavingPayment] = useState(false)
+  // Filters (client-side — all payouts already loaded)
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterYear,   setFilterYear]   = useState('')
+  const [filterMonth,  setFilterMonth]  = useState('')
 
-  async function handleSavePayment(e) {
-    e.preventDefault()
-    if (!method) return toast.error('Please select a payment method')
-    if (!account.trim()) return toast.error('Please provide payment account details')
-
-    setSavingPayment(true)
-    try {
-      console.log('Sending payment update request:', { method, account })
-      const res = await publisherApi.updatePaymentInfo({ method, account })
-      console.log('Payment update API success:', res.data)
-      
-      if (typeof updatePaymentInfo === 'function') {
-        updatePaymentInfo({ method, account })
-      } else {
-        console.warn('updatePaymentInfo is not a function in AuthContext')
-      }
-      
-      toast.success('Payment details updated successfully!')
-    } catch (err) {
-      console.error('Failed to update payment details:', err)
-      if (err.response) {
-        console.error('API Error Response Status:', err.response.status)
-        console.error('API Error Response Data:', err.response.data)
-      }
-      const errMsg = err.response?.data?.message || err.message || 'Failed to update payment details'
-      toast.error(errMsg)
-    } finally {
-      setSavingPayment(false)
-    }
-  }
 
   useEffect(() => {
-    if (user?.payment_info) {
-      setMethod(user.payment_info.method || '')
-      setAccount(user.payment_info.account || '')
-    }
-  }, [user])
-
-  useEffect(() => {
-    publisherApi.getPayouts()
-      .then(r => setPayouts(r.data?.data || []))
+    Promise.all([
+      publisherApi.getPayouts(),
+      publisherApi.getRevenue({ per_page: 1000 }),
+    ])
+      .then(([payRes, revRes]) => {
+        setPayouts(payRes.data?.data || [])
+        setAggregates(revRes.data?.aggregates || null)
+        setPendingAdjustment(revRes.data?.pending_balance_adjustment || 0)
+      })
       .catch(() => toast.error('Failed to load payouts'))
       .finally(() => setLoading(false))
   }, [])
 
-  const paginated = payouts.slice((page - 1) * 15, page * 15)
+  // Derive unique years for the year filter dropdown
+  const uniqueYears = [...new Set(payouts.map(p => p.period_year))].sort((a, b) => b - a)
 
+  // Apply filters
+  const filteredPayouts = payouts.filter(p => {
+    if (filterStatus && p.status !== filterStatus) return false
+    if (filterYear   && String(p.period_year)  !== filterYear)  return false
+    if (filterMonth  && String(p.period_month) !== filterMonth) return false
+    return true
+  })
+
+  const paginated = filteredPayouts.slice((page - 1) * 15, page * 15)
+
+  // Summary cards always reflect ALL payouts (unfiltered)
   const totalPaid = payouts
     .filter(p => p.status === 'paid')
     .reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)
 
+  // Approved Earnings = revenue records approved/closed by admin, same value as shown on Dashboard.
+  // Adjusted by any pending balance adjustments (e.g. manual payment deductions).
+  const availableBalance = Math.max(0, (aggregates?.approved_earnings ?? 0) + pendingAdjustment)
+
+  // Table totals follow the filtered set
+  const totalBase  = filteredPayouts.reduce((s, p) => s + parseFloat(p.amount || 0), 0)
+  const totalAdj   = filteredPayouts.reduce((s, p) => s + parseFloat(p.adjustment || 0), 0)
+  const totalFinal = filteredPayouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)
+
+  function handleResetFilters() {
+    setFilterStatus('')
+    setFilterYear('')
+    setFilterMonth('')
+    setPage(1)
+  }
+
   const statusBadge = s => ({
-    pending: 'badge-pending', approved: 'badge-approved',
-    paid: 'badge-paid', rejected: 'badge-rejected',
+    pending:  'badge-pending',
+    approved: 'badge-approved',
+    paid:     'badge-paid',
+    rejected: 'badge-rejected',
   })[s] || 'badge-inactive'
 
   if (loading) return <div className="loading-screen"><div className="spinner"></div></div>
@@ -80,39 +83,106 @@ export default function PublisherPayouts() {
       <div className="page-header">
         <div>
           <h1 className="page-title">💳 My Payouts</h1>
-          <p className="page-subtitle">{payouts.length} payouts · <CompactAmount value={totalPaid} /> total paid</p>
+          <p className="page-subtitle">
+            {filteredPayouts.length === payouts.length
+              ? `${payouts.length} payouts`
+              : `${filteredPayouts.length} of ${payouts.length} payouts`}
+            {' · '}<CompactAmount value={totalPaid} /> total paid
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="card" style={{ marginBottom: 16, padding: '14px 20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 160 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Status</label>
+            <select
+              className="form-select"
+              style={{ padding: '6px 10px', fontSize: 13 }}
+              value={filterStatus}
+              onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">⏳ Pending</option>
+              <option value="approved">✅ Approved</option>
+              <option value="paid">💰 Paid</option>
+              <option value="rejected">❌ Rejected</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 120 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Year</label>
+            <select
+              className="form-select"
+              style={{ padding: '6px 10px', fontSize: 13 }}
+              value={filterYear}
+              onChange={e => { setFilterYear(e.target.value); setFilterMonth(''); setPage(1) }}
+            >
+              <option value="">All Years</option>
+              {uniqueYears.map(y => (
+                <option key={y} value={String(y)}>{y}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 140 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Month</label>
+            <select
+              className="form-select"
+              style={{ padding: '6px 10px', fontSize: 13 }}
+              value={filterMonth}
+              onChange={e => { setFilterMonth(e.target.value); setPage(1) }}
+            >
+              <option value="">All Months</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+
+          {(filterStatus || filterYear || filterMonth) && (
+            <button
+              className="btn btn-secondary"
+              style={{ marginTop: 18, padding: '6px 14px', fontSize: 13 }}
+              onClick={handleResetFilters}
+            >
+              ✕ Reset
+            </button>
+          )}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
+      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 24 }}>
         <div className="stat-card accent">
           <div className="stat-label">Total Paid Out</div>
           <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
+          <div className="stat-sub">{payouts.filter(p => p.status === 'paid').length} paid payouts</div>
         </div>
-        <div className="stat-card warning">
-          <div className="stat-label">Pending</div>
-          <div className="stat-value">
-            {payouts.filter(p => p.status === 'pending').length}
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--color-success, #10b981)', background: 'linear-gradient(135deg, rgba(16,185,129,.08) 0%, var(--color-surface) 100%)' }}>
+          <div className="stat-label">Available Balance</div>
+          <div className="stat-value money" style={{ color: 'var(--color-success, #10b981)' }}>
+            <CompactAmount value={availableBalance} />
           </div>
-        </div>
-        <div className="stat-card info">
-          <div className="stat-label">Approved (Upcoming)</div>
-          <div className="stat-value">
-            {payouts.filter(p => p.status === 'approved').length}
-          </div>
-        </div>
-        <div className="stat-card primary">
-          <div className="stat-label">Upcoming Adjustment</div>
-          <div className="stat-value money" style={{ color: (user?.pending_balance || 0) >= 0 ? 'var(--color-accent)' : 'var(--color-warning)' }}>
-            {(user?.pending_balance || 0) >= 0 ? '+' : ''}<CompactAmount value={user?.pending_balance || 0} />
-          </div>
+          <div className="stat-sub">Approved &amp; awaiting next payment cycle</div>
         </div>
       </div>
 
+      {/* Payouts Table */}
       <div className="card" style={{ padding: 0 }}>
         <div className="table-container">
-          {payouts.length === 0 ? (
+          {filteredPayouts.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">💳</div>
               <div className="empty-state-text">No payouts yet</div>
@@ -126,7 +196,7 @@ export default function PublisherPayouts() {
                   <th>Base Amount</th>
                   <th>Adjustment</th>
                   <th>Final Amount</th>
-                  <th>Method</th>
+                  <th>Method / Account</th>
                   <th>Status</th>
                   <th>Reference</th>
                   <th>Paid At</th>
@@ -134,124 +204,101 @@ export default function PublisherPayouts() {
               </thead>
               <tbody>
                 {paginated.map(p => (
-                  <tr key={p.id}>
-                    <td className="money" style={{ fontWeight: 700 }}>
-                      {p.period_year}-{String(p.period_month).padStart(2,'0')}
-                    </td>
-                    <td className="money"><CompactAmount value={p.amount} /></td>
-                    <td className={`money ${parseFloat(p.adjustment) >= 0 ? 'positive' : 'negative'}`}>
-                      {parseFloat(p.adjustment) >= 0 ? '+' : ''}<CompactAmount value={p.adjustment} />
-                    </td>
-                    <td className="money positive" style={{ fontWeight: 800, fontSize: 16 }}>
-                      <CompactAmount value={p.final_amount} />
-                    </td>
-                    <td className="text-sm text-muted">{p.payment_method || '—'}</td>
-                    <td>
-                      <span className={`badge ${statusBadge(p.status)}`}>
-                        {p.status === 'pending'  && '⏳ Pending'}
-                        {p.status === 'approved' && '✅ Approved'}
-                        {p.status === 'paid'     && '💰 Paid'}
-                        {p.status === 'rejected' && '❌ Rejected'}
-                      </span>
-                    </td>
-                    <td>
-                      {p.payment_reference
-                        ? <code style={{ fontSize: 12 }}>{p.payment_reference}</code>
-                        : <span className="text-muted text-xs">—</span>}
-                    </td>
-                    <td className="text-sm text-muted">
-                      {p.paid_at ? formatDate(p.paid_at) : '—'}
-                    </td>
-                  </tr>
+                  <>
+                    <tr key={p.id}>
+                      <td className="money" style={{ fontWeight: 700 }}>
+                        {p.period_year}-{String(p.period_month).padStart(2,'0')}
+                      </td>
+                      <td className="money"><CompactAmount value={p.amount} /></td>
+                      <td className={`money ${parseFloat(p.adjustment) >= 0 ? 'positive' : 'negative'}`}>
+                        {parseFloat(p.adjustment) >= 0 ? '+' : ''}<CompactAmount value={p.adjustment} />
+                      </td>
+                      <td className="money positive" style={{ fontWeight: 800, fontSize: 16 }}>
+                        <CompactAmount value={p.final_amount} />
+                      </td>
+                      <td>
+                        {p.payment_method ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-text)' }}>
+                              {p.payment_method}
+                            </span>
+                            {(() => {
+                              const acct = p.payment_account || user?.payment_info?.account
+                              if (!acct) return null
+                              const display = acct.length > 40 ? acct.substring(0, 40) + '…' : acct
+                              return (
+                                <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
+                                  {display}
+                                </span>
+                              )
+                            })()}
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span className={`badge ${statusBadge(p.status)}`}>
+                            {p.status === 'pending'  && '⏳ Pending'}
+                            {p.status === 'approved' && '✅ Approved'}
+                            {p.status === 'paid'     && '💰 Paid'}
+                            {p.status === 'rejected' && '❌ Rejected'}
+                          </span>
+                          {p.status === 'rejected' && p.rejection_reason && (
+                            <div style={{
+                              fontSize: 11,
+                              color: 'var(--color-danger, #ef4444)',
+                              background: 'rgba(239,68,68,.08)',
+                              border: '1px solid rgba(239,68,68,.2)',
+                              borderRadius: 4,
+                              padding: '3px 6px',
+                              lineHeight: 1.4,
+                              maxWidth: 180,
+                              wordBreak: 'break-word',
+                            }}>
+                              <span style={{ fontWeight: 700 }}>Reason: </span>
+                              {p.rejection_reason}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        {p.payment_reference
+                          ? <code style={{ fontSize: 12 }}>{p.payment_reference}</code>
+                          : <span className="text-muted text-xs">—</span>}
+                      </td>
+                      <td className="text-sm text-muted">
+                        {p.paid_at ? formatDate(p.paid_at) : '—'}
+                      </td>
+                    </tr>
+                  </>
                 ))}
               </tbody>
+              {filteredPayouts.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({filteredPayouts.length})</td>
+                    <td className="money"><CompactAmount value={totalBase} /></td>
+                    <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
+                      {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />
+                    </td>
+                    <td className="money positive" style={{ fontWeight: 800 }}>
+                      <CompactAmount value={totalFinal} />
+                    </td>
+                    <td colSpan={4}></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           )}
         </div>
         <Pagination
           currentPage={page}
-          totalItems={payouts.length}
+          totalItems={filteredPayouts.length}
           pageSize={15}
           onPageChange={setPage}
         />
-      </div>
-
-      {/* Payout Details Settings */}
-      <div className="card" style={{ marginTop: 24 }}>
-        <div className="card-header">
-          <div className="card-title">🏦 Payment Method Settings</div>
-        </div>
-        <form onSubmit={handleSavePayment} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20 }}>
-            <div>
-              <label className="form-label">Payout Method *</label>
-              <select
-                className="form-select"
-                value={method}
-                onChange={e => setMethod(e.target.value)}
-                required
-              >
-                <option value="">-- Select Payout Method --</option>
-                {(settings.payment_methods || []).map(m => {
-                  const name = typeof m === 'object' && m !== null ? m.name : m
-                  return <option key={name} value={name}>{name}</option>
-                })}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Payment Account Details *</label>
-              <textarea
-                className="form-textarea"
-                rows={3}
-                placeholder="Paste your bank details, PayPal address, or cryptocurrency keys here..."
-                value={account}
-                onChange={e => setAccount(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          {(() => {
-            const selected = (settings.payment_methods || []).find(m => {
-              const name = typeof m === 'object' && m !== null ? m.name : m
-              return name === method
-            })
-            if (!selected) return null
-            const isObject = typeof selected === 'object' && selected !== null
-            const name = isObject ? selected.name : selected
-            const guidance = isObject ? selected.guidance : 'Please provide your account details.'
-            const minimum = isObject ? parseFloat(selected.minimum || 0) : 50.00
-
-            return (
-              <div style={{
-                background: 'var(--color-surface-2)',
-                borderLeft: '4px solid var(--color-primary)',
-                padding: '12px 16px',
-                borderRadius: '0 var(--radius-md) var(--radius-md) 0',
-                fontSize: '13px'
-              }}>
-                <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', marginBottom: 4 }}>
-                  💡 {name} Instructions
-                </div>
-                <div style={{ color: 'var(--color-text-secondary)', marginBottom: 6 }}>
-                  {guidance}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                  Minimum payout amount: <strong>${minimum.toFixed(2)}</strong>
-                </div>
-              </div>
-            )
-          })()}
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ alignSelf: 'flex-start' }}
-            disabled={savingPayment}
-          >
-            {savingPayment ? 'Saving...' : '💾 Save Payment Details'}
-          </button>
-        </form>
       </div>
     </div>
   )

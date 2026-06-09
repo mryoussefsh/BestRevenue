@@ -24,6 +24,7 @@ class Payout extends Model
         'status',
         'admin_note',
         'payment_method',
+        'payment_account',
         'payment_reference',
         'approved_by',
         'approved_at',

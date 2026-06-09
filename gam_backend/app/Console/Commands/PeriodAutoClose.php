@@ -331,7 +331,8 @@ class PeriodAutoClose extends Command
                 // ─────────────────────────────────────────────────────────────────
                 // STEP 6: Create Payout for eligible publishers
                 // ─────────────────────────────────────────────────────────────────
-                $paymentMethod = $publisher->payment_info['method'] ?? null;
+                $paymentMethod  = $publisher->payment_info['method']  ?? null;
+                $paymentAccount = $publisher->payment_info['account'] ?? null;
 
                 Payout::create([
                     'id'                => Str::uuid()->toString(),
@@ -345,6 +346,7 @@ class PeriodAutoClose extends Command
                     'status'            => 'pending',
                     'admin_note'        => null,
                     'payment_method'    => $paymentMethod,
+                    'payment_account'   => $paymentAccount,
                 ]);
 
                 // Mark adjustments as applied for payout-eligible publishers

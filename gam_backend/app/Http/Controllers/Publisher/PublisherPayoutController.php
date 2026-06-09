@@ -20,7 +20,7 @@ class PublisherPayoutController extends Controller
                           ->orderBy('created_at', 'desc')
                           ->get();
 
-        // Map payouts to hide admin_note
+        // Map payouts to expose payment_account and rejection_reason (admin_note only when rejected)
         return response()->json([
             'data' => $payouts->map(function ($payout) {
                 return [
@@ -32,7 +32,9 @@ class PublisherPayoutController extends Controller
                     'final_amount'      => (float) $payout->final_amount,
                     'status'            => $payout->status,
                     'payment_method'    => $payout->payment_method,
+                    'payment_account'   => $payout->payment_account,
                     'payment_reference' => $payout->status === 'paid' ? $payout->payment_reference : null,
+                    'rejection_reason'  => $payout->status === 'rejected' ? $payout->admin_note : null,
                     'approved_at'       => $payout->approved_at,
                     'paid_at'           => $payout->paid_at,
                     'created_at'        => $payout->created_at,

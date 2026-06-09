@@ -130,6 +130,7 @@ class PublisherRevenueController extends Controller
             'last_page' => $records->lastPage(),
             'total'     => $records->total(),
             'pending_balance_adjustment' => (float) $publisher->pending_balance_adjustment,
+            'payouts_sum' => (float) \App\Models\Payout::where('publisher_id', $publisher->id)->where('status', '!=', 'rejected')->sum('final_amount'),
             'last_sync_at' => $lastSyncTime ? \Carbon\Carbon::parse($lastSyncTime)->toIso8601String() : null,
             'aggregates' => [
                 'closed_earnings'   => (float) ($aggregates->closed_earnings ?? 0),

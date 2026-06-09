@@ -143,6 +143,11 @@ export default function RevenuePage() {
   const totalEarnings = records.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
   const totalImpr     = records.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
 
+  const totalClicks   = records.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
+  const avgCtr        = totalImpr > 0 ? (totalClicks / totalImpr) * 100 : 0
+  const avgCpm        = totalImpr > 0 ? (totalGross / totalImpr) * 1000 : 0
+  const avgRatio      = records.length > 0 ? (records.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / records.length) * 100 : 0
+
   return (
     <div>
       <div className="page-header">
@@ -259,6 +264,28 @@ export default function RevenuePage() {
                   </tr>
                 ))}
               </tbody>
+              {records.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals</td>
+                    <td className="money">
+                      <CompactAmount value={totalImpr} prefix="" decimals={0} />
+                    </td>
+                    <td className="money">{avgCtr.toFixed(2)}%</td>
+                    <td className="money">${avgCpm.toFixed(2)}</td>
+                    <td className="money positive"><CompactAmount value={totalGross} /></td>
+                    <td>
+                      <span className="badge badge-approved" style={{ fontWeight: 700 }}>
+                        {avgRatio.toFixed(0)}%
+                      </span>
+                    </td>
+                    <td className="money positive" style={{ fontWeight: 700 }}>
+                      <CompactAmount value={totalEarnings} />
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           )}
         </div>

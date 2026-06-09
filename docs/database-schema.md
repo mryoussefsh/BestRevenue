@@ -130,10 +130,11 @@ Monthly payment vouchers generated from closed periods, or standalone manual pay
 - `status` (enum('pending', 'approved', 'rejected', 'paid'), Default: 'pending').
 - `admin_note` (text, Nullable).
 - `payment_method` (varchar(100), Nullable): Captured payment type.
+- `payment_account` (text, Nullable): Snapshot of the publisher's payment account details at the time the payout was created.
 - `payment_reference` (varchar(255), Nullable): External Transaction ID.
 - `approved_by` (UUID, Foreign Key, Nullable): References `users.id`.
-- `approved_at` (timestamp, Nullable).
-- `paid_at` (timestamp, Nullable).
+- `approved_at` (timestamp, Nullable): Time when payout was approved.
+- `paid_at` (timestamp, Nullable): Time when payout was marked paid.
 - `idempotency_key` (varchar(64), Unique, Nullable): Key to prevent double submission.
 - `timestamps` (created_at, updated_at).
 

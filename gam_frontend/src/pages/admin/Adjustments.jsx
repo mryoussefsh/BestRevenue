@@ -66,6 +66,8 @@ export default function AdjustmentsPage() {
     setPage(1)
   }, [search, statusFilter])
 
+  const totalAmount = adjustments.reduce((s, a) => s + parseFloat(a.amount || 0), 0)
+
   return (
     <div>
       <div className="page-header">
@@ -181,6 +183,24 @@ export default function AdjustmentsPage() {
                   </tr>
                 ))}
               </tbody>
+              {adjustments.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals (Page)</td>
+                    <td>
+                      <span className={`badge ${totalAmount >= 0 ? 'badge-active' : 'badge-inactive'}`}
+                            style={{
+                              background: totalAmount >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: totalAmount >= 0 ? 'var(--color-accent)' : 'var(--color-danger)',
+                              fontWeight: 700
+                            }}>
+                        {totalAmount >= 0 ? '+' : ''}<CompactAmount value={totalAmount} />
+                      </span>
+                    </td>
+                    <td colSpan={5}></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           )}
         </div>

@@ -168,6 +168,26 @@ export default function PeriodClosingsPage() {
                       </tr>
                     ))}
                   </tbody>
+                  {closings.length > 0 && (
+                    <tfoot>
+                      <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                        <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals ({closings.length})</td>
+                        <td className="money positive">
+                          <CompactAmount value={closings.reduce((s, c) => s + parseFloat(c.total_gross_revenue || 0), 0)} />
+                        </td>
+                        <td className="money positive">
+                          <CompactAmount value={closings.reduce((s, c) => s + parseFloat(c.total_publisher_earnings || 0), 0)} />
+                        </td>
+                        <td className="money positive" style={{ fontWeight: 700, color: 'var(--color-accent)' }}>
+                          <CompactAmount value={closings.reduce((s, c) => s + parseFloat(c.payouts_sum_final_amount || 0), 0)} />
+                        </td>
+                        <td className="money">
+                          <CompactAmount value={closings.reduce((s, c) => s + parseInt(c.total_impressions || 0), 0)} prefix="" decimals={0} />
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               )}
             </div>
@@ -212,6 +232,17 @@ export default function PeriodClosingsPage() {
                     </tr>
                   ))}
                 </tbody>
+                {detail.payouts && detail.payouts.length > 0 && (
+                  <tfoot>
+                    <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                      <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({detail.payouts.length})</td>
+                      <td className="money positive" style={{ fontWeight: 700 }}>
+                        <CompactAmount value={detail.payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)} />
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             )}
           </div>
