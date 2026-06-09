@@ -97,7 +97,6 @@ export default function PublisherWebsites() {
                         <thead>
                           <tr>
                             <th>Ad Unit Name</th>
-                            <th>GAM Path</th>
                             <th>Status</th>
                           </tr>
                         </thead>
@@ -105,7 +104,6 @@ export default function PublisherWebsites() {
                           {adUnits[w.id].map(a => (
                             <tr key={a.id}>
                               <td style={{ fontWeight: 600 }}>{a.display_name}</td>
-                              <td><code style={{ fontSize: 12 }}>{a.gam_ad_unit_name}</code></td>
                               <td>
                                 <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
                                   {a.is_active ? '🟢 Active' : '⚫ Inactive'}
