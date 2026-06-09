@@ -38,6 +38,7 @@ import PubDashboard from './pages/publisher/Dashboard'
 import PubWebsites  from './pages/publisher/Websites'
 import PubRevenue   from './pages/publisher/Revenue'
 import PubPayouts   from './pages/publisher/Payouts'
+import PubSettings  from './pages/publisher/Settings'
 
 function RootRedirect() {
   const { user } = useAuth()
@@ -172,6 +173,11 @@ function App() {
             <Route path="/publisher/payouts" element={
               <PrivateRoute role="publisher">
                 <PublisherLayout><PubPayouts /></PublisherLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/publisher/settings" element={
+              <PrivateRoute role="publisher">
+                <PublisherLayout><PubSettings /></PublisherLayout>
               </PrivateRoute>
             } />
 

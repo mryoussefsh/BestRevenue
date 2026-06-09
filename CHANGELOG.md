@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.3] - 2026-06-09
+
+### Added
+- **Publisher Settings Page**: Created a dedicated settings hub for publishers containing Profile details (name, email (read-only), phone, telegram, skype, country), Payment Info configurations (method selection, account details), and Password security controls.
+- **Settings API Endpoint**: Added profile modification (`PUT /api/v1/publisher/profile`) and password change (`PUT /api/v1/publisher/change-password`) REST API endpoints.
+- **Integration Test Coverage**: Added the `PublisherSettingsTest` feature suite verifying validation, profile synchronization, and password update logic.
+
 ## [1.3.2] - 2026-06-09
 
 ### Added

@@ -126,7 +126,9 @@ export const publisherApi = {
   getPayouts:     ()        => api.get('/publisher/payouts'),
   exportPdf:      (params)  => api.get('/publisher/revenue/pdf', { params, responseType: 'blob' }),
   updatePaymentInfo: (data) => api.put('/publisher/payment-info', data),
-  getTranslations:(locale)  => api.get(`/translations/${locale}`),
+  updateProfile:     (data) => api.put('/publisher/profile', data),
+  changePassword:    (data) => api.put('/publisher/change-password', data),
+  getTranslations:   (locale)  => api.get(`/translations/${locale}`),
 
   // Announcements
   getAnnouncements:        ()           => api.get('/publisher/announcements'),

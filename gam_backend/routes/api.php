@@ -155,6 +155,8 @@ Route::prefix('v1')->group(function () {
         // Payouts — Sprint 6
         Route::get('payouts', [\App\Http\Controllers\Publisher\PublisherPayoutController::class, 'index']);
         Route::put('payment-info', [\App\Http\Controllers\Publisher\PublisherPayoutController::class, 'updatePaymentInfo']);
+        Route::put('profile', [\App\Http\Controllers\Publisher\PublisherSettingsController::class, 'updateProfile']);
+        Route::put('change-password', [\App\Http\Controllers\Publisher\PublisherSettingsController::class, 'changePassword']);
 
         // Announcements
         Route::get('announcements', [\App\Http\Controllers\Publisher\AnnouncementController::class, 'index']);

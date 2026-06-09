@@ -141,8 +141,20 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  const updateUser = useCallback((userData) => {
+    setUser(u => {
+      const updated = { ...u, ...userData }
+      if (sessionStorage.getItem('token')) {
+        sessionStorage.setItem('user', JSON.stringify(updated))
+      } else {
+        localStorage.setItem('user', JSON.stringify(updated))
+      }
+      return updated
+    })
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo }}>
+    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

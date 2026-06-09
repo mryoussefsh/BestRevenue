@@ -81,6 +81,10 @@ class AuthController extends Controller
                 'publisher_id' => $user->publisher_id,
                 'pending_balance' => $user->publisher ? (float) $user->publisher->pending_balance_adjustment : 0.0,
                 'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
+                'phone'        => $user->publisher ? $user->publisher->phone : null,
+                'telegram'     => $user->publisher ? $user->publisher->telegram : null,
+                'skype'        => $user->publisher ? $user->publisher->skype : null,
+                'country'      => $user->publisher ? $user->publisher->country : null,
             ],
         ]);
     }
@@ -111,6 +115,10 @@ class AuthController extends Controller
             'is_active'    => $user->is_active,
             'pending_balance' => $user->publisher ? (float) $user->publisher->pending_balance_adjustment : 0.0,
             'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
+            'phone'        => $user->publisher ? $user->publisher->phone : null,
+            'telegram'     => $user->publisher ? $user->publisher->telegram : null,
+            'skype'        => $user->publisher ? $user->publisher->skype : null,
+            'country'      => $user->publisher ? $user->publisher->country : null,
         ]);
     }
 }
