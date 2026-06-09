@@ -19,6 +19,8 @@ class StoreAdUnitRequest extends FormRequest
             'display_name'     => 'required|string|max:255',
             'ratio_override'   => 'nullable|numeric|min:0.01|max:1', // FIX-26: 0% share not allowed
             'is_active'        => 'boolean',
+            'ad_type'          => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
+            'ad_subtype'       => 'nullable|string|in:normal,repeated',
         ];
     }
 }

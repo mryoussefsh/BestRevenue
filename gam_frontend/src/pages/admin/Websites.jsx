@@ -139,6 +139,8 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
       ? (parseFloat(adUnit.ratio_override) * 100).toFixed(0)
       : '',
     is_active: adUnit?.is_active !== false,
+    ad_type: adUnit?.ad_type || 'banner',
+    ad_subtype: adUnit?.ad_subtype || '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -152,6 +154,8 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
         display_name: form.display_name,
         is_active: form.is_active,
         ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
+        ad_type: form.ad_type,
+        ad_subtype: form.ad_type === 'reward' ? form.ad_subtype || 'normal' : null,
       }
       if (isEdit) await adminApi.updateAdUnit(adUnit.id, payload)
       else         await adminApi.createAdUnit(payload)
@@ -199,6 +203,43 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                 value={form.ratio_override}
                 onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
             </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Ad Type *</label>
+              <select
+                className="form-select"
+                value={form.ad_type}
+                onChange={e => setForm(f => ({
+                  ...f,
+                  ad_type: e.target.value,
+                  ad_subtype: e.target.value === 'reward' ? 'normal' : ''
+                }))}
+                required
+              >
+                <option value="banner">Banner</option>
+                <option value="reward">Reward</option>
+                <option value="interstitial">Interstitial</option>
+                <option value="anchor">Anchor</option>
+                <option value="float_top">Float Top</option>
+                <option value="float_bottom">Float Bottom</option>
+                <option value="float_fullscreen">Float Full Screen</option>
+              </select>
+            </div>
+            {form.ad_type === 'reward' ? (
+              <div className="form-group">
+                <label className="form-label">Reward Subtype *</label>
+                <select
+                  className="form-select"
+                  value={form.ad_subtype || 'normal'}
+                  onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
+                  required
+                >
+                  <option value="normal">Normal</option>
+                  <option value="repeated">Repeated</option>
+                </select>
+              </div>
+            ) : <div className="form-group" />}
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>

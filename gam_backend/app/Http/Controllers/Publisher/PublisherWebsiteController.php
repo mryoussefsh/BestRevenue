@@ -57,6 +57,8 @@ class PublisherWebsiteController extends Controller
                     'display_name'     => $adUnit->display_name,
                     'gam_ad_unit_name' => $adUnit->gam_ad_unit_name,
                     'is_active'        => $adUnit->is_active,
+                    'ad_type'          => $adUnit->ad_type,
+                    'ad_subtype'       => $adUnit->ad_subtype,
                 ];
             })
         ]);

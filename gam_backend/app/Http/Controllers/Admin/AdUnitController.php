@@ -64,7 +64,7 @@ class AdUnitController extends Controller
             'sizes'            => 'required|array|min:1',
             'sizes.*'          => 'string',
             'ratio_override'   => 'nullable|numeric|min:0.01|max:1', // FIX-26-b: 0% share not allowed
-            'ad_type'          => 'required|string|in:banner,reward,interstitial,anchor',
+            'ad_type'          => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
             'ad_subtype'       => 'nullable|string|in:normal,repeated',
         ]);
 
@@ -134,7 +134,7 @@ class AdUnitController extends Controller
             'sizes'          => 'required|array|min:1',
             'sizes.*'        => 'string',
             'ratio_override' => 'nullable|numeric|min:0.01|max:1', // FIX-26-b: 0% share not allowed
-            'ad_type'        => 'required|string|in:banner,reward,interstitial,anchor',
+            'ad_type'        => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
             'ad_subtype'     => 'nullable|string|in:normal,repeated',
         ]);
 
@@ -247,6 +247,8 @@ class AdUnitController extends Controller
                 'display_name'     => $data['display_name'],
                 'ratio_override'   => $data['ratio_override'] ?? null,
                 'is_active'        => $data['is_active'] ?? true,
+                'ad_type'          => $data['ad_type'] ?? 'banner',
+                'ad_subtype'       => $data['ad_subtype'] ?? null,
             ]);
 
             if (isset($data['ratio_override'])) {
@@ -307,6 +309,8 @@ class AdUnitController extends Controller
                 'display_name'     => $data['display_name'] ?? $adUnit->display_name,
                 'ratio_override'   => array_key_exists('ratio_override', $data) ? $data['ratio_override'] : $adUnit->ratio_override,
                 'is_active'        => $data['is_active'] ?? $adUnit->is_active,
+                'ad_type'          => $data['ad_type'] ?? $adUnit->ad_type,
+                'ad_subtype'       => array_key_exists('ad_subtype', $data) ? $data['ad_subtype'] : $adUnit->ad_subtype,
             ]);
 
             if (array_key_exists('ratio_override', $data) && $oldRatio != $data['ratio_override']) {

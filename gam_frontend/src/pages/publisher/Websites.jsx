@@ -12,6 +12,165 @@ export default function PublisherWebsites() {
   const [selectedAdsTxt, setSelectedAdsTxt] = useState(null)
   const [selectedAdUnitCode, setSelectedAdUnitCode] = useState(null)
 
+  const getAdUnitScripts = (unit) => {
+    if (!unit) return { head: '', body: '' }
+    const { networkCode, adUnitName, id, adType, adSubtype } = unit
+
+    switch (adType) {
+      case 'reward':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  var rewardedSlot;
+  googletag.cmd.push(function() {
+    rewardedSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.REWARDED);
+    if (rewardedSlot) {
+      rewardedSlot.addService(googletag.pubads());
+      // Subtype: ${adSubtype || 'normal'}
+      googletag.pubads().addEventListener('rewardedSlotGranted', function(event) {
+        console.log('Reward granted for slot:', event.slot);
+        ${adSubtype === 'repeated' ? '// User can request repeated rewards here' : ''}
+      });
+    }
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Rewarded Ad Trigger (displays automatically or call googletag.display) -->
+<script>
+  googletag.cmd.push(function() {
+    if (rewardedSlot) {
+      googletag.display(rewardedSlot);
+    }
+  });
+</script>`
+        }
+
+      case 'interstitial':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    var interstitialSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.INTERSTITIAL);
+    if (interstitialSlot) {
+      interstitialSlot.addService(googletag.pubads());
+    }
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Web Interstitial Ad (No body tags required. Displays automatically on page interactions) -->`
+        }
+
+      case 'anchor':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    var anchorSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.BOTTOM_ANCHOR);
+    if (anchorSlot) {
+      anchorSlot.addService(googletag.pubads());
+    }
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Anchor Ad (No body tags required. Renders automatically at the bottom of the page) -->`
+        }
+
+      case 'float_top':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Sticky Floating Top Wrapper with Close Button -->
+<div id="float-top-container-${id}" style="position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 99999; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 6px; display: flex; flex-direction: column; align-items: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+  <button onclick="document.getElementById('float-top-container-${id}').remove()" style="align-self: flex-end; background: #ef4444; color: #ffffff; border: none; padding: 2px 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 4px;">Close ✕</button>
+  <div id="div-gpt-ad-${id}">
+    <script>
+      googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
+    </script>
+  </div>
+</div>`
+        }
+
+      case 'float_bottom':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Sticky Floating Bottom Wrapper with Close Button -->
+<div id="float-bottom-container-${id}" style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 99999; background: #ffffff; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); padding: 6px; display: flex; flex-direction: column; align-items: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+  <button onclick="document.getElementById('float-bottom-container-${id}').remove()" style="align-self: flex-end; background: #ef4444; color: #ffffff; border: none; padding: 2px 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 4px;">Close ✕</button>
+  <div id="div-gpt-ad-${id}">
+    <script>
+      googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
+    </script>
+  </div>
+</div>`
+        }
+
+      case 'float_fullscreen':
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [336, 280]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Fullscreen Overlay Wrapper with Close Button -->
+<div id="float-fullscreen-overlay-${id}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(15, 23, 42, 0.85); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+  <div style="position: relative; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+    <button onclick="document.getElementById('float-fullscreen-overlay-${id}').remove()" style="position: absolute; top: -14px; right: -14px; background: #ef4444; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">✕</button>
+    <div id="div-gpt-ad-${id}">
+      <script>
+        googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
+      </script>
+    </div>
+  </div>
+</div>`
+        }
+
+      case 'banner':
+      default:
+        return {
+          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>`,
+          body: `<!-- Place this div where you want the ad to display -->
+<div id="div-gpt-ad-${id}">
+  <script>
+    googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
+  </script>
+</div>`
+        }
+    }
+  }
+
   useEffect(() => {
     publisherApi.getWebsites()
       .then(r => setWebsites(r.data?.data || []))
@@ -118,7 +277,9 @@ export default function PublisherWebsites() {
                                     displayName: a.display_name,
                                     networkCode: w.gam_network_code,
                                     adUnitName: a.gam_ad_unit_name,
-                                    id: a.id
+                                    id: a.id,
+                                    adType: a.ad_type || 'banner',
+                                    adSubtype: a.ad_subtype || ''
                                   })}
                                 >
                                   🏷️ Get Code
@@ -190,123 +351,118 @@ export default function PublisherWebsites() {
         </div>
       )}
 
-      {selectedAdUnitCode && (
-        <div className="modal-backdrop">
-          <div className="modal" style={{ maxWidth: '650px' }}>
-            <div className="modal-header">
-              <h2>🏷️ Ad Unit Code: {selectedAdUnitCode.displayName}</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAdUnitCode(null)}>✕</button>
-            </div>
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                  1. Header Code (Place inside the <code>&lt;head&gt;</code> section of your HTML page)
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <textarea
-                    className="form-input"
-                    style={{
-                      height: '140px',
-                      fontFamily: 'monospace',
-                      fontSize: '11px',
-                      whiteSpace: 'pre',
-                      background: '#161e2e',
-                      color: '#e2e8f0',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '4px',
-                      padding: '10px',
-                      width: '100%',
-                      resize: 'none'
-                    }}
-                    readOnly
-                    value={`<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
-<script>
-  window.googletag = window.googletag || {cmd: []};
-  googletag.cmd.push(function() {
-    googletag.defineSlot('/${selectedAdUnitCode.networkCode}/${selectedAdUnitCode.adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${selectedAdUnitCode.id}').addService(googletag.pubads());
-    googletag.pubads().enableSingleRequest();
-    googletag.enableServices();
-  });
-</script>`}
-                    onClick={e => e.target.select()}
-                  />
+      {selectedAdUnitCode && (() => {
+        const scripts = getAdUnitScripts(selectedAdUnitCode);
+        return (
+          <div className="modal-backdrop">
+            <div className="modal" style={{ maxWidth: '650px' }}>
+              <div className="modal-header">
+                <h2>🏷️ Ad Unit Code: {selectedAdUnitCode.displayName}</h2>
+                <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAdUnitCode(null)}>✕</button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="text-sm text-muted" style={{ marginBottom: 4 }}>
+                  Ad Type: <span style={{ fontWeight: 600, color: 'var(--color-primary-light)', textTransform: 'capitalize' }}>{selectedAdUnitCode.adType.replace('_', ' ')}</span>
+                  {selectedAdUnitCode.adSubtype && <> ({selectedAdUnitCode.adSubtype})</>}
+                </div>
+
+                <div>
+                  <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
+                    1. Header Code (Place inside the <code>&lt;head&gt;</code> section of your HTML page)
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      className="form-input"
+                      style={{
+                        height: '140px',
+                        fontFamily: 'monospace',
+                        fontSize: '11px',
+                        whiteSpace: 'pre',
+                        background: '#161e2e',
+                        color: '#e2e8f0',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '4px',
+                        padding: '10px',
+                        width: '100%',
+                        resize: 'none'
+                      }}
+                      readOnly
+                      value={scripts.head}
+                      onClick={e => e.target.select()}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-xs"
+                      style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(scripts.head);
+                        toast.success('Header code copied!');
+                      }}
+                    >
+                      📋 Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
+                    2. Body Code {['interstitial', 'anchor'].includes(selectedAdUnitCode.adType) ? '(Optional)' : '(Place where the ad should render)'}
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      className="form-input"
+                      style={{
+                        height: '110px',
+                        fontFamily: 'monospace',
+                        fontSize: '11px',
+                        whiteSpace: 'pre',
+                        background: '#161e2e',
+                        color: '#e2e8f0',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '4px',
+                        padding: '10px',
+                        width: '100%',
+                        resize: 'none'
+                      }}
+                      readOnly
+                      value={scripts.body}
+                      onClick={e => e.target.select()}
+                    />
+                    {scripts.body && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(scripts.body);
+                          toast.success('Body code copied!');
+                        }}
+                      >
+                        📋 Copy
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                   <button
                     type="button"
-                    className="btn btn-secondary btn-xs"
-                    style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
+                    className="btn btn-primary"
                     onClick={() => {
-                      const code = `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>\n<script>\n  window.googletag = window.googletag || {cmd: []};\n  googletag.cmd.push(function() {\n    googletag.defineSlot('/${selectedAdUnitCode.networkCode}/${selectedAdUnitCode.adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${selectedAdUnitCode.id}').addService(googletag.pubads());\n    googletag.pubads().enableSingleRequest();\n    googletag.enableServices();\n  });\n</script>`;
-                      navigator.clipboard.writeText(code);
-                      toast.success('Header code copied!');
+                      const fullCode = `<!-- Header Code -->\n${scripts.head}\n\n<!-- Body Code -->\n${scripts.body}`;
+                      navigator.clipboard.writeText(fullCode);
+                      toast.success('Full code block copied!');
                     }}
                   >
-                    📋 Copy
+                    Copy Full Block
                   </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdUnitCode(null)}>Close</button>
                 </div>
-              </div>
-
-              <div>
-                <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                  2. Body Code (Place inside the <code>&lt;body&gt;</code> section where the ad should render)
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <textarea
-                    className="form-input"
-                    style={{
-                      height: '90px',
-                      fontFamily: 'monospace',
-                      fontSize: '11px',
-                      whiteSpace: 'pre',
-                      background: '#161e2e',
-                      color: '#e2e8f0',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '4px',
-                      padding: '10px',
-                      width: '100%',
-                      resize: 'none'
-                    }}
-                    readOnly
-                    value={`<!-- Place this div where you want the ad to display -->
-<div id="div-gpt-ad-${selectedAdUnitCode.id}">
-  <script>
-    googletag.cmd.push(function() { googletag.display('div-gpt-ad-${selectedAdUnitCode.id}'); });
-  </script>
-</div>`}
-                    onClick={e => e.target.select()}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-xs"
-                    style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
-                    onClick={() => {
-                      const code = `<!-- Place this div where you want the ad to display -->\n<div id="div-gpt-ad-${selectedAdUnitCode.id}">\n  <script>\n    googletag.cmd.push(function() { googletag.display('div-gpt-ad-${selectedAdUnitCode.id}'); });\n  </script>\n</div>`;
-                      navigator.clipboard.writeText(code);
-                      toast.success('Body code copied!');
-                    }}
-                  >
-                    📋 Copy
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => {
-                    const fullCode = `<!-- Header Code -->\n<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>\n<script>\n  window.googletag = window.googletag || {cmd: []};\n  googletag.cmd.push(function() {\n    googletag.defineSlot('/${selectedAdUnitCode.networkCode}/${selectedAdUnitCode.adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${selectedAdUnitCode.id}').addService(googletag.pubads());\n    googletag.pubads().enableSingleRequest();\n    googletag.enableServices();\n  });\n</script>\n\n<!-- Body Code -->\n<div id="div-gpt-ad-${selectedAdUnitCode.id}">\n  <script>\n    googletag.cmd.push(function() { googletag.display('div-gpt-ad-${selectedAdUnitCode.id}'); });\n  </script>\n</div>`;
-                    navigator.clipboard.writeText(fullCode);
-                    toast.success('Full code block copied!');
-                  }}
-                >
-                  Copy Full Block
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdUnitCode(null)}>Close</button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   )
 }

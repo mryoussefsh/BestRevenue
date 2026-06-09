@@ -320,6 +320,9 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                 <option value="reward">Reward</option>
                 <option value="interstitial">Interstitial</option>
                 <option value="anchor">Anchor</option>
+                <option value="float_top">Float Top</option>
+                <option value="float_bottom">Float Bottom</option>
+                <option value="float_fullscreen">Float Full Screen</option>
               </select>
             </div>
             {form.ad_type === 'reward' ? (
