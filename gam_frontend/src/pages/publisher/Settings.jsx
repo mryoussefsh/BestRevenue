@@ -3,6 +3,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
 
 export default function SettingsPage() {
   const { user, updateUser, updatePaymentInfo } = useAuth()
@@ -14,7 +16,6 @@ export default function SettingsPage() {
   const [name, setName] = useState(user?.name || '')
   const [phone, setPhone] = useState(user?.phone || '')
   const [telegram, setTelegram] = useState(user?.telegram || '')
-  const [skype, setSkype] = useState(user?.skype || '')
   const [country, setCountry] = useState(user?.country || '')
   const [savingProfile, setSavingProfile] = useState(false)
 
@@ -35,7 +36,6 @@ export default function SettingsPage() {
       setName(user.name || '')
       setPhone(user.phone || '')
       setTelegram(user.telegram || '')
-      setSkype(user.skype || '')
       setCountry(user.country || '')
       setMethod(user.payment_info?.method || '')
       setAccount(user.payment_info?.account || '')
@@ -54,7 +54,6 @@ export default function SettingsPage() {
         name,
         phone,
         telegram,
-        skype,
         country,
       })
       toast.success('Contact information updated successfully!')
@@ -111,6 +110,14 @@ export default function SettingsPage() {
   const selectedMethodObj = paymentMethods.find(
     m => typeof m === 'object' && m !== null && m.name === method
   )
+
+  const savedMethodName = user?.payment_info?.method || ''
+  const savedMethodAccount = user?.payment_info?.account || ''
+  const savedMethodObj = paymentMethods.find(
+    m => typeof m === 'object' && m !== null && m.name === savedMethodName
+  )
+
+  const PhoneInputComp = PhoneInput.default || PhoneInput
 
   return (
     <div>
@@ -186,15 +193,32 @@ export default function SettingsPage() {
             </div>
 
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Phone Number</label>
-              <input
-                type="text"
-                className="form-input"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                placeholder="e.g. +123456789"
-                style={{ width: '100%' }}
-              />
+              <label className="form-label">📱 Phone / WhatsApp</label>
+              <div className="phone-input-wrapper">
+                <PhoneInputComp
+                  country={'us'}
+                  value={phone}
+                  onChange={phoneVal => setPhone(phoneVal ? '+' + phoneVal : '')}
+                  enableSearch={true}
+                  searchPlaceholder="Search country..."
+                  searchStyle={{
+                    width: '90%',
+                    height: '38px',
+                    margin: '8px auto',
+                    padding: '8px 12px',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '13px'
+                  }}
+                  inputClass="form-input"
+                  containerStyle={{ width: '100%' }}
+                  inputStyle={{ width: '100%', height: '42px', paddingLeft: '48px', background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}
+                  buttonStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}
+                  dropdownStyle={{ background: 'var(--color-surface-2)', color: 'var(--color-text)' }}
+                />
+              </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: 16 }}>
@@ -209,28 +233,23 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Skype Username</label>
-              <input
-                type="text"
-                className="form-input"
-                value={skype}
-                onChange={e => setSkype(e.target.value)}
-                placeholder="e.g. live:myskypename"
-                style={{ width: '100%' }}
-              />
-            </div>
-
             <div className="form-group" style={{ marginBottom: 24 }}>
-              <label className="form-label">Country</label>
-              <input
-                type="text"
-                className="form-input"
-                value={country}
-                onChange={e => setCountry(e.target.value)}
-                placeholder="e.g. United States"
-                style={{ width: '100%' }}
-              />
+              <label className="form-label">Country (Read-only)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={country || '—'}
+                  disabled
+                  style={{
+                    background: 'var(--color-surface-3)',
+                    cursor: 'not-allowed',
+                    color: 'var(--color-text-muted)',
+                    width: '100%',
+                  }}
+                />
+                <span title="Country cannot be changed" style={{ fontSize: 16 }}>🔒</span>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={savingProfile}>
@@ -241,75 +260,156 @@ export default function SettingsPage() {
       )}
 
       {activeTab === 'payment' && (
-        <div className="card" style={{ maxWidth: 650 }}>
-          <div className="card-header" style={{ marginBottom: 16 }}>
-            <h3 className="card-title">Payment Account Information</h3>
-          </div>
-          <form onSubmit={handleUpdatePayment}>
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Preferred Payout Method</label>
-              <select
-                className="form-select"
-                value={method}
-                onChange={e => setMethod(e.target.value)}
-                required
-                style={{ width: '100%' }}
-              >
-                <option value="">Select a payment method...</option>
-                {paymentMethods.map((m, idx) => {
-                  const nameVal = typeof m === 'object' && m !== null ? m.name : m
-                  return (
-                    <option key={idx} value={nameVal}>
-                      {nameVal}
-                    </option>
-                  )
-                })}
-              </select>
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {/* Left Card: Form */}
+          <div className="card" style={{ flex: '1 1 450px', maxWidth: 650 }}>
+            <div className="card-header" style={{ marginBottom: 16 }}>
+              <h3 className="card-title">Payment Account Information</h3>
             </div>
+            <form onSubmit={handleUpdatePayment}>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label">Preferred Payout Method</label>
+                <select
+                  className="form-select"
+                  value={method}
+                  onChange={e => setMethod(e.target.value)}
+                  required
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Select a payment method...</option>
+                  {paymentMethods.map((m, idx) => {
+                    const nameVal = typeof m === 'object' && m !== null ? m.name : m
+                    return (
+                      <option key={idx} value={nameVal}>
+                        {nameVal}
+                      </option>
+                    )
+                  })}
+                </select>
+              </div>
 
-            {selectedMethodObj && (
-              <div
-                style={{
-                  background: 'rgba(99,102,241,.08)',
-                  border: '1px solid rgba(99,102,241,.2)',
-                  padding: 12,
-                  borderRadius: 8,
-                  marginBottom: 16,
+              {selectedMethodObj && (
+                <div
+                  style={{
+                    background: 'rgba(99,102,241,.08)',
+                    border: '1px solid rgba(99,102,241,.2)',
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 16,
+                    fontSize: 12,
+                    color: 'var(--color-text)',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                    ⚙️ Minimum Threshold:{' '}
+                    <span style={{ color: 'var(--color-accent)' }}>
+                      ${selectedMethodObj.minimum || 0}
+                    </span>
+                  </div>
+                  {selectedMethodObj.guidance && (
+                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4, color: 'var(--color-text-muted)' }}>
+                      {selectedMethodObj.guidance}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: 24 }}>
+                <label className="form-label">Payment Destination Account details</label>
+                <textarea
+                  className="form-textarea"
+                  rows={4}
+                  value={account}
+                  onChange={e => setAccount(e.target.value)}
+                  required
+                  placeholder="Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions."
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" disabled={savingPayment}>
+                {savingPayment ? 'Saving Settings...' : '💳 Update Payment Info'}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Card: Active Settings Display */}
+          <div className="card" style={{ flex: '1 1 300px', maxWidth: 400 }}>
+            <div className="card-header" style={{ marginBottom: 16 }}>
+              <h3 className="card-title">Active Payout Setup</h3>
+            </div>
+            
+            {!savedMethodName ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px', color: 'var(--color-text-muted)' }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+                <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>No Payment Method Configured</div>
+                <p style={{ fontSize: 13, margin: 0 }}>Please configure your payment details on the left to receive payouts.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Method */}
+                <div style={{
+                  background: 'var(--color-surface-3)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                  border: '1px solid var(--color-border)',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+                    Payout Method
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 24 }}>💳</span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text)' }}>
+                        {savedMethodName}
+                      </div>
+                      {savedMethodObj?.minimum !== undefined && (
+                        <div style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 2 }}>
+                          Min. Threshold: <strong>${savedMethodObj.minimum}</strong>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account details */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>
+                    Destination Details
+                  </div>
+                  <div style={{
+                    background: 'var(--color-surface-2)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '14px',
+                    border: '1px solid var(--color-border)',
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                    color: 'var(--color-text)',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all',
+                    lineHeight: 1.5
+                  }}>
+                    {savedMethodAccount}
+                  </div>
+                </div>
+
+                {/* Info Tip */}
+                <div style={{
+                  display: 'flex',
+                  gap: 10,
                   fontSize: 12,
-                  color: 'var(--color-text)',
-                }}
-              >
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                  ⚙️ Minimum Threshold:{' '}
-                  <span style={{ color: 'var(--color-accent)' }}>
-                    ${selectedMethodObj.minimum || 0}
+                  color: 'var(--color-text-muted)',
+                  lineHeight: 1.5,
+                  padding: '0 4px'
+                }}>
+                  <span style={{ fontSize: 16 }}>ℹ️</span>
+                  <span>
+                    Payouts are processed automatically according to our schedule once your available balance meets the minimum threshold.
                   </span>
                 </div>
-                {selectedMethodObj.guidance && (
-                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4, color: 'var(--color-text-muted)' }}>
-                    {selectedMethodObj.guidance}
-                  </div>
-                )}
               </div>
             )}
-
-            <div className="form-group" style={{ marginBottom: 24 }}>
-              <label className="form-label">Payment Destination Account details</label>
-              <textarea
-                className="form-textarea"
-                rows={4}
-                value={account}
-                onChange={e => setAccount(e.target.value)}
-                required
-                placeholder="Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions."
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <button type="submit" className="btn btn-primary" disabled={savingPayment}>
-              {savingPayment ? 'Saving Settings...' : '💳 Update Payment Info'}
-            </button>
-          </form>
+          </div>
         </div>
       )}
 

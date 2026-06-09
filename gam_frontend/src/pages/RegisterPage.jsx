@@ -16,7 +16,6 @@ export default function RegisterPage() {
     password_confirmation: '',
     phone: '',
     telegram: '',
-    skype: '',
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -41,7 +40,7 @@ export default function RegisterPage() {
     setErrors((er) => ({ ...er, [field]: '', contact: '' }))
   }
 
-  const hasAtLeastOneContact = form.phone || form.telegram || form.skype
+  const hasAtLeastOneContact = form.phone || form.telegram
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -49,7 +48,7 @@ export default function RegisterPage() {
     setPendingMessage('')
 
     if (!hasAtLeastOneContact) {
-      setErrors({ contact: 'Please fill in at least one contact method (Phone, Telegram, or Skype).' })
+      setErrors({ contact: 'Please fill in at least one contact method (Phone or Telegram).' })
       return
     }
 
@@ -62,7 +61,6 @@ export default function RegisterPage() {
         password_confirmation: form.password_confirmation,
         phone: form.phone || undefined,
         telegram: form.telegram || undefined,
-        skype: form.skype || undefined,
       })
 
       const data = res.data
@@ -296,6 +294,19 @@ export default function RegisterPage() {
                       country={'us'}
                       value={form.phone}
                       onChange={phone => setForm(f => ({ ...f, phone: phone ? '+' + phone : '' }))}
+                      enableSearch={true}
+                      searchPlaceholder="Search country..."
+                      searchStyle={{
+                        width: '90%',
+                        height: '38px',
+                        margin: '8px auto',
+                        padding: '8px 12px',
+                        background: 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '13px'
+                      }}
                       inputClass="form-input"
                       containerStyle={{ width: '100%' }}
                       inputStyle={{ width: '100%', height: '42px', paddingLeft: '48px', background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}
@@ -307,7 +318,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="form-group" style={{ marginBottom: 12 }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="reg-telegram" style={{ fontSize: 12 }}>✈️ Telegram Username</label>
               <input
                 id="reg-telegram"
@@ -316,18 +327,6 @@ export default function RegisterPage() {
                 placeholder="@username"
                 value={form.telegram}
                 onChange={set('telegram')}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="reg-skype" style={{ fontSize: 12 }}>💬 Skype ID</label>
-              <input
-                id="reg-skype"
-                type="text"
-                className="form-input"
-                placeholder="live:username"
-                value={form.skype}
-                onChange={set('skype')}
               />
             </div>
           </div>
@@ -342,7 +341,6 @@ export default function RegisterPage() {
             {[
               { label: 'Phone', val: form.phone, icon: '📱' },
               { label: 'Telegram', val: form.telegram, icon: '✈️' },
-              { label: 'Skype', val: form.skype, icon: '💬' },
             ].map(({ label, val, icon }) => (
               <div
                 key={label}

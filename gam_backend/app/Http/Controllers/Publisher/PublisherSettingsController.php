@@ -33,10 +33,10 @@ class PublisherSettingsController extends Controller
         // Update publisher details
         $publisher->update([
             'name'     => $validated['name'],
-            'phone'    => $validated['phone'],
-            'telegram' => $validated['telegram'],
-            'skype'    => $validated['skype'],
-            'country'  => $validated['country'],
+            'phone'    => array_key_exists('phone', $validated) ? $validated['phone'] : $publisher->phone,
+            'telegram' => array_key_exists('telegram', $validated) ? $validated['telegram'] : $publisher->telegram,
+            'skype'    => array_key_exists('skype', $validated) ? $validated['skype'] : $publisher->skype,
+            'country'  => array_key_exists('country', $validated) ? $validated['country'] : $publisher->country,
         ]);
 
         // Sync name to user table

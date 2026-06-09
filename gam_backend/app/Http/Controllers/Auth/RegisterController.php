@@ -45,11 +45,11 @@ class RegisterController extends Controller
         ]);
 
         // Ensure at least one contact field is provided
-        if (empty($request->phone) && empty($request->telegram) && empty($request->skype)) {
+        if (empty($request->phone) && empty($request->telegram)) {
             return response()->json([
-                'message' => 'Please provide at least one contact method (phone, Telegram, or Skype).',
+                'message' => 'Please provide at least one contact method (phone or Telegram).',
                 'errors'  => [
-                    'contact' => ['At least one contact field is required (Phone, Telegram, or Skype).']
+                    'contact' => ['At least one contact field is required (Phone or Telegram).']
                 ],
             ], 422);
         }
