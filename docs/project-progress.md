@@ -89,6 +89,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Fixed Google API Configuration credentials saving failure under Admin Settings by pre-seeding `google_client_id` and `google_client_secret` rows in the database settings table.
 - [x] Resolved Google OAuth redirect URI mismatch (Error 400: `redirect_uri_mismatch`) by standardizing the default config redirect URIs to `http://127.0.0.1:8000/...` instead of `http://localhost:8000/...` in `.env` and `config/services.php`.
 - [x] Added Google API Credentials Form Toggle to conditionally collapse the Google API Configuration setup card once configured, replacing it with a premium status button ("✅ Google API Configured") that expands the form when clicked.
+- [x] Fixed timezone shift date alignment bug on the daily performance table where dates were displayed 1 day behind actual database dates (e.g. showing May 31 instead of June 1 as pending) due to backend Eloquent model date cast converting calendar dates to ISO-8601 UTC strings. Standardized casts to `date:Y-m-d` to preserve database date values during serialization.
 
 ---
 

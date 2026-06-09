@@ -39,7 +39,7 @@ class RevenueRecord extends Model
     protected function casts(): array
     {
         return [
-            'date'                              => 'date',
+            'date'                              => 'date:Y-m-d',
             'impressions'                       => 'integer',
             'unfilled_impressions'              => 'integer',
             'active_view_eligible_impressions'  => 'integer',

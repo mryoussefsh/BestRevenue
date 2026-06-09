@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - **Google API Configuration Saving**: Resolved the "Failed to save credentials" admin error by pre-seeding `google_client_id` and `google_client_secret` settings in `SettingsSeeder.php`. This prevents a `ModelNotFoundException` (404) when updating the Google OAuth credentials keys, allowing them to persist correctly.
 - **Google OAuth Redirect URI Mismatch**: Fixed a `redirect_uri_mismatch` error by changing the default redirect URI in `.env` and `config/services.php` from `http://localhost:8000/...` to `http://127.0.0.1:8000/...`, matching the URI displayed in the admin panel and registered in the Google Cloud Console.
+- **Calendar Date Timezone Shift**: Resolved a 1-day date timezone shift bug where local dates (e.g. June 1st database records) were shifted back by one day to the previous day (e.g. May 31st) in the frontend UI due to Eloquent date serialization converting local dates to UTC/ISO-8601 strings. Standardized `RevenueRecord` date casts to serialize as a timezone-neutral `Y-m-d` string format.
 
 ## [1.3.0] - 2026-06-09
 
