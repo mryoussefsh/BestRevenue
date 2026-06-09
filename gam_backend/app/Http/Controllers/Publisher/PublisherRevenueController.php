@@ -85,6 +85,8 @@ class PublisherRevenueController extends Controller
 
         // Run aggregates on totalsQuery (which excludes status filter, but includes dates/websites)
         $approvedLimitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->format('Y-m-d');
+        $totalsQuery->getQuery()->columns = [];
+        $totalsQuery->setEagerLoads([]);
         $aggregates = $totalsQuery->selectRaw("
             SUM(CASE WHEN revenue_records.period_closing_id IS NOT NULL THEN revenue_records.publisher_earnings ELSE 0 END) as closed_earnings,
             SUM(CASE WHEN revenue_records.period_closing_id IS NULL AND revenue_records.date <= '{$approvedLimitDate}' THEN revenue_records.publisher_earnings ELSE 0 END) as approved_earnings,
