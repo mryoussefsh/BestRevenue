@@ -36,7 +36,6 @@ class PublisherSettingsTest extends TestCase
             'name'     => 'New Publisher Name',
             'phone'    => '+15550199',
             'telegram' => '@newhandle',
-            'skype'    => 'newskype',
             'country'  => 'Germany',
         ]);
 
@@ -51,7 +50,6 @@ class PublisherSettingsTest extends TestCase
             'name'     => 'New Publisher Name',
             'phone'    => '+15550199',
             'telegram' => '@newhandle',
-            'skype'    => 'newskype',
             'country'  => 'Germany',
         ]);
 

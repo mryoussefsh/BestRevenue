@@ -33,7 +33,6 @@ class StorePublisherRequest extends FormRequest
             'notes'         => 'nullable|string',
             'phone'         => 'nullable|string|max:50',
             'telegram'      => 'nullable|string|max:100',
-            'skype'         => 'nullable|string|max:100',
             'country'       => 'nullable|string|max:100',
             'reg_ip'        => 'nullable|string|max:45',
             'last_ip'       => 'nullable|string|max:45',

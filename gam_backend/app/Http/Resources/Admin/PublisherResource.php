@@ -133,7 +133,6 @@ class PublisherResource extends JsonResource
             'email'         => $this->email,
             'phone'         => $this->phone,
             'telegram'      => $this->telegram,
-            'skype'         => $this->skype,
             'country'       => $this->country,
             'reg_ip'        => $this->reg_ip,
             'last_ip'       => $this->last_ip,

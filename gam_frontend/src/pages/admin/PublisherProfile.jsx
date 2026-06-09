@@ -386,12 +386,12 @@ export default function PublisherProfile() {
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Country</span>
-                  <span style={{ fontWeight: 500 }}>{publisher.country || 'Not Set'}</span>
-                </div>
-                <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Phone Number</span>
-                  <span style={{ fontWeight: 500 }}>{publisher.phone || 'Not Set'}</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>Phone / WhatsApp</span>
+                  {publisher.phone ? (
+                    <a href={`https://wa.me/${publisher.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="hover-link" style={{ fontWeight: 500, color: 'var(--color-primary-light)' }}>
+                      {publisher.phone}
+                    </a>
+                  ) : <span>Not Set</span>}
                 </div>
                 <div>
                   <span className="text-muted text-sm" style={{ display: 'block' }}>Telegram Username</span>
@@ -400,10 +400,6 @@ export default function PublisherProfile() {
                       {publisher.telegram}
                     </a>
                   ) : <span>Not Set</span>}
-                </div>
-                <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Skype ID</span>
-                  <span style={{ fontWeight: 500 }}>{publisher.skype || 'Not Set'}</span>
                 </div>
                 <hr style={{ border: 0, borderTop: '1px solid var(--color-border)' }} />
                 <div>
@@ -421,6 +417,10 @@ export default function PublisherProfile() {
                 <div>
                   <span className="text-muted text-sm" style={{ display: 'block' }}>Created Account</span>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{formatDateTime(publisher.created_at, true)}</span>
+                </div>
+                <div>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>Country</span>
+                  <span style={{ fontWeight: 500 }}>{publisher.country || 'Not Set'}</span>
                 </div>
                 {(() => {
                   let paymentMethod = 'Not Set';

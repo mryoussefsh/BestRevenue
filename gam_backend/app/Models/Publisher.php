@@ -24,7 +24,6 @@ class Publisher extends Model
         'pending_balance_adjustment',
         'phone',
         'telegram',
-        'skype',
         'country',
         'reg_ip',
         'last_ip',

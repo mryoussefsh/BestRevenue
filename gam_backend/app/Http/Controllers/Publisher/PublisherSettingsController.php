@@ -26,7 +26,6 @@ class PublisherSettingsController extends Controller
             'name'     => 'required|string|max:255',
             'phone'    => 'nullable|string|max:100',
             'telegram' => 'nullable|string|max:100',
-            'skype'    => 'nullable|string|max:100',
             'country'  => 'nullable|string|max:100',
         ]);
 
@@ -35,7 +34,6 @@ class PublisherSettingsController extends Controller
             'name'     => $validated['name'],
             'phone'    => array_key_exists('phone', $validated) ? $validated['phone'] : $publisher->phone,
             'telegram' => array_key_exists('telegram', $validated) ? $validated['telegram'] : $publisher->telegram,
-            'skype'    => array_key_exists('skype', $validated) ? $validated['skype'] : $publisher->skype,
             'country'  => array_key_exists('country', $validated) ? $validated['country'] : $publisher->country,
         ]);
 
@@ -55,7 +53,6 @@ class PublisherSettingsController extends Controller
                 'is_active'    => $user->is_active,
                 'phone'        => $publisher->phone,
                 'telegram'     => $publisher->telegram,
-                'skype'        => $publisher->skype,
                 'country'      => $publisher->country,
                 'payment_info' => $publisher->payment_info,
             ]

@@ -18,7 +18,6 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
     notes: publisher?.notes || '',
     phone: publisher?.phone || '',
     telegram: publisher?.telegram || '',
-    skype: publisher?.skype || '',
     country: publisher?.country || '',
     payment_method: publisher?.payment_info?.method || '',
     payment_account: publisher?.payment_info?.account || '',
@@ -68,7 +67,6 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
         notes: form.notes,
         phone: form.phone,
         telegram: form.telegram,
-        skype: form.skype,
         country: form.country,
         payment_info: {
           method: form.payment_method,
@@ -135,11 +133,6 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
             </div>
           </div>
           <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Skype</label>
-              <input className="form-input" value={form.skype}
-                onChange={e => setForm(f => ({ ...f, skype: e.target.value }))} placeholder="e.g. live:username" />
-            </div>
             <div className="form-group">
               <label className="form-label">Country</label>
               <input className="form-input" value={form.country}

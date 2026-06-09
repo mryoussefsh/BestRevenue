@@ -96,7 +96,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Cleaned up the publisher payouts page by removing the Payment Method Settings section entirely.
 - [x] Implemented a filter bar on the admin payouts page featuring backend status and searchable publisher dropdown select (`PublisherSelect` with inline search) along with client-side year and month options.
 - [x] Added reactive "Total Paid Out" and "Available Balance" statistics cards on the admin payouts page that dynamically refresh after actions like Approve, Reject, or Mark Paid.
-- [x] Created a new publisher Settings page featuring Profile Info (name, email (read-only), phone with country-code dropdown search, telegram, and read-only country), password security tabs, and a side-by-side Active Payout Setup status card displaying the current payment method, account, and minimum threshold. Completely removed Skype ID from the platform.
+- [x] Created a new publisher Settings page featuring Profile Info (name, email (read-only), phone with country-code dropdown search, telegram, and read-only country), password security tabs, and a side-by-side Active Payout Setup status card displaying the current payment method, account, and minimum threshold. Completely removed Skype ID from the platform (including all admin list views, modals, profile sheets, and database models), updated the phone number in the admin publisher profile to be a click-to-chat WhatsApp link, and placed the Country field under the Created Account date.
 
 ---
 

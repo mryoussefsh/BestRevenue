@@ -83,7 +83,6 @@ class AuthController extends Controller
                 'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
                 'phone'        => $user->publisher ? $user->publisher->phone : null,
                 'telegram'     => $user->publisher ? $user->publisher->telegram : null,
-                'skype'        => $user->publisher ? $user->publisher->skype : null,
                 'country'      => $user->publisher ? $user->publisher->country : null,
             ],
         ]);
@@ -117,7 +116,6 @@ class AuthController extends Controller
             'payment_info' => $user->publisher ? $user->publisher->payment_info : null,
             'phone'        => $user->publisher ? $user->publisher->phone : null,
             'telegram'     => $user->publisher ? $user->publisher->telegram : null,
-            'skype'        => $user->publisher ? $user->publisher->skype : null,
             'country'      => $user->publisher ? $user->publisher->country : null,
         ]);
     }

@@ -16,8 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - **Phone Input Country Code Search**: Integrated search filter functionality (`enableSearch={true}`) in the Phone/WhatsApp country code dropdown on both the Registration page and the Settings page.
-- **Skype ID Removal**: Completely removed Skype ID contact field from registration forms, setting pages, and registration backend validation.
+- **Complete Skype ID Removal**: Completely removed the Skype ID field from the entire platform, including registration, publisher settings, admin list views, edit modals, database model fillables, API request validators, and response resources.
 - **Read-Only Country Profile**: Formatted the Country input field under profile settings to be completely read-only with a lock icon.
+- **Admin Profile Detail Layout**: Moved the Country field to sit under the Created Account field in the admin publisher profile overview.
+- **WhatsApp Chat Redirect**: Labeled the phone field in the admin profile as "Phone / WhatsApp" and wrapped it in a click-to-chat hyperlink targeting `https://wa.me/` for direct messaging.
 
 ## [1.3.2] - 2026-06-09
 

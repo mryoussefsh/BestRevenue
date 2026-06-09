@@ -39,7 +39,6 @@ class RegisterController extends Controller
             // At least one contact field required (enforced below)
             'phone'    => 'nullable|string|max:50',
             'telegram' => 'nullable|string|max:100',
-            'skype'    => 'nullable|string|max:100',
         ], [
             'name.regex' => 'Name must only contain English letters and spaces (no numbers or special characters).'
         ]);
@@ -80,7 +79,6 @@ class RegisterController extends Controller
                 'status'        => $status,
                 'phone'         => $request->phone ?? null,
                 'telegram'      => $request->telegram ?? null,
-                'skype'         => $request->skype ?? null,
                 'country'       => null,  // FIX [R-1]: Set async via GeolocatePublisherJob
                 'reg_ip'        => $regIp,
                 'last_ip'       => $regIp,
