@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.4] - 2026-06-10
+
+### Added
+- **Admin Dashboard Ad Unit Filter**: Added a searchable Ad Unit filter dropdown to the admin dashboard, allowing administrators to filter all revenue metrics, trend charts, and daily performance tables by individual ad units.
+- **Dependent Filter Resetting**: Implemented cascade resetting of filters (selecting/changing a Publisher resets Website and Ad Unit filters; selecting/changing a Website resets the Ad Unit filter).
+- **Backend All Ad Units Retrieval**: Added support for a `per_page=all` query parameter in `AdUnitController@index` to retrieve all matching ad units without pagination for dropdown lists.
+
 ## [1.3.3] - 2026-06-09
 
 ### Added
