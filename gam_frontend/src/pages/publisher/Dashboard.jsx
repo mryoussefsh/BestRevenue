@@ -21,6 +21,7 @@ export default function PublisherDashboard() {
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   const [lastSyncAt, setLastSyncAt] = useState(null)
+  const [pendingAdjustment, setPendingAdjustment] = useState(0)
   
   const [initialLoading, setInitialLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -164,6 +165,7 @@ export default function PublisherDashboard() {
       ])
       setPayouts(payRes.data?.data || [])
       setRevenue(revRes.data?.data || [])
+      setPendingAdjustment(revRes.data?.pending_balance_adjustment || 0)
       setLastSyncAt(revRes.data?.last_sync_at || null)
     } catch {
       toast.error('Failed to load dashboard data')
@@ -275,9 +277,12 @@ export default function PublisherDashboard() {
 
   // Aggregate stats from filtered revenue
   // Approved earnings that have NOT gone to payout yet (excludes closed records)
-  const totalApprovedEarnings = revenue
+  // Adjusted by pending adjustments (e.g. standalone manual payment deductions)
+  const rawApprovedEarnings = revenue
     .filter(r => !r.is_closed && r.is_approved)
     .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+
+  const totalApprovedEarnings = Math.max(0, rawApprovedEarnings + pendingAdjustment)
 
   const totalPendingEarnings = revenue
     .filter(r => !r.is_closed && !r.is_approved)

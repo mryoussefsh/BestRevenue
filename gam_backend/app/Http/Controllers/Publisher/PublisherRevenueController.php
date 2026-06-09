@@ -15,7 +15,11 @@ class PublisherRevenueController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $publisherId = $request->user()->publisher_id;
+        $publisher = $request->user()->publisher;
+        if (!$publisher) {
+            return response()->json(['message' => 'Publisher profile not found.'], 404);
+        }
+        $publisherId = $publisher->id;
 
         $lastSyncTime = RevenueRecord::join('ad_units', 'revenue_records.ad_unit_id', '=', 'ad_units.id')
             ->join('websites', 'ad_units.website_id', '=', 'websites.id')
@@ -109,6 +113,7 @@ class PublisherRevenueController extends Controller
             }),
             'last_page' => $records->lastPage(),
             'total'     => $records->total(),
+            'pending_balance_adjustment' => (float) $publisher->pending_balance_adjustment,
             'last_sync_at' => $lastSyncTime ? \Carbon\Carbon::parse($lastSyncTime)->toIso8601String() : null
         ]);
     }

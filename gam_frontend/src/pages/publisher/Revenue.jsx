@@ -8,6 +8,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 export default function PublisherRevenue() {
   const { settings } = useSettings()
   const [records, setRecords] = useState([])
+  const [pendingAdjustment, setPendingAdjustment] = useState(0)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10),
@@ -59,6 +60,7 @@ export default function PublisherRevenue() {
         ad_unit_id: filters.ad_unit_id
       }).then(res => {
         setRecords(res.data?.data || [])
+        setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
         setPage(1)
         setLoading(false)
       }).catch(() => {
@@ -75,6 +77,7 @@ export default function PublisherRevenue() {
     try {
       const res = await publisherApi.getRevenue(filters)
       setRecords(res.data?.data || [])
+      setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
       setPage(1)
     } catch { toast.error('Failed to load revenue') }
     finally { setLoading(false) }
@@ -108,9 +111,11 @@ export default function PublisherRevenue() {
 
   const paginated = sortedRecords.slice((page - 1) * 15, page * 15)
 
-  const totalApprovedEarnings = records
+  const rawApprovedEarnings = records
     .filter(r => r.approval_status === 'approved')
     .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+
+  const totalApprovedEarnings = Math.max(0, rawApprovedEarnings + pendingAdjustment)
 
   const totalPendingEarnings = records
     .filter(r => r.approval_status === 'pending')
