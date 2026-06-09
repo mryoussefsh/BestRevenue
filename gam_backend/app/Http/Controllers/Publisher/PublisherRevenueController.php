@@ -49,6 +49,17 @@ class PublisherRevenueController extends Controller
             $query->where('revenue_records.ad_unit_id', $request->query('ad_unit_id'));
         }
 
+        if ($request->filled('date_from')) {
+            $query->where('revenue_records.date', '>=', $request->query('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('revenue_records.date', '<=', $request->query('date_to'));
+        }
+
+        // Clone query for aggregates before status filter
+        $totalsQuery = clone $query;
+
         if ($request->filled('status')) {
             $status = $request->query('status');
             $approvedLimitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->format('Y-m-d');
@@ -63,14 +74,6 @@ class PublisherRevenueController extends Controller
             }
         }
 
-        if ($request->filled('date_from')) {
-            $query->where('revenue_records.date', '>=', $request->query('date_from'));
-        }
-
-        if ($request->filled('date_to')) {
-            $query->where('revenue_records.date', '<=', $request->query('date_to'));
-        }
-
         $perPage = (int) $request->query('per_page', 100);
         if ($perPage < 1 || $perPage > 2000) {
             $perPage = 100;
@@ -79,6 +82,17 @@ class PublisherRevenueController extends Controller
         $records = $query->orderBy('revenue_records.date', 'desc')
                          ->orderBy('revenue_records.hour', 'desc')
                          ->paginate($perPage);
+
+        // Run aggregates on totalsQuery (which excludes status filter, but includes dates/websites)
+        $approvedLimitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->format('Y-m-d');
+        $aggregates = $totalsQuery->selectRaw("
+            SUM(CASE WHEN revenue_records.period_closing_id IS NOT NULL THEN revenue_records.publisher_earnings ELSE 0 END) as closed_earnings,
+            SUM(CASE WHEN revenue_records.period_closing_id IS NULL AND revenue_records.date <= '{$approvedLimitDate}' THEN revenue_records.publisher_earnings ELSE 0 END) as approved_earnings,
+            SUM(CASE WHEN revenue_records.period_closing_id IS NULL AND revenue_records.date > '{$approvedLimitDate}' THEN revenue_records.publisher_earnings ELSE 0 END) as pending_earnings,
+            SUM(revenue_records.impressions) as total_impressions,
+            SUM(revenue_records.unfilled_impressions) as total_unfilled,
+            SUM(revenue_records.clicks) as total_clicks
+        ")->first();
 
         // Map to hide admin fields
         return response()->json([
@@ -114,7 +128,15 @@ class PublisherRevenueController extends Controller
             'last_page' => $records->lastPage(),
             'total'     => $records->total(),
             'pending_balance_adjustment' => (float) $publisher->pending_balance_adjustment,
-            'last_sync_at' => $lastSyncTime ? \Carbon\Carbon::parse($lastSyncTime)->toIso8601String() : null
+            'last_sync_at' => $lastSyncTime ? \Carbon\Carbon::parse($lastSyncTime)->toIso8601String() : null,
+            'aggregates' => [
+                'closed_earnings'   => (float) ($aggregates->closed_earnings ?? 0),
+                'approved_earnings' => (float) ($aggregates->approved_earnings ?? 0),
+                'pending_earnings'  => (float) ($aggregates->pending_earnings ?? 0),
+                'total_impressions' => (int) ($aggregates->total_impressions ?? 0),
+                'total_unfilled'    => (int) ($aggregates->total_unfilled ?? 0),
+                'total_clicks'      => (int) ($aggregates->total_clicks ?? 0),
+            ]
         ]);
     }
 

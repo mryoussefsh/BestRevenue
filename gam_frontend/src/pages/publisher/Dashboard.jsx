@@ -22,6 +22,7 @@ export default function PublisherDashboard() {
   const [revenue, setRevenue] = useState([])
   const [lastSyncAt, setLastSyncAt] = useState(null)
   const [pendingAdjustment, setPendingAdjustment] = useState(0)
+  const [aggregates, setAggregates] = useState(null)
   
   const [initialLoading, setInitialLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -166,6 +167,7 @@ export default function PublisherDashboard() {
       setPayouts(payRes.data?.data || [])
       setRevenue(revRes.data?.data || [])
       setPendingAdjustment(revRes.data?.pending_balance_adjustment || 0)
+      setAggregates(revRes.data?.aggregates || null)
       setLastSyncAt(revRes.data?.last_sync_at || null)
     } catch {
       toast.error('Failed to load dashboard data')
@@ -278,26 +280,23 @@ export default function PublisherDashboard() {
   // Aggregate stats from filtered revenue
   // Approved earnings that have NOT gone to payout yet (excludes closed records)
   // Adjusted by pending adjustments (e.g. standalone manual payment deductions)
-  const rawApprovedEarnings = revenue
-    .filter(r => !r.is_closed && r.is_approved)
-    .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+  const approvedEarningsTotal = aggregates ? aggregates.approved_earnings : 0
+  const pendingEarningsTotal = aggregates ? aggregates.pending_earnings : 0
+  const closedEarningsTotal = aggregates ? aggregates.closed_earnings : 0
+  const impressionsTotal = aggregates ? aggregates.total_impressions : 0
+  const clicksTotal = aggregates ? aggregates.total_clicks : 0
+  const unfilledTotal = aggregates ? aggregates.total_unfilled : 0
 
-  const totalApprovedEarnings = Math.max(0, rawApprovedEarnings + pendingAdjustment)
-
-  const totalPendingEarnings = revenue
-    .filter(r => !r.is_closed && !r.is_approved)
-    .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
-
-  const totalImpressions = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
+  const totalApprovedEarnings = Math.max(0, approvedEarningsTotal + pendingAdjustment)
+  const totalPendingEarnings = pendingEarningsTotal
+  const totalImpressions = impressionsTotal
   const lastPayout      = payouts[0]
 
-  const totalClicks = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
-  const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
+  const totalClicks = clicksTotal
+  const totalUnfilled = unfilledTotal
   
   // Real total earnings in the period (including closed records) to calculate average CPM correctly
-  const totalHistoricalApprovedEarnings = revenue
-    .filter(r => r.is_closed || r.is_approved)
-    .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+  const totalHistoricalApprovedEarnings = approvedEarningsTotal + closedEarningsTotal
   const totalHistoricalEarnings = totalHistoricalApprovedEarnings + totalPendingEarnings
 
   const averageCpm = totalImpressions > 0 ? (totalHistoricalEarnings / totalImpressions) * 1000 : 0
