@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.2] - 2026-06-09
+
+### Added
+- **Publisher Payouts Filter Bar**: Added a filters bar (Status, Year, Month) placed prominently above the statistics cards on the publisher payouts page.
+- **Admin Payouts Filter Bar**: Added a complete filter panel on the admin payouts page featuring backend status and searchable publisher dropdown (`PublisherSelect` with inline search) along with client-side year and month options.
+- **Admin Payouts Statistics Cards**: Added reactive, real-time "Total Paid Out" and "Available Balance" cards to the admin payouts page, dynamically updating after actions like Approve, Reject, or Mark Paid.
+
+### Changed
+- **Publisher Payouts Available Balance**: Standardized the available balance on the publisher dashboard and payouts page to display Approved Earnings (representing what will be paid in the next cycle, matching the dashboard's design).
+- **Inline Payout Rejection Reasons**: Streamlined the payout listing table layout by moving the rejection reasons inline inside the status badge column (as warning-styled mini-pills) instead of rendering it in a separate row underneath.
+- **Removed Payment Method Settings**: Cleaned up the publisher payouts page by removing the Payment Method Settings section entirely to keep the view focused on payout history.
+
 ## [1.3.1] - 2026-06-09
 
 ### Added
