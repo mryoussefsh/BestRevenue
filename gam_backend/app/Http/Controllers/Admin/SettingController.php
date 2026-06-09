@@ -112,6 +112,17 @@ class SettingController extends Controller
 
         if ($oldValue != $setting->value) {
             \App\Services\AuditLogService::log('updated', 'Setting', $setting->key, ['value' => $oldValue], ['value' => $setting->value]);
+
+            $relevantKeys = ['close_period_day', 'payout_auto_enabled', 'approve_earnings_day'];
+            if (in_array($key, $relevantKeys)) {
+                if (filter_var(Setting::get('payout_auto_enabled', true), FILTER_VALIDATE_BOOLEAN)) {
+                    try {
+                        \Illuminate\Support\Facades\Artisan::call('period:auto-close');
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Auto-close execution failed on settings update: ' . $e->getMessage());
+                    }
+                }
+            }
         }
 
         return response()->json([

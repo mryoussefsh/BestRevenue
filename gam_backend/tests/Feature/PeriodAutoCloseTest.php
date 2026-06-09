@@ -2078,5 +2078,81 @@ class PeriodAutoCloseTest extends TestCase
             'account' => 'paypal@pubstringtest.com'
         ], $publisher->payment_info);
     }
+
+    /**
+     * Verify that period:auto-close command triggers only on or after the scheduled close day.
+     */
+    public function test_auto_close_scheduling_triggers_on_or_after_day(): void
+    {
+        // 1. Create a Publisher with some revenue
+        $publisher = Publisher::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Auto Close Scheduler Publisher',
+            'email' => 'scheduler@publisher.com',
+            'status' => 'active',
+            'default_ratio' => 0.80,
+            'payment_info' => ['method' => 'Wise', 'account' => 'test_account'],
+        ]);
+
+        $website = Website::create([
+            'id' => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'domain' => 'schedulertest.com',
+            'gam_network_code' => '123456',
+            'is_active' => true,
+        ]);
+
+        $adUnit = AdUnit::create([
+            'id' => Str::uuid()->toString(),
+            'website_id' => $website->id,
+            'gam_ad_unit_name' => 'scheduler_banner',
+            'display_name' => 'Scheduler Banner',
+            'is_active' => true,
+        ]);
+
+        $rev = RevenueRecord::create([
+            'id' => Str::uuid()->toString(),
+            'ad_unit_id' => $adUnit->id,
+            'date' => '2026-05-15',
+            'hour' => '00',
+            'impressions' => 1000,
+            'gross_revenue' => 100.00,
+            'publisher_earnings' => 80.00,
+        ]);
+
+        // Auto close scheduled on day 8
+        Setting::updateOrCreate(['key' => 'close_period_day'], ['value' => '8']);
+        Setting::updateOrCreate(['key' => 'approve_earnings_day'], ['value' => '1']);
+
+        // Case A: Today is day 7 (before day 8). The command should skip.
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-07 12:00:00'));
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('period:auto-close');
+        $this->assertEquals(0, $exitCode);
+        $this->assertNull(PeriodClosing::where('period_year', 2026)->where('period_month', 5)->first());
+
+        // Case B: Today is day 8 (exactly day 8). The command should run.
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-08 12:00:00'));
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('period:auto-close');
+        $this->assertEquals(0, $exitCode);
+        $closing = PeriodClosing::where('period_year', 2026)->where('period_month', 5)->first();
+        $this->assertNotNull($closing);
+        $this->assertEquals('closed', $closing->status);
+
+        // Reset the closing for the next case
+        \App\Models\Payout::where('period_closing_id', $closing->id)->delete();
+        $closing->delete();
+        $rev->update(['period_closing_id' => null]);
+
+        // Case C: Today is day 9 (after day 8). The command should run because day 9 >= day 8.
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-09 12:00:00'));
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('period:auto-close');
+        $this->assertEquals(0, $exitCode);
+        $closing = PeriodClosing::where('period_year', 2026)->where('period_month', 5)->first();
+        $this->assertNotNull($closing);
+        $this->assertEquals('closed', $closing->status);
+
+        // Reset test time
+        \Carbon\Carbon::setTestNow();
+    }
 }
 

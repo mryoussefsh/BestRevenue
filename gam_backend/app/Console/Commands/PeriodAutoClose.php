@@ -55,7 +55,7 @@ class PeriodAutoClose extends Command
         $closePeriodDay = (int) Setting::get('close_period_day', 20);
         $today = (int) now()->format('j');
 
-        if ($today !== $closePeriodDay && !$isManualOverride) {
+        if ($today < $closePeriodDay && !$isManualOverride) {
             $this->info("Today is day $today. Auto-close is scheduled for day $closePeriodDay. Skipping.");
             return 0;
         }

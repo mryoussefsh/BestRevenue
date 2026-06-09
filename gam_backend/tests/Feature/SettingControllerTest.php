@@ -120,4 +120,69 @@ class SettingControllerTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    public function test_updating_close_period_day_triggers_auto_close_command(): void
+    {
+        \Illuminate\Support\Facades\Artisan::shouldReceive('call')
+            ->with('period:auto-close')
+            ->once()
+            ->andReturn(0);
+
+        Setting::create([
+            'key'   => 'close_period_day',
+            'value' => '15',
+            'group' => 'payout',
+            'label' => 'Close Period Day',
+            'type'  => 'integer',
+        ]);
+
+        Setting::create([
+            'key'   => 'payout_auto_enabled',
+            'value' => 'true',
+            'group' => 'payout',
+            'label' => 'Payout Auto Enabled',
+            'type'  => 'boolean',
+        ]);
+
+        Sanctum::actingAs($this->admin);
+
+        $response = $this->putJson('/api/v1/admin/settings/close_period_day', [
+            'value' => 20
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_updating_close_period_day_does_not_trigger_auto_close_if_disabled(): void
+    {
+        // We expect Artisan::call('period:auto-close') NOT to be called.
+        // If it is called, Mockery will throw an exception.
+        \Illuminate\Support\Facades\Artisan::shouldReceive('call')
+            ->with('period:auto-close')
+            ->never();
+
+        Setting::create([
+            'key'   => 'close_period_day',
+            'value' => '15',
+            'group' => 'payout',
+            'label' => 'Close Period Day',
+            'type'  => 'integer',
+        ]);
+
+        Setting::create([
+            'key'   => 'payout_auto_enabled',
+            'value' => 'false',
+            'group' => 'payout',
+            'label' => 'Payout Auto Enabled',
+            'type'  => 'boolean',
+        ]);
+
+        Sanctum::actingAs($this->admin);
+
+        $response = $this->putJson('/api/v1/admin/settings/close_period_day', [
+            'value' => 20
+        ]);
+
+        $response->assertStatus(200);
+    }
 }
