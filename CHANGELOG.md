@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.5] - 2026-06-10
+
+### Fixed
+- **Publisher Ratio Secrecy Backend Reinforcement**: Removed the `ratio_override` field from backend `PublisherWebsiteController` website lists and ad unit lists endpoints to prevent publishers from inspecting ratio override structures.
+- **Publisher Resource Cleanup**: Cleaned up the `PublisherResource` response representation by removing the `default_ratio` field.
+- **Security Coverage Integration Test**: Implemented automated test coverage in `IndependentAuditFixTest` to assert that publisher-authenticated queries strictly exclude ratio settings, default ratios, and overrides from responses.
+
 ## [1.3.4] - 2026-06-10
 
 ### Added

@@ -30,10 +30,6 @@ class PublisherWebsiteController extends Controller
                     'gam_network_code' => $website->gam_network_code,
                     'is_active'        => $website->is_active,
                     'ad_units_count'   => $website->ad_units_count,
-                    // Note: ratio_override is typically hidden from publishers unless specified,
-                    // but we might want them to see if they have a special ratio.
-                    // For now, let's include it.
-                    'ratio_override'   => $website->ratio_override !== null ? (float) $website->ratio_override : null,
                 ];
             })
         ]);
@@ -59,7 +55,6 @@ class PublisherWebsiteController extends Controller
                     'display_name'     => $adUnit->display_name,
                     'gam_ad_unit_name' => $adUnit->gam_ad_unit_name,
                     'is_active'        => $adUnit->is_active,
-                    'ratio_override'   => $adUnit->ratio_override !== null ? (float) $adUnit->ratio_override : null,
                 ];
             })
         ]);

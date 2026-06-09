@@ -18,9 +18,6 @@ class PublisherResource extends JsonResource
             'id'            => $this->id,
             'name'          => $this->name,
             'email'         => $this->email,
-            // default_ratio is omitted or included based on requirements.
-            // Typically publishers are allowed to see their ratio, but let's include it.
-            'default_ratio' => (float) $this->default_ratio,
             'status'        => $this->status,
             'payment_info'  => $this->payment_info,
             // notes are omitted (admin only)

@@ -78,23 +78,52 @@ export default function PublisherLayout({ children }) {
       <div className="main-content">
         {isImpersonating && (
           <div style={{
-            background: 'linear-gradient(90deg, #f59e0b, #d97706)',
-            color: '#1a1a2e',
-            padding: '8px 16px',
-            fontSize: '13px',
-            fontWeight: 700,
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            background: '#1e293b',
+            border: '1px solid #334155',
+            borderRadius: '999px',
+            padding: '6px 6px 6px 16px',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            gap: 12,
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
+            animation: 'slideUp 0.3s ease',
+            whiteSpace: 'nowrap'
           }}>
-            <span>👁️ You are currently viewing as publisher: <strong>{user?.name}</strong> (Impersonation Mode)</span>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: '#10b981',
+              display: 'inline-block'
+            }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>
+              Viewing as <strong style={{ color: '#e2e8f0' }}>{user?.name}</strong>
+            </span>
             <button
-              className="btn btn-secondary btn-xs"
-              style={{ background: '#1a1a2e', color: '#f59e0b', border: '1px solid #f59e0b', fontWeight: 700 }}
               onClick={stopImpersonating}
+              style={{
+                background: '#ef4444',
+                color: '#ffffff',
+                borderRadius: '999px',
+                padding: '6px 16px',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                border: 'none',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#dc2626'}
+              onMouseLeave={(e) => e.target.style.background = '#ef4444'}
             >
-              ↩ Return to Admin
+              <span style={{ fontSize: 13, fontWeight: 'bold' }}>✕</span> Exit
             </button>
           </div>
         )}

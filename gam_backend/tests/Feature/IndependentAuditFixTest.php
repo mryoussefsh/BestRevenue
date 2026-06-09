@@ -286,4 +286,42 @@ class IndependentAuditFixTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('data.0.date', '2026-06-08');
     }
+
+    /**
+     * Test that publishers cannot see ratio overrides in website or ad unit endpoints.
+     */
+    public function test_publisher_cannot_see_ratio_overrides(): void
+    {
+        $website = \App\Models\Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $this->publisher->id,
+            'domain'           => 'securedomain.com',
+            'gam_network_code' => '987654321',
+            'ratio_override'   => 0.8500,
+            'is_active'        => true,
+        ]);
+
+        $adUnit = \App\Models\AdUnit::create([
+            'id'                => Str::uuid()->toString(),
+            'website_id'        => $website->id,
+            'display_name'      => 'Leaderboard',
+            'gam_ad_unit_name'  => 'leaderboard_unit',
+            'ratio_override'    => 0.9000,
+            'is_active'         => true,
+        ]);
+
+        $this->actingAs($this->publisherUser);
+
+        // Check website list
+        $webResponse = $this->getJson('/api/v1/publisher/websites');
+        $webResponse->assertStatus(200);
+        $webResponse->assertJsonMissing(['ratio_override']);
+        $webResponse->assertJsonMissingPath('data.0.ratio_override');
+
+        // Check ad units list
+        $adResponse = $this->getJson("/api/v1/publisher/websites/{$website->id}/ad-units");
+        $adResponse->assertStatus(200);
+        $adResponse->assertJsonMissing(['ratio_override']);
+        $adResponse->assertJsonMissingPath('data.0.ratio_override');
+    }
 }
