@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import { useSettings } from '../../contexts/SettingsContext'
 
 function groupAdUnits(units) {
   const grouped = [];
@@ -60,6 +61,9 @@ function groupAdUnits(units) {
 }
 
 export default function PublisherWebsites() {
+  const { settings } = useSettings()
+  const siteName = settings?.site_name || 'BestRevenue'
+  const platformUrl = window.location.origin
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState({})
   const [expanded, setExpanded] = useState(null)
@@ -71,6 +75,78 @@ export default function PublisherWebsites() {
   const getAdUnitScripts = (unit, allUnits = []) => {
     if (!unit) return { head: '', body: '' }
     const { networkCode, adUnitName, id, adType, adSubtype, children = [], repeat_count, delay_between_ads, domain } = unit
+
+    const helperScript = `window.__br_inject_label = window.__br_inject_label || function(containerId, siteName, siteUrl, styleType, uniqueId, slotToDestroy) {
+    var container = containerId ? document.getElementById(containerId) : null;
+    var labelId = 'br-label-' + (containerId || uniqueId);
+    if (document.getElementById(labelId)) return;
+
+    var label = document.createElement('div');
+    label.id = labelId;
+    
+    var link = document.createElement('a');
+    link.href = siteUrl;
+    link.target = '_blank';
+    link.textContent = 'Ads by ' + siteName;
+    
+    label.style.cssText = 'display: flex !important; justify-content: flex-end !important; align-items: center !important; padding: 2px 6px !important; margin: 0 !important; background: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; text-align: right !important; clear: both !important; box-sizing: border-box !important; width: 100% !important;';
+    link.style.cssText = 'color: #64748b !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
+    
+    link.onmouseover = function() { this.style.color = '#3b82f6'; };
+    link.onmouseout = function() { this.style.color = '#64748b'; };
+    label.appendChild(link);
+
+    if (styleType === 'after' && container) {
+      container.parentNode.insertBefore(label, container.nextSibling);
+    } else if (styleType === 'fixed-bottom' || styleType === 'fixed-top') {
+      label.style.position = 'fixed';
+      label.style.right = '10px';
+      label.style.zIndex = '2147483647';
+      label.style.background = 'rgba(255, 255, 255, 0.9)';
+      label.style.padding = '3px 8px';
+      label.style.borderRadius = '4px';
+      label.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+      label.style.border = '1px solid #e2e8f0';
+      label.style.width = 'auto';
+      if (styleType === 'fixed-bottom') {
+        label.style.bottom = '55px';
+      } else {
+        label.style.top = '55px';
+      }
+      document.body.appendChild(label);
+    }
+
+    var checkInterval = setInterval(function() {
+      var lbl = document.getElementById(labelId);
+      if (containerId) {
+        var cont = document.getElementById(containerId);
+        if (!lbl || !cont) {
+          if (cont) cont.style.display = 'none';
+          if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
+          clearInterval(checkInterval);
+          return;
+        }
+        var style = window.getComputedStyle(lbl);
+        if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+          cont.style.display = 'none';
+          if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
+          clearInterval(checkInterval);
+        }
+      } else {
+        if (!lbl) {
+          if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
+          clearInterval(checkInterval);
+          return;
+        }
+        var style = window.getComputedStyle(lbl);
+        if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+          if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
+          lbl.remove();
+          clearInterval(checkInterval);
+        }
+      }
+    }, 1000);
+  };`;
 
     switch (adType) {
       case 'reward':
@@ -130,7 +206,7 @@ export default function PublisherWebsites() {
       modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(4px); font-family: sans-serif;';
       
       var box = document.createElement('div');
-      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);';
+      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative;';
       
       var icon = document.createElement('div');
       icon.style.cssText = 'font-size: 40px; margin-bottom: 12px;';
@@ -148,8 +224,52 @@ export default function PublisherWebsites() {
       box.appendChild(icon);
       box.appendChild(msg);
       box.appendChild(btn);
+
+      // Dynamically add platform ad label inside the modal box
+      var label = document.createElement('div');
+      label.id = 'br-label-reward';
+      label.style.cssText = 'margin-top: 20px !important; text-align: center !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 10px !important;';
+      
+      var link = document.createElement('a');
+      link.href = '${platformUrl}';
+      link.target = '_blank';
+      link.textContent = 'Ads by ${siteName}';
+      link.style.cssText = 'color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
+      link.onmouseover = function() { this.style.color = '#3b82f6'; };
+      link.onmouseout = function() { this.style.color = '#94a3b8'; };
+      
+      label.appendChild(link);
+      box.appendChild(label);
+
       modal.appendChild(box);
       document.body.appendChild(modal);
+
+      // Start periodic checker to ensure label is not hidden
+      var checkInterval = setInterval(function() {
+        var lbl = document.getElementById('br-label-reward');
+        if (modal.style.display === 'flex') {
+          if (!lbl) {
+            modal.style.display = 'none';
+            if (window.rewardedSlots) {
+              window.rewardedSlots.forEach(function(s) {
+                if (s.slot) googletag.destroySlots([s.slot]);
+              });
+            }
+            clearInterval(checkInterval);
+            return;
+          }
+          var style = window.getComputedStyle(lbl);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+            modal.style.display = 'none';
+            if (window.rewardedSlots) {
+              window.rewardedSlots.forEach(function(s) {
+                if (s.slot) googletag.destroySlots([s.slot]);
+              });
+            }
+            clearInterval(checkInterval);
+          }
+        }
+      }, 1000);
     }
     
     var modalMessage = document.getElementById('reward-modal-message');
@@ -233,7 +353,7 @@ export default function PublisherWebsites() {
       modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(4px); font-family: sans-serif;';
       
       var box = document.createElement('div');
-      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);';
+      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative;';
       
       var icon = document.createElement('div');
       icon.style.cssText = 'font-size: 40px; margin-bottom: 12px;';
@@ -251,8 +371,52 @@ export default function PublisherWebsites() {
       box.appendChild(icon);
       box.appendChild(msg);
       box.appendChild(btn);
+
+      // Dynamically add platform ad label inside the modal box
+      var label = document.createElement('div');
+      label.id = 'br-label-reward';
+      label.style.cssText = 'margin-top: 20px !important; text-align: center !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 10px !important;';
+      
+      var link = document.createElement('a');
+      link.href = '${platformUrl}';
+      link.target = '_blank';
+      link.textContent = 'Ads by ${siteName}';
+      link.style.cssText = 'color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
+      link.onmouseover = function() { this.style.color = '#3b82f6'; };
+      link.onmouseout = function() { this.style.color = '#94a3b8'; };
+      
+      label.appendChild(link);
+      box.appendChild(label);
+
       modal.appendChild(box);
       document.body.appendChild(modal);
+
+      // Start periodic checker to ensure label is not hidden
+      var checkInterval = setInterval(function() {
+        var lbl = document.getElementById('br-label-reward');
+        if (modal.style.display === 'flex') {
+          if (!lbl) {
+            modal.style.display = 'none';
+            if (window.rewardedSlots) {
+              window.rewardedSlots.forEach(function(s) {
+                if (s.slot) googletag.destroySlots([s.slot]);
+              });
+            }
+            clearInterval(checkInterval);
+            return;
+          }
+          var style = window.getComputedStyle(lbl);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+            modal.style.display = 'none';
+            if (window.rewardedSlots) {
+              window.rewardedSlots.forEach(function(s) {
+                if (s.slot) googletag.destroySlots([s.slot]);
+              });
+            }
+            clearInterval(checkInterval);
+          }
+        }
+      }, 1000);
     }
     
     var modalMessage = document.getElementById('reward-modal-message');
@@ -289,6 +453,8 @@ ${queueItems}
 <script>
   window.googletag = window.googletag || {cmd: []};
 
+  ${helperScript}
+
   var interstitialSlot_${safeInterstitialId};
   googletag.cmd.push(function() {
     interstitialSlot_${safeInterstitialId} = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}',
@@ -300,6 +466,14 @@ ${queueItems}
     googletag.pubads().set('page_url', '${siteUrl}');
     googletag.enableServices();
     googletag.display(interstitialSlot_${safeInterstitialId});
+  });
+
+  googletag.cmd.push(function() {
+    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
+      if (event.slot === interstitialSlot_${safeInterstitialId} && !event.isEmpty) {
+        __br_inject_label(null, '${siteName}', '${platformUrl}', 'fixed-bottom', '${id}', interstitialSlot_${safeInterstitialId});
+      }
+    });
   });
 </script>`,
           body: ''
@@ -316,6 +490,8 @@ ${queueItems}
 <script>
   window.googletag = window.googletag || {cmd: []};
 
+  ${helperScript}
+
   // GPT ad slots
   var anchorSlot_${safeAnchorId};
 
@@ -329,6 +505,14 @@ ${queueItems}
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
     googletag.display(anchorSlot_${safeAnchorId});
+  });
+
+  googletag.cmd.push(function() {
+    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
+      if (event.slot === anchorSlot_${safeAnchorId} && !event.isEmpty) {
+        __br_inject_label(null, '${siteName}', '${platformUrl}', '${adSubtype === 'bottom' ? 'fixed-bottom' : 'fixed-top'}', '${id}', anchorSlot_${safeAnchorId});
+      }
+    });
   });
 </script>`,
           body: ''
@@ -354,6 +538,10 @@ ${queueItems}
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
     </script>
+  </div>
+  <!-- Platform Ad Label -->
+  <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 4px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
+    <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -388,6 +576,21 @@ ${queueItems}
             closeBtn.style.display = 'flex';
           }, closeDelayMs);
         }
+
+        // Integrity checking loop for float label
+        var checkInterval = setInterval(function() {
+          var lbl = document.getElementById('br-label-${id}');
+          if (!lbl || !container) {
+            if (container) container.remove();
+            clearInterval(checkInterval);
+            return;
+          }
+          var style = window.getComputedStyle(lbl);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+            container.remove();
+            clearInterval(checkInterval);
+          }
+        }, 1000);
       }
     }, delayMs);
   })();
@@ -414,6 +617,10 @@ ${queueItems}
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
     </script>
+  </div>
+  <!-- Platform Ad Label -->
+  <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 4px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
+    <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -448,6 +655,21 @@ ${queueItems}
             closeBtn.style.display = 'flex';
           }, closeDelayMs);
         }
+
+        // Integrity checking loop for float label
+        var checkInterval = setInterval(function() {
+          var lbl = document.getElementById('br-label-${id}');
+          if (!lbl || !container) {
+            if (container) container.remove();
+            clearInterval(checkInterval);
+            return;
+          }
+          var style = window.getComputedStyle(lbl);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+            container.remove();
+            clearInterval(checkInterval);
+          }
+        }, 1000);
       }
     }, delayMs);
   })();
@@ -476,6 +698,10 @@ ${queueItems}
       <script>
         googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
       </script>
+    </div>
+    <!-- Platform Ad Label -->
+    <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 6px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
+      <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
     </div>
   </div>
 </div>
@@ -513,6 +739,21 @@ ${queueItems}
             closeBtn.style.display = 'flex';
           }, closeDelayMs);
         }
+
+        // Integrity checking loop for float label
+        var checkInterval = setInterval(function() {
+          var lbl = document.getElementById('br-label-${id}');
+          if (!lbl || !overlay) {
+            if (overlay) overlay.remove();
+            clearInterval(checkInterval);
+            return;
+          }
+          var style = window.getComputedStyle(lbl);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
+            overlay.remove();
+            clearInterval(checkInterval);
+          }
+        }, 1000);
       }
     }, delayMs);
   })();
@@ -521,14 +762,27 @@ ${queueItems}
 
       case 'banner':
       default:
+        const safeBannerId = id.replace(/-/g, '_');
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+
+  ${helperScript}
+
+  var slot_${safeBannerId};
   googletag.cmd.push(function() {
-    googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    slot_${safeBannerId} = googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [728, 90], [320, 50]], 'div-gpt-ad-${id}').addService(googletag.pubads());
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
+  });
+
+  googletag.cmd.push(function() {
+    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
+      if (event.slot === slot_${safeBannerId} && !event.isEmpty) {
+        __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'after', '${id}', slot_${safeBannerId});
+      }
+    });
   });
 </script>`,
           body: `<!-- Place this div where you want the ad to display -->
