@@ -11,6 +11,7 @@ export const authApi = {
 
 export const publicApi = {
   getSettings:   ()                => api.get('/public/settings'),
+  submitContact: (data)            => api.post('/public/contact', data),
 }
 
 export const adminApi = {

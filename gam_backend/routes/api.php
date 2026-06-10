@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
     // ──────────────────────────────────────────────────────
     Route::get('translations/{locale}', [TranslationController::class, 'show']);
     Route::get('public/settings', [SettingController::class, 'getPublicSettings']);
+    Route::post('public/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:5,1');
 
     // ──────────────────────────────────────────────────────
     // Google OAuth callback (public — Google redirects here)

@@ -69,7 +69,7 @@ export default function SettingsPage() {
   const groups = [...new Set(settings.map(s => s.group))].filter(g => g !== 'system_info')
   const projectPath = settings.find(s => s.key === 'project_path')?.value || '/path-to-your-project'
 
-  const groupIcon = { payout: '💳', gam: '📡', payment: '🏦', display: '🎨', localization: '🌍', registration: '📝', email: '📧', seo: '🔍' }
+  const groupIcon = { payout: '💳', gam: '📡', payment: '🏦', display: '🎨', localization: '🌍', registration: '📝', email: '📧', seo: '🔍', support: '💬' }
 
   if (loading) return (
     <div className="loading-screen"><div className="spinner"></div></div>

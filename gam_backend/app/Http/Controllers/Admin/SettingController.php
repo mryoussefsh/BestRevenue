@@ -192,6 +192,9 @@ class SettingController extends Controller
             'payment_methods',
             'platform_timezone',
             'ad_type_preselected_sizes',
+            'support_email',
+            'support_telegram',
+            'support_whatsapp',
         ];
 
         $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {

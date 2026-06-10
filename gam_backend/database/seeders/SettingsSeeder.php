@@ -235,6 +235,28 @@ class SettingsSeeder extends Seeder
                 'label' => 'Default Revenue Ratio % (e.g. 70 for 70%)',
                 'type'  => 'string',
             ],
+            // ── Support ───────────────────────────────────────
+            [
+                'key'   => 'support_email',
+                'value' => 'support@bestrevenue.local',
+                'group' => 'support',
+                'label' => 'Support Destination & Contact Email',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'support_telegram',
+                'value' => 'https://t.me/bestrevenue_support',
+                'group' => 'support',
+                'label' => 'Support Telegram Link',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'support_whatsapp',
+                'value' => 'https://wa.me/1234567890',
+                'group' => 'support',
+                'label' => 'Support WhatsApp Link',
+                'type'  => 'string',
+            ],
         ];
 
         foreach ($settings as $setting) {

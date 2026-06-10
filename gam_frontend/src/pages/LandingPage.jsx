@@ -149,6 +149,7 @@ export default function LandingPage() {
             <a href="#how-it-works" className="landing-nav-link" onClick={() => setMenuOpen(false)}>How It Works</a>
             <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payments Proof</a>
             <a href="#faqs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>FAQs</a>
+            <Link to="/support" className="landing-nav-link">Support</Link>
           </nav>
 
           <div className="landing-nav-ctas">
@@ -570,6 +571,7 @@ export default function LandingPage() {
             <div className="footer-link-group">
               <h5 className="footer-link-title">Access</h5>
               <div className="footer-links-list">
+                <Link to="/support" className="footer-link">Support Hub</Link>
                 <Link to="/login" className="footer-link">Sign In</Link>
                 {settings.registration_status !== 'closed' && (
                   <Link to="/register" className="footer-link">Register</Link>

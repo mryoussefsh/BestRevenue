@@ -118,6 +118,10 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Added a "Verified Payout Proofs" ledger matching target layout specifications (Publisher region masking, amount styling, formatted dates, paid success badges) integrated with transaction receipt modals.
 - [x] Added a site footer to the publisher portal layout (`PublisherLayout.jsx`) containing dynamic platform info and help links.
 - [x] Reconfigured root `/` routing in React `App.jsx` to load the new home landing page.
+- [x] Created database migration to add `support_email`, `support_telegram`, and `support_whatsapp` settings, making support contacts fully editable by the administrator.
+- [x] Created backend contact form submission controller and public POST route (`/public/contact`) with built-in rate-limiting.
+- [x] Created public Support Hub page (`SupportPage.jsx`/`SupportPage.css`) containing direct links to Telegram/WhatsApp/Email channels and a validation contact form.
+- [x] Integrated Support page navigation links across all public page headers and footers.
 
 ---
 

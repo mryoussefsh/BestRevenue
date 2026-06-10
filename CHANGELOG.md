@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.5.0] - 2026-06-10
+
+### Added
+- **Public Support Hub**: Designed and implemented a modern glassmorphic Support Page (`SupportPage.jsx` & `SupportPage.css`) serving public support channels (Email, Telegram, WhatsApp) and an interactive email contact form.
+- **Admin Support Config**: Added dynamic database options (`support_email`, `support_telegram`, `support_whatsapp`) editable through the Admin Settings panel to configure contact channels and the destination contact form mail.
+- **Public Header/Footer Nav**: Placed public navigation anchors linking to the Support Hub page in the landing page and support page headers/footers.
+- **Support Contact API & Rate-limiting**: Developed `ContactController` endpoint with SMTP-backed mail dispatching and a rate-limit throttle configuration of 5 posts per minute.
+- **Feature Tests**: Developed robust test coverage (`ContactFormTest.php`) validating required form fields, mail delivery, and SMTP integration fakes.
+
 ## [1.4.0] - 2026-06-10
 
 ### Added

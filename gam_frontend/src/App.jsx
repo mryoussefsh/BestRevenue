@@ -12,6 +12,7 @@ import PublisherLayout from './layouts/PublisherLayout'
 
 // Auth
 import LandingPage         from './pages/LandingPage'
+import SupportPage         from './pages/SupportPage'
 import LoginPage           from './pages/LoginPage'
 import RegisterPage        from './pages/RegisterPage'
 import ForgotPasswordPage  from './pages/ForgotPasswordPage'
@@ -71,6 +72,7 @@ function App() {
           <Routes>
             {/* Root landing page */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/support" element={<SupportPage />} />
 
             {/* Auth */}
             <Route path="/login"          element={<LoginPage />} />

@@ -1,0 +1,203 @@
+/* ============================================================
+   BestRevenue — Support Page Stylesheet
+   ============================================================ */
+
+.support-wrapper {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.support-glow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Hero Section */
+.support-hero {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px 40px;
+  text-align: center;
+}
+
+.support-hero-title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.support-hero-desc {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Content Layout Split */
+.support-grid {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 48px;
+}
+
+/* Info Column styling */
+.support-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.support-info-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.support-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 16px;
+}
+
+.support-channel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.support-channel-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+}
+
+.support-channel-item:hover {
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.support-channel-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-primary-light);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.support-channel-item.whatsapp .support-channel-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-accent);
+}
+
+.support-channel-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.support-channel-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+}
+
+.support-channel-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.support-channel-link {
+  font-size: 13px;
+  color: var(--color-primary-light);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  transition: var(--transition);
+}
+
+.support-channel-link:hover {
+  color: var(--color-text);
+}
+
+/* Contact Form Column styling */
+.support-form-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+}
+
+.support-form-desc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* Responsive Overrides */
+@media (max-width: 968px) {
+  .support-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-bottom: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .support-hero {
+    padding: 60px 24px 30px;
+  }
+  
+  .support-hero-title {
+    font-size: 36px;
+  }
+
+  .support-form-card {
+    padding: 24px;
+  }
+}
