@@ -46,3 +46,8 @@ gam_frontend/lerna-debug.log*
 
 # Logs
 *.log
+
+# Backend test scripts
+gam_backend/create_test_publisher.php
+gam_backend/test-endpoint.php
+gam_backend/test-tickets.php

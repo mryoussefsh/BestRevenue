@@ -162,6 +162,39 @@ class EmailTemplate extends Model
 <p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payout History</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
+            'ticket_created_admin' => [
+                'subject' => '[Ticket #{{ ticket_id }}] New Ticket: {{ subject }}',
+                'body'    => "<p>Hello,</p>
+<p>A new support ticket has been created on <strong>{{ site_name }}</strong> by <strong>{{ publisher_name }}</strong> ({{ publisher_email }}).</p>
+<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Ticket ID</td><td style='padding:8px;border:1px solid #ddd;'>#{{ ticket_id }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Subject</td><td style='padding:8px;border:1px solid #ddd;'>{{ subject }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Category</td><td style='padding:8px;border:1px solid #ddd;'>{{ category }}</td></tr>
+<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Priority</td><td style='padding:8px;border:1px solid #ddd;'>{{ priority }}</td></tr>
+</table>
+<p><strong>Initial Message:</strong></p>
+<blockquote style='border-left: 4px solid #6366f1; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
+<p><a href='{{ admin_ticket_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket in Admin Panel</a></p>
+<p>Best regards,<br>The {{ site_name }} Team</p>",
+            ],
+            'ticket_replied_publisher' => [
+                'subject' => '[Ticket #{{ ticket_id }}] New Reply: {{ subject }}',
+                'body'    => "<p>Hi {{ name }},</p>
+<p>A new reply has been posted to your support ticket <strong>\"{{ subject }}\"</strong> on <strong>{{ site_name }}</strong>.</p>
+<p><strong>Latest Message:</strong></p>
+<blockquote style='border-left: 4px solid #10b981; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
+<p><a href='{{ publisher_ticket_url }}' style='background:#10b981;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket & Reply</a></p>
+<p>Best regards,<br>The {{ site_name }} Team</p>",
+            ],
+            'ticket_replied_admin' => [
+                'subject' => '[Ticket #{{ ticket_id }}] Publisher Reply: {{ subject }}',
+                'body'    => "<p>Hello,</p>
+<p>A new reply has been posted by publisher <strong>{{ publisher_name }}</strong> to ticket <strong>\"{{ subject }}\"</strong> on <strong>{{ site_name }}</strong>.</p>
+<p><strong>Latest Message:</strong></p>
+<blockquote style='border-left: 4px solid #6366f1; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
+<p><a href='{{ admin_ticket_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket in Admin Panel</a></p>
+<p>Best regards,<br>The {{ site_name }} Team</p>",
+            ],
         ];
 
         return $defaults[$key] ?? [
@@ -187,6 +220,9 @@ class EmailTemplate extends Model
             'payout_paid'           => 'Payment Sent',
             'period_closed'         => 'Period Earnings Finalized',
             'manual_payment'        => 'Manual Payment Recorded',
+            'ticket_created_admin'  => 'New Ticket Notification (Admin)',
+            'ticket_replied_publisher' => 'New Reply Notification (Publisher)',
+            'ticket_replied_admin'  => 'New Reply Notification (Admin)',
         ];
     }
 }

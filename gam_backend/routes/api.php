@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\GamAccountController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\EmailTemplateController;
+use App\Http\Controllers\Admin\AdminTicketController;
+use App\Http\Controllers\Publisher\PublisherTicketController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -135,6 +137,13 @@ Route::prefix('v1')->group(function () {
         // Announcements
         Route::apiResource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class);
 
+        // Tickets
+        Route::get('tickets/admins', [AdminTicketController::class, 'getAdmins']);
+        Route::get('tickets',        [AdminTicketController::class, 'index']);
+        Route::get('tickets/{id}',   [AdminTicketController::class, 'show']);
+        Route::put('tickets/{id}',   [AdminTicketController::class, 'update']);
+        Route::post('tickets/{id}/reply', [AdminTicketController::class, 'reply']);
+
     });
 
     // ──────────────────────────────────────────────────────
@@ -162,5 +171,12 @@ Route::prefix('v1')->group(function () {
         // Announcements
         Route::get('announcements', [\App\Http\Controllers\Publisher\AnnouncementController::class, 'index']);
         Route::post('announcements/{id}/interact', [\App\Http\Controllers\Publisher\AnnouncementController::class, 'interact']);
+
+        // Tickets
+        Route::get('tickets',        [PublisherTicketController::class, 'index']);
+        Route::post('tickets',       [PublisherTicketController::class, 'store']);
+        Route::get('tickets/{id}',   [PublisherTicketController::class, 'show']);
+        Route::post('tickets/{id}/reply', [PublisherTicketController::class, 'reply']);
+        Route::post('tickets/{id}/close', [PublisherTicketController::class, 'close']);
     });
 });

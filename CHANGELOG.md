@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.6.0] - 2026-06-11
+
+### Added
+- **Support Ticket Active Limit**: Enforced a business rule preventing publishers from opening more than one active support ticket at a time. The publisher index endpoint returns a `has_active_ticket` metadata attribute, and the UI disables the new ticket button and displays a warning prompt.
+- **Support Ticket Reopen & Reply Lock**: Blocked replies on closed support tickets. Updated the backend controllers to reject replies with status `closed` for both publishers and admins.
+- **Closed Ticket Banner Notices**: Redesigned the messaging area for closed tickets. The publisher detail page displays a locked message: *"🔒 This ticket is closed. Please open a new ticket if you need more help or have other problems."* The administrator detail page displays: *"🔒 This ticket is closed. Please update the status to reopen and reply."*
+- **Feature Test Enhancements**: Extended `SupportTicketsTest.php` with new integration tests verifying locking behaviors on replies and ticket creation limit validation.
+
 ## [1.5.0] - 2026-06-10
 
 ### Added

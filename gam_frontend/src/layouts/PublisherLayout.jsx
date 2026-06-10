@@ -9,6 +9,7 @@ const navItems = [
   { to: '/publisher/websites', icon: '🌐', label: 'My Websites' },
   { to: '/publisher/revenue',  icon: '💰', label: 'Revenue'     },
   { to: '/publisher/payouts',  icon: '💳', label: 'Payouts'     },
+  { to: '/publisher/tickets',  icon: '🎫', label: 'Support Tickets' },
   { to: '/publisher/settings', icon: '⚙️', label: 'Settings'    },
 ]
 

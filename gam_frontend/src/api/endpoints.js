@@ -106,6 +106,13 @@ export const adminApi = {
   updateEmailTemplate:   (key, data)  => api.put(`/admin/email-templates/${key}`, data),
   previewEmailTemplate:  (key)        => api.post(`/admin/email-templates/${key}/preview`),
   resetEmailTemplate:    (key)        => api.post(`/admin/email-templates/${key}/reset`),
+
+  // Tickets
+  getTickets:          (params)   => api.get('/admin/tickets', { params }),
+  getTicket:           (id)       => api.get(`/admin/tickets/${id}`),
+  updateTicket:        (id, data) => api.put(`/admin/tickets/${id}`, data),
+  replyTicket:         (id, data) => api.post(`/admin/tickets/${id}/reply`, data),
+  getAdminsList:       ()         => api.get('/admin/tickets/admins'),
 }
 
 export const gamAccountsApi = {
@@ -134,4 +141,11 @@ export const publisherApi = {
   // Announcements
   getAnnouncements:        ()           => api.get('/publisher/announcements'),
   interactAnnouncement:    (id, data)   => api.post(`/publisher/announcements/${id}/interact`, data),
+
+  // Tickets
+  getTickets:          (params)   => api.get('/publisher/tickets', { params }),
+  getTicket:           (id)       => api.get(`/publisher/tickets/${id}`),
+  createTicket:        (data)     => api.post('/publisher/tickets', data),
+  replyTicket:         (id, data) => api.post(`/publisher/tickets/${id}/reply`, data),
+  closeTicket:         (id)       => api.post(`/publisher/tickets/${id}/close`),
 }

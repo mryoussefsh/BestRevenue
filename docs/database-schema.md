@@ -18,6 +18,10 @@ erDiagram
     PERIOD_CLOSINGS ||--o{ REVENUE_RECORDS : "locks"
     PERIOD_CLOSINGS ||--o{ PAYOUTS : "calculates"
     PERIOD_CLOSINGS ||--o{ ADJUSTMENTS : "applies"
+    PUBLISHERS ||--o{ TICKETS : "opens"
+    USERS ||--o{ TICKETS : "creates / is assigned to"
+    TICKETS ||--o{ TICKET_MESSAGES : "contains"
+    USERS ||--o{ TICKET_MESSAGES : "sends"
 ```
 
 ---
@@ -209,3 +213,29 @@ Raw constraints are configured on the database layer to enforce positive numeric
 - `chk_payouts_final_amount`: `final_amount >= 0` on `payouts` table.
 - `chk_payouts_amount`: `amount >= 0` on `payouts` table.
 - `chk_adjustments_amount`: `amount != 0` on `adjustments` table (prevents zero-value adjustment records).
+
+---
+
+## 4. Ticketing Tables Specification
+
+### L. `tickets`
+Holds support tickets raised by publishers.
+- `id` (uuid, Primary Key): Unique ticket identifier.
+- `publisher_id` (uuid, Foreign Key): References `publishers.id` (cascade on delete).
+- `user_id` (uuid, Foreign Key): References `users.id` (creator - cascade on delete).
+- `assigned_to` (uuid, Foreign Key, Nullable): References `users.id` (admin assignee - set null on delete).
+- `subject` (varchar(255)): Summary of the issue.
+- `category` (enum('billing', 'technical', 'gam', 'other')): Issue category.
+- `priority` (enum('low', 'medium', 'high', 'urgent')): Priority level.
+- `status` (enum('open', 'in_progress', 'resolved', 'closed'), Default: 'open'): Ticket status.
+- `timestamps` (created_at, updated_at).
+
+### M. `ticket_messages`
+Stores the messages/replies under a support ticket thread.
+- `id` (uuid, Primary Key): Unique message identifier.
+- `ticket_id` (uuid, Foreign Key): References `tickets.id` (cascade on delete).
+- `user_id` (uuid, Foreign Key): References `users.id` (sender - cascade on delete).
+- `message` (text): Content of the reply message.
+- `is_admin_reply` (boolean): Flag identifying if the sender is an administrator.
+- `timestamps` (created_at, updated_at).
+

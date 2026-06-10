@@ -6,7 +6,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 
 ## 🚦 Overall Project Status
 - **Current Phase**: Phase 5 - Testing & Deployment
-- **Completion Rate**: 98%
+- **Completion Rate**: 99%
 - **Current Focus**: Deployment configuration, staging setup, sandboxed end-to-end flow checks.
 
 ---
@@ -123,6 +123,15 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Created public Support Hub page (`SupportPage.jsx`/`SupportPage.css`) containing direct links to Telegram/WhatsApp/Email channels and a validation contact form.
 - [x] Integrated Support page navigation links across all public page headers and footers.
 - [x] Implemented dynamic runtime mailer purging in MailConfigService to ensure SMTP settings saved in the admin settings dashboard take effect immediately.
+
+### Milestone 7: Support Ticketing System (Sprint 12)
+- [x] Implemented database migrations and models (`Ticket`, `TicketMessage`) for Support Ticketing system.
+- [x] Designed and built publisher tickets dashboard and interactive support chatroom (`publisher/Tickets.jsx` & `publisher/TicketDetail.jsx`).
+- [x] Created admin tickets command center with status, category, priority, assignee filters and quick updating dropdowns (`admin/Tickets.jsx` & `admin/TicketDetail.jsx`).
+- [x] Integrated automated SMTP mail alerts notifying support email of new publisher tickets and notifying publishers when administrators reply.
+- [x] Enforced support ticket active concurrency limit, restricting publishers to a maximum of one active ticket (`open` or `in_progress`) at any given time.
+- [x] Implemented secure closed ticket locking, blocking any replies (from both publisher and admin sides) once a ticket is marked `closed`, replacing response boxes with warning notices.
+- [x] Created comprehensive test coverage in `SupportTicketsTest.php` to validate ticket creation limit, closed ticket reply blocking, and resolved ticket reopening.
 
 ---
 

@@ -13,6 +13,7 @@ const navItems = [
   { to: '/admin/closings',     icon: '📅', label: 'Period Closings' },
   { to: '/admin/payouts',      icon: '💳', label: 'Payouts',    countKey: 'pending_payouts' },
   { to: '/admin/adjustments',  icon: '⚖️', label: 'Adjustments' },
+  { to: '/admin/tickets',      icon: '🎫', label: 'Support Tickets', countKey: 'pending_tickets' },
   { to: '/admin/announcements',icon: '📢', label: 'Announcements' },
   { to: '/admin/audit-logs',   icon: '📜', label: 'Audit Logs'  },
   { to: '/admin/gam-accounts', icon: '📡', label: 'GAM Accounts'},
@@ -29,7 +30,7 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [stats, setStats] = useState({ pending_publishers: 0, pending_payouts: 0 })
+  const [stats, setStats] = useState({ pending_publishers: 0, pending_payouts: 0, pending_tickets: 0 })
 
   useEffect(() => {
     // Fetch stats initially and whenever location changes (cheap way to keep them somewhat updated)

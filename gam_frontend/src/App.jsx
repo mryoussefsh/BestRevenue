@@ -34,6 +34,8 @@ import GamAccounts      from './pages/admin/GamAccounts'
 import GamSync          from './pages/admin/GamSync'
 import Announcements    from './pages/admin/Announcements'
 import EmailTemplates   from './pages/admin/EmailTemplates'
+import AdminTickets     from './pages/admin/Tickets'
+import AdminTicketDetail from './pages/admin/TicketDetail'
 
 // Publisher pages
 import PubDashboard from './pages/publisher/Dashboard'
@@ -41,6 +43,8 @@ import PubWebsites  from './pages/publisher/Websites'
 import PubRevenue   from './pages/publisher/Revenue'
 import PubPayouts   from './pages/publisher/Payouts'
 import PubSettings  from './pages/publisher/Settings'
+import PubTickets   from './pages/publisher/Tickets'
+import PubTicketDetail from './pages/publisher/TicketDetail'
 
 function RootRedirect() {
   const { user } = useAuth()
@@ -156,6 +160,16 @@ function App() {
                 <AdminLayout><EmailTemplates /></AdminLayout>
               </PrivateRoute>
             } />
+            <Route path="/admin/tickets" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminTickets /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/tickets/:id" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminTicketDetail /></AdminLayout>
+              </PrivateRoute>
+            } />
 
             {/* Publisher routes */}
             <Route path="/publisher" element={
@@ -181,6 +195,16 @@ function App() {
             <Route path="/publisher/settings" element={
               <PrivateRoute role="publisher">
                 <PublisherLayout><PubSettings /></PublisherLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/publisher/tickets" element={
+              <PrivateRoute role="publisher">
+                <PublisherLayout><PubTickets /></PublisherLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/publisher/tickets/:id" element={
+              <PrivateRoute role="publisher">
+                <PublisherLayout><PubTicketDetail /></PublisherLayout>
               </PrivateRoute>
             } />
 
