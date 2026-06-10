@@ -132,7 +132,7 @@ export default function AdminTicketDetail() {
             </h1>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 13, color: 'var(--color-text-muted)', flexWrap: 'wrap' }}>
               <span>Publisher: {ticket.publisher ? (
-                <Link to={`/admin/publishers/${ticket.publisher.id}`} style={{ color: 'var(--color-primary-light)', fontWeight: 700, textDecoration: 'none' }} onMouseEnter={e => e.target.style.textDecoration = 'underline'} onMouseLeave={e => e.target.style.textDecoration = 'none'}>
+                <Link to={`/admin/publishers/${ticket.publisher.id}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary-light)', fontWeight: 700, textDecoration: 'none' }} onMouseEnter={e => e.target.style.textDecoration = 'underline'} onMouseLeave={e => e.target.style.textDecoration = 'none'}>
                   {ticket.publisher.name}
                 </Link>
               ) : 'Guest'}</span>
