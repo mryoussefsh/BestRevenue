@@ -346,6 +346,7 @@ ${queueItems}
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script src="${platformUrl}/js/br-label.js"></script>
+<script src="${platformUrl}/js/br-float.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
   var slot_${safeFloatTopId};
@@ -367,55 +368,20 @@ ${queueItems}
 
 <script>
   (function() {
-    var delayMs = ${delayMsTop};
-    var closeDelayMs = ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0};
-    var container = document.getElementById('float-top-container-${id}');
-    
-    window.dismissFloatTop_${safeFloatTopId} = function() {
-      if (container) {
-        container.style.opacity = '0';
-        container.style.top = '-200px';
-        setTimeout(function() {
-          container.remove();
-        }, 300);
+    var checkFloat = setInterval(function() {
+      if (typeof __br_init_float === 'function') {
+        __br_init_float({
+          id: '${id}',
+          type: 'float_top',
+          delayMs: ${delayMsTop},
+          closeDelayMs: ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0},
+          siteName: '${siteName}',
+          platformUrl: '${platformUrl}',
+          slot: slot_${safeFloatTopId}
+        });
+        clearInterval(checkFloat);
       }
-    };
-
-    setTimeout(function() {
-      if (container) {
-        document.body.appendChild(container);
-        container.style.display = 'flex';
-        // Force a reflow to trigger CSS transition
-        container.offsetHeight;
-        container.style.top = '0px';
-
-        // Show close button after its own delay
-        var closeBtn = document.getElementById('float-top-close-${id}');
-        if (closeBtn) {
-          setTimeout(function() {
-            closeBtn.style.display = 'flex';
-          }, closeDelayMs);
-        }
-
-        // Script removal safeguard & retry logic
-        var retries = 10;
-        var checkLabelLoaded = setInterval(function() {
-          if (typeof __br_inject_label === 'function') {
-            __br_inject_label('float-top-container-${id}', '${siteName}', '${platformUrl}', 'float-footer', '${id}', slot_${safeFloatTopId});
-            clearInterval(checkLabelLoaded);
-          } else {
-            retries--;
-            if (retries <= 0) {
-              clearInterval(checkLabelLoaded);
-              if (container) container.remove();
-              if (slot_${safeFloatTopId}) {
-                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatTopId}]); });
-              }
-            }
-          }
-        }, 100);
-      }
-    }, delayMs);
+    }, 100);
   })();
 </script>`
         }
@@ -426,6 +392,7 @@ ${queueItems}
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script src="${platformUrl}/js/br-label.js"></script>
+<script src="${platformUrl}/js/br-float.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
   var slot_${safeFloatBottomId};
@@ -447,55 +414,20 @@ ${queueItems}
 
 <script>
   (function() {
-    var delayMs = ${delayMsBottom};
-    var closeDelayMs = ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0};
-    var container = document.getElementById('float-bottom-container-${id}');
-    
-    window.dismissFloatBottom_${safeFloatBottomId} = function() {
-      if (container) {
-        container.style.opacity = '0';
-        container.style.bottom = '-350px';
-        setTimeout(function() {
-          container.remove();
-        }, 300);
+    var checkFloat = setInterval(function() {
+      if (typeof __br_init_float === 'function') {
+        __br_init_float({
+          id: '${id}',
+          type: 'float_bottom',
+          delayMs: ${delayMsBottom},
+          closeDelayMs: ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0},
+          siteName: '${siteName}',
+          platformUrl: '${platformUrl}',
+          slot: slot_${safeFloatBottomId}
+        });
+        clearInterval(checkFloat);
       }
-    };
-
-    setTimeout(function() {
-      if (container) {
-        document.body.appendChild(container);
-        container.style.display = 'flex';
-        // Force a reflow to trigger CSS transition
-        container.offsetHeight;
-        container.style.bottom = '0px';
-
-        // Show close button after its own delay
-        var closeBtn = document.getElementById('float-bottom-close-${id}');
-        if (closeBtn) {
-          setTimeout(function() {
-            closeBtn.style.display = 'flex';
-          }, closeDelayMs);
-        }
-
-        // Script removal safeguard & retry logic
-        var retries = 10;
-        var checkLabelLoaded = setInterval(function() {
-          if (typeof __br_inject_label === 'function') {
-            __br_inject_label('float-bottom-container-${id}', '${siteName}', '${platformUrl}', 'float-footer', '${id}', slot_${safeFloatBottomId});
-            clearInterval(checkLabelLoaded);
-          } else {
-            retries--;
-            if (retries <= 0) {
-              clearInterval(checkLabelLoaded);
-              if (container) container.remove();
-              if (slot_${safeFloatBottomId}) {
-                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatBottomId}]); });
-              }
-            }
-          }
-        }, 100);
-      }
-    }, delayMs);
+    }, 100);
   })();
 </script>`
         }
@@ -507,6 +439,7 @@ ${queueItems}
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script src="${platformUrl}/js/br-label.js"></script>
+<script src="${platformUrl}/js/br-float.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
   var slot_${safeFloatFullscreenId};
@@ -530,57 +463,20 @@ ${queueItems}
 
 <script>
   (function() {
-    var delayMs = ${delayMsFullscreen};
-    var closeDelayMs = ${closeDelayMsFullscreen};
-    var overlay = document.getElementById('float-fullscreen-overlay-${id}');
-    var card = document.getElementById('float-fullscreen-card-${id}');
-    
-    window.dismissFloatFullscreen_${safeFloatFullscreenId} = function() {
-      if (overlay) {
-        overlay.style.opacity = '0';
-        if (card) card.style.transform = 'scale(0.9)';
-        setTimeout(function() {
-          overlay.remove();
-        }, 300);
+    var checkFloat = setInterval(function() {
+      if (typeof __br_init_float === 'function') {
+        __br_init_float({
+          id: '${id}',
+          type: 'float_fullscreen',
+          delayMs: ${delayMsFullscreen},
+          closeDelayMs: ${closeDelayMsFullscreen},
+          siteName: '${siteName}',
+          platformUrl: '${platformUrl}',
+          slot: slot_${safeFloatFullscreenId}
+        });
+        clearInterval(checkFloat);
       }
-    };
-
-    setTimeout(function() {
-      if (overlay) {
-        document.body.appendChild(overlay);
-        overlay.style.display = 'flex';
-        // Force a reflow
-        overlay.offsetHeight;
-        overlay.style.opacity = '1';
-        if (card) card.style.transform = 'scale(1)';
-
-        // Show close button after its own delay
-        var closeBtn = document.getElementById('float-fullscreen-close-${id}');
-        if (closeBtn) {
-          setTimeout(function() {
-            closeBtn.style.display = 'flex';
-          }, closeDelayMs);
-        }
-
-        // Script removal safeguard & retry logic
-        var retries = 10;
-        var checkLabelLoaded = setInterval(function() {
-          if (typeof __br_inject_label === 'function') {
-            __br_inject_label('float-fullscreen-card-${id}', '${siteName}', '${platformUrl}', 'float-fullscreen-footer', '${id}', slot_${safeFloatFullscreenId});
-            clearInterval(checkLabelLoaded);
-          } else {
-            retries--;
-            if (retries <= 0) {
-              clearInterval(checkLabelLoaded);
-              if (overlay) overlay.remove();
-              if (slot_${safeFloatFullscreenId}) {
-                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatFullscreenId}]); });
-              }
-            }
-          }
-        }, 100);
-      }
-    }, delayMs);
+    }, 100);
   })();
 </script>`
         }
