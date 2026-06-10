@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.13] - 2026-06-10
+
+### Removed
+- **Unused Settings**: Removed "Display Currency", "GAM Report Timezone", and "Auto Payout Day of Month (1–28)" from the Admin Settings list view in the backend settings controller to keep the UI clean and uncluttered.
+
 ## [1.3.12] - 2026-06-10
 
 ### Changed

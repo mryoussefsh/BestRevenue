@@ -16,15 +16,19 @@ class SettingController extends Controller
      */
     public function index(): JsonResponse
     {
-        $settings = Setting::orderBy('group')->orderBy('key')->get()->map(function ($setting) {
-            return [
-                'key'   => $setting->key,
-                'value' => $setting->value,
-                'label' => $setting->label,
-                'type'  => $setting->type,
-                'group' => $setting->group,
-            ];
-        })->toArray();
+        $settings = Setting::whereNotIn('key', ['default_currency', 'gam_timezone', 'payout_day'])
+            ->orderBy('group')
+            ->orderBy('key')
+            ->get()
+            ->map(function ($setting) {
+                return [
+                    'key'   => $setting->key,
+                    'value' => $setting->value,
+                    'label' => $setting->label,
+                    'type'  => $setting->type,
+                    'group' => $setting->group,
+                ];
+            })->toArray();
 
         // Restore project_path securely under system_info group for administrator setup instructions
         $settings[] = [
