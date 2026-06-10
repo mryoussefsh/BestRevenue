@@ -374,6 +374,7 @@ ${queueItems}
 
     setTimeout(function() {
       if (container) {
+        document.body.appendChild(container);
         container.style.display = 'flex';
         // Force a reflow to trigger CSS transition
         container.offsetHeight;
@@ -424,6 +425,7 @@ ${queueItems}
 
     setTimeout(function() {
       if (container) {
+        document.body.appendChild(container);
         container.style.display = 'flex';
         // Force a reflow to trigger CSS transition
         container.offsetHeight;
@@ -435,6 +437,7 @@ ${queueItems}
         }
 
       case 'float_fullscreen':
+        const safeFloatFullscreenId = id.replace(/-/g, '_');
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
@@ -446,16 +449,42 @@ ${queueItems}
   });
 </script>`,
           body: `<!-- Fullscreen Overlay Wrapper with Close Button -->
-<div id="float-fullscreen-overlay-${id}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(15, 23, 42, 0.85); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-  <div style="position: relative; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-    <button onclick="document.getElementById('float-fullscreen-overlay-${id}').remove()" style="position: absolute; top: -14px; right: -14px; background: #ef4444; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">✕</button>
+<div id="float-fullscreen-overlay-${id}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(15, 23, 42, 0.85); display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s ease-in-out;">
+  <div id="float-fullscreen-card-${id}" style="position: relative; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.3s ease-in-out;">
+    <button onclick="dismissFloatFullscreen_${safeFloatFullscreenId}()" style="position: absolute; top: -14px; right: -14px; background: #ef4444; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">✕</button>
     <div id="div-gpt-ad-${id}">
       <script>
         googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
       </script>
     </div>
   </div>
-</div>`
+</div>
+
+<script>
+  (function() {
+    var overlay = document.getElementById('float-fullscreen-overlay-${id}');
+    var card = document.getElementById('float-fullscreen-card-${id}');
+    
+    window.dismissFloatFullscreen_${safeFloatFullscreenId} = function() {
+      if (overlay) {
+        overlay.style.opacity = '0';
+        if (card) card.style.transform = 'scale(0.9)';
+        setTimeout(function() {
+          overlay.remove();
+        }, 300);
+      }
+    };
+
+    if (overlay) {
+      document.body.appendChild(overlay);
+      overlay.style.display = 'flex';
+      // Force a reflow
+      overlay.offsetHeight;
+      overlay.style.opacity = '1';
+      if (card) card.style.transform = 'scale(1)';
+    }
+  })();
+</script>`
         }
 
       case 'banner':
