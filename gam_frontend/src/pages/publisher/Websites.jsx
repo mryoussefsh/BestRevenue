@@ -345,10 +345,12 @@ ${queueItems}
         const delayMsTop = delay_between_ads !== null && delay_between_ads !== undefined ? delay_between_ads * 1000 : 0;
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script src="${platformUrl}/js/br-label.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+  var slot_${safeFloatTopId};
   googletag.cmd.push(function() {
-    googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    slot_${safeFloatTopId} = googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
   });
@@ -360,10 +362,6 @@ ${queueItems}
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
     </script>
-  </div>
-  <!-- Platform Ad Label -->
-  <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 4px -10px -10px -10px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; border-bottom-left-radius: 12px !important; border-bottom-right-radius: 12px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 20px) !important;">
-    <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -399,20 +397,23 @@ ${queueItems}
           }, closeDelayMs);
         }
 
-        // Integrity checking loop for float label
-        var checkInterval = setInterval(function() {
-          var lbl = document.getElementById('br-label-${id}');
-          if (!lbl || !container) {
-            if (container) container.remove();
-            clearInterval(checkInterval);
-            return;
+        // Script removal safeguard & retry logic
+        var retries = 10;
+        var checkLabelLoaded = setInterval(function() {
+          if (typeof __br_inject_label === 'function') {
+            __br_inject_label('float-top-container-${id}', '${siteName}', '${platformUrl}', 'float-footer', '${id}', slot_${safeFloatTopId});
+            clearInterval(checkLabelLoaded);
+          } else {
+            retries--;
+            if (retries <= 0) {
+              clearInterval(checkLabelLoaded);
+              if (container) container.remove();
+              if (slot_${safeFloatTopId}) {
+                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatTopId}]); });
+              }
+            }
           }
-          var style = window.getComputedStyle(lbl);
-          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-            container.remove();
-            clearInterval(checkInterval);
-          }
-        }, 1000);
+        }, 100);
       }
     }, delayMs);
   })();
@@ -424,10 +425,12 @@ ${queueItems}
         const delayMsBottom = delay_between_ads !== null && delay_between_ads !== undefined ? delay_between_ads * 1000 : 0;
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script src="${platformUrl}/js/br-label.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+  var slot_${safeFloatBottomId};
   googletag.cmd.push(function() {
-    googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    slot_${safeFloatBottomId} = googletag.defineSlot('/${networkCode}/${adUnitName}', [[320, 50], [300, 250]], 'div-gpt-ad-${id}').addService(googletag.pubads());
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
   });
@@ -439,10 +442,6 @@ ${queueItems}
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
     </script>
-  </div>
-  <!-- Platform Ad Label -->
-  <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 4px -10px -10px -10px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 20px) !important;">
-    <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -478,20 +477,23 @@ ${queueItems}
           }, closeDelayMs);
         }
 
-        // Integrity checking loop for float label
-        var checkInterval = setInterval(function() {
-          var lbl = document.getElementById('br-label-${id}');
-          if (!lbl || !container) {
-            if (container) container.remove();
-            clearInterval(checkInterval);
-            return;
+        // Script removal safeguard & retry logic
+        var retries = 10;
+        var checkLabelLoaded = setInterval(function() {
+          if (typeof __br_inject_label === 'function') {
+            __br_inject_label('float-bottom-container-${id}', '${siteName}', '${platformUrl}', 'float-footer', '${id}', slot_${safeFloatBottomId});
+            clearInterval(checkLabelLoaded);
+          } else {
+            retries--;
+            if (retries <= 0) {
+              clearInterval(checkLabelLoaded);
+              if (container) container.remove();
+              if (slot_${safeFloatBottomId}) {
+                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatBottomId}]); });
+              }
+            }
           }
-          var style = window.getComputedStyle(lbl);
-          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-            container.remove();
-            clearInterval(checkInterval);
-          }
-        }, 1000);
+        }, 100);
       }
     }, delayMs);
   })();
@@ -504,10 +506,12 @@ ${queueItems}
         const closeDelayMsFullscreen = repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0;
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script src="${platformUrl}/js/br-label.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+  var slot_${safeFloatFullscreenId};
   googletag.cmd.push(function() {
-    googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [336, 280]], 'div-gpt-ad-${id}').addService(googletag.pubads());
+    slot_${safeFloatFullscreenId} = googletag.defineSlot('/${networkCode}/${adUnitName}', [[300, 250], [336, 280]], 'div-gpt-ad-${id}').addService(googletag.pubads());
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
   });
@@ -520,10 +524,6 @@ ${queueItems}
       <script>
         googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
       </script>
-    </div>
-    <!-- Platform Ad Label -->
-    <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 6px -12px -12px -12px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; border-bottom-left-radius: 12px !important; border-bottom-right-radius: 12px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 24px) !important;">
-      <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
     </div>
   </div>
 </div>
@@ -562,20 +562,23 @@ ${queueItems}
           }, closeDelayMs);
         }
 
-        // Integrity checking loop for float label
-        var checkInterval = setInterval(function() {
-          var lbl = document.getElementById('br-label-${id}');
-          if (!lbl || !overlay) {
-            if (overlay) overlay.remove();
-            clearInterval(checkInterval);
-            return;
+        // Script removal safeguard & retry logic
+        var retries = 10;
+        var checkLabelLoaded = setInterval(function() {
+          if (typeof __br_inject_label === 'function') {
+            __br_inject_label('float-fullscreen-card-${id}', '${siteName}', '${platformUrl}', 'float-fullscreen-footer', '${id}', slot_${safeFloatFullscreenId});
+            clearInterval(checkLabelLoaded);
+          } else {
+            retries--;
+            if (retries <= 0) {
+              clearInterval(checkLabelLoaded);
+              if (overlay) overlay.remove();
+              if (slot_${safeFloatFullscreenId}) {
+                googletag.cmd.push(function() { googletag.destroySlots([slot_${safeFloatFullscreenId}]); });
+              }
+            }
           }
-          var style = window.getComputedStyle(lbl);
-          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-            overlay.remove();
-            clearInterval(checkInterval);
-          }
-        }, 1000);
+        }, 100);
       }
     }, delayMs);
   })();

@@ -28,22 +28,19 @@ window.__br_inject_label = window.__br_inject_label || function(containerId, sit
   } else if (styleType === 'after' && container) {
     label.style.setProperty('border-top', '1px solid #cbd5e1', 'important');
     container.appendChild(label);
-  } else if (styleType === 'fixed-bottom' || styleType === 'fixed-top') {
-    label.style.position = 'fixed';
-    label.style.right = '10px';
-    label.style.zIndex = '2147483647';
-    label.style.background = 'rgba(255, 255, 255, 0.9)';
-    label.style.padding = '3px 8px';
-    label.style.borderRadius = '4px';
-    label.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-    label.style.border = '1px solid #cbd5e1';
-    label.style.width = 'auto';
-    if (styleType === 'fixed-bottom') {
-      label.style.bottom = '55px';
-    } else {
-      label.style.top = '55px';
-    }
-    document.body.appendChild(label);
+  } else if (styleType === 'float-footer' && container) {
+    label.style.setProperty('margin', '4px -10px -10px -10px', 'important');
+    label.style.setProperty('width', 'calc(100% + 20px)', 'important');
+    label.style.setProperty('border-top', '1px solid #cbd5e1', 'important');
+    label.style.setProperty('border-bottom-left-radius', '12px', 'important');
+    label.style.setProperty('border-bottom-right-radius', '12px', 'important');
+    container.appendChild(label);
+  } else if (styleType === 'float-fullscreen-footer' && container) {
+    label.style.setProperty('margin', '6px -12px -12px -12px', 'important');
+    label.style.setProperty('width', 'calc(100% + 24px)', 'important');
+    label.style.setProperty('border-top', '1px solid #cbd5e1', 'important');
+    label.style.setProperty('border-bottom-left-radius', '12px', 'important');
+    label.style.setProperty('border-bottom-right-radius', '12px', 'important');
   }
 
   var checkInterval = setInterval(function() {
@@ -51,27 +48,19 @@ window.__br_inject_label = window.__br_inject_label || function(containerId, sit
     if (containerId) {
       var cont = document.getElementById(containerId);
       if (!lbl || !cont) {
-        if (cont) cont.style.display = 'none';
+        if (cont) {
+          if (typeof cont.remove === 'function') cont.remove();
+          else cont.style.display = 'none';
+        }
         if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
         clearInterval(checkInterval);
         return;
       }
       var style = window.getComputedStyle(lbl);
       if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-        cont.style.display = 'none';
+        if (typeof cont.remove === 'function') cont.remove();
+        else cont.style.display = 'none';
         if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
-        clearInterval(checkInterval);
-      }
-    } else {
-      if (!lbl) {
-        if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
-        clearInterval(checkInterval);
-        return;
-      }
-      var style = window.getComputedStyle(lbl);
-      if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-        if (slotToDestroy) window.googletag.cmd.push(function() { window.googletag.destroySlots([slotToDestroy]); });
-        lbl.remove();
         clearInterval(checkInterval);
       }
     }
