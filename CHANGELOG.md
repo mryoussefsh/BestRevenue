@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.7] - 2026-06-10
+
+### Added
+- **Ad Unit Type Settings**: Implemented settings for `repeat_count` and `delay_between_ads` in ad unit forms and bulk generator templates for rewarded ad types.
+- **Custom Anchor Positioning**: Added customizable `top` and `bottom` position settings for anchor ad units in admin modals and bulk generator, dynamically compiling clean final code output.
+- **GAM Collision Prevention**: Query Google Ad Manager `InventoryService` with `LIKE` wildcard search before auto-generating round names, ensuring unique names across database and GAM.
+- **Ad Unit Name Suffixes**: Appended descriptive suffixes (e.g. `_Banner`, `_Reward_Normal`, `_Reward_Repeated`, `_Interstitial`, `_Anchor_Top`, `_Anchor_Bottom`, etc.) to bulk generated ad unit names and previews.
+- **Dynamic Interstitial Code**: Upgraded the interstitial ad tag templates to dynamically set the `page_url` using the website domain and call `googletag.display()`.
+
 ## [1.3.6] - 2026-06-10
 
 ### Added

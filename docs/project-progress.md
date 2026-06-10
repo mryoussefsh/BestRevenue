@@ -103,6 +103,10 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Added `ads.txt` content management to Google Ad Manager (GAM) accounts in the admin dashboard, allowing publishers to view and copy the configured ads.txt entries from their "My Websites" dashboard view via a modal clipboard-copy dialog.
 - [x] Removed the internal "GAM Path" column from the ad units breakdown table on the publisher websites portal page for a cleaner UI layout.
 - [x] Integrated a "Get Code" button inside the publisher websites ad units table that displays a dynamic GPT tag generator modal containing copy-pasteable Header and Body scripts with clipboard copy shortcuts.
+- [x] Extended ad unit type options (Banner, Reward, Interstitial, Anchor, Float Top, Float Bottom, Float Full Screen) and reward subtypes (Normal / Repeated) in creation, edit, and bulk generator workflows.
+- [x] Implemented dynamic script generator configurations in the publisher's "Get Code" modal, supporting customizable delay, repeat count settings, dynamic page URL metadata, and specific layouts.
+- [x] Resolved Google Ad Manager collision errors by querying InventoryService dynamically before bulk auto-generating new round names, appending ad type/subtype suffixes to names.
+- [x] Integrated customizable Top and Bottom Anchor ad unit position choices selected at creation time, yielding clean ready-to-use publisher tag codes.
 
 ---
 
