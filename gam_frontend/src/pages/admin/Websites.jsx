@@ -158,8 +158,8 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
         ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
         ad_type: form.ad_type,
         ad_subtype: form.ad_type === 'reward' ? form.ad_subtype || 'normal' : (form.ad_type === 'anchor' ? form.ad_subtype || 'top' : null),
-        repeat_count: (form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' ? parseInt(form.repeat_count) : null,
-        delay_between_ads: (form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') ? parseInt(form.delay_between_ads) : null,
+        repeat_count: (form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen' ? parseInt(form.repeat_count) : null,
+        delay_between_ads: (form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') ? parseInt(form.delay_between_ads) : null,
       }
       if (isEdit) await adminApi.updateAdUnit(adUnit.id, payload)
       else         await adminApi.createAdUnit(payload)
@@ -258,9 +258,9 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
               </div>
             ) : <div className="form-group" />}
           </div>
-          {(form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && (
+          {(form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') && (
             <div className="form-row">
-              {((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && (
+              {((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') && (
                 <div className="form-group">
                   <label className="form-label">
                     {form.ad_type === 'reward' ? 'Repeat Count *' : 'Close Button Delay (Seconds) *'}
@@ -290,7 +290,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                   required
                 />
               </div>
-              {!((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && <div className="form-group" />}
+              {!((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') && <div className="form-group" />}
             </div>
           )}
           <div className="modal-footer">

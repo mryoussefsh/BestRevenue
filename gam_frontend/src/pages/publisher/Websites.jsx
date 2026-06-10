@@ -456,6 +456,8 @@ ${queueItems}
 
       case 'float_fullscreen':
         const safeFloatFullscreenId = id.replace(/-/g, '_');
+        const delayMsFullscreen = delay_between_ads !== null && delay_between_ads !== undefined ? delay_between_ads * 1000 : 0;
+        const closeDelayMsFullscreen = repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0;
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
@@ -469,7 +471,7 @@ ${queueItems}
           body: `<!-- Fullscreen Overlay Wrapper with Close Button -->
 <div id="float-fullscreen-overlay-${id}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(15, 23, 42, 0.85); display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s ease-in-out;">
   <div id="float-fullscreen-card-${id}" style="position: relative; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.3s ease-in-out;">
-    <button onclick="dismissFloatFullscreen_${safeFloatFullscreenId}()" style="position: absolute; top: -14px; right: -14px; background: #ef4444; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">✕</button>
+    <button id="float-fullscreen-close-${id}" onclick="dismissFloatFullscreen_${safeFloatFullscreenId}()" style="position: absolute; top: -14px; right: -14px; background: #ef4444; color: #ffffff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; display: none; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">✕</button>
     <div id="div-gpt-ad-${id}">
       <script>
         googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
@@ -480,6 +482,8 @@ ${queueItems}
 
 <script>
   (function() {
+    var delayMs = ${delayMsFullscreen};
+    var closeDelayMs = ${closeDelayMsFullscreen};
     var overlay = document.getElementById('float-fullscreen-overlay-${id}');
     var card = document.getElementById('float-fullscreen-card-${id}');
     
@@ -493,14 +497,24 @@ ${queueItems}
       }
     };
 
-    if (overlay) {
-      document.body.appendChild(overlay);
-      overlay.style.display = 'flex';
-      // Force a reflow
-      overlay.offsetHeight;
-      overlay.style.opacity = '1';
-      if (card) card.style.transform = 'scale(1)';
-    }
+    setTimeout(function() {
+      if (overlay) {
+        document.body.appendChild(overlay);
+        overlay.style.display = 'flex';
+        // Force a reflow
+        overlay.offsetHeight;
+        overlay.style.opacity = '1';
+        if (card) card.style.transform = 'scale(1)';
+
+        // Show close button after its own delay
+        var closeBtn = document.getElementById('float-fullscreen-close-${id}');
+        if (closeBtn) {
+          setTimeout(function() {
+            closeBtn.style.display = 'flex';
+          }, closeDelayMs);
+        }
+      }
+    }, delayMs);
   })();
 </script>`
         }
