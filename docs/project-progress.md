@@ -122,6 +122,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Created backend contact form submission controller and public POST route (`/public/contact`) with built-in rate-limiting.
 - [x] Created public Support Hub page (`SupportPage.jsx`/`SupportPage.css`) containing direct links to Telegram/WhatsApp/Email channels and a validation contact form.
 - [x] Integrated Support page navigation links across all public page headers and footers.
+- [x] Implemented dynamic runtime mailer purging in MailConfigService to ensure SMTP settings saved in the admin settings dashboard take effect immediately.
 
 ---
 
