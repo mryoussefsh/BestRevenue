@@ -34,5 +34,10 @@ class MailConfigService
         config(['mail.mailers.smtp.encryption' => $encryption]);
         config(['mail.from.address' => $fromAddr]);
         config(['mail.from.name'    => $fromName]);
+
+        // Purge resolved mailer instances to force Laravel to rebuild them with new configs
+        \Illuminate\Support\Facades\Mail::purge();
+        \Illuminate\Support\Facades\Mail::purge($mailer);
+        \Illuminate\Support\Facades\Mail::purge('smtp');
     }
 }
