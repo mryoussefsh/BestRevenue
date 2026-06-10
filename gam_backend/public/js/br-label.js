@@ -20,6 +20,16 @@
           .then(function(r) { return r.json(); })
           .then(function(data) {
             window.__br_platform_settings = data;
+            // Update any existing labels already injected with the fallback site name
+            if (data && data.site_name) {
+              var labels = document.querySelectorAll('[id^="br-label-"]');
+              for (var i = 0; i < labels.length; i++) {
+                var link = labels[i].querySelector('a');
+                if (link) {
+                  link.textContent = 'Ads by ' + data.site_name;
+                }
+              }
+            }
           })
           .catch(function() {});
       }
