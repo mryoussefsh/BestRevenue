@@ -3,11 +3,21 @@ window.__br_inject_label = window.__br_inject_label || function(containerId, sit
   var labelId = 'br-label-' + (containerId || uniqueId);
   if (document.getElementById(labelId)) return;
 
+  var adWidth = 0;
+  if (container) {
+    adWidth = container.getBoundingClientRect().width || container.offsetWidth;
+  }
+
   var label = document.createElement('div');
   label.id = labelId;
   
   var stickyWrapper = document.createElement('div');
-  stickyWrapper.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; box-sizing: border-box !important; position: -webkit-sticky !important; position: sticky !important; left: 0 !important; width: 100vw !important; max-width: 100% !important;';
+  
+  // Calculate a safe width for the sticky wrapper to prevent stretching parent flex layouts
+  var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 360;
+  var targetWidth = adWidth ? Math.min(viewportWidth, adWidth) : viewportWidth;
+
+  stickyWrapper.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; box-sizing: border-box !important; position: -webkit-sticky !important; position: sticky !important; left: 0 !important; width: ' + targetWidth + 'px !important; max-width: 100% !important;';
 
   var link = document.createElement('a');
   link.href = siteUrl;
@@ -24,9 +34,8 @@ window.__br_inject_label = window.__br_inject_label || function(containerId, sit
   label.appendChild(stickyWrapper);
 
   if (styleType === 'before' && container) {
-    var width = container.getBoundingClientRect().width || container.offsetWidth;
-    if (width) {
-      label.style.setProperty('width', width + 'px', 'important');
+    if (adWidth) {
+      label.style.setProperty('width', adWidth + 'px', 'important');
     }
     label.style.setProperty('max-width', '100%', 'important');
     label.style.setProperty('margin', '0 auto 4px auto', 'important');
