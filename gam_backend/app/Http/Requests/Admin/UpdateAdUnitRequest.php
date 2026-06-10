@@ -20,7 +20,9 @@ class UpdateAdUnitRequest extends FormRequest
             'ratio_override'   => 'nullable|numeric|min:0.01|max:1', // FIX-26: 0% share not allowed
             'is_active'        => 'boolean',
             'ad_type'          => 'sometimes|required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
-            'ad_subtype'       => 'sometimes|nullable|string|in:normal,repeated',
+            'ad_subtype'       => 'sometimes|nullable|string|in:normal,repeated,top,bottom',
+            'repeat_count'     => 'sometimes|nullable|integer|min:1|max:100',
+            'delay_between_ads'=> 'sometimes|nullable|integer|min:1|max:3600',
         ];
     }
 }

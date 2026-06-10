@@ -23,13 +23,17 @@ class AdUnit extends Model
         'is_active',
         'ad_type',
         'ad_subtype',
+        'repeat_count',
+        'delay_between_ads',
     ];
 
     protected function casts(): array
     {
         return [
-            'ratio_override' => 'decimal:4',
-            'is_active'      => 'boolean',
+            'ratio_override'    => 'decimal:4',
+            'is_active'         => 'boolean',
+            'repeat_count'      => 'integer',
+            'delay_between_ads' => 'integer',
         ];
     }
 

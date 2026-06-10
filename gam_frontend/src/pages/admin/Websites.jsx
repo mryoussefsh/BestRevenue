@@ -141,6 +141,8 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
     is_active: adUnit?.is_active !== false,
     ad_type: adUnit?.ad_type || 'banner',
     ad_subtype: adUnit?.ad_subtype || '',
+    repeat_count: adUnit?.repeat_count !== undefined && adUnit?.repeat_count !== null ? String(adUnit.repeat_count) : '2',
+    delay_between_ads: adUnit?.delay_between_ads !== undefined && adUnit?.delay_between_ads !== null ? String(adUnit.delay_between_ads) : '20',
   })
   const [saving, setSaving] = useState(false)
 
@@ -155,7 +157,9 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
         is_active: form.is_active,
         ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
         ad_type: form.ad_type,
-        ad_subtype: form.ad_type === 'reward' ? form.ad_subtype || 'normal' : null,
+        ad_subtype: form.ad_type === 'reward' ? form.ad_subtype || 'normal' : (form.ad_type === 'anchor' ? form.ad_subtype || 'top' : null),
+        repeat_count: form.ad_type === 'reward' && form.ad_subtype === 'repeated' ? parseInt(form.repeat_count) : null,
+        delay_between_ads: form.ad_type === 'reward' ? parseInt(form.delay_between_ads) : null,
       }
       if (isEdit) await adminApi.updateAdUnit(adUnit.id, payload)
       else         await adminApi.createAdUnit(payload)
@@ -213,7 +217,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                 onChange={e => setForm(f => ({
                   ...f,
                   ad_type: e.target.value,
-                  ad_subtype: e.target.value === 'reward' ? 'normal' : ''
+                  ad_subtype: e.target.value === 'reward' ? 'normal' : (e.target.value === 'anchor' ? 'top' : '')
                 }))}
                 required
               >
@@ -239,8 +243,52 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                   <option value="repeated">Repeated</option>
                 </select>
               </div>
+            ) : form.ad_type === 'anchor' ? (
+              <div className="form-group">
+                <label className="form-label">Anchor Position *</label>
+                <select
+                  className="form-select"
+                  value={form.ad_subtype || 'top'}
+                  onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
+                  required
+                >
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+              </div>
             ) : <div className="form-group" />}
           </div>
+          {form.ad_type === 'reward' && (
+            <div className="form-row">
+              {form.ad_subtype === 'repeated' && (
+                <div className="form-group">
+                  <label className="form-label">Repeat Count *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={form.repeat_count}
+                    onChange={e => setForm(f => ({ ...f, repeat_count: e.target.value }))}
+                    required
+                  />
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Delay Between Ads (Seconds) *</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  min="1"
+                  max="3600"
+                  value={form.delay_between_ads}
+                  onChange={e => setForm(f => ({ ...f, delay_between_ads: e.target.value }))}
+                  required
+                />
+              </div>
+              {form.ad_subtype !== 'repeated' && <div className="form-group" />}
+            </div>
+          )}
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>

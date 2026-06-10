@@ -261,6 +261,38 @@ class GamApiService
     }
 
     /**
+     * Get all active/archived ad unit names matching a prefix in Google Ad Manager.
+     */
+    public function getAdUnitNamesByPrefix(GamAccount $account, string $prefix): array
+    {
+        try {
+            [$session, $adManagerServices] = $this->buildSession($account);
+            $inventoryService = $adManagerServices->get($session, InventoryService::class);
+
+            $statementBuilder = (new StatementBuilder())
+                ->where("name LIKE :prefix")
+                ->withBindVariableValue('prefix', new \Google\AdsApi\AdManager\v202605\TextValue($prefix . '%'));
+
+            $names = [];
+
+            do {
+                $page = $inventoryService->getAdUnitsByStatement($statementBuilder->toStatement());
+                if ($page && $page->getResults()) {
+                    foreach ($page->getResults() as $adUnit) {
+                        $names[] = $adUnit->getName();
+                    }
+                }
+                $statementBuilder->increaseOffsetBy(500);
+            } while ($page && count($page->getResults()) === 500);
+
+            return $names;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to fetch ad units by prefix {$prefix} from GAM: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Create a new Ad Unit in Google Ad Manager
      * 
      * @param GamAccount $account

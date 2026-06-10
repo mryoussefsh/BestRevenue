@@ -185,6 +185,8 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
     ratio_override: '',
     ad_type: 'banner',
     ad_subtype: '',
+    repeat_count: '2',
+    delay_between_ads: '20',
   })
   const [saving, setSaving] = useState(false)
 
@@ -212,8 +214,36 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
   function buildPreviewNames() {
     if (!selectedWebsite || form.count < 1) return []
     const slug = buildSlug(selectedWebsite.domain)
+    
+    let suffix = ''
+    switch (form.ad_type) {
+      case 'banner':
+        suffix = '_Banner'
+        break
+      case 'reward':
+        const subtype = form.ad_subtype || 'normal'
+        suffix = subtype === 'repeated' ? '_Reward_Repeated' : '_Reward_Normal'
+        break
+      case 'interstitial':
+        suffix = '_Interstitial'
+        break
+      case 'anchor':
+        const anchorSub = form.ad_subtype || 'top'
+        suffix = anchorSub === 'bottom' ? '_Anchor_Bottom' : '_Anchor_Top'
+        break
+      case 'float_top':
+        suffix = '_Float_Top'
+        break
+      case 'float_bottom':
+        suffix = '_Float_Bottom'
+        break
+      case 'float_fullscreen':
+        suffix = '_Float_Full_Screen'
+        break
+    }
+
     return Array.from({ length: Math.min(form.count, 20) }, (_, i) =>
-      `${slug}_r?_${String(i + 1).padStart(2, '0')}`
+      `${slug}_r?_${String(i + 1).padStart(2, '0')}${suffix}`
     )
   }
 
@@ -260,7 +290,9 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
         sizes:          form.sizes,
         ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
         ad_type:        form.ad_type,
-        ad_subtype:     form.ad_type === 'reward' ? form.ad_subtype || 'normal' : null,
+        ad_subtype:     form.ad_type === 'reward' ? form.ad_subtype || 'normal' : (form.ad_type === 'anchor' ? form.ad_subtype || 'top' : null),
+        repeat_count:   form.ad_type === 'reward' && form.ad_subtype === 'repeated' ? parseInt(form.repeat_count) : null,
+        delay_between_ads: form.ad_type === 'reward' ? parseInt(form.delay_between_ads) : null,
       }
       const res = await adminApi.bulkCreateAdUnits(payload)
       toast.success(res.data?.message || 'Ad units created!')
@@ -312,7 +344,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                 onChange={e => setForm(f => ({
                   ...f,
                   ad_type: e.target.value,
-                  ad_subtype: e.target.value === 'reward' ? 'normal' : ''
+                  ad_subtype: e.target.value === 'reward' ? 'normal' : (e.target.value === 'anchor' ? 'top' : '')
                 }))}
                 required
               >
@@ -338,8 +370,54 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                   <option value="repeated">Repeated</option>
                 </select>
               </div>
+            ) : form.ad_type === 'anchor' ? (
+              <div className="form-group">
+                <label className="form-label">Anchor Position *</label>
+                <select
+                  className="form-select"
+                  value={form.ad_subtype}
+                  onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
+                  required
+                >
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+              </div>
             ) : <div />}
           </div>
+
+          {/* Reward Specific Fields */}
+          {form.ad_type === 'reward' && (
+            <div className="form-row" style={{ marginBottom: 16 }}>
+              {form.ad_subtype === 'repeated' && (
+                <div className="form-group">
+                  <label className="form-label">Repeat Count *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={form.repeat_count}
+                    onChange={e => setForm(f => ({ ...f, repeat_count: e.target.value }))}
+                    required
+                  />
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Delay Between Ads (Seconds) *</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  min="1"
+                  max="3600"
+                  value={form.delay_between_ads}
+                  onChange={e => setForm(f => ({ ...f, delay_between_ads: e.target.value }))}
+                  required
+                />
+              </div>
+              {form.ad_subtype !== 'repeated' && <div className="form-group" />}
+            </div>
+          )}
 
           {/* Sizes */}
           <div className="form-group">

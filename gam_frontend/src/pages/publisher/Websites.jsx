@@ -31,6 +31,8 @@ function groupAdUnits(units) {
           is_active: unit.is_active,
           ad_type: unit.ad_type,
           ad_subtype: unit.ad_subtype,
+          repeat_count: unit.repeat_count,
+          delay_between_ads: unit.delay_between_ads,
           children: []
         };
       }
@@ -68,7 +70,7 @@ export default function PublisherWebsites() {
 
   const getAdUnitScripts = (unit, allUnits = []) => {
     if (!unit) return { head: '', body: '' }
-    const { networkCode, adUnitName, id, adType, adSubtype, children = [] } = unit
+    const { networkCode, adUnitName, id, adType, adSubtype, children = [], repeat_count, delay_between_ads, domain } = unit
 
     switch (adType) {
       case 'reward':
@@ -76,7 +78,8 @@ export default function PublisherWebsites() {
         const actualAdUnitName = finalRewards[0].gam_ad_unit_name;
 
         if (adSubtype === 'repeated') {
-          const repeatCount = finalRewards.length;
+          const repeatCount = repeat_count !== null && repeat_count !== undefined ? repeat_count : finalRewards.length;
+          const delayMs = delay_between_ads !== null && delay_between_ads !== undefined ? delay_between_ads * 1000 : 15000;
 
           return {
             head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
@@ -161,7 +164,7 @@ export default function PublisherWebsites() {
   // ====== Settings ======
   var adUnitPath = '/${networkCode}/${actualAdUnitName}'; // Path to the ad unit
   var repeatCount = ${repeatCount};              // Number of repetitions
-  var delayBetweenAds = 15000;      // Time between ads (ms)
+  var delayBetweenAds = ${delayMs};      // Time between ads (ms)
   // =======================
 
   for (var i = 0; i < repeatCount; i++) {
@@ -178,6 +181,8 @@ export default function PublisherWebsites() {
           const queueItems = finalRewards.map((u, i) => {
             return `    { path: '/${networkCode}/${u.gam_ad_unit_name}', id: 'reward_${i + 1}' }`;
           }).join(',\n');
+
+          const delayMs = delay_between_ads !== null && delay_between_ads !== undefined ? delay_between_ads * 1000 : 20000;
 
           return {
             head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
@@ -263,7 +268,7 @@ export default function PublisherWebsites() {
   var adQueue = [
 ${queueItems}
   ];
-  var delayBetweenAds = 20000; // Time between ads (ms)
+  var delayBetweenAds = ${delayMs}; // Time between ads (ms)
   // =======================
 
   adQueue.forEach(function (ad, index) {
@@ -277,34 +282,53 @@ ${queueItems}
         }
 
       case 'interstitial':
+        const safeInterstitialId = id.replace(/-/g, '_');
+        const siteUrl = domain ? `https://${domain}` : 'https://example.com';
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+
+  var interstitialSlot_${safeInterstitialId};
   googletag.cmd.push(function() {
-    var interstitialSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.INTERSTITIAL);
-    if (interstitialSlot) {
-      interstitialSlot.addService(googletag.pubads());
+    interstitialSlot_${safeInterstitialId} = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}',
+        googletag.enums.OutOfPageFormat.INTERSTITIAL);
+    if (interstitialSlot_${safeInterstitialId}) {
+      interstitialSlot_${safeInterstitialId}.addService(googletag.pubads());
     }
     googletag.pubads().enableSingleRequest();
+    googletag.pubads().set('page_url', '${siteUrl}');
     googletag.enableServices();
+    googletag.display(interstitialSlot_${safeInterstitialId});
   });
 </script>`,
           body: ''
         }
 
       case 'anchor':
+        const safeAnchorId = id.replace(/-/g, '_');
+        const formatString = adSubtype === 'bottom'
+          ? 'googletag.enums.OutOfPageFormat.BOTTOM_ANCHOR'
+          : 'googletag.enums.OutOfPageFormat.TOP_ANCHOR';
+
         return {
           head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
   window.googletag = window.googletag || {cmd: []};
+
+  // GPT ad slots
+  var anchorSlot_${safeAnchorId};
+
   googletag.cmd.push(function() {
-    var anchorSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.BOTTOM_ANCHOR);
-    if (anchorSlot) {
-      anchorSlot.addService(googletag.pubads());
+    anchorSlot_${safeAnchorId} = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', ${formatString});
+    if (anchorSlot_${safeAnchorId}) {
+      anchorSlot_${safeAnchorId}.addService(googletag.pubads());
     }
+
+    // Enable SRA and services.
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
+    googletag.display(anchorSlot_${safeAnchorId});
   });
 </script>`,
           body: ''
@@ -512,7 +536,10 @@ ${queueItems}
                                       adType: a.ad_type || 'banner',
                                       adSubtype: a.ad_subtype || '',
                                       websiteId: w.id,
-                                      children: a.children
+                                      domain: w.domain,
+                                      children: a.children,
+                                      repeat_count: a.repeat_count,
+                                      delay_between_ads: a.delay_between_ads
                                     })}
                                   >
                                     🏷️ Get Code

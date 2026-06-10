@@ -18,6 +18,8 @@ class AdUnitResource extends JsonResource
             'is_active'        => $this->is_active,
             'ad_type'          => $this->ad_type,
             'ad_subtype'       => $this->ad_subtype,
+            'repeat_count'     => $this->repeat_count,
+            'delay_between_ads'=> $this->delay_between_ads,
             'created_at'       => $this->created_at,
             'updated_at'       => $this->updated_at,
             'website'          => $this->whenLoaded('website', function () {

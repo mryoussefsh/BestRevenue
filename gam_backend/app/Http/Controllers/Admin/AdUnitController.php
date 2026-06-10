@@ -65,7 +65,9 @@ class AdUnitController extends Controller
             'sizes.*'          => 'string',
             'ratio_override'   => 'nullable|numeric|min:0.01|max:1', // FIX-26-b: 0% share not allowed
             'ad_type'          => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
-            'ad_subtype'       => 'nullable|string|in:normal,repeated',
+            'ad_subtype'       => 'nullable|string|in:normal,repeated,top,bottom',
+            'repeat_count'     => 'nullable|integer|min:1|max:100',
+            'delay_between_ads'=> 'nullable|integer|min:1|max:3600',
         ]);
 
         DB::beginTransaction();
@@ -90,6 +92,8 @@ class AdUnitController extends Controller
                 'is_active'        => true,
                 'ad_type'          => $data['ad_type'],
                 'ad_subtype'       => $data['ad_subtype'] ?? null,
+                'repeat_count'     => $data['repeat_count'] ?? null,
+                'delay_between_ads'=> $data['delay_between_ads'] ?? null,
             ]);
 
             if (isset($data['ratio_override'])) {
@@ -135,7 +139,9 @@ class AdUnitController extends Controller
             'sizes.*'        => 'string',
             'ratio_override' => 'nullable|numeric|min:0.01|max:1', // FIX-26-b: 0% share not allowed
             'ad_type'        => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
-            'ad_subtype'     => 'nullable|string|in:normal,repeated',
+            'ad_subtype'     => 'nullable|string|in:normal,repeated,top,bottom',
+            'repeat_count'     => 'nullable|integer|min:1|max:100',
+            'delay_between_ads'=> 'nullable|integer|min:1|max:3600',
         ]);
 
         $website = Website::with('gamAccount')->findOrFail($data['website_id']);
@@ -146,10 +152,14 @@ class AdUnitController extends Controller
         // Build domain slug: dots and dashes → underscores, lowercase
         $slug = strtolower(preg_replace('/[\.\-]+/', '_', $website->domain));
 
-        // Find the highest existing round number for this domain slug across ALL ad units
-        $existingNames = AdUnit::where('gam_ad_unit_name', 'like', "{$slug}_r%")
+        // Find the highest existing round number for this domain slug across database and Google Ad Manager
+        $dbNames = AdUnit::where('gam_ad_unit_name', 'like', "{$slug}_r%")
             ->pluck('gam_ad_unit_name')
             ->toArray();
+
+        $gamNames = $gamApi->getAdUnitNamesByPrefix($website->gamAccount, "{$slug}_r");
+
+        $existingNames = array_unique(array_merge($dbNames, $gamNames));
 
         $maxRound = 0;
         foreach ($existingNames as $name) {
@@ -161,10 +171,36 @@ class AdUnitController extends Controller
 
         $nextRound = $maxRound + 1;
 
+        $suffix = '';
+        switch ($data['ad_type']) {
+            case 'banner':
+                $suffix = '_Banner';
+                break;
+            case 'reward':
+                $subtype = $data['ad_subtype'] ?? 'normal';
+                $suffix = $subtype === 'repeated' ? '_Reward_Repeated' : '_Reward_Normal';
+                break;
+            case 'interstitial':
+                $suffix = '_Interstitial';
+                break;
+            case 'anchor':
+                $suffix = '_Anchor';
+                break;
+            case 'float_top':
+                $suffix = '_Float_Top';
+                break;
+            case 'float_bottom':
+                $suffix = '_Float_Bottom';
+                break;
+            case 'float_fullscreen':
+                $suffix = '_Float_Full_Screen';
+                break;
+        }
+
         // Generate new names for this round
         $newNames = [];
         for ($i = 1; $i <= $data['count']; $i++) {
-            $newNames[] = sprintf('%s_r%d_%02d', $slug, $nextRound, $i);
+            $newNames[] = sprintf('%s_r%d_%02d%s', $slug, $nextRound, $i, $suffix);
         }
 
         // Platform-wide uniqueness check before touching GAM
@@ -192,6 +228,8 @@ class AdUnitController extends Controller
                     'is_active'        => true,
                     'ad_type'          => $data['ad_type'],
                     'ad_subtype'       => $data['ad_subtype'] ?? null,
+                    'repeat_count'     => $data['repeat_count'] ?? null,
+                    'delay_between_ads'=> $data['delay_between_ads'] ?? null,
                 ]);
 
                 if (isset($data['ratio_override'])) {
@@ -249,6 +287,8 @@ class AdUnitController extends Controller
                 'is_active'        => $data['is_active'] ?? true,
                 'ad_type'          => $data['ad_type'] ?? 'banner',
                 'ad_subtype'       => $data['ad_subtype'] ?? null,
+                'repeat_count'     => $data['repeat_count'] ?? null,
+                'delay_between_ads'=> $data['delay_between_ads'] ?? null,
             ]);
 
             if (isset($data['ratio_override'])) {
@@ -311,6 +351,8 @@ class AdUnitController extends Controller
                 'is_active'        => $data['is_active'] ?? $adUnit->is_active,
                 'ad_type'          => $data['ad_type'] ?? $adUnit->ad_type,
                 'ad_subtype'       => array_key_exists('ad_subtype', $data) ? $data['ad_subtype'] : $adUnit->ad_subtype,
+                'repeat_count'     => array_key_exists('repeat_count', $data) ? $data['repeat_count'] : $adUnit->repeat_count,
+                'delay_between_ads'=> array_key_exists('delay_between_ads', $data) ? $data['delay_between_ads'] : $adUnit->delay_between_ads,
             ]);
 
             if (array_key_exists('ratio_override', $data) && $oldRatio != $data['ratio_override']) {

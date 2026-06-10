@@ -59,6 +59,8 @@ class PublisherWebsiteController extends Controller
                     'is_active'        => $adUnit->is_active,
                     'ad_type'          => $adUnit->ad_type,
                     'ad_subtype'       => $adUnit->ad_subtype,
+                    'repeat_count'     => $adUnit->repeat_count,
+                    'delay_between_ads'=> $adUnit->delay_between_ads,
                 ];
             })
         ]);
