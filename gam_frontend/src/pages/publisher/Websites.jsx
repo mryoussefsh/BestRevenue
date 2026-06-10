@@ -601,9 +601,21 @@ ${queueItems}
   googletag.cmd.push(function() {
     googletag.pubads().addEventListener('slotRenderEnded', function(event) {
       if (event.slot === slot_${safeBannerId} && !event.isEmpty) {
-        if (typeof __br_inject_label === 'function') {
-          __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'before', '${id}', slot_${safeBannerId});
-        }
+        var retries = 10;
+        var checkLabelLoaded = setInterval(function() {
+          if (typeof __br_inject_label === 'function') {
+            __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'before', '${id}', slot_${safeBannerId});
+            clearInterval(checkLabelLoaded);
+          } else {
+            retries--;
+            if (retries <= 0) {
+              clearInterval(checkLabelLoaded);
+              var container = document.getElementById('div-gpt-ad-${id}');
+              if (container) container.style.display = 'none';
+              googletag.destroySlots([slot_${safeBannerId}]);
+            }
+          }
+        }, 100);
       }
     });
   });
