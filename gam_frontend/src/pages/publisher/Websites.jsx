@@ -89,7 +89,7 @@ export default function PublisherWebsites() {
     link.target = '_blank';
     link.textContent = 'Ads by ' + siteName;
     
-    label.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 0 !important; background: #f1f5f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; clear: both !important; box-sizing: border-box !important; width: 100% !important;';
+    label.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 0 !important; background: #f1f5f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; clear: both !important; box-sizing: border-box !important; width: 100% !important; max-width: 100% !important;';
     link.style.cssText = 'color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;';
     
     link.onmouseover = function() { this.style.color = '#3b82f6'; };
@@ -97,7 +97,16 @@ export default function PublisherWebsites() {
     label.appendChild(link);
 
     if (styleType === 'before' && container) {
-      label.style.setProperty('border-bottom', '1px solid #cbd5e1', 'important');
+      var width = container.getBoundingClientRect().width || container.offsetWidth;
+      if (width) {
+        label.style.setProperty('width', width + 'px', 'important');
+      }
+      label.style.setProperty('max-width', '100%', 'important');
+      label.style.setProperty('margin', '0 auto 4px auto', 'important');
+      label.style.setProperty('border', '1px solid #cbd5e1', 'important');
+      label.style.setProperty('border-bottom', 'none', 'important');
+      label.style.setProperty('border-top-left-radius', '6px', 'important');
+      label.style.setProperty('border-top-right-radius', '6px', 'important');
       container.parentNode.insertBefore(label, container);
     } else if (styleType === 'after' && container) {
       label.style.setProperty('border-top', '1px solid #cbd5e1', 'important');
