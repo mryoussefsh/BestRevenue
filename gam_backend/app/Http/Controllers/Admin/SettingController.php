@@ -85,6 +85,10 @@ class SettingController extends Controller
             $request->validate(['value' => 'required|numeric|min:1|max:100']);
         }
 
+        if ($key === 'ad_type_preselected_sizes') {
+            $request->validate(['value' => 'required|array']);
+        }
+
         if ($key === 'mail_mailer') {
             $request->validate(['value' => 'required|in:smtp,log']);
         }
@@ -177,6 +181,7 @@ class SettingController extends Controller
             'publisher_pending_message',
             'payment_methods',
             'platform_timezone',
+            'ad_type_preselected_sizes',
         ];
 
         $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {

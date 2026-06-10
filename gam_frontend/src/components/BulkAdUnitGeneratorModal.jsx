@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
+import { useSettings } from '../contexts/SettingsContext'
 
 export function SearchableSelect({ value, onChange, options, placeholder, emptyMessage, isOptional, clearLabel, style, disabled }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -177,6 +178,18 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
 }
 
 export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
+  const { settings } = useSettings()
+
+  const preselectedSizes = settings?.ad_type_preselected_sizes || {
+    banner: ['300x250', '300x600'],
+    reward: ['1x1'],
+    interstitial: ['320x480', '480x320'],
+    anchor: ['Fluid'],
+    float_top: ['Fluid'],
+    float_bottom: ['Fluid'],
+    float_fullscreen: ['1x1'],
+  }
+
   const [form, setForm] = useState({
     website_id: websites.length === 1 ? websites[0].id : '',
     count: 3,
@@ -189,6 +202,15 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
     delay_between_ads: '20',
   })
   const [saving, setSaving] = useState(false)
+
+  // Auto-select sizes when ad_type changes or settings finish loading
+  useEffect(() => {
+    const defaultSizesForType = preselectedSizes[form.ad_type] || []
+    setForm(f => ({
+      ...f,
+      sizes: defaultSizesForType
+    }))
+  }, [form.ad_type, settings])
 
   // Auto-select website if there's only one website available in the list
   useEffect(() => {

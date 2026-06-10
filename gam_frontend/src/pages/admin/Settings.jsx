@@ -290,6 +290,146 @@ export default function SettingsPage() {
                         )
                       })()}
                     </div>
+                  ) : s.key === 'ad_type_preselected_sizes' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+                      {(() => {
+                        let sizesObj = {}
+                        try {
+                          sizesObj = typeof edited[s.key] === 'string' ? JSON.parse(edited[s.key]) : edited[s.key]
+                        } catch {
+                          sizesObj = {}
+                        }
+                        if (!sizesObj || typeof sizesObj !== 'object') sizesObj = {}
+
+                        const adTypes = [
+                          { key: 'banner', label: 'Banner' },
+                          { key: 'reward', label: 'Reward' },
+                          { key: 'interstitial', label: 'Interstitial' },
+                          { key: 'anchor', label: 'Anchor' },
+                          { key: 'float_top', label: 'Float Top' },
+                          { key: 'float_bottom', label: 'Float Bottom' },
+                          { key: 'float_fullscreen', label: 'Float Full Screen' },
+                        ]
+
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
+                            {adTypes.map(type => {
+                              const activeSizes = Array.isArray(sizesObj[type.key]) ? sizesObj[type.key] : []
+                              return (
+                                <div key={type.key} style={{
+                                  border: '1px solid var(--color-border)',
+                                  borderRadius: 8,
+                                  padding: 12,
+                                  background: 'var(--color-surface-2)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 10
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', fontSize: 13 }}>
+                                      🏷️ {type.label} Sizes
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Chips for existing sizes */}
+                                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                    {activeSizes.length === 0 ? (
+                                      <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                                        No preselected sizes configured
+                                      </span>
+                                    ) : (
+                                      activeSizes.map(sz => (
+                                        <div key={sz} style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 6,
+                                          background: 'var(--color-surface-3)',
+                                          border: '1px solid var(--color-border-light)',
+                                          borderRadius: 16,
+                                          padding: '3px 10px',
+                                          fontSize: 12,
+                                          color: 'var(--color-text)'
+                                        }}>
+                                          <span>{sz}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const updatedSizes = activeSizes.filter(s => s !== sz)
+                                              const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                              setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                            }}
+                                            style={{
+                                              background: 'transparent',
+                                              border: 'none',
+                                              color: 'var(--color-danger)',
+                                              cursor: 'pointer',
+                                              fontSize: 12,
+                                              padding: 0,
+                                              display: 'flex',
+                                              alignItems: 'center'
+                                            }}
+                                          >
+                                            ✕
+                                          </button>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+
+                                  {/* Add new size input */}
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. 300x250, Fluid, Out-of-page"
+                                      className="form-input text-xs"
+                                      style={{ padding: '4px 8px', height: 'auto', flex: 1 }}
+                                      onKeyDown={e => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault()
+                                          const val = e.currentTarget.value.trim()
+                                          if (val) {
+                                            const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
+                                            const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
+                                            const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
+                                            if (uniqueNew.length > 0) {
+                                              const updatedSizes = [...activeSizes, ...uniqueNew]
+                                              const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                              setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                            }
+                                            e.currentTarget.value = ''
+                                          }
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-xs"
+                                      onClick={e => {
+                                        const input = e.currentTarget.previousSibling
+                                        const val = input.value.trim()
+                                        if (val) {
+                                          const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
+                                          const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
+                                          const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
+                                          if (uniqueNew.length > 0) {
+                                            const updatedSizes = [...activeSizes, ...uniqueNew]
+                                            const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                            setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                          }
+                                          input.value = ''
+                                        }
+                                      }}
+                                    >
+                                      Add
+                                    </button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
+                    </div>
                   ) : s.key === 'registration_status' ? (
                     <select
                       className="form-select"

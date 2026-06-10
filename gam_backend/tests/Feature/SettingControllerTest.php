@@ -185,4 +185,47 @@ class SettingControllerTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_admin_can_update_ad_type_preselected_sizes_setting(): void
+    {
+        Sanctum::actingAs($this->admin);
+
+        $newValue = [
+            'banner' => ['300x250', '300x600'],
+            'reward' => ['1x1'],
+        ];
+
+        $response = $this->putJson('/api/v1/admin/settings/ad_type_preselected_sizes', [
+            'value' => $newValue
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('key', 'ad_type_preselected_sizes')
+            ->assertJsonPath('value', json_encode($newValue));
+
+        $this->assertDatabaseHas('settings', [
+            'key'   => 'ad_type_preselected_sizes',
+            'value' => json_encode($newValue)
+        ]);
+    }
+
+    public function test_updating_ad_type_preselected_sizes_fails_validation_for_non_array(): void
+    {
+        Sanctum::actingAs($this->admin);
+
+        $response = $this->putJson('/api/v1/admin/settings/ad_type_preselected_sizes', [
+            'value' => 'not-an-array-string'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['value']);
+    }
+
+    public function test_public_settings_endpoint_returns_preselected_sizes(): void
+    {
+        $response = $this->getJson('/api/v1/public/settings');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['ad_type_preselected_sizes']);
+    }
 }

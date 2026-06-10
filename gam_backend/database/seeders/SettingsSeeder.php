@@ -90,6 +90,21 @@ class SettingsSeeder extends Seeder
                 'label' => 'Google OAuth Client Secret',
                 'type'  => 'string',
             ],
+            [
+                'key'   => 'ad_type_preselected_sizes',
+                'value' => json_encode([
+                    'banner' => ['300x250', '300x600'],
+                    'reward' => ['1x1'],
+                    'interstitial' => ['320x480', '480x320'],
+                    'anchor' => ['Fluid'],
+                    'float_top' => ['Fluid'],
+                    'float_bottom' => ['Fluid'],
+                    'float_fullscreen' => ['1x1'],
+                ]),
+                'group' => 'gam',
+                'label' => 'Preselected Sizes per Ad Type',
+                'type'  => 'json',
+            ],
 
 
             // ── Payment ───────────────────────────────────────

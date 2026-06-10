@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.11] - 2026-06-10
+
+### Added
+- **Ad Type Preselected Sizes Config**: Added a new setting `ad_type_preselected_sizes` stored as JSON, letting administrators preselect default sizes for different ad types (Banner, Reward, Interstitial, Anchor, and Float variations) in the Settings page.
+- **Premium Sizes Settings Editor**: Built a clean, chip-based size manager inside the Admin Settings panel. Allows admins to dynamically add or delete preselected sizes for each ad type with immediate database synchronization.
+- **Ad Generator Auto-Population**: Configured the "Generate Ad Units in GAM" modal to fetch the configured defaults and automatically pre-populate the sizes based on the selected ad type dropdown.
+- **Automated Tests**: Included comprehensive unit tests in `SettingControllerTest.php` to verify validation, retrieval, and updating of the preselected sizes configuration.
+
 ## [1.3.10] - 2026-06-10
 
 ### Added

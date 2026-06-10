@@ -184,6 +184,8 @@ Stores dynamic global configurations for the platform.
   * `registration_status`: Controls self-registration access (`'open'` or `'closed'`).
 * **Payment Configuration (`group: 'payment'`)**:
   * `payment_methods`: JSON array of structured payment methods, each containing `name`, `minimum` payout threshold, and `guidance` instructions.
+* **GAM Settings (`group: 'gam'`)**:
+  * `ad_type_preselected_sizes`: JSON mapping of preselected sizes for each ad type (Banner, Reward, Interstitial, Anchor, etc.) dynamically applied on ad unit generation.
 
 ---
 
