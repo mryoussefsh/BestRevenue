@@ -553,8 +553,8 @@ ${queueItems}
     </script>
   </div>
   <!-- Platform Ad Label -->
-  <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 4px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
-    <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
+  <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 4px -10px -10px -10px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; border-bottom-left-radius: 12px !important; border-bottom-right-radius: 12px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 20px) !important;">
+    <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -632,8 +632,8 @@ ${queueItems}
     </script>
   </div>
   <!-- Platform Ad Label -->
-  <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 4px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
-    <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
+  <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 4px -10px -10px -10px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 20px) !important;">
+    <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
   </div>
 </div>
 
@@ -713,8 +713,8 @@ ${queueItems}
       </script>
     </div>
     <!-- Platform Ad Label -->
-    <div id="br-label-${id}" style="width: 100% !important; text-align: right !important; margin-top: 6px !important; display: block !important; padding: 2px 4px !important; box-sizing: border-box !important; border-top: 1px solid rgba(226, 232, 240, 0.8) !important;">
-      <a href="${platformUrl}" target="_blank" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 9px !important; color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; display: inline-block !important;">Ads by ${siteName}</a>
+    <div id="br-label-${id}" style="display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 6px -12px -12px -12px !important; background: #f1f5f9 !important; border-top: 1px solid #cbd5e1 !important; border-bottom-left-radius: 12px !important; border-bottom-right-radius: 12px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; box-sizing: border-box !important; width: calc(100% + 24px) !important;">
+      <a href="${platformUrl}" target="_blank" style="color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#334155'">Ads by ${siteName}</a>
     </div>
   </div>
 </div>
