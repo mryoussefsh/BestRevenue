@@ -67,7 +67,7 @@ class AdUnitController extends Controller
             'ad_type'          => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
             'ad_subtype'       => 'nullable|string|in:normal,repeated,top,bottom',
             'repeat_count'     => 'nullable|integer|min:1|max:100',
-            'delay_between_ads'=> 'nullable|integer|min:1|max:3600',
+            'delay_between_ads'=> 'nullable|integer|min:0|max:3600',
         ]);
 
         DB::beginTransaction();
@@ -141,7 +141,7 @@ class AdUnitController extends Controller
             'ad_type'        => 'required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
             'ad_subtype'     => 'nullable|string|in:normal,repeated,top,bottom',
             'repeat_count'     => 'nullable|integer|min:1|max:100',
-            'delay_between_ads'=> 'nullable|integer|min:1|max:3600',
+            'delay_between_ads'=> 'nullable|integer|min:0|max:3600',
         ]);
 
         $website = Website::with('gamAccount')->findOrFail($data['website_id']);

@@ -281,7 +281,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                 <input
                   className="form-input"
                   type="number"
-                  min="1"
+                  min="0"
                   max="3600"
                   value={form.delay_between_ads}
                   onChange={e => setForm(f => ({ ...f, delay_between_ads: e.target.value }))}
