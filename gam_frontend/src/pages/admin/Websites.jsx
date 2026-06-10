@@ -502,11 +502,31 @@ export default function WebsitesPage() {
               </span>
               <button
                 type="button"
-                className="btn btn-danger btn-xs"
+                className="btn btn-xs"
+                style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+                title="Delete from platform only (keep in GAM)"
                 onClick={async () => {
-                  if (!confirm(`Are you sure you want to archive (delete) the ${selectedAdUnits.length} selected ad units?`)) return
+                  if (!confirm(`Are you sure you want to delete the ${selectedAdUnits.length} selected ad units from the platform only? They will NOT be archived in Google Ad Manager.`)) return
                   try {
-                    await adminApi.bulkDeleteAdUnits({ ids: selectedAdUnits })
+                    await adminApi.bulkDeleteAdUnits({ ids: selectedAdUnits, archive: false })
+                    toast.success('Selected ad units deleted successfully')
+                    setSelectedAdUnits([])
+                    loadAll()
+                  } catch (err) {
+                    toast.error(err.response?.data?.message || 'Failed to bulk delete ad units')
+                  }
+                }}
+              >
+                🗑 Delete Selected (Local)
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger btn-xs"
+                title="Delete from platform and archive in GAM"
+                onClick={async () => {
+                  if (!confirm(`Are you sure you want to delete and archive the ${selectedAdUnits.length} selected ad units in Google Ad Manager?`)) return
+                  try {
+                    await adminApi.bulkDeleteAdUnits({ ids: selectedAdUnits, archive: true })
                     toast.success('Selected ad units deleted successfully')
                     setSelectedAdUnits([])
                     loadAll()
@@ -710,10 +730,19 @@ export default function WebsitesPage() {
                           <td>
                             <div className="flex gap-2">
                               <button className="btn btn-secondary btn-xs" onClick={() => setAdModal(a)}>✏️ Edit</button>
-                              <button className="btn btn-danger btn-xs"
+                              <button className="btn btn-xs"
+                                style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+                                title="Delete from platform only (keep in GAM)"
                                 onClick={async () => {
-                                  if (!confirm(`Delete ad unit "${a.display_name}"?`)) return
-                                  await adminApi.deleteAdUnit(a.id)
+                                  if (!confirm(`Delete ad unit "${a.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
+                                  await adminApi.deleteAdUnit(a.id, { archive: false })
+                                  loadAll()
+                                }}>🗑</button>
+                              <button className="btn btn-danger btn-xs"
+                                title="Delete from platform and archive in GAM"
+                                onClick={async () => {
+                                  if (!confirm(`Delete ad unit "${a.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                  await adminApi.deleteAdUnit(a.id, { archive: true })
                                   loadAll()
                                 }}>🗑</button>
                             </div>

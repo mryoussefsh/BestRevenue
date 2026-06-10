@@ -109,6 +109,8 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated customizable Top and Bottom Anchor ad unit position choices selected at creation time, yielding clean ready-to-use publisher tag codes.
 - [x] Fixed floating ads 1-second auto-hide bug, resolved race conditions, and consolidated show/hide timings, CSS transition animations, and unremovability verification loop into a single external `br-float.js` script.
 - [x] Extracted all inline CSS from publisher-facing templates, and removed siteName/platformUrl parameters from tags to prevent client-side publisher tampering, resolving them dynamically inside the scripts.
+- [x] Added a second "Delete Only" button for ad units in the admin panel websites and publisher profile views, allowing local deletion from the database without archiving in Google Ad Manager. Implemented support in both individual row actions and multi-selected bulk actions, backed by automated feature tests verifying Google Ad Manager API conditional bypass behavior.
+
 
 ---
 

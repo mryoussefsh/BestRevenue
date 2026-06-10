@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.10] - 2026-06-10
+
+### Added
+- **Ad Unit Deletion Without Archiving (Local)**: Integrated a second warning-styled "Delete Only" trash button under the Ad Units Action columns on the Admin Websites page and Publisher Profile page. This allows administrators to remove an ad unit from the platform database without triggering the archiving action in Google Ad Manager.
+- **Bulk Local Deletion Support**: Added a `Delete Selected (Local)` bulk action button alongside the `Archive Selected` action banner, enabling multi-select local deletions of ad units.
+- **Backend Conditional Archiving**: Modified `destroy` and `bulkDelete` endpoints in `AdUnitController` to validate and process an optional `archive` request parameter, defaulting to true to retain the legacy behavior.
+- **Automated Test Coverage**: Added comprehensive test coverage inside the newly created `AdUnitDeleteTest` feature suite to verify conditional archiving logic for both individual and bulk actions.
+
 ## [1.3.9] - 2026-06-10
 
 ### Fixed

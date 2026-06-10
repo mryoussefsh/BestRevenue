@@ -44,7 +44,7 @@ export const adminApi = {
   createGamAdUnit:     (data)   => api.post('/admin/websites/ad-units/create-in-gam', data),
   bulkCreateAdUnits:   (data)   => api.post('/admin/websites/ad-units/bulk-create', data),
   updateAdUnit:        (id, data) => api.put(`/admin/ad-units/${id}`, data),
-  deleteAdUnit:        (id)     => api.delete(`/admin/ad-units/${id}`),
+  deleteAdUnit:        (id, params) => api.delete(`/admin/ad-units/${id}`, { params }),
   bulkDeleteAdUnits:   (data)   => api.post('/admin/ad-units/bulk-delete', data),
 
   // Revenue

@@ -389,8 +389,10 @@ class AdUnitController extends Controller
         $adUnit = AdUnit::with('website.gamAccount')->findOrFail($id);
         $oldData = $adUnit->toArray();
  
+        $archive = request()->query('archive', 'true') !== 'false' && request()->query('archive') !== '0';
+
         // If the ad unit has a GAM ID and is associated with a GAM account, archive it in GAM
-        if ($adUnit->gam_ad_unit_id && $adUnit->website && $adUnit->website->gamAccount) {
+        if ($archive && $adUnit->gam_ad_unit_id && $adUnit->website && $adUnit->website->gamAccount) {
             try {
                 $gamApi->archiveAdUnits($adUnit->website->gamAccount, [$adUnit->gam_ad_unit_id]);
             } catch (\Exception $e) {
@@ -422,34 +424,38 @@ class AdUnitController extends Controller
         $data = $request->validate([
             'ids'   => 'required|array|min:1',
             'ids.*' => 'string|exists:ad_units,id',
+            'archive' => 'nullable|boolean',
         ]);
  
+        $archive = $request->boolean('archive', true);
         $adUnits = AdUnit::with('website.gamAccount')->whereIn('id', $data['ids'])->get();
  
-        // Group ad units by GAM Account to archive them in bulk per account
-        $byAccount = [];
-        foreach ($adUnits as $adUnit) {
-            if ($adUnit->gam_ad_unit_id && $adUnit->website && $adUnit->website->gamAccount) {
-                $accountId = $adUnit->website->gamAccount->id;
-                if (!isset($byAccount[$accountId])) {
-                    $byAccount[$accountId] = [
-                        'account' => $adUnit->website->gamAccount,
-                        'ids' => [],
-                    ];
+        if ($archive) {
+            // Group ad units by GAM Account to archive them in bulk per account
+            $byAccount = [];
+            foreach ($adUnits as $adUnit) {
+                if ($adUnit->gam_ad_unit_id && $adUnit->website && $adUnit->website->gamAccount) {
+                    $accountId = $adUnit->website->gamAccount->id;
+                    if (!isset($byAccount[$accountId])) {
+                        $byAccount[$accountId] = [
+                            'account' => $adUnit->website->gamAccount,
+                            'ids' => [],
+                        ];
+                    }
+                    $byAccount[$accountId]['ids'][] = $adUnit->gam_ad_unit_id;
                 }
-                $byAccount[$accountId]['ids'][] = $adUnit->gam_ad_unit_id;
             }
-        }
  
-        // Perform archiving in GAM first
-        foreach ($byAccount as $accData) {
-            try {
-                $gamApi->archiveAdUnits($accData['account'], $accData['ids']);
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to bulk archive ad units in GAM: " . $e->getMessage());
-                return response()->json([
-                    'message' => 'Failed to archive ad units in Google Ad Manager: ' . $e->getMessage(),
-                ], 500);
+            // Perform archiving in GAM first
+            foreach ($byAccount as $accData) {
+                try {
+                    $gamApi->archiveAdUnits($accData['account'], $accData['ids']);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to bulk archive ad units in GAM: " . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Failed to archive ad units in Google Ad Manager: ' . $e->getMessage(),
+                    ], 500);
+                }
             }
         }
  

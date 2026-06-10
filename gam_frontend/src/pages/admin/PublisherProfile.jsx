@@ -661,11 +661,25 @@ export default function PublisherProfile() {
                                     <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
                                       <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
                                         <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px' }} onClick={() => setAdModal(ad)}>✏️</button>
-                                        <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px' }}
+                                        <button className="btn btn-xs"
+                                          style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+                                          title="Delete from platform only (keep in GAM)"
                                           onClick={async () => {
-                                            if (!confirm(`Delete ad unit "${ad.display_name}"?`)) return
+                                            if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
                                             try {
-                                              await adminApi.deleteAdUnit(ad.id)
+                                              await adminApi.deleteAdUnit(ad.id, { archive: false })
+                                              toast.success('Ad unit deleted successfully')
+                                              loadAllData(true)
+                                            } catch {
+                                              toast.error('Failed to delete ad unit')
+                                            }
+                                          }}>🗑</button>
+                                        <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px' }}
+                                          title="Delete from platform and archive in GAM"
+                                          onClick={async () => {
+                                            if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                            try {
+                                              await adminApi.deleteAdUnit(ad.id, { archive: true })
                                               toast.success('Ad unit deleted successfully')
                                               loadAllData(true)
                                             } catch {
