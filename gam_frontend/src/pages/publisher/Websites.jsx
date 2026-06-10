@@ -375,8 +375,6 @@ ${queueItems}
           type: 'float_top',
           delayMs: ${delayMsTop},
           closeDelayMs: ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0},
-          siteName: '${siteName}',
-          platformUrl: '${platformUrl}',
           slot: slot_${safeFloatTopId}
         });
         clearInterval(checkFloat);
@@ -421,8 +419,6 @@ ${queueItems}
           type: 'float_bottom',
           delayMs: ${delayMsBottom},
           closeDelayMs: ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0},
-          siteName: '${siteName}',
-          platformUrl: '${platformUrl}',
           slot: slot_${safeFloatBottomId}
         });
         clearInterval(checkFloat);
@@ -470,8 +466,6 @@ ${queueItems}
           type: 'float_fullscreen',
           delayMs: ${delayMsFullscreen},
           closeDelayMs: ${closeDelayMsFullscreen},
-          siteName: '${siteName}',
-          platformUrl: '${platformUrl}',
           slot: slot_${safeFloatFullscreenId}
         });
         clearInterval(checkFloat);
