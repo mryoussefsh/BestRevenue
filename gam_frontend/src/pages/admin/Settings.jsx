@@ -563,6 +563,18 @@ export default function SettingsPage() {
                     Create a basic task triggering every <strong>1 minute</strong> to run <code>php artisan schedule:run</code> inside the <code>{projectPath}</code> root path.
                   </p>
                 </div>
+                <div>
+                  <strong>4. Shared Hosting (Hostinger, cPanel, etc.):</strong>
+                  <p style={{ margin: '2px 0 4px' }}>
+                    Go to the <strong>Cron Jobs</strong> section in your hPanel or cPanel. Select the <strong>Custom</strong> option (do not select PHP, as Custom allows passing the <code>schedule:run</code> arguments), set the frequency to <strong>every 1 minute (<code>* * * * *</code>)</strong>, and configure the command:
+                  </p>
+                  <pre style={{ background: 'var(--color-bg)', padding: '6px 10px', borderRadius: '4px', overflowX: 'auto', fontFamily: 'monospace' }}>
+                    /usr/bin/php {projectPath}/artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
+                  </pre>
+                  <div className="text-xs text-muted" style={{ marginTop: 4 }}>
+                    💡 <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path (usually displayed next to the PHP version in hPanel or cPanel). If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
+                  </div>
+                </div>
               </div>
             </div>
           )}

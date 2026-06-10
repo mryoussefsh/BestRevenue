@@ -26,8 +26,14 @@ class SettingController extends Controller
             ];
         })->toArray();
 
-        // FIX [NEW-09]: Removed 'project_path' entry — base_path() exposes the full
-        // server filesystem path to any admin user, which is a path disclosure risk.
+        // Restore project_path securely under system_info group for administrator setup instructions
+        $settings[] = [
+            'key'   => 'project_path',
+            'value' => base_path(),
+            'label' => 'Project Path',
+            'type'  => 'string',
+            'group' => 'system_info',
+        ];
 
         return response()->json($settings);
     }

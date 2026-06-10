@@ -48,6 +48,48 @@ class GamSync extends Command
     public function handle()
     {
         $isManual        = $this->option('manual');
+
+        // Check scheduler logic if it is triggered by Laravel scheduler (not manual)
+        if (!$isManual) {
+            $frequency = Setting::get('gam_sync_frequency', 'hourly');
+            $interval  = (int) Setting::get('gam_sync_interval', 1);
+
+            $lastLog = GamSyncLog::where('triggered_by', 'scheduler')
+                ->orderBy('started_at', 'desc')
+                ->first();
+
+            if ($lastLog && $lastLog->started_at) {
+                $lastRun = Carbon::parse($lastLog->started_at);
+                $nowTime = now();
+
+                $shouldSync = false;
+
+                if ($frequency === 'daily') {
+                    $tz        = Setting::get('gam_timezone', 'UTC');
+                    $lastRunTz = $lastRun->copy()->setTimezone($tz);
+                    $nowTimeTz = $nowTime->copy()->setTimezone($tz);
+
+                    if ($lastRunTz->format('Y-m-d') !== $nowTimeTz->format('Y-m-d')) {
+                        $shouldSync = true;
+                    }
+                } elseif ($frequency === 'minutes') {
+                    if ($nowTime->diffInMinutes($lastRun) >= $interval) {
+                        $shouldSync = true;
+                    }
+                } else {
+                    // Hourly
+                    if ($nowTime->diffInMinutes($lastRun) >= ($interval * 60)) {
+                        $shouldSync = true;
+                    }
+                }
+
+                if (!$shouldSync) {
+                    $this->info("GAM sync is not due yet. Skipping (Frequency: {$frequency}, Interval: {$interval}).");
+                    return 0;
+                }
+            }
+        }
+
         $dateFrom        = $this->option('date-from');
         $dateTo          = $this->option('date-to');
         $filterPublisher = $this->option('publisher-id');

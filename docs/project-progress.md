@@ -111,8 +111,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Extracted all inline CSS from publisher-facing templates, and removed siteName/platformUrl parameters from tags to prevent client-side publisher tampering, resolving them dynamically inside the scripts.
 - [x] Added a second "Delete Only" button for ad units in the admin panel websites and publisher profile views, allowing local deletion from the database without archiving in Google Ad Manager. Implemented support in both individual row actions and multi-selected bulk actions, backed by automated feature tests verifying Google Ad Manager API conditional bypass behavior.
 - [x] Implemented customizable preselected ad sizes depending on the ad type (Banner, Reward, Interstitial, Anchor, etc.) in the Settings panel, and configured the "Generate Ad Units in GAM" modal to automatically pre-populate sizes based on the selected ad type dropdown.
-
-
+- [x] Migrated GAM Sync scheduler definition from dynamic cron/database queries on boot to a static minutely scheduler entry, handling settings check internally in command and supporting immediate settings changes without service restarts. Added detailed instructions for Hostinger and generic Shared Hosting panels with Custom Cron configuration.
 
 ---
 

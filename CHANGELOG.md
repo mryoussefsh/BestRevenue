@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.12] - 2026-06-10
+
+### Changed
+- **GAM Sync Scheduler Refactoring**: Migrated the GAM sync scheduling definition from dynamic cron/database queries during Laravel boot to a static `everyMinute()` scheduler entry. Evaluation of the sync frequency (daily, hourly, minutes) and interval parameters is now done internally within the CLI command handler.
+- **Shared Hosting Cron Instructions**: Enhanced the Admin Settings UI scheduler help box to include detailed instructions for configuring Custom Cron Jobs in Hostinger hPanel and generic cPanel environments, highlighting the choice of the "Custom" option to support command arguments.
+- **Dynamic Path Detection**: Restored server-side absolute project path detection using `base_path()` in the settings endpoint, allowing the UI to automatically render the correct server path for copy-pasting.
+
 ## [1.3.11] - 2026-06-10
 
 ### Added

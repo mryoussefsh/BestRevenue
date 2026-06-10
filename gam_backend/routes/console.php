@@ -8,35 +8,17 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// GAM Sync — dynamically scheduled based on settings
-$frequency = 'hourly';
-$interval = 1;
-
-try {
-    if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
-        $frequency = \App\Models\Setting::get('gam_sync_frequency', 'hourly');
-        $interval = (int) \App\Models\Setting::get('gam_sync_interval', 1);
-    }
-} catch (\Exception $e) {
-    // fallback to defaults
-}
-
+// GAM Sync — statically scheduled to run every minute.
+// The command itself (GamSync.php) handles the scheduling logic internally
+// based on the frequency and interval configured in admin settings.
 // FIX [GS-2]: Added withoutOverlapping(5) to prevent concurrent sync executions.
-// FIX [SCH-4 / FIX-22]: Use a dated daily log file instead of a single append-forever file.
-// gam_sync.log was growing indefinitely; dated files let us purge old entries automatically.
+// FIX [SCH-4 / FIX-22]: Use a dated daily log file.
 $syncLogFile = storage_path('logs/gam_sync_' . now()->format('Y-m-d') . '.log');
 
-$scheduleEvent = Schedule::command('gam:sync')
-    ->withoutOverlapping(5)  // Lock held for max 5 minutes
+Schedule::command('gam:sync')
+    ->everyMinute()
+    ->withoutOverlapping(5)
     ->appendOutputTo($syncLogFile);
-
-if ($frequency === 'daily') {
-    $scheduleEvent->daily();
-} elseif ($frequency === 'minutes') {
-    $scheduleEvent->cron("*/$interval * * * *");
-} else {
-    $scheduleEvent->cron("0 */$interval * * *");
-}
 
 // Period Auto-Close — runs daily
 // FIX [GS-2]: Added withoutOverlapping(10) to the period close command as well.
