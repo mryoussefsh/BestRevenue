@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.9] - 2026-06-10
+
+### Fixed
+- **1-Second Disappearing Bug for Float Ads**: Resolved a race condition where instantly loading float ads would show for exactly 1 second and then auto-hide. Fixed the missing `container.appendChild(label)` in fullscreen float ads and hosted the script on the frontend server public assets to prevent 404 load errors. Updated labels dynamically on settings fetch resolution.
+- **Anti-Tampering Platform Parameters**: Prevented publishers from spoofing or altering settings by resolving the `platformUrl` dynamically from the script tag source (`document.currentScript.src`) and the `siteName` from an asynchronous background settings query. Removed configuration parameters from generated HTML tags entirely.
+
+### Added
+- **Consolidated External Script `br-float.js`**: Moved CSS layout, slide-in/scale transitions, timing configurations, close button event bindings, and safeguard checks into a single, hosted script (`br-float.js`), drastically shrinking publisher tag size by over 70%.
+
 ## [1.3.8] - 2026-06-10
 
 ### Added

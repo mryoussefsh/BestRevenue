@@ -107,6 +107,8 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented dynamic script generator configurations in the publisher's "Get Code" modal, supporting customizable delay, repeat count settings, dynamic page URL metadata, and specific layouts.
 - [x] Resolved Google Ad Manager collision errors by querying InventoryService dynamically before bulk auto-generating new round names, appending ad type/subtype suffixes to names.
 - [x] Integrated customizable Top and Bottom Anchor ad unit position choices selected at creation time, yielding clean ready-to-use publisher tag codes.
+- [x] Fixed floating ads 1-second auto-hide bug, resolved race conditions, and consolidated show/hide timings, CSS transition animations, and unremovability verification loop into a single external `br-float.js` script.
+- [x] Extracted all inline CSS from publisher-facing templates, and removed siteName/platformUrl parameters from tags to prevent client-side publisher tampering, resolving them dynamically inside the scripts.
 
 ---
 
