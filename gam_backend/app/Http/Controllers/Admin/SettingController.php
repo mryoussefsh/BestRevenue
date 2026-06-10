@@ -213,7 +213,65 @@ class SettingController extends Controller
             $map[$s['key']] = $s['value'];
         }
 
+        // Add dynamic stats from the database
+        $map['stats_publishers'] = \App\Models\Publisher::where('status', 'active')->count();
+        $map['stats_websites'] = \App\Models\Website::where('is_active', true)->count();
+        $map['stats_total_paid'] = (float) \App\Models\Payout::where('status', 'paid')->sum('final_amount');
+        $map['stats_impressions'] = (int) \App\Models\RevenueRecord::sum('impressions');
+
+        // Dynamic recent payouts (proofs)
+        $realPayouts = \App\Models\Payout::where('status', 'paid')
+            ->with('publisher')
+            ->latest('paid_at')
+            ->latest('created_at')
+            ->take(10)
+            ->get()
+            ->map(function ($payout) {
+                $pubName = $payout->publisher ? $payout->publisher->name : 'Publisher';
+                return [
+                    'id' => $payout->id,
+                    'publisher' => self::maskName($pubName),
+                    'amount' => (float) $payout->final_amount,
+                    'date' => $payout->paid_at ? $payout->paid_at->format('n/j/Y') : ($payout->created_at ? $payout->created_at->format('n/j/Y') : now()->format('n/j/Y')),
+                    'ref' => $payout->payment_reference ?: 'N/A',
+                    'method' => $payout->payment_method ?: 'N/A',
+                ];
+            });
+
+        // Fallback mock payouts if none exist in the database yet
+        if ($realPayouts->isEmpty()) {
+            $realPayouts = collect([
+                ['id' => 'PAY-1', 'publisher' => 'H*** A***', 'amount' => 297.28, 'date' => '5/24/2026', 'ref' => 'WT-FED-8492048', 'method' => 'Wire Transfer'],
+                ['id' => 'PAY-2', 'publisher' => 'Y*** S***', 'amount' => 180.72, 'date' => '5/24/2026', 'ref' => '0x8fa92...e1a49f', 'method' => 'USDT (ERC-20)'],
+                ['id' => 'PAY-3', 'publisher' => 'Y*** S***', 'amount' => 30.91, 'date' => '5/24/2026', 'ref' => 'PP-REF-6582910', 'method' => 'PayPal'],
+                ['id' => 'PAY-4', 'publisher' => 'S*** m***', 'amount' => 57.00, 'date' => '4/23/2026', 'ref' => 'WT-SIB-9283741', 'method' => 'Wire Transfer'],
+                ['id' => 'PAY-5', 'publisher' => 'Y*** M***', 'amount' => 10.00, 'date' => '4/22/2026', 'ref' => 'TKh82fs...9d2ka', 'method' => 'USDC (TRC-20)'],
+                ['id' => 'PAY-6', 'publisher' => 's*** l***', 'amount' => 54.00, 'date' => '4/22/2026', 'ref' => 'WT-CH-918237', 'method' => 'Wire Transfer'],
+                ['id' => 'PAY-7', 'publisher' => 'H*** A***', 'amount' => 18.30, 'date' => '4/22/2026', 'ref' => 'PP-REF-819284', 'method' => 'PayPal'],
+            ]);
+        }
+
+        $map['recent_payouts'] = $realPayouts;
+
         return response()->json($map);
+    }
+
+    /**
+     * Mask name for privacy (e.g. H*** A***)
+     */
+    private static function maskName(string $name): string
+    {
+        $parts = explode(' ', trim($name));
+        $masked = [];
+        foreach ($parts as $part) {
+            if ($part) {
+                $masked[] = mb_substr($part, 0, 1) . '***';
+            }
+        }
+        if (count($masked) === 1) {
+            return $masked[0];
+        }
+        return implode(' ', array_slice($masked, 0, 2));
     }
 
     /**

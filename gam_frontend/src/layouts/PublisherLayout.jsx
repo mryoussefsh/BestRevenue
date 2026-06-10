@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
@@ -150,6 +150,24 @@ export default function PublisherLayout({ children }) {
         <main className="page-container">
           {children}
         </main>
+        <footer style={{
+          marginTop: 'auto',
+          padding: '20px 32px',
+          borderTop: '1px solid var(--color-border)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          fontSize: '12px',
+          color: 'var(--color-text-subtle)',
+        }}>
+          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'} Platform. All rights reserved.</div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Home Page</Link>
+            <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Google Ad Manager Help</a>
+          </div>
+        </footer>
       </div>
     </div>
   )

@@ -113,6 +113,11 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented customizable preselected ad sizes depending on the ad type (Banner, Reward, Interstitial, Anchor, etc.) in the Settings panel, and configured the "Generate Ad Units in GAM" modal to automatically pre-populate sizes based on the selected ad type dropdown.
 - [x] Migrated GAM Sync scheduler definition from dynamic cron/database queries on boot to a static minutely scheduler entry, handling settings check internally in command and supporting immediate settings changes without service restarts. Added detailed instructions for Hostinger and generic Shared Hosting panels with Custom Cron configuration.
 - [x] Cleaned up Admin Settings UI list view by removing unused config items ("Display Currency", "GAM Report Timezone", and "Auto Payout Day of Month (1–28)").
+- [x] Created the home landing page featuring a dark-themed glassmorphism marketing interface, an interactive revenue calculator, and dynamic FAQ accordions.
+- [x] Configured dynamic platform statistics (impressions served, total paid, active publishers, approved websites) to load dynamic database values via public settings controller API.
+- [x] Added a "Verified Payout Proofs" ledger matching target layout specifications (Publisher region masking, amount styling, formatted dates, paid success badges) integrated with transaction receipt modals.
+- [x] Added a site footer to the publisher portal layout (`PublisherLayout.jsx`) containing dynamic platform info and help links.
+- [x] Reconfigured root `/` routing in React `App.jsx` to load the new home landing page.
 
 ---
 

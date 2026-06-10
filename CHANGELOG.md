@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.4.0] - 2026-06-10
+
+### Added
+- **Home Landing Page**: Built a premium dark-themed glassmorphic home landing page (`LandingPage.jsx`/`LandingPage.css`) equipped with interactive calculator slider, steps pipeline, feature catalog, and dynamic FAQ accordions.
+- **Dynamic Platform Statistics**: Replaced hardcoded banner statistics with live, dynamic counters querying active publishers, approved websites, total paid payout final amounts, and total impressions served directly from the database.
+- **Mockup Payout Proofs**: Reconstructed the payout proofs table to match reference designs showing masked publisher regions (e.g. `H*** A***`), styled amounts, standard dates, and Paid success badges, integrated with digital receipt verification popups.
+- **Publisher Portal Footer**: Inserted a clean, responsive footer at the bottom of the logged-in publisher layout providing dynamic site settings copyrights and external support resource links.
+- **Vite Router Integration**: Serves the landing page at the root route (`/`) and conditionalized call-to-actions based on visitor authentication status.
+
 ## [1.3.13] - 2026-06-10
 
 ### Removed

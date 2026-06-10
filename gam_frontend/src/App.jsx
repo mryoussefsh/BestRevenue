@@ -11,6 +11,7 @@ import AdminLayout     from './layouts/AdminLayout'
 import PublisherLayout from './layouts/PublisherLayout'
 
 // Auth
+import LandingPage         from './pages/LandingPage'
 import LoginPage           from './pages/LoginPage'
 import RegisterPage        from './pages/RegisterPage'
 import ForgotPasswordPage  from './pages/ForgotPasswordPage'
@@ -68,8 +69,8 @@ function App() {
           />
 
           <Routes>
-            {/* Root redirect */}
-            <Route path="/" element={<RootRedirect />} />
+            {/* Root landing page */}
+            <Route path="/" element={<LandingPage />} />
 
             {/* Auth */}
             <Route path="/login"          element={<LoginPage />} />
