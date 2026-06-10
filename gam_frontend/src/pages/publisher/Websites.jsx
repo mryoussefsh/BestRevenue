@@ -3,6 +3,60 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 
+function groupAdUnits(units) {
+  const grouped = [];
+  const rewardGroups = {};
+
+  units.forEach(unit => {
+    if (unit.ad_type === 'reward') {
+      const name = unit.gam_ad_unit_name;
+      let baseName = name;
+      
+      const roundMatch = name.match(/^(.*?_r\d+)_/);
+      if (roundMatch) {
+        baseName = roundMatch[1];
+      } else {
+        const prefixMatch = name.match(/^(.*?)\d+$/);
+        if (prefixMatch) {
+          baseName = prefixMatch[1];
+        }
+      }
+
+      const key = `${unit.ad_subtype || 'normal'}_${baseName}`;
+      if (!rewardGroups[key]) {
+        rewardGroups[key] = {
+          id: unit.id,
+          display_name: baseName,
+          gam_ad_unit_name: baseName,
+          is_active: unit.is_active,
+          ad_type: unit.ad_type,
+          ad_subtype: unit.ad_subtype,
+          children: []
+        };
+      }
+      rewardGroups[key].children.push(unit);
+      if (unit.is_active) {
+        rewardGroups[key].is_active = true;
+      }
+    } else {
+      grouped.push({
+        ...unit,
+        children: [unit]
+      });
+    }
+  });
+
+  Object.values(rewardGroups).forEach(group => {
+    const count = group.children.length;
+    group.display_name = `${group.display_name} (${count} Ad${count > 1 ? 's' : ''})`;
+    group.children.sort((a, b) => a.gam_ad_unit_name.localeCompare(b.gam_ad_unit_name, undefined, { numeric: true }));
+    grouped.push(group);
+  });
+
+  grouped.sort((a, b) => a.display_name.localeCompare(b.display_name));
+  return grouped;
+}
+
 export default function PublisherWebsites() {
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState({})
@@ -12,39 +66,214 @@ export default function PublisherWebsites() {
   const [selectedAdsTxt, setSelectedAdsTxt] = useState(null)
   const [selectedAdUnitCode, setSelectedAdUnitCode] = useState(null)
 
-  const getAdUnitScripts = (unit) => {
+  const getAdUnitScripts = (unit, allUnits = []) => {
     if (!unit) return { head: '', body: '' }
-    const { networkCode, adUnitName, id, adType, adSubtype } = unit
+    const { networkCode, adUnitName, id, adType, adSubtype, children = [] } = unit
 
     switch (adType) {
       case 'reward':
-        return {
-          head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+        const finalRewards = children.length > 0 ? children : [unit];
+        const actualAdUnitName = finalRewards[0].gam_ad_unit_name;
+
+        if (adSubtype === 'repeated') {
+          const repeatCount = finalRewards.length;
+
+          return {
+            head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <script>
-  window.googletag = window.googletag || {cmd: []};
-  var rewardedSlot;
-  googletag.cmd.push(function() {
-    rewardedSlot = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}', googletag.enums.OutOfPageFormat.REWARDED);
-    if (rewardedSlot) {
-      rewardedSlot.addService(googletag.pubads());
-      // Subtype: ${adSubtype || 'normal'}
-      googletag.pubads().addEventListener('rewardedSlotGranted', function(event) {
-        console.log('Reward granted for slot:', event.slot);
-        ${adSubtype === 'repeated' ? '// User can request repeated rewards here' : ''}
-      });
+  window.googletag = window.googletag || { cmd: [] };
+  var rewardedSlots = [];
+
+  function setupRewardedAd(adUnitPath, slotId) {
+    googletag.cmd.push(function () {
+      var slot = googletag.defineOutOfPageSlot(adUnitPath, googletag.enums.OutOfPageFormat.REWARDED);
+      if (slot) {
+        slot.addService(googletag.pubads());
+
+        googletag.pubads().addEventListener('rewardedSlotReady', function (event) {
+          if (event.slot === slot) {
+            setTimeout(function () {
+              event.makeRewardedVisible();
+              displayModal();
+            }, 0);
+          }
+        });
+
+        googletag.pubads().addEventListener('rewardedSlotGranted', function (event) {
+          if (event.slot === slot) {
+            displayModal('success', 'Reward granted! Click the button to close.');
+          }
+        });
+
+        googletag.enableServices();
+        googletag.display(slot);
+        rewardedSlots.push({ id: slotId, slot: slot });
+      }
+    });
+  }
+
+  function dismissRewardedAd(slot) {
+    displayModal();
+    if (slot) {
+      googletag.destroySlots([slot]);
     }
-    googletag.pubads().enableSingleRequest();
-    googletag.enableServices();
+  }
+
+  function displayModal(type, message) {
+    var modal = document.getElementById('reward-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'reward-modal';
+      modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(4px); font-family: sans-serif;';
+      
+      var box = document.createElement('div');
+      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);';
+      
+      var icon = document.createElement('div');
+      icon.style.cssText = 'font-size: 40px; margin-bottom: 12px;';
+      icon.textContent = '🏆';
+      
+      var msg = document.createElement('div');
+      msg.id = 'reward-modal-message';
+      msg.style.cssText = 'margin-bottom: 20px; font-size: 16px; font-weight: 500; color: #1e293b; line-height: 1.5;';
+      
+      var btn = document.createElement('button');
+      btn.textContent = 'Dismiss';
+      btn.style.cssText = 'background: #3b82f6; color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;';
+      btn.onclick = function() { modal.style.display = 'none'; };
+      
+      box.appendChild(icon);
+      box.appendChild(msg);
+      box.appendChild(btn);
+      modal.appendChild(box);
+      document.body.appendChild(modal);
+    }
+    
+    var modalMessage = document.getElementById('reward-modal-message');
+    if (type) {
+      modalMessage.textContent = message;
+      modal.style.display = 'flex';
+    } else {
+      modal.style.display = 'none';
+    }
+  }
+
+  // ====== Settings ======
+  var adUnitPath = '/${networkCode}/${actualAdUnitName}'; // Path to the ad unit
+  var repeatCount = ${repeatCount};              // Number of repetitions
+  var delayBetweenAds = 15000;      // Time between ads (ms)
+  // =======================
+
+  for (var i = 0; i < repeatCount; i++) {
+    (function (index) {
+      setTimeout(function () {
+        setupRewardedAd(adUnitPath, 'reward_' + index);
+      }, index * delayBetweenAds);
+    })(i);
+  }
+</script>`,
+            body: ''
+          };
+        } else {
+          const queueItems = finalRewards.map((u, i) => {
+            return `    { path: '/${networkCode}/${u.gam_ad_unit_name}', id: 'reward_${i + 1}' }`;
+          }).join(',\n');
+
+          return {
+            head: `<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || { cmd: [] };
+  var rewardedSlots = [];
+
+  function setupRewardedAd(adUnitPath, slotId) {
+    googletag.cmd.push(function () {
+      var slot = googletag.defineOutOfPageSlot(adUnitPath, googletag.enums.OutOfPageFormat.REWARDED);
+      if (slot) {
+        slot.addService(googletag.pubads());
+
+        googletag.pubads().addEventListener('rewardedSlotReady', function (event) {
+          if (event.slot === slot) {
+            setTimeout(function () {
+              event.makeRewardedVisible();
+              displayModal();
+            }, 0);
+          }
+        });
+
+        googletag.pubads().addEventListener('rewardedSlotGranted', function (event) {
+          if (event.slot === slot) {
+            displayModal('success', 'Reward granted! Click the button to close.');
+          }
+        });
+
+        googletag.enableServices();
+        googletag.display(slot);
+        rewardedSlots.push({ id: slotId, slot: slot });
+      }
+    });
+  }
+
+  function dismissRewardedAd(slot) {
+    displayModal();
+    if (slot) {
+      googletag.destroySlots([slot]);
+    }
+  }
+
+  function displayModal(type, message) {
+    var modal = document.getElementById('reward-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'reward-modal';
+      modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(4px); font-family: sans-serif;';
+      
+      var box = document.createElement('div');
+      box.style.cssText = 'background: #ffffff; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);';
+      
+      var icon = document.createElement('div');
+      icon.style.cssText = 'font-size: 40px; margin-bottom: 12px;';
+      icon.textContent = '🏆';
+      
+      var msg = document.createElement('div');
+      msg.id = 'reward-modal-message';
+      msg.style.cssText = 'margin-bottom: 20px; font-size: 16px; font-weight: 500; color: #1e293b; line-height: 1.5;';
+      
+      var btn = document.createElement('button');
+      btn.textContent = 'Dismiss';
+      btn.style.cssText = 'background: #3b82f6; color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;';
+      btn.onclick = function() { modal.style.display = 'none'; };
+      
+      box.appendChild(icon);
+      box.appendChild(msg);
+      box.appendChild(btn);
+      modal.appendChild(box);
+      document.body.appendChild(modal);
+    }
+    
+    var modalMessage = document.getElementById('reward-modal-message');
+    if (type) {
+      modalMessage.textContent = message;
+      modal.style.display = 'flex';
+    } else {
+      modal.style.display = 'none';
+    }
+  }
+
+  // ====== Settings ======
+  var adQueue = [
+${queueItems}
+  ];
+  var delayBetweenAds = 20000; // Time between ads (ms)
+  // =======================
+
+  adQueue.forEach(function (ad, index) {
+    setTimeout(function () {
+      setupRewardedAd(ad.path, ad.id);
+    }, index * delayBetweenAds);
   });
 </script>`,
-          body: `<!-- Rewarded Ad Trigger (displays automatically or call googletag.display) -->
-<script>
-  googletag.cmd.push(function() {
-    if (rewardedSlot) {
-      googletag.display(rewardedSlot);
-    }
-  });
-</script>`
+            body: ''
+          };
         }
 
       case 'interstitial':
@@ -61,7 +290,7 @@ export default function PublisherWebsites() {
     googletag.enableServices();
   });
 </script>`,
-          body: `<!-- Web Interstitial Ad (No body tags required. Displays automatically on page interactions) -->`
+          body: ''
         }
 
       case 'anchor':
@@ -78,7 +307,7 @@ export default function PublisherWebsites() {
     googletag.enableServices();
   });
 </script>`,
-          body: `<!-- Anchor Ad (No body tags required. Renders automatically at the bottom of the page) -->`
+          body: ''
         }
 
       case 'float_top':
@@ -252,44 +481,49 @@ export default function PublisherWebsites() {
                       </div>
                     ) : adUnits[w.id].length === 0 ? (
                       <div className="text-muted text-sm">No ad units yet</div>
-                    ) : (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>Ad Unit Name</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {adUnits[w.id].map(a => (
-                            <tr key={a.id}>
-                              <td style={{ fontWeight: 600 }}>{a.display_name}</td>
-                              <td>
-                                <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                                  {a.is_active ? '🟢 Active' : '⚫ Inactive'}
-                                </span>
-                              </td>
-                              <td>
-                                <button
-                                  className="btn btn-secondary btn-xs"
-                                  onClick={() => setSelectedAdUnitCode({
-                                    displayName: a.display_name,
-                                    networkCode: w.gam_network_code,
-                                    adUnitName: a.gam_ad_unit_name,
-                                    id: a.id,
-                                    adType: a.ad_type || 'banner',
-                                    adSubtype: a.ad_subtype || ''
-                                  })}
-                                >
-                                  🏷️ Get Code
-                                </button>
-                              </td>
+                    ) : (() => {
+                      const groupedUnits = groupAdUnits(adUnits[w.id]);
+                      return (
+                        <table className="table">
+                          <thead>
+                            <tr>
+                              <th>Ad Unit Name</th>
+                              <th>Status</th>
+                              <th>Actions</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
+                          </thead>
+                          <tbody>
+                            {groupedUnits.map(a => (
+                              <tr key={a.id}>
+                                <td style={{ fontWeight: 600 }}>{a.display_name}</td>
+                                <td>
+                                  <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
+                                    {a.is_active ? '🟢 Active' : '⚫ Inactive'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <button
+                                    className="btn btn-secondary btn-xs"
+                                    onClick={() => setSelectedAdUnitCode({
+                                      displayName: a.display_name,
+                                      networkCode: w.gam_network_code,
+                                      adUnitName: a.gam_ad_unit_name,
+                                      id: a.id,
+                                      adType: a.ad_type || 'banner',
+                                      adSubtype: a.ad_subtype || '',
+                                      websiteId: w.id,
+                                      children: a.children
+                                    })}
+                                  >
+                                    🏷️ Get Code
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -352,7 +586,8 @@ export default function PublisherWebsites() {
       )}
 
       {selectedAdUnitCode && (() => {
-        const scripts = getAdUnitScripts(selectedAdUnitCode);
+        const websiteAdUnits = adUnits[selectedAdUnitCode.websiteId] || [];
+        const scripts = getAdUnitScripts(selectedAdUnitCode, websiteAdUnits);
         return (
           <div className="modal-backdrop">
             <div className="modal" style={{ maxWidth: '650px' }}>
@@ -404,31 +639,31 @@ export default function PublisherWebsites() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                    2. Body Code {['interstitial', 'anchor'].includes(selectedAdUnitCode.adType) ? '(Optional)' : '(Place where the ad should render)'}
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <textarea
-                      className="form-input"
-                      style={{
-                        height: '110px',
-                        fontFamily: 'monospace',
-                        fontSize: '11px',
-                        whiteSpace: 'pre',
-                        background: '#161e2e',
-                        color: '#e2e8f0',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '4px',
-                        padding: '10px',
-                        width: '100%',
-                        resize: 'none'
-                      }}
-                      readOnly
-                      value={scripts.body}
-                      onClick={e => e.target.select()}
-                    />
-                    {scripts.body && (
+                {scripts.body && (
+                  <div>
+                    <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
+                      2. Body Code (Place where the ad should render)
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <textarea
+                        className="form-input"
+                        style={{
+                          height: '110px',
+                          fontFamily: 'monospace',
+                          fontSize: '11px',
+                          whiteSpace: 'pre',
+                          background: '#161e2e',
+                          color: '#e2e8f0',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '4px',
+                          padding: '10px',
+                          width: '100%',
+                          resize: 'none'
+                        }}
+                        readOnly
+                        value={scripts.body}
+                        onClick={e => e.target.select()}
+                      />
                       <button
                         type="button"
                         className="btn btn-secondary btn-xs"
@@ -440,21 +675,23 @@ export default function PublisherWebsites() {
                       >
                         📋 Copy
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={() => {
-                      const fullCode = `<!-- Header Code -->\n${scripts.head}\n\n<!-- Body Code -->\n${scripts.body}`;
+                      const fullCode = scripts.body
+                        ? `<!-- Header Code -->\n${scripts.head}\n\n<!-- Body Code -->\n${scripts.body}`
+                        : scripts.head;
                       navigator.clipboard.writeText(fullCode);
-                      toast.success('Full code block copied!');
+                      toast.success('Code block copied!');
                     }}
                   >
-                    Copy Full Block
+                    {scripts.body ? 'Copy Full Block' : 'Copy Code'}
                   </button>
                   <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdUnitCode(null)}>Close</button>
                 </div>
