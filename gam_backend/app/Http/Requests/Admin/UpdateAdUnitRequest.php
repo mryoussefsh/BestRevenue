@@ -21,7 +21,7 @@ class UpdateAdUnitRequest extends FormRequest
             'is_active'        => 'boolean',
             'ad_type'          => 'sometimes|required|string|in:banner,reward,interstitial,anchor,float_top,float_bottom,float_fullscreen',
             'ad_subtype'       => 'sometimes|nullable|string|in:normal,repeated,top,bottom',
-            'repeat_count'     => 'sometimes|nullable|integer|min:1|max:100',
+            'repeat_count'     => 'sometimes|nullable|integer|min:0|max:100',
             'delay_between_ads'=> 'sometimes|nullable|integer|min:0|max:3600',
         ];
     }

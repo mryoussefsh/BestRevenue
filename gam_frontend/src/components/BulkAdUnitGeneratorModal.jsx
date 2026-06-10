@@ -291,7 +291,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
         ratio_override: form.ratio_override ? parseFloat(form.ratio_override) / 100 : null,
         ad_type:        form.ad_type,
         ad_subtype:     form.ad_type === 'reward' ? form.ad_subtype || 'normal' : (form.ad_type === 'anchor' ? form.ad_subtype || 'top' : null),
-        repeat_count:   form.ad_type === 'reward' && form.ad_subtype === 'repeated' ? parseInt(form.repeat_count) : null,
+        repeat_count:   (form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' ? parseInt(form.repeat_count) : null,
         delay_between_ads: (form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') ? parseInt(form.delay_between_ads) : null,
       }
       const res = await adminApi.bulkCreateAdUnits(payload)
@@ -389,13 +389,15 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
           {/* Reward or Float Specific Fields */}
           {(form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && (
             <div className="form-row" style={{ marginBottom: 16 }}>
-              {form.ad_type === 'reward' && form.ad_subtype === 'repeated' && (
+              {((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && (
                 <div className="form-group">
-                  <label className="form-label">Repeat Count *</label>
+                  <label className="form-label">
+                    {form.ad_type === 'reward' ? 'Repeat Count *' : 'Close Button Delay (Seconds) *'}
+                  </label>
                   <input
                     className="form-input"
                     type="number"
-                    min="1"
+                    min={form.ad_type === 'reward' ? "1" : "0"}
                     max="100"
                     value={form.repeat_count}
                     onChange={e => setForm(f => ({ ...f, repeat_count: e.target.value }))}
@@ -417,7 +419,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                   required
                 />
               </div>
-              {!(form.ad_type === 'reward' && form.ad_subtype === 'repeated') && <div className="form-group" />}
+              {!((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && <div className="form-group" />}
             </div>
           )}
 

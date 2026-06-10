@@ -349,7 +349,7 @@ ${queueItems}
 </script>`,
           body: `<!-- Sticky Floating Top Wrapper with Close Button -->
 <div id="float-top-container-${id}" style="position: fixed; top: -150px; left: 50%; transform: translateX(-50%); z-index: 99999; background: #ffffff; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.15); padding: 10px; display: none; flex-direction: column; align-items: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; transition: all 0.3s ease-in-out; border: 1px solid rgba(226, 232, 240, 0.8);">
-  <button onclick="dismissFloatTop_${safeFloatTopId}()" style="position: absolute; top: -12px; right: -12px; background: #ef4444; color: #ffffff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">✕</button>
+  <button id="float-top-close-${id}" onclick="dismissFloatTop_${safeFloatTopId}()" style="position: absolute; top: -12px; right: -12px; background: #ef4444; color: #ffffff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 12px; display: none; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">✕</button>
   <div id="div-gpt-ad-${id}" style="min-width: 300px; min-height: 50px;">
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
@@ -360,6 +360,7 @@ ${queueItems}
 <script>
   (function() {
     var delayMs = ${delayMsTop};
+    var closeDelayMs = ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0};
     var container = document.getElementById('float-top-container-${id}');
     
     window.dismissFloatTop_${safeFloatTopId} = function() {
@@ -379,6 +380,14 @@ ${queueItems}
         // Force a reflow to trigger CSS transition
         container.offsetHeight;
         container.style.top = '0px';
+
+        // Show close button after its own delay
+        var closeBtn = document.getElementById('float-top-close-${id}');
+        if (closeBtn) {
+          setTimeout(function() {
+            closeBtn.style.display = 'flex';
+          }, closeDelayMs);
+        }
       }
     }, delayMs);
   })();
@@ -400,7 +409,7 @@ ${queueItems}
 </script>`,
           body: `<!-- Sticky Floating Bottom Wrapper with Close Button -->
 <div id="float-bottom-container-${id}" style="position: fixed; bottom: -300px; left: 50%; transform: translateX(-50%); z-index: 99999; background: #ffffff; box-shadow: 0 -10px 25px -5px rgba(0,0,0,0.15), 0 -8px 10px -6px rgba(0,0,0,0.15); padding: 10px; display: none; flex-direction: column; align-items: center; border-top-left-radius: 12px; border-top-right-radius: 12px; transition: all 0.3s ease-in-out; border: 1px solid rgba(226, 232, 240, 0.8);">
-  <button onclick="dismissFloatBottom_${safeFloatBottomId}()" style="position: absolute; top: -12px; right: -12px; background: #ef4444; color: #ffffff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">✕</button>
+  <button id="float-bottom-close-${id}" onclick="dismissFloatBottom_${safeFloatBottomId}()" style="position: absolute; top: -12px; right: -12px; background: #ef4444; color: #ffffff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 12px; display: none; justify-content: center; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">✕</button>
   <div id="div-gpt-ad-${id}" style="min-width: 300px; min-height: 50px;">
     <script>
       googletag.cmd.push(function() { googletag.display('div-gpt-ad-${id}'); });
@@ -411,6 +420,7 @@ ${queueItems}
 <script>
   (function() {
     var delayMs = ${delayMsBottom};
+    var closeDelayMs = ${repeat_count !== null && repeat_count !== undefined ? repeat_count * 1000 : 0};
     var container = document.getElementById('float-bottom-container-${id}');
     
     window.dismissFloatBottom_${safeFloatBottomId} = function() {
@@ -430,6 +440,14 @@ ${queueItems}
         // Force a reflow to trigger CSS transition
         container.offsetHeight;
         container.style.bottom = '0px';
+
+        // Show close button after its own delay
+        var closeBtn = document.getElementById('float-bottom-close-${id}');
+        if (closeBtn) {
+          setTimeout(function() {
+            closeBtn.style.display = 'flex';
+          }, closeDelayMs);
+        }
       }
     }, delayMs);
   })();
