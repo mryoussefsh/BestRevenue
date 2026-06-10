@@ -292,7 +292,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
         ad_type:        form.ad_type,
         ad_subtype:     form.ad_type === 'reward' ? form.ad_subtype || 'normal' : (form.ad_type === 'anchor' ? form.ad_subtype || 'top' : null),
         repeat_count:   form.ad_type === 'reward' && form.ad_subtype === 'repeated' ? parseInt(form.repeat_count) : null,
-        delay_between_ads: form.ad_type === 'reward' ? parseInt(form.delay_between_ads) : null,
+        delay_between_ads: (form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') ? parseInt(form.delay_between_ads) : null,
       }
       const res = await adminApi.bulkCreateAdUnits(payload)
       toast.success(res.data?.message || 'Ad units created!')
@@ -386,10 +386,10 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
             ) : <div />}
           </div>
 
-          {/* Reward Specific Fields */}
-          {form.ad_type === 'reward' && (
+          {/* Reward or Float Specific Fields */}
+          {(form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom') && (
             <div className="form-row" style={{ marginBottom: 16 }}>
-              {form.ad_subtype === 'repeated' && (
+              {form.ad_type === 'reward' && form.ad_subtype === 'repeated' && (
                 <div className="form-group">
                   <label className="form-label">Repeat Count *</label>
                   <input
@@ -404,7 +404,9 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                 </div>
               )}
               <div className="form-group">
-                <label className="form-label">Delay Between Ads (Seconds) *</label>
+                <label className="form-label">
+                  {form.ad_type === 'reward' ? 'Delay Between Ads (Seconds) *' : 'Delay Before Showing Ad (Seconds) *'}
+                </label>
                 <input
                   className="form-input"
                   type="number"
@@ -415,7 +417,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                   required
                 />
               </div>
-              {form.ad_subtype !== 'repeated' && <div className="form-group" />}
+              {!(form.ad_type === 'reward' && form.ad_subtype === 'repeated') && <div className="form-group" />}
             </div>
           )}
 

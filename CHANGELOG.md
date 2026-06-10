@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.3.8] - 2026-06-10
+
+### Added
+- **Premium Float Top & Float Bottom Ad Units**: Enhanced code generation templates to include slide-in/slide-out animations, absolute close overlay badges, and smooth element dismissal from the DOM.
+- **Configurable Display Delays**: Integrated input fields in the Admin Ad Unit form and Bulk Generator Modal to allow admins to define timed delays (seconds) before floating ad containers slide into view.
+
 ## [1.3.7] - 2026-06-10
 
 ### Added
