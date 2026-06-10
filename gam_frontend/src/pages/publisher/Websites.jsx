@@ -238,51 +238,8 @@ export default function PublisherWebsites() {
       box.appendChild(msg);
       box.appendChild(btn);
 
-      // Dynamically add platform ad label inside the modal box
-      var label = document.createElement('div');
-      label.id = 'br-label-reward';
-      label.style.cssText = 'margin-top: 20px !important; text-align: center !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 10px !important;';
-      
-      var link = document.createElement('a');
-      link.href = '${platformUrl}';
-      link.target = '_blank';
-      link.textContent = 'Ads by ${siteName}';
-      link.style.cssText = 'color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
-      link.onmouseover = function() { this.style.color = '#3b82f6'; };
-      link.onmouseout = function() { this.style.color = '#94a3b8'; };
-      
-      label.appendChild(link);
-      box.appendChild(label);
-
       modal.appendChild(box);
       document.body.appendChild(modal);
-
-      // Start periodic checker to ensure label is not hidden
-      var checkInterval = setInterval(function() {
-        var lbl = document.getElementById('br-label-reward');
-        if (modal.style.display === 'flex') {
-          if (!lbl) {
-            modal.style.display = 'none';
-            if (window.rewardedSlots) {
-              window.rewardedSlots.forEach(function(s) {
-                if (s.slot) googletag.destroySlots([s.slot]);
-              });
-            }
-            clearInterval(checkInterval);
-            return;
-          }
-          var style = window.getComputedStyle(lbl);
-          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-            modal.style.display = 'none';
-            if (window.rewardedSlots) {
-              window.rewardedSlots.forEach(function(s) {
-                if (s.slot) googletag.destroySlots([s.slot]);
-              });
-            }
-            clearInterval(checkInterval);
-          }
-        }
-      }, 1000);
     }
     
     var modalMessage = document.getElementById('reward-modal-message');
@@ -385,51 +342,8 @@ export default function PublisherWebsites() {
       box.appendChild(msg);
       box.appendChild(btn);
 
-      // Dynamically add platform ad label inside the modal box
-      var label = document.createElement('div');
-      label.id = 'br-label-reward';
-      label.style.cssText = 'margin-top: 20px !important; text-align: center !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 10px !important;';
-      
-      var link = document.createElement('a');
-      link.href = '${platformUrl}';
-      link.target = '_blank';
-      link.textContent = 'Ads by ${siteName}';
-      link.style.cssText = 'color: #94a3b8 !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
-      link.onmouseover = function() { this.style.color = '#3b82f6'; };
-      link.onmouseout = function() { this.style.color = '#94a3b8'; };
-      
-      label.appendChild(link);
-      box.appendChild(label);
-
       modal.appendChild(box);
       document.body.appendChild(modal);
-
-      // Start periodic checker to ensure label is not hidden
-      var checkInterval = setInterval(function() {
-        var lbl = document.getElementById('br-label-reward');
-        if (modal.style.display === 'flex') {
-          if (!lbl) {
-            modal.style.display = 'none';
-            if (window.rewardedSlots) {
-              window.rewardedSlots.forEach(function(s) {
-                if (s.slot) googletag.destroySlots([s.slot]);
-              });
-            }
-            clearInterval(checkInterval);
-            return;
-          }
-          var style = window.getComputedStyle(lbl);
-          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0 || parseInt(style.height) === 0) {
-            modal.style.display = 'none';
-            if (window.rewardedSlots) {
-              window.rewardedSlots.forEach(function(s) {
-                if (s.slot) googletag.destroySlots([s.slot]);
-              });
-            }
-            clearInterval(checkInterval);
-          }
-        }
-      }, 1000);
     }
     
     var modalMessage = document.getElementById('reward-modal-message');
@@ -466,8 +380,6 @@ ${queueItems}
 <script>
   window.googletag = window.googletag || {cmd: []};
 
-  ${helperScript}
-
   var interstitialSlot_${safeInterstitialId};
   googletag.cmd.push(function() {
     interstitialSlot_${safeInterstitialId} = googletag.defineOutOfPageSlot('/${networkCode}/${adUnitName}',
@@ -479,14 +391,6 @@ ${queueItems}
     googletag.pubads().set('page_url', '${siteUrl}');
     googletag.enableServices();
     googletag.display(interstitialSlot_${safeInterstitialId});
-  });
-
-  googletag.cmd.push(function() {
-    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
-      if (event.slot === interstitialSlot_${safeInterstitialId} && !event.isEmpty) {
-        __br_inject_label(null, '${siteName}', '${platformUrl}', 'fixed-bottom', '${id}', interstitialSlot_${safeInterstitialId});
-      }
-    });
   });
 </script>`,
           body: ''
@@ -503,8 +407,6 @@ ${queueItems}
 <script>
   window.googletag = window.googletag || {cmd: []};
 
-  ${helperScript}
-
   // GPT ad slots
   var anchorSlot_${safeAnchorId};
 
@@ -518,14 +420,6 @@ ${queueItems}
     googletag.pubads().enableSingleRequest();
     googletag.enableServices();
     googletag.display(anchorSlot_${safeAnchorId});
-  });
-
-  googletag.cmd.push(function() {
-    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
-      if (event.slot === anchorSlot_${safeAnchorId} && !event.isEmpty) {
-        __br_inject_label(null, '${siteName}', '${platformUrl}', '${adSubtype === 'bottom' ? 'fixed-bottom' : 'fixed-top'}', '${id}', anchorSlot_${safeAnchorId});
-      }
-    });
   });
 </script>`,
           body: ''
