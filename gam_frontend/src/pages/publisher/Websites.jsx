@@ -89,14 +89,18 @@ export default function PublisherWebsites() {
     link.target = '_blank';
     link.textContent = 'Ads by ' + siteName;
     
-    label.style.cssText = 'display: flex !important; justify-content: flex-end !important; align-items: center !important; padding: 2px 6px !important; margin: 0 !important; background: #f8fafc !important; border-top: 1px solid #e2e8f0 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 9px !important; line-height: 12px !important; text-align: right !important; clear: both !important; box-sizing: border-box !important; width: 100% !important;';
-    link.style.cssText = 'color: #64748b !important; text-decoration: none !important; font-weight: 500 !important; transition: color 0.2s !important; display: inline-block !important;';
+    label.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; padding: 4px 6px !important; margin: 0 !important; background: #f1f5f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 10px !important; line-height: 14px !important; text-align: center !important; clear: both !important; box-sizing: border-box !important; width: 100% !important;';
+    link.style.cssText = 'color: #334155 !important; text-decoration: none !important; font-weight: 600 !important; transition: color 0.2s !important; display: inline-block !important;';
     
     link.onmouseover = function() { this.style.color = '#3b82f6'; };
-    link.onmouseout = function() { this.style.color = '#64748b'; };
+    link.onmouseout = function() { this.style.color = '#334155'; };
     label.appendChild(link);
 
-    if (styleType === 'after' && container) {
+    if (styleType === 'before' && container) {
+      label.style.setProperty('border-bottom', '1px solid #cbd5e1', 'important');
+      container.parentNode.insertBefore(label, container);
+    } else if (styleType === 'after' && container) {
+      label.style.setProperty('border-top', '1px solid #cbd5e1', 'important');
       container.parentNode.insertBefore(label, container.nextSibling);
     } else if (styleType === 'fixed-bottom' || styleType === 'fixed-top') {
       label.style.position = 'fixed';
@@ -106,7 +110,7 @@ export default function PublisherWebsites() {
       label.style.padding = '3px 8px';
       label.style.borderRadius = '4px';
       label.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-      label.style.border = '1px solid #e2e8f0';
+      label.style.border = '1px solid #cbd5e1';
       label.style.width = 'auto';
       if (styleType === 'fixed-bottom') {
         label.style.bottom = '55px';
@@ -780,7 +784,7 @@ ${queueItems}
   googletag.cmd.push(function() {
     googletag.pubads().addEventListener('slotRenderEnded', function(event) {
       if (event.slot === slot_${safeBannerId} && !event.isEmpty) {
-        __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'after', '${id}', slot_${safeBannerId});
+        __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'before', '${id}', slot_${safeBannerId});
       }
     });
   });
