@@ -1,7 +1,97 @@
-window.__br_inject_label = window.__br_inject_label || function(containerId, siteName, siteUrl, styleType, uniqueId, slotToDestroy) {
+(function() {
+  if (window.__br_platform_settings) return;
+  var scriptSrc = '';
+  if (document.currentScript) {
+    scriptSrc = document.currentScript.src;
+  } else {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && scripts[i].src.indexOf('br-label.js') !== -1) {
+        scriptSrc = scripts[i].src;
+        break;
+      }
+    }
+  }
+  if (scriptSrc) {
+    try {
+      var platformUrl = new URL(scriptSrc).origin;
+      if (platformUrl) {
+        fetch(platformUrl + '/api/v1/public/settings')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            window.__br_platform_settings = data;
+          })
+          .catch(function() {});
+      }
+    } catch(e) {}
+  }
+})();
+
+window.__br_inject_label = window.__br_inject_label || function(containerId, arg2, arg3, arg4, arg5, arg6) {
+  var siteName = '';
+  var siteUrl = '';
+  var styleType = '';
+  var uniqueId = '';
+  var slotToDestroy = null;
+
+  // Support both old and new signatures for backward compatibility
+  if (typeof arg2 === 'string' && (arg2 === 'before' || arg2 === 'after' || arg2 === 'float-footer' || arg2 === 'float-fullscreen-footer')) {
+    styleType = arg2;
+    uniqueId = arg3;
+    slotToDestroy = arg4;
+  } else {
+    siteName = arg2;
+    siteUrl = arg3;
+    styleType = arg4;
+    uniqueId = arg5;
+    slotToDestroy = arg6;
+  }
+
   var container = containerId ? document.getElementById(containerId) : null;
   var labelId = 'br-label-' + (containerId || uniqueId);
   if (document.getElementById(labelId)) return;
+
+  var scriptSrc = '';
+  if (document.currentScript) {
+    scriptSrc = document.currentScript.src;
+  } else {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && (scripts[i].src.indexOf('br-label.js') !== -1 || scripts[i].src.indexOf('br-float.js') !== -1)) {
+        scriptSrc = scripts[i].src;
+        break;
+      }
+    }
+  }
+
+  var platformUrl = '';
+  if (scriptSrc) {
+    try {
+      platformUrl = new URL(scriptSrc).origin;
+    } catch(e) {}
+  }
+  if (!platformUrl) {
+    platformUrl = window.location.origin;
+  }
+
+  var resolvedSiteUrl = platformUrl;
+  var resolvedSiteName = 'BestRevenue';
+  if (platformUrl) {
+    try {
+      var hostname = new URL(platformUrl).hostname;
+      var domainWord = hostname.replace('www.', '').split('.')[0];
+      if (domainWord && domainWord !== 'localhost' && domainWord !== '127') {
+        resolvedSiteName = domainWord.charAt(0).toUpperCase() + domainWord.slice(1);
+      }
+    } catch(e) {}
+  }
+
+  if (window.__br_platform_settings && window.__br_platform_settings.site_name) {
+    resolvedSiteName = window.__br_platform_settings.site_name;
+  }
+
+  siteName = resolvedSiteName;
+  siteUrl = resolvedSiteUrl;
 
   var label = document.createElement('div');
   label.id = labelId;

@@ -3,8 +3,6 @@ window.__br_init_float = window.__br_init_float || function(config) {
   var type = config.type;
   var delayMs = config.delayMs;
   var closeDelayMs = config.closeDelayMs;
-  var siteName = config.siteName;
-  var platformUrl = config.platformUrl;
   var slot = config.slot;
 
   var containerId = '';
@@ -14,6 +12,45 @@ window.__br_init_float = window.__br_init_float || function(config) {
   var cardId = '';
 
   var safeIdSuffix = id.replace(/-/g, '_');
+
+  // Resolve platformUrl and siteName dynamically
+  var scriptSrc = '';
+  if (document.currentScript) {
+    scriptSrc = document.currentScript.src;
+  } else {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && scripts[i].src.indexOf('br-float.js') !== -1) {
+        scriptSrc = scripts[i].src;
+        break;
+      }
+    }
+  }
+
+  var platformUrl = '';
+  if (scriptSrc) {
+    try {
+      platformUrl = new URL(scriptSrc).origin;
+    } catch(e) {}
+  }
+  if (!platformUrl) {
+    platformUrl = window.location.origin;
+  }
+
+  var siteName = 'BestRevenue';
+  if (platformUrl) {
+    try {
+      var hostname = new URL(platformUrl).hostname;
+      var domainWord = hostname.replace('www.', '').split('.')[0];
+      if (domainWord && domainWord !== 'localhost' && domainWord !== '127') {
+        siteName = domainWord.charAt(0).toUpperCase() + domainWord.slice(1);
+      }
+    } catch(e) {}
+  }
+
+  if (window.__br_platform_settings && window.__br_platform_settings.site_name) {
+    siteName = window.__br_platform_settings.site_name;
+  }
 
   if (type === 'float_top') {
     containerId = 'float-top-container-' + id;
@@ -156,7 +193,7 @@ window.__br_init_float = window.__br_init_float || function(config) {
       var checkLabelLoaded = setInterval(function() {
         if (typeof __br_inject_label === 'function') {
           var labelContainerId = (type === 'float_fullscreen') ? cardId : containerId;
-          __br_inject_label(labelContainerId, siteName, platformUrl, labelStyleType, id, slot);
+          __br_inject_label(labelContainerId, labelStyleType, id, slot);
           clearInterval(checkLabelLoaded);
         } else {
           retries--;

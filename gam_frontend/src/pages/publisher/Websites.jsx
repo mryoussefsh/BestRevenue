@@ -503,7 +503,7 @@ ${queueItems}
         var retries = 10;
         var checkLabelLoaded = setInterval(function() {
           if (typeof __br_inject_label === 'function') {
-            __br_inject_label('div-gpt-ad-${id}', '${siteName}', '${platformUrl}', 'before', '${id}', slot_${safeBannerId});
+            __br_inject_label('div-gpt-ad-${id}', 'before', '${id}', slot_${safeBannerId});
             clearInterval(checkLabelLoaded);
           } else {
             retries--;
