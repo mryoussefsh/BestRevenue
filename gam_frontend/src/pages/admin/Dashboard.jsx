@@ -25,7 +25,8 @@ import {
   TrendingUp,
   Scale,
   LayoutDashboard,
-  RefreshCw
+  RefreshCw,
+  Filter
 } from 'lucide-react'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
@@ -190,6 +191,7 @@ export default function AdminDashboard() {
   const [loading, setLoading]       = useState(true)
   const [visibleSeries, setVisibleSeries] = useState({ gross: true, earnings: true, approved: true, pending: true })
   const [publisherStats, setPublisherStats] = useState([])
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   function toggleSeries(key) {
     setVisibleSeries(prev => ({ ...prev, [key]: !prev[key] }))
@@ -456,6 +458,14 @@ export default function AdminDashboard() {
 
   const hasFilters = filters.publisher_id || filters.website_id || filters.ad_unit_id || filters.status || preset !== '30d'
 
+  const activeFiltersCount = [
+    filters.publisher_id,
+    filters.website_id,
+    filters.ad_unit_id,
+    filters.status,
+    preset !== '30d' ? 'preset' : null
+  ].filter(Boolean).length
+
   // Filter website dropdown to selected publisher
   const websiteOptions = websites
     .filter(w => !filters.publisher_id || w.publisher_id === filters.publisher_id)
@@ -485,22 +495,49 @@ export default function AdminDashboard() {
             {loading ? 'Loading…' : `${stats?.recordCount?.toLocaleString() || 0} revenue records · ${filters.date_from} → ${filters.date_to}`}
           </p>
         </div>
-        <button
-          className={`btn btn-primary ${syncing ? 'btn-loading' : ''}`}
-          onClick={handleSync} disabled={syncing} id="run-gam-sync-btn"
-        >
-          {syncing
-            ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
-            : <><RefreshCw size={14} /> Run GAM Sync</>}
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button
+            className={`btn btn-primary ${syncing ? 'btn-loading' : ''}`}
+            onClick={handleSync} disabled={syncing} id="run-gam-sync-btn"
+          >
+            {syncing
+              ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
+              : <><RefreshCw size={14} /> Run GAM Sync</>}
+          </button>
+        </div>
       </div>
 
       {/* ── Filter Panel ── */}
-      <div className="card" style={{
-        padding: '16px 20px', marginBottom: 24,
-        background: 'var(--color-surface-2)',
-        border: '1px solid var(--color-border)',
-      }}>
+      {showFiltersPanel && (
+        <div className="card" style={{
+          padding: '16px 20px', marginBottom: 24,
+          background: 'var(--color-surface-2)',
+          border: '1px solid var(--color-border)',
+        }}>
         {/* Filters Row */}
         <div className="responsive-filters" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Period Selector */}
@@ -607,6 +644,7 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+      )}
 
       {/* ── Revenue Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
