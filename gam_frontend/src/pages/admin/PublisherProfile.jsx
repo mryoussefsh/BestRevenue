@@ -707,6 +707,21 @@ export default function PublisherProfile() {
                             <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                               <Edit2 size={12} /> Edit
                             </button>
+                            <button className="btn btn-danger btn-xs"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
+                              onClick={async () => {
+                                if (!confirm(`Are you sure you want to delete website "${web.domain}"? This will also delete all its mapped ad units.`)) return
+                                try {
+                                  await adminApi.deleteWebsite(web.id)
+                                  toast.success('Website deleted successfully')
+                                  loadAllData(true)
+                                } catch {
+                                  toast.error('Failed to delete website')
+                                }
+                              }}
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
                           </div>
                         </div>
 
