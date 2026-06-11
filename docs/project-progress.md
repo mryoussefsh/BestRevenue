@@ -145,6 +145,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Updated SettingController update validation to allow clearing (nullable) values for optional display/social keys.
 - [x] Exposed social keys to getPublicSettings API and added 📱 tab icon for Social Settings group in Admin panel.
 - [x] Integrated conditional social icons inside public footers (Landing, Support, Dynamic Pages) and publisher dashboard layout footer.
+- [x] Created and placed layout footer in the Admin dashboard layout showing the copyright notice and "Administrator" portal indicator.
 
 ---
 

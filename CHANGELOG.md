@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Social Media Link Settings**: Added settings for Facebook, Instagram, X (Twitter), and Telegram under a new "Social Settings" tab in the Admin panel.
 - **Conditional Social Icons**: Rendered social icons inside the public footers (Landing, Support, Dynamic Pages) and publisher dashboard footer only if their links are set, hiding empty ones automatically.
 - **Nullable Settings Clearing**: Configured the backend settings updater to allow clearing (making null) values for optional branding, support, and social settings.
+- **Admin Dashboard Footer**: Added a layout footer to the administrator dashboard showing the copyright notice and the "Administrator" portal label.
 
 ## [1.6.0] - 2026-06-11
 

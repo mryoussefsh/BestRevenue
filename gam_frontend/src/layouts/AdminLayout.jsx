@@ -142,6 +142,24 @@ export default function AdminLayout({ children }) {
         <main className="page-container">
           {children}
         </main>
+
+        <footer style={{
+          marginTop: 'auto',
+          padding: '20px 32px',
+          borderTop: '1px solid var(--color-border)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          fontSize: '12px',
+          color: 'var(--color-text-subtle)',
+        }}>
+          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. All rights reserved.</div>
+          <div style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
+            Administrator
+          </div>
+        </footer>
       </div>
     </div>
   )
