@@ -79,6 +79,13 @@ The frontend is a single-page application focused on high-performance state rend
   - `PublisherLayout`: Renders side navigation tailored to publishers, hiding configuration panels and presenting dashboard widgets.
 - **Localization (i18n)**: Renders translations via `react-i18next`. Dynamically downloads vocabulary maps from backend translation tables.
 
+### C. Design System & Premium UI Patterns
+1. **Obsidian-Glass Theme**: Employs a consistent glassmorphic UI utilizing translucent dark overlays (`var(--br-surface)`), thin border highlights (`var(--br-border)`), Indigo primary accents (`var(--br-primary)`), and background radial gradients to create a premium visual experience.
+2. **Compact Amount & Tooltip Toggle**: Implements number compaction (for values $\ge 1,000$ to `k`, and $\ge 1,000,000$ to `M`) via the `CompactAmount` React component. Users can hover anywhere on the compact value to view the exact raw number in a tooltip, or click the number to toggle the formatting inline.
+3. **Card Grid & Text Wrapping**: Configures stats widgets using a two-column grid (`minmax(0, 1fr) auto`) paired with `flex-wrap: wrap` on subtitles. This ensures that even when users click a number to reveal long un-compacted figures, the subtitle wraps cleanly without expanding the card width or pushing the right-hand status icon off-screen.
+4. **Emoji-Free Standardized Icons**: Restricts raw browser emojis from forms, lists, and pages, substituting them with high-fidelity vector SVGs (such as country search magnifying glass backgrounds) and clean line icons from `lucide-react`.
+5. **Interactive Navigation Elements**: Includes a click-to-settings Link wrapping the sidebar publisher user profile block, a simplified topbar header with a custom-styled `<select>` dropdown menu, and responsive side-by-side profile and security form cards.
+
 ---
 
 ## 4. Key System Workflows
