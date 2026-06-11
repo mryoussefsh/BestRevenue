@@ -50,8 +50,12 @@ class SettingController extends Controller
     {
         $setting = Setting::findOrFail($key);
 
+        // Allow certain settings to be cleared (nullable)
+        $nullableKeys = ['site_logo', 'site_favicon', 'og_image', 'support_telegram', 'support_whatsapp', 'social_facebook', 'social_instagram', 'social_x', 'social_telegram'];
+        $isRequired = !in_array($key, $nullableKeys);
+
         $request->validate([
-            'value' => 'required',
+            'value' => $isRequired ? 'required' : 'nullable',
         ]);
 
         $value = $request->value;
@@ -195,6 +199,10 @@ class SettingController extends Controller
             'support_email',
             'support_telegram',
             'support_whatsapp',
+            'social_facebook',
+            'social_instagram',
+            'social_x',
+            'social_telegram',
         ];
 
         $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {

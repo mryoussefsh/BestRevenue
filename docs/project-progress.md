@@ -133,7 +133,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented secure closed ticket locking, blocking any replies (from both publisher and admin sides) once a ticket is marked `closed`, replacing response boxes with warning notices.
 - [x] Created comprehensive test coverage in `SupportTicketsTest.php` to validate ticket creation limit, closed ticket reply blocking, and resolved ticket reopening.
 
-### Milestone 8: Dynamic Pages Management (Sprint 13)
+### Milestone 8: Dynamic Pages & Social Integration (Sprint 13)
 - [x] Engineered `pages` database migration and seeded default Privacy Policy and Terms of Service documents.
 - [x] Developed `Page` Eloquent model utilizing UUID primary key casts and toggles.
 - [x] Implemented Admin PageController for full CRUD operations and PublicPageController for reading page content by slug.
@@ -141,6 +141,10 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Designed responsive, dark-themed public `PageDetail` route rendering formatted rich-text contents.
 - [x] Added Page Management panel under Admin Portal with WYSIWYG editor and auto-slugify features.
 - [x] Integrated dynamic links inside headers and footers across Landing page, Support page, and Publisher dashboard layout.
+- [x] Developed database migration seeding Facebook, Instagram, X, and Telegram social setting keys.
+- [x] Updated SettingController update validation to allow clearing (nullable) values for optional display/social keys.
+- [x] Exposed social keys to getPublicSettings API and added 📱 tab icon for Social Settings group in Admin panel.
+- [x] Integrated conditional social icons inside public footers (Landing, Support, Dynamic Pages) and publisher dashboard layout footer.
 
 ---
 

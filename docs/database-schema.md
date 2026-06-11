@@ -179,6 +179,11 @@ Stores dynamic global configurations for the platform.
   * `meta_title`: Dynamic HTML document title prefix.
   * `meta_description`: HTML head meta tag description for public authentication pages.
   * `meta_keywords`: HTML head meta tag keywords list.
+* **Social Media Settings (`group: 'social'`)**:
+  * `social_facebook`: Facebook page link.
+  * `social_instagram`: Instagram profile link.
+  * `social_x`: X / Twitter profile link.
+  * `social_telegram`: Telegram channel link.
 * **Branding Settings (`group: 'display'`)**:
   * `site_description`: Text description of the platform.
   * `site_logo`: Path/URL to the uploaded platform logo image (dynamic header/sidebar renders).

@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Optimized Frontend Cache**: Appended active page lists directly to the public settings endpoint, allowing headers and layouts to render links dynamically without making extra API calls.
 - **Public Page Detail view**: Programmed public route `/page/:slug` and matching stylesheet (`PageDetail.css`) displaying structured page content inside a responsive, premium glassmorphic dark mode layout.
 - **Auto-Seeded Default Pages**: Seeded working Privacy Policy and Terms of Service layouts during database migration.
+- **Social Media Link Settings**: Added settings for Facebook, Instagram, X (Twitter), and Telegram under a new "Social Settings" tab in the Admin panel.
+- **Conditional Social Icons**: Rendered social icons inside the public footers (Landing, Support, Dynamic Pages) and publisher dashboard footer only if their links are set, hiding empty ones automatically.
+- **Nullable Settings Clearing**: Configured the backend settings updater to allow clearing (making null) values for optional branding, support, and social settings.
 
 ## [1.6.0] - 2026-06-11
 
