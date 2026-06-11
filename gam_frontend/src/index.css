@@ -1684,6 +1684,32 @@ input, select, textarea { outline: none; }
   }
 }
 
+/* Profile Quick Actions Grid Layout */
+.profile-actions-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.profile-actions-grid .btn {
+  flex: 0 1 auto;
+}
+@media (max-width: 576px) {
+  .profile-actions-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .profile-actions-grid .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .profile-actions-grid .btn-danger {
+    grid-column: span 2 !important;
+  }
+}
+
+
 
 
 

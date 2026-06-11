@@ -223,7 +223,7 @@ export default function PublisherProfile() {
           </div>
 
           {/* Quick Actions Panel */}
-          <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
+          <div className="profile-actions-grid">
             <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <Edit2 size={14} /> Edit Profile
             </button>
