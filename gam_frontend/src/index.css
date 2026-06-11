@@ -1645,6 +1645,10 @@ input, select, textarea { outline: none; }
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
 }
 
 /* Dashboard Filters Grid Layout for Desktop/Mobile */
