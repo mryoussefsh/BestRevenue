@@ -539,7 +539,7 @@ export default function AdminDashboard() {
           border: '1px solid var(--color-border)',
         }}>
         {/* Filters Row */}
-        <div className="responsive-filters" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="dashboard-filters-grid" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Period Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Period</span>
@@ -567,7 +567,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Divider */}
-          <div className="hide-mobile" style={{ width: 1, height: 28, background: 'var(--color-border)', margin: '0 4px' }} />
+          <div className="filter-divider" />
 
           {/* Publisher */}
           <SearchDropdown
@@ -597,45 +597,50 @@ export default function AdminDashboard() {
           />
 
           {/* Revenue Status */}
-          <select className="form-select" value={filters.status}
-            onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
-            style={{ height: 38, fontSize: 13, minWidth: 150 }}>
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="closed">Closed</option>
-          </select>
+          <div>
+            <select className="form-select" value={filters.status}
+              onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+              style={{ height: 38, fontSize: 13, minWidth: 150, width: '100%' }}>
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
 
           {/* Reset */}
           {hasFilters && (
-            <button 
-              className="btn btn-secondary" 
-              onClick={resetFilters}
-              style={{ 
-                height: 38, 
-                padding: '0 16px', 
-                fontSize: 13, 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: 8,
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                color: '#ef4444',
-                transition: 'var(--transition)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ef4444'
-                e.currentTarget.style.color = '#fff'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
-                e.currentTarget.style.color = '#ef4444'
-              }}
-            >
-              <RefreshCw size={14} />
-              Reset Filters
-            </button>
+            <div>
+              <button 
+                className="btn btn-secondary" 
+                onClick={resetFilters}
+                style={{ 
+                  height: 38, 
+                  padding: '0 16px', 
+                  fontSize: 13, 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: 8,
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  transition: 'var(--transition)',
+                  width: '100%'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ef4444'
+                  e.currentTarget.style.color = '#fff'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                  e.currentTarget.style.color = '#ef4444'
+                }}
+              >
+                <RefreshCw size={14} />
+                Reset Filters
+              </button>
+            </div>
           )}
 
           {/* Live indicator */}
