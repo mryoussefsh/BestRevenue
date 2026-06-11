@@ -254,35 +254,6 @@ export default function PublisherProfile() {
               onClick={() => setImpersonateModalOpen(true)}>
               <User size={14} /> Log In
             </button>
-            <button className="btn btn-secondary"
-              style={{ 
-                background: showFilters ? 'var(--color-primary)' : 'rgba(99,102,241,0.12)', 
-                color: showFilters ? '#fff' : 'var(--color-primary-light)', 
-                border: '1px solid rgba(99,102,241,0.3)', 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '6px' 
-              }}
-              onClick={() => setShowFilters(!showFilters)}>
-              <Filter size={14} /> Filter Data
-              {activeFiltersCount > 0 && (
-                <span style={{
-                  background: showFilters ? '#fff' : 'var(--br-primary)',
-                  color: showFilters ? 'var(--br-primary)' : '#fff',
-                  borderRadius: '50%',
-                  width: 18,
-                  height: 18,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 10,
-                  fontWeight: 'bold',
-                  marginLeft: 4
-                }}>
-                  {activeFiltersCount}
-                </span>
-              )}
-            </button>
             <button className="btn"
               style={{
                 background: publisher.status === 'active' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
@@ -326,7 +297,7 @@ export default function PublisherProfile() {
             borderRadius: 8
           }}
           onClick={() => setShowFilters(!showFilters)}>
-          <Filter size={14} /> Filter Data
+          <Filter size={14} /> {showFilters ? 'Hide Filter' : 'Show Filter'}
           {activeFiltersCount > 0 && (
             <span style={{
               background: showFilters ? '#fff' : 'var(--br-primary)',
