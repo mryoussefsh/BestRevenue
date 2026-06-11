@@ -392,7 +392,7 @@ export default function PublisherProfile() {
       </div>
 
       {/* Two Column details section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24, alignItems: 'start' }}>
+      <div className="profile-grid">
         
         {/* Left Column: Contact and Metadata info */}
         <div>
@@ -562,11 +562,11 @@ export default function PublisherProfile() {
         <div className="card" style={{ padding: 0 }}>
           <div style={{
             display: 'flex',
+            flexWrap: 'wrap',
             borderBottom: '1px solid var(--color-border)',
             background: 'rgba(0, 0, 0, 0.05)',
             borderTopLeftRadius: 'var(--radius-md)',
             borderTopRightRadius: 'var(--radius-md)',
-            overflow: 'hidden'
           }}>
             {[
               { id: 'websites', label: 'Websites & Ad Units', icon: <Globe size={16} /> },
@@ -661,62 +661,64 @@ export default function PublisherProfile() {
                               No ad units added to this website.
                             </div>
                           ) : (
-                            <table className="table" style={{ background: 'transparent' }}>
-                              <thead>
-                                <tr>
-                                  <th style={{ fontSize: 11, padding: '6px 8px' }}>Ad Unit Name (GAM)</th>
-                                  <th style={{ fontSize: 11, padding: '6px 8px' }}>Display Name</th>
-                                  <th style={{ fontSize: 11, padding: '6px 8px' }}>Ratio Split</th>
-                                  <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {adUnitsByWebsite[web.id].map(ad => (
-                                  <tr key={ad.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                                    <td style={{ padding: '6px 8px', fontSize: 13 }}>
-                                      <code>{ad.gam_ad_unit_name}</code>
-                                      {ad.gam_ad_unit_id && <div className="text-muted" style={{ fontSize: 10 }}>ID: {ad.gam_ad_unit_id}</div>}
-                                    </td>
-                                    <td style={{ padding: '6px 8px', fontSize: 13 }}>{ad.display_name}</td>
-                                    <td style={{ padding: '6px 8px', fontSize: 13, fontWeight: 600 }}>
-                                      {ad.ratio_override 
-                                        ? `${(parseFloat(ad.ratio_override) * 100).toFixed(0)}% (Override)` 
-                                        : 'Inherited'}
-                                    </td>
-                                    <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
-                                      <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
-                                        <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
-                                        <button className="btn btn-xs"
-                                          style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
-                                          title="Delete from platform only (keep in GAM)"
-                                          onClick={async () => {
-                                            if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
-                                            try {
-                                              await adminApi.deleteAdUnit(ad.id, { archive: false })
-                                              toast.success('Ad unit deleted successfully')
-                                              loadAllData(true)
-                                            } catch {
-                                              toast.error('Failed to delete ad unit')
-                                            }
-                                          }}><Trash2 size={12} /></button>
-                                        <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
-                                          title="Delete from platform and archive in GAM"
-                                          onClick={async () => {
-                                            if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
-                                            try {
-                                              await adminApi.deleteAdUnit(ad.id, { archive: true })
-                                              toast.success('Ad unit deleted successfully')
-                                              loadAllData(true)
-                                            } catch {
-                                              toast.error('Failed to delete ad unit')
-                                            }
-                                          }}><Trash2 size={12} /></button>
-                                      </div>
-                                    </td>
+                            <div className="table-wrap">
+                              <table className="table" style={{ background: 'transparent' }}>
+                                <thead>
+                                  <tr>
+                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Ad Unit Name (GAM)</th>
+                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Display Name</th>
+                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Ratio Split</th>
+                                    <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>Actions</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                                </thead>
+                                <tbody>
+                                  {adUnitsByWebsite[web.id].map(ad => (
+                                    <tr key={ad.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                      <td style={{ padding: '6px 8px', fontSize: 13 }}>
+                                        <code>{ad.gam_ad_unit_name}</code>
+                                        {ad.gam_ad_unit_id && <div className="text-muted" style={{ fontSize: 10 }}>ID: {ad.gam_ad_unit_id}</div>}
+                                      </td>
+                                      <td style={{ padding: '6px 8px', fontSize: 13 }}>{ad.display_name}</td>
+                                      <td style={{ padding: '6px 8px', fontSize: 13, fontWeight: 600 }}>
+                                        {ad.ratio_override 
+                                          ? `${(parseFloat(ad.ratio_override) * 100).toFixed(0)}% (Override)` 
+                                          : 'Inherited'}
+                                      </td>
+                                      <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
+                                        <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
+                                          <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
+                                          <button className="btn btn-xs"
+                                            style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
+                                            title="Delete from platform only (keep in GAM)"
+                                            onClick={async () => {
+                                              if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
+                                              try {
+                                                await adminApi.deleteAdUnit(ad.id, { archive: false })
+                                                toast.success('Ad unit deleted successfully')
+                                                loadAllData(true)
+                                              } catch {
+                                                toast.error('Failed to delete ad unit')
+                                              }
+                                            }}><Trash2 size={12} /></button>
+                                          <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
+                                            title="Delete from platform and archive in GAM"
+                                            onClick={async () => {
+                                              if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                              try {
+                                                await adminApi.deleteAdUnit(ad.id, { archive: true })
+                                                toast.success('Ad unit deleted successfully')
+                                                loadAllData(true)
+                                              } catch {
+                                                toast.error('Failed to delete ad unit')
+                                              }
+                                            }}><Trash2 size={12} /></button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -735,7 +737,7 @@ export default function PublisherProfile() {
                     <div className="empty-state-sub">Payouts are generated when closing a monthly period</div>
                   </div>
                 ) : (
-                  <div className="table-container">
+                  <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>
@@ -796,7 +798,7 @@ export default function PublisherProfile() {
                     <div className="empty-state-sub">Revenue records will appear once synchronized from Google Ad Manager</div>
                   </div>
                 ) : (
-                  <div className="table-container">
+                  <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>
@@ -890,7 +892,7 @@ export default function PublisherProfile() {
                     <div className="empty-state-sub">Revenue ratio change logs will show up here</div>
                   </div>
                 ) : (
-                  <div className="table-container">
+                  <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>

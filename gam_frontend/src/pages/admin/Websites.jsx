@@ -421,7 +421,7 @@ export default function WebsitesPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 0, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 0, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
         {['websites', 'adunits'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{
@@ -437,10 +437,7 @@ export default function WebsitesPage() {
 
       {/* ─── Filter Bar ──────────────────────────────────────────────────── */}
       {tab === 'websites' ? (
-        <div style={{
-          display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
-          padding: '14px 0', marginBottom: 4
-        }}>
+        <div className="filter-bar" style={{ marginBottom: 4 }}>
           <input
             className="form-input" placeholder="Search domain…"
             value={wSearch} onChange={e => setWSearch(e.target.value)}
@@ -489,10 +486,7 @@ export default function WebsitesPage() {
           )}
         </div>
       ) : (
-        <div style={{
-          display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
-          padding: '14px 0', marginBottom: 4
-        }}>
+        <div className="filter-bar" style={{ marginBottom: 4 }}>
           {selectedAdUnits.length > 0 ? (
             <div style={{
               display: 'flex', gap: 12, alignItems: 'center',
@@ -610,7 +604,7 @@ export default function WebsitesPage() {
       )}
 
       <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+        <div className="table-wrap">
           {loading
             ? <div className="empty-state"><div className="spinner"></div></div>
             : tab === 'websites' ? (

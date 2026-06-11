@@ -164,7 +164,7 @@ export default function RevenuePage() {
         </button>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 24 }}>
+      <div className="stat-grid" style={{ marginBottom: 24 }}>
         <div className="stat-card primary">
           <div className="stat-label">Total Gross Revenue</div>
           <div className="stat-value money"><CompactAmount value={totalGross} /></div>
@@ -208,7 +208,7 @@ export default function RevenuePage() {
       </div>
 
       <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+        <div className="table-wrap">
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>
           ) : (

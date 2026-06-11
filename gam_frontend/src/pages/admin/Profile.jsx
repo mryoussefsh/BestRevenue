@@ -79,7 +79,7 @@ export default function AdminProfilePage() {
       </div>
 
       {/* Tabs Selection */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid var(--color-border)', paddingBottom: 12 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24, borderBottom: '1px solid var(--color-border)', paddingBottom: 12 }}>
         <button
           className={`btn ${activeTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('profile')}

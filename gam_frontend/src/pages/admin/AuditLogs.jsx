@@ -87,7 +87,7 @@ export default function AuditLogsPage() {
       </div>
 
       <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+        <div className="table-wrap">
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>
           ) : logs.length === 0 ? (

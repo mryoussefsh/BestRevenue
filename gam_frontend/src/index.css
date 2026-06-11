@@ -1306,12 +1306,16 @@ input, select, textarea { outline: none; }
     backdrop-filter: blur(4px);
     z-index: 999;
   }
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 @media (min-width: 992px) {
   .mobile-sidebar-toggle,
   .mobile-sidebar-close,
-  .sidebar-overlay {
+  .sidebar-overlay,
+  .show-mobile {
     display: none !important;
   }
 }
@@ -1362,6 +1366,18 @@ input, select, textarea { outline: none; }
   .responsive-filters > div.flex-wide,
   .responsive-filters > div.flex-btn {
     flex: 1 1 auto !important;
+    width: 100% !important;
+  }
+
+  .filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .filter-bar > input,
+  .filter-bar > select,
+  .filter-bar > div,
+  .filter-bar > button {
     width: 100% !important;
   }
 }
@@ -1592,6 +1608,45 @@ input, select, textarea { outline: none; }
     font-size: 13px !important;
   }
 }
+
+/* Profile two-column grid responsiveness */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 991px) {
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* Split grid responsive helper class */
+.split-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Settings Page Responsive Rows */
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .settings-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
 
 
 

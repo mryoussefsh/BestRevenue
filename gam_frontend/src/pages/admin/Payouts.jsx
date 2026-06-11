@@ -336,9 +336,8 @@ export default function PayoutsPage() {
         </div>
       </div>
 
-      {/* ── Filters ────────────────────────────────────────────────────── */}
       <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
+        <div className="filter-bar">
 
           {/* Status */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -416,7 +415,7 @@ export default function PayoutsPage() {
       </div>
 
       {/* ── Summary Cards ──────────────────────────────────────────────── */}
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 24 }}>
+      <div className="stat-grid" style={{ marginBottom: 24 }}>
         <div className="stat-card accent">
           <div className="stat-label">Total Paid Out</div>
           <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
@@ -437,7 +436,7 @@ export default function PayoutsPage() {
 
       {/* ── Table ──────────────────────────────────────────────────────── */}
       <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+        <div className="table-wrap">
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>
           ) : (

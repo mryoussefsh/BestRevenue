@@ -522,7 +522,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Filters Row */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="responsive-filters" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Custom date range — always visible */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>From</span>
@@ -538,7 +538,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Divider */}
-          <div style={{ width: 1, height: 28, background: 'var(--color-border)', margin: '0 4px' }} />
+          <div className="hide-mobile" style={{ width: 1, height: 28, background: 'var(--color-border)', margin: '0 4px' }} />
 
           {/* Publisher */}
           <SearchDropdown
@@ -964,7 +964,7 @@ function DailyTable({ rows, bestDay }) {
           <div className="card-subtitle">{rows.length} days · click column headers to sort</div>
         </div>
       </div>
-      <div className="table-container">
+      <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>
@@ -1064,7 +1064,7 @@ function Top10Publishers({ rows }) {
           <div className="card-subtitle">Ranked by publisher earnings for selected period</div>
         </div>
       </div>
-      <div className="table-container">
+      <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>

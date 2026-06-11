@@ -23,7 +23,9 @@ import {
   Languages,
   TrendingUp,
   User,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react'
 
 const navItems = [
@@ -52,6 +54,7 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [stats, setStats] = useState({ pending_publishers: 0, pending_payouts: 0, pending_tickets: 0 })
 
   useEffect(() => {
@@ -68,9 +71,14 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="app-shell">
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-logo">
+      <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {settings.site_logo ? (
             <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
           ) : (
@@ -81,6 +89,13 @@ export default function AdminLayout({ children }) {
               <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
             </>
           )}
+          <button
+            className="mobile-sidebar-close"
+            onClick={() => setMobileSidebarOpen(false)}
+            style={{ display: 'none' }}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -96,6 +111,7 @@ export default function AdminLayout({ children }) {
                 end={item.end}
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                onClick={() => setMobileSidebarOpen(false)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <item.icon className="nav-icon" size={18} />
@@ -124,6 +140,7 @@ export default function AdminLayout({ children }) {
             to="/admin/profile"
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
             style={{ marginBottom: 8, display: 'flex', gap: 12, alignItems: 'center', textDecoration: 'none' }}
+            onClick={() => setMobileSidebarOpen(false)}
           >
             <User className="nav-icon" size={18} />
             <div>
@@ -144,7 +161,14 @@ export default function AdminLayout({ children }) {
       {/* Main */}
       <div className="main-content">
         <header className="topbar">
-          <div className="topbar-left">
+          <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              className="mobile-sidebar-toggle"
+              onClick={() => setMobileSidebarOpen(true)}
+              style={{ display: 'none' }}
+            >
+              <Menu size={20} />
+            </button>
             <div>
               <div className="topbar-title">Admin Panel</div>
               <div className="topbar-subtitle">BestRevenue Management</div>

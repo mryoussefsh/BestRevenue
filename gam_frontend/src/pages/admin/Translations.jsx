@@ -74,7 +74,7 @@ export default function TranslationsPage() {
       </div>
 
       <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+        <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>
           ) : (

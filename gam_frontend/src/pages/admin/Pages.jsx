@@ -244,7 +244,7 @@ export default function AdminPages() {
           <div className="empty-state-sub">Click "New Page" to create one</div>
         </div>
       ) : (
-        <div className="card" style={{ overflow: 'hidden' }}>
+        <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>

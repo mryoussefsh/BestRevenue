@@ -196,7 +196,7 @@ export default function AdminTicketDetail() {
         </Link>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 24, alignItems: 'stretch' }}>
+      <div className="profile-grid" style={{ gridTemplateColumns: '3fr 1fr', alignItems: 'stretch' }}>
         
         {/* Chat Thread Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

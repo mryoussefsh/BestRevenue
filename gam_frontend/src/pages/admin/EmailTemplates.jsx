@@ -122,7 +122,7 @@ export default function EmailTemplatesPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="profile-grid" style={{ gridTemplateColumns: '280px 1fr', gap: 24, alignItems: 'start' }}>
         {/* Left: Template list */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', fontWeight: 700, fontSize: 13, color: 'var(--color-text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
@@ -168,7 +168,7 @@ export default function EmailTemplatesPage() {
                   <div style={{ fontWeight: 700, fontSize: 16 }}>{selected.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontFamily: 'monospace', marginTop: 2 }}>{selected.key}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     id="btn-preview-email"
                     className="btn btn-secondary btn-sm"

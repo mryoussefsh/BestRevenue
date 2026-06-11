@@ -130,9 +130,9 @@ export default function PeriodClosingsPage() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: detail ? '1fr 1fr' : '1fr', gap: 24 }}>
+      <div className={detail ? "split-grid" : ""} style={detail ? {} : { display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
         <div className="card" style={{ padding: 0 }}>
-          <div className="table-container">
+          <div className="table-wrap">
             {loading ? <div className="empty-state"><div className="spinner"></div></div> : (
               <table className="table">
                 <thead><tr>
@@ -233,38 +233,40 @@ export default function PeriodClosingsPage() {
             {detail.payouts?.length === 0 ? (
               <div className="empty-state">No payouts for this period</div>
             ) : (
-              <table className="table">
-                <thead><tr><th>Publisher</th><th>Earnings</th><th>Status</th></tr></thead>
-                <tbody>
-                  {(detail.payouts || []).map(p => (
-                    <tr key={p.id}>
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{p.publisher?.name}</div>
-                        <div className="text-muted text-sm">{p.publisher?.email}</div>
-                      </td>
-                      <td className="money positive" style={{ fontWeight: 700 }}>
-                        <CompactAmount value={p.final_amount} />
-                      </td>
-                      <td>
-                        <span className={`badge badge-${p.status}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                {detail.payouts && detail.payouts.length > 0 && (
-                  <tfoot>
-                    <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                      <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({detail.payouts.length})</td>
-                      <td className="money positive" style={{ fontWeight: 700 }}>
-                        <CompactAmount value={detail.payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)} />
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead><tr><th>Publisher</th><th>Earnings</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {(detail.payouts || []).map(p => (
+                      <tr key={p.id}>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{p.publisher?.name}</div>
+                          <div className="text-muted text-sm">{p.publisher?.email}</div>
+                        </td>
+                        <td className="money positive" style={{ fontWeight: 700 }}>
+                          <CompactAmount value={p.final_amount} />
+                        </td>
+                        <td>
+                          <span className={`badge badge-${p.status}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  {detail.payouts && detail.payouts.length > 0 && (
+                    <tfoot>
+                      <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                        <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({detail.payouts.length})</td>
+                        <td className="money positive" style={{ fontWeight: 700 }}>
+                          <CompactAmount value={detail.payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)} />
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
             )}
           </div>
         )}

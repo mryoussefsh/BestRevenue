@@ -414,7 +414,7 @@ export default function GamSyncPage() {
             No sync history yet. Run your first sync above.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
             <table className="table" style={{ margin: 0 }}>
               <thead>
                 <tr>

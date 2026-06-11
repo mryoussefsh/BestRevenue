@@ -167,7 +167,7 @@ export default function GamAccountsPage() {
           </h1>
           <p className="page-subtitle">Connect Google Ad Manager accounts via OAuth</p>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Trash2 size={14} /> Wipe All Revenue
           </button>
@@ -218,7 +218,7 @@ export default function GamAccountsPage() {
               </button>
             )}
           </div>
-          <form onSubmit={handleSaveSettings} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <form onSubmit={handleSaveSettings} className="profile-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <div className="form-group">
               <label className="form-label">Google OAuth Client ID *</label>
               <input 
@@ -264,7 +264,7 @@ export default function GamAccountsPage() {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 }}>
           {accounts.map(acc => (
             <div key={acc.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

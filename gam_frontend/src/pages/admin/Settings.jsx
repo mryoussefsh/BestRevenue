@@ -130,14 +130,7 @@ export default function SettingsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {settings.filter(s => s.group === group).map(s => (
-              <div key={s.key} style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 2fr auto',
-                gap: 16,
-                alignItems: 'start',
-                paddingBottom: 20,
-                borderBottom: '1px solid var(--color-border)',
-              }}>
+              <div key={s.key} className="settings-row">
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
                   <div className="text-xs text-muted" style={{ marginTop: 4 }}>
@@ -211,10 +204,11 @@ export default function SettingsPage() {
                           </button>
                         </div>
                       )}
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                         <input
                           type="text"
                           className="form-input"
+                          style={{ flex: 1, minWidth: 200 }}
                           placeholder="Or paste asset URL here..."
                           value={edited[s.key] ?? ''}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
@@ -271,7 +265,7 @@ export default function SettingsPage() {
                                     <Trash2 size={12} /> Remove
                                   </button>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                                   <div>
                                     <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Name</label>
                                     <input
@@ -623,11 +617,11 @@ export default function SettingsPage() {
               <p style={{ fontSize: '13px', marginBottom: '12px', color: 'var(--color-text-subtle)' }}>
                 Before using SMTP in production, send a test email to verify your mail server credentials.
               </p>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                   type="email"
                   className="form-input"
-                  style={{ maxWidth: 300, fontSize: '13px' }}
+                  style={{ flex: '1 1 240px', maxWidth: 300, fontSize: '13px' }}
                   placeholder="Recipient email address…"
                   value={testEmailRecipient}
                   onChange={e => setTestEmailRecipient(e.target.value)}
@@ -636,7 +630,7 @@ export default function SettingsPage() {
                   className="btn btn-secondary btn-sm"
                   onClick={handleSendTestEmail}
                   disabled={sendingTestMail || !testEmailRecipient}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}
                 >
                   {sendingTestMail ? <Clock size={14} className="spinner" /> : <Send size={14} />}
                   <span>Send Test Email</span>
