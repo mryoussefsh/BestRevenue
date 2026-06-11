@@ -3,7 +3,7 @@ import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { BulkAdUnitGeneratorModal, SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
-import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers } from 'lucide-react'
+import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X } from 'lucide-react'
 
 export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSaved, hidePublisherSelect }) {
   const isEdit = !!website?.id
@@ -407,14 +407,14 @@ export default function WebsitesPage() {
           </h1>
           <p className="page-subtitle">{websites.length} websites · {adUnits.length} ad units</p>
         </div>
-        <div className="flex gap-3">
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', width: '100%' }}>
           <button id="add-website-btn" className="btn btn-secondary" onClick={() => setModal('create')}>
             <Plus size={16} /> Add Website
           </button>
           <button className="btn btn-secondary" onClick={() => setAdModal('create')}>
             <Plus size={16} /> Add Existing Ad Unit
           </button>
-          <button className="btn btn-primary" onClick={() => setGamAdModal(true)} style={{ background: 'var(--color-accent)' }}>
+          <button className="btn btn-primary" onClick={() => setGamAdModal(true)}>
             <Sparkles size={16} /> Generate Ad Units
           </button>
         </div>
@@ -437,63 +437,98 @@ export default function WebsitesPage() {
 
       {/* ─── Filter Bar ──────────────────────────────────────────────────── */}
       {tab === 'websites' ? (
-        <div className="filter-bar" style={{ marginBottom: 4 }}>
-          <input
-            className="form-input" placeholder="Search domain…"
-            value={wSearch} onChange={e => setWSearch(e.target.value)}
-            style={{ minWidth: 180, maxWidth: 220 }}
-          />
-          <SearchableSelect
-            value={wPublisher}
-            onChange={setWPublisher}
-            options={publishers.map(p => ({
-              value: p.id,
-              label: p.name,
-              subLabel: p.email
-            }))}
-            placeholder="All Publishers"
-            emptyMessage="No publishers found"
-            isOptional={true}
-            clearLabel="All Publishers"
-            style={{ minWidth: 180 }}
-          />
-          <select className="form-select" value={wGamLinked} onChange={e => setWGamLinked(e.target.value)}
-            style={{ minWidth: 150 }}>
-            <option value="">GAM Account: All</option>
-            <option value="linked">Linked to GAM</option>
-            <option value="unlinked">No GAM Account</option>
-          </select>
-          <select className="form-select" value={wStatus} onChange={e => setWStatus(e.target.value)}
-            style={{ minWidth: 130 }}>
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <select className="form-select" value={wRatio} onChange={e => setWRatio(e.target.value)}
-            style={{ minWidth: 150 }}>
-            <option value="">Any Ratio</option>
-            <option value="override">Has Ratio Override</option>
-            <option value="inherited">Inherited Ratio</option>
-          </select>
-          {hasWFilters && (
-            <button className="btn btn-secondary btn-xs" onClick={clearWFilters}
-              style={{ whiteSpace: 'nowrap' }}>✕ Clear Filters</button>
-          )}
-          {hasWFilters && (
-            <span className="text-muted text-sm">
-              Showing {filteredWebsites.length} of {websites.length}
-            </span>
-          )}
+        <div className="card" style={{ padding: '16px 20px', marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              gap: 12 
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search Domain</label>
+                <input
+                  className="form-input" placeholder="Search domain…"
+                  value={wSearch} onChange={e => setWSearch(e.target.value)}
+                  style={{ width: '100%', height: 38 }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                <SearchableSelect
+                  value={wPublisher}
+                  onChange={setWPublisher}
+                  options={publishers.map(p => ({
+                    value: p.id,
+                    label: p.name,
+                    subLabel: p.email
+                  }))}
+                  placeholder="All Publishers"
+                  emptyMessage="No publishers found"
+                  isOptional={true}
+                  clearLabel="All Publishers"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>GAM Connection</label>
+                <select className="form-select" value={wGamLinked} onChange={e => setWGamLinked(e.target.value)}
+                  style={{ width: '100%', height: 38 }}>
+                  <option value="">GAM Account: All</option>
+                  <option value="linked">Linked to GAM</option>
+                  <option value="unlinked">No GAM Account</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                <select className="form-select" value={wStatus} onChange={e => setWStatus(e.target.value)}
+                  style={{ width: '100%', height: 38 }}>
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratio Config</label>
+                <select className="form-select" value={wRatio} onChange={e => setWRatio(e.target.value)}
+                  style={{ width: '100%', height: 38 }}>
+                  <option value="">Any Ratio</option>
+                  <option value="override">Has Ratio Override</option>
+                  <option value="inherited">Inherited Ratio</option>
+                </select>
+              </div>
+            </div>
+
+            {(hasWFilters || filteredWebsites.length !== websites.length) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                <span className="text-muted text-sm">
+                  Showing {filteredWebsites.length} of {websites.length} websites
+                </span>
+                {hasWFilters && (
+                  <button className="btn btn-secondary btn-xs" onClick={clearWFilters}
+                    style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      color: '#ef4444',
+                    }}>
+                    <X size={12} /> Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="filter-bar" style={{ marginBottom: 4 }}>
+        <div className="card" style={{ padding: '16px 20px', marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
           {selectedAdUnits.length > 0 ? (
             <div style={{
               display: 'flex', gap: 12, alignItems: 'center',
               background: 'rgba(239, 68, 68, 0.15)',
               border: '1px solid var(--color-danger)',
               padding: '8px 16px', borderRadius: 'var(--radius-md)',
-              flex: 1, justifySelf: 'stretch', width: '100%'
+              flexWrap: 'wrap'
             }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>
                 {selectedAdUnits.length} ad unit(s) selected
@@ -544,61 +579,94 @@ export default function WebsitesPage() {
               </button>
             </div>
           ) : (
-            <>
-              <input
-            className="form-input" placeholder="Search name or GAM code…"
-            value={aSearch} onChange={e => setASearch(e.target.value)}
-            style={{ minWidth: 210, maxWidth: 260 }}
-          />
-          <SearchableSelect
-            value={aWebsite}
-            onChange={setAWebsite}
-            options={websites.map(w => ({
-              value: w.id,
-              label: w.domain,
-            }))}
-            placeholder="All Websites"
-            emptyMessage="No websites found"
-            isOptional={true}
-            clearLabel="All Websites"
-            style={{ minWidth: 180 }}
-          />
-          <SearchableSelect
-            value={aPublisher}
-            onChange={setAPublisher}
-            options={publishers.map(p => ({
-              value: p.id,
-              label: p.name,
-              subLabel: p.email
-            }))}
-            placeholder="All Publishers"
-            emptyMessage="No publishers found"
-            isOptional={true}
-            clearLabel="All Publishers"
-            style={{ minWidth: 180 }}
-          />
-          <select className="form-select" value={aStatus} onChange={e => setAStatus(e.target.value)}
-            style={{ minWidth: 130 }}>
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <select className="form-select" value={aRatio} onChange={e => setARatio(e.target.value)}
-            style={{ minWidth: 150 }}>
-            <option value="">Any Ratio</option>
-            <option value="override">Has Ratio Override</option>
-            <option value="inherited">Inherited Ratio</option>
-          </select>
-          {hasAFilters && (
-            <button className="btn btn-secondary btn-xs" onClick={clearAFilters}
-              style={{ whiteSpace: 'nowrap' }}>✕ Clear Filters</button>
-          )}
-          {hasAFilters && (
-            <span className="text-muted text-sm">
-              Showing {filteredAdUnits.length} of {adUnits.length}
-            </span>
-          )}
-            </>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                gap: 12 
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search Name/Code</label>
+                  <input
+                    className="form-input" placeholder="Search name or GAM code…"
+                    value={aSearch} onChange={e => setASearch(e.target.value)}
+                    style={{ width: '100%', height: 38 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Website</label>
+                  <SearchableSelect
+                    value={aWebsite}
+                    onChange={setAWebsite}
+                    options={websites.map(w => ({
+                      value: w.id,
+                      label: w.domain,
+                    }))}
+                    placeholder="All Websites"
+                    emptyMessage="No websites found"
+                    isOptional={true}
+                    clearLabel="All Websites"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                  <SearchableSelect
+                    value={aPublisher}
+                    onChange={setAPublisher}
+                    options={publishers.map(p => ({
+                      value: p.id,
+                      label: p.name,
+                      subLabel: p.email
+                    }))}
+                    placeholder="All Publishers"
+                    emptyMessage="No publishers found"
+                    isOptional={true}
+                    clearLabel="All Publishers"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                  <select className="form-select" value={aStatus} onChange={e => setAStatus(e.target.value)}
+                    style={{ width: '100%', height: 38 }}>
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratio Config</label>
+                  <select className="form-select" value={aRatio} onChange={e => setARatio(e.target.value)}
+                    style={{ width: '100%', height: 38 }}>
+                    <option value="">Any Ratio</option>
+                    <option value="override">Has Ratio Override</option>
+                    <option value="inherited">Inherited Ratio</option>
+                  </select>
+                </div>
+              </div>
+
+              {(hasAFilters || filteredAdUnits.length !== adUnits.length) && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                  <span className="text-muted text-sm">
+                    Showing {filteredAdUnits.length} of {adUnits.length} ad units
+                  </span>
+                  {hasAFilters && (
+                    <button className="btn btn-secondary btn-xs" onClick={clearAFilters}
+                      style={{ 
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        color: '#ef4444',
+                      }}>
+                      <X size={12} /> Clear Filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
