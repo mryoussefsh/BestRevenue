@@ -1326,9 +1326,15 @@ input, select, textarea { outline: none; }
     align-items: flex-start;
     gap: 16px;
   }
+  .page-header > div:not(:first-child) {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
   .page-header .btn {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+    justify-content: center !important;
   }
 }
 
