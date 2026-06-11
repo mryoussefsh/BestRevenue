@@ -501,28 +501,20 @@ export default function AdminDashboard() {
         background: 'var(--color-surface-2)',
         border: '1px solid var(--color-border)',
       }}>
-        {/* Date Presets Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginRight: 4 }}>
-            <Calendar size={14} /> Period
-          </span>
-          {DATE_PRESETS.map(p => (
-            <button key={p.key} onClick={() => applyPreset(p.key)}
-              style={{
-                padding: '4px 12px', fontSize: 12, borderRadius: 20, cursor: 'pointer',
-                fontWeight: preset === p.key ? 700 : 400,
-                border: `1px solid ${preset === p.key ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                background: preset === p.key ? 'var(--color-primary)' : 'transparent',
-                color: preset === p.key ? '#fff' : 'var(--color-text-muted)',
-                transition: 'all .15s',
-              }}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-
         {/* Filters Row */}
         <div className="responsive-filters" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Period Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Period</span>
+            <select className="form-select" value={preset}
+              onChange={e => applyPreset(e.target.value)}
+              style={{ height: 38, fontSize: 13, minWidth: 120 }}>
+              {DATE_PRESETS.map(p => (
+                <option key={p.key} value={p.key}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Custom date range — always visible */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>From</span>
@@ -579,9 +571,33 @@ export default function AdminDashboard() {
 
           {/* Reset */}
           {hasFilters && (
-            <button className="btn btn-secondary" onClick={resetFilters}
-              style={{ height: 38, padding: '0 14px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-              ✕ Reset
+            <button 
+              className="btn btn-secondary" 
+              onClick={resetFilters}
+              style={{ 
+                height: 38, 
+                padding: '0 16px', 
+                fontSize: 13, 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: 8,
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                color: '#ef4444',
+                transition: 'var(--transition)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#ef4444'
+                e.currentTarget.style.color = '#fff'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                e.currentTarget.style.color = '#ef4444'
+              }}
+            >
+              <RefreshCw size={14} />
+              Reset Filters
             </button>
           )}
 
