@@ -308,14 +308,52 @@ export default function PublisherProfile() {
         </div>
       </div>
 
+      {/* Filter Toggle Button */}
+      <div style={{ marginBottom: 24 }}>
+        <button className="btn btn-secondary"
+          style={{ 
+            width: '100%',
+            background: showFilters ? 'var(--color-primary)' : 'rgba(99,102,241,0.12)', 
+            color: showFilters ? '#fff' : 'var(--color-primary-light)', 
+            border: '1px solid rgba(99,102,241,0.3)', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '6px',
+            height: 42,
+            fontSize: 14,
+            fontWeight: 600,
+            borderRadius: 8
+          }}
+          onClick={() => setShowFilters(!showFilters)}>
+          <Filter size={14} /> Filter Data
+          {activeFiltersCount > 0 && (
+            <span style={{
+              background: showFilters ? '#fff' : 'var(--br-primary)',
+              color: showFilters ? 'var(--br-primary)' : '#fff',
+              borderRadius: '50%',
+              width: 18,
+              height: 18,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 10,
+              fontWeight: 'bold',
+              marginLeft: 4
+            }}>
+              {activeFiltersCount}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Filter Bar */}
       {showFilters && (
-        <div className="card" style={{ padding: '16px 24px', marginBottom: 24, background: 'var(--color-surface-2)' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, flex: 1 }}>
+        <div className="card" style={{ padding: 20, marginBottom: 24, background: 'var(--color-surface-2)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             
             {/* Website Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 200 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <Globe size={12} /> Filter by Website
               </label>
@@ -333,7 +371,7 @@ export default function PublisherProfile() {
             </div>
 
             {/* Date From Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={12} /> Date From
               </label>
@@ -347,7 +385,7 @@ export default function PublisherProfile() {
             </div>
 
             {/* Date To Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={12} /> Date To
               </label>
@@ -360,22 +398,22 @@ export default function PublisherProfile() {
               />
             </div>
 
-          </div>
-
-          {/* Reset Filters Button */}
-          {(selectedWebsite || dateFrom || dateTo) && (
-            <div style={{ display: 'flex', alignSelf: 'flex-end', height: 40 }}>
+            {/* Reset Filters Button */}
+            {(selectedWebsite || dateFrom || dateTo) && (
               <button
                 className="btn btn-secondary"
                 style={{ 
-                  height: '100%', 
+                  width: '100%',
+                  height: 40,
                   display: 'flex', 
                   alignItems: 'center', 
+                  justifyContent: 'center',
                   gap: 8,
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.2)',
                   color: '#ef4444',
                   transition: 'var(--transition)',
+                  fontWeight: 600
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#ef4444'
@@ -394,11 +432,10 @@ export default function PublisherProfile() {
                 <X size={14} />
                 Clear Filters
               </button>
-            </div>
-          )}
+            )}
 
+          </div>
         </div>
-      </div>
       )}
 
       {/* Stats Cards */}
