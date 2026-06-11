@@ -5,6 +5,9 @@ import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { 
+  CreditCard, DollarSign, Clock, CheckCircle, XCircle, TrendingUp, Ban 
+} from 'lucide-react'
 
 export default function PublisherPayouts() {
   const { user } = useAuth()
@@ -82,7 +85,10 @@ export default function PublisherPayouts() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">💳 My Payouts</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <CreditCard size={24} style={{ color: 'var(--br-primary)' }} />
+            My Payouts
+          </h1>
           <p className="page-subtitle">
             {filteredPayouts.length === payouts.length
               ? `${payouts.length} payouts`
@@ -93,10 +99,10 @@ export default function PublisherPayouts() {
       </div>
 
       {/* Filters */}
-      <div className="card" style={{ marginBottom: 16, padding: '14px 20px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+      <div className="glass-card" style={{ marginBottom: 16, padding: '14px 20px', position: 'relative', zIndex: 10 }}>
+        <div className="responsive-filters">
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 160 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Status</label>
             <select
               className="form-select"
@@ -105,14 +111,14 @@ export default function PublisherPayouts() {
               onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
             >
               <option value="">All Statuses</option>
-              <option value="pending">⏳ Pending</option>
-              <option value="approved">✅ Approved</option>
-              <option value="paid">💰 Paid</option>
-              <option value="rejected">❌ Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="paid">Paid</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 120 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Year</label>
             <select
               className="form-select"
@@ -127,7 +133,7 @@ export default function PublisherPayouts() {
             </select>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 140 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Month</label>
             <select
               className="form-select"
@@ -152,27 +158,32 @@ export default function PublisherPayouts() {
           </div>
 
           {(filterStatus || filterYear || filterMonth) && (
-            <button
-              className="btn btn-secondary"
-              style={{ marginTop: 18, padding: '6px 14px', fontSize: 13 }}
-              onClick={handleResetFilters}
-            >
-              ✕ Reset
-            </button>
+            <div className="flex-btn">
+              <button
+                className="btn btn-secondary"
+                style={{ width: '100%', padding: '10px 16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                onClick={handleResetFilters}
+              >
+                <Ban size={16} />
+                Reset
+              </button>
+            </div>
           )}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 24 }}>
-        <div className="stat-card accent">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 24 }}>
+        <div className="stat-card primary">
+          <div className="stat-icon"><CreditCard size={20} /></div>
           <div className="stat-label">Total Paid Out</div>
           <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
           <div className="stat-sub">{payouts.filter(p => p.status === 'paid').length} paid payouts</div>
         </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid var(--color-success, #10b981)', background: 'linear-gradient(135deg, rgba(16,185,129,.08) 0%, var(--color-surface) 100%)' }}>
+        <div className="stat-card accent">
+          <div className="stat-icon"><DollarSign size={20} /></div>
           <div className="stat-label">Available Balance</div>
-          <div className="stat-value money" style={{ color: 'var(--color-success, #10b981)' }}>
+          <div className="stat-value money">
             <CompactAmount value={availableBalance} />
           </div>
           <div className="stat-sub">Approved &amp; awaiting next payment cycle</div>
@@ -180,31 +191,33 @@ export default function PublisherPayouts() {
       </div>
 
       {/* Payouts Table */}
-      <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+      <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           {filteredPayouts.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">💳</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <CreditCard size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
+              </div>
               <div className="empty-state-text">No payouts yet</div>
               <div className="empty-state-sub">Payouts are generated at end of each month</div>
             </div>
           ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Period</th>
-                  <th>Base Amount</th>
-                  <th>Adjustment</th>
-                  <th>Final Amount</th>
-                  <th>Method / Account</th>
-                  <th>Status</th>
-                  <th>Reference</th>
-                  <th>Paid At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map(p => (
-                  <>
+            <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Base Amount</th>
+                    <th>Adjustment</th>
+                    <th>Final Amount</th>
+                    <th>Method / Account</th>
+                    <th>Status</th>
+                    <th>Reference</th>
+                    <th>Paid At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map(p => (
                     <tr key={p.id}>
                       <td className="money" style={{ fontWeight: 700 }}>
                         {p.period_year}-{String(p.period_month).padStart(2,'0')}
@@ -239,11 +252,11 @@ export default function PublisherPayouts() {
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <span className={`badge ${statusBadge(p.status)}`}>
-                            {p.status === 'pending'  && '⏳ Pending'}
-                            {p.status === 'approved' && '✅ Approved'}
-                            {p.status === 'paid'     && '💰 Paid'}
-                            {p.status === 'rejected' && '❌ Rejected'}
+                          <span className={`badge ${statusBadge(p.status)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            {p.status === 'pending'  && <><Clock size={12} /> Pending</>}
+                            {p.status === 'approved' && <><CheckCircle size={12} /> Approved</>}
+                            {p.status === 'paid'     && <><DollarSign size={12} /> Paid</>}
+                            {p.status === 'rejected' && <><XCircle size={12} /> Rejected</>}
                           </span>
                           {p.status === 'rejected' && p.rejection_reason && (
                             <div style={{
@@ -272,25 +285,30 @@ export default function PublisherPayouts() {
                         {p.paid_at ? formatDate(p.paid_at) : '—'}
                       </td>
                     </tr>
-                  </>
-                ))}
-              </tbody>
-              {filteredPayouts.length > 0 && (
-                <tfoot>
-                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({filteredPayouts.length})</td>
-                    <td className="money"><CompactAmount value={totalBase} /></td>
-                    <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
-                      {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />
-                    </td>
-                    <td className="money positive" style={{ fontWeight: 800 }}>
-                      <CompactAmount value={totalFinal} />
-                    </td>
-                    <td colSpan={4}></td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
+                  ))}
+                </tbody>
+                {filteredPayouts.length > 0 && (
+                  <tfoot>
+                    <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                      <td style={{ padding: '10px 16px', fontSize: 12 }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <TrendingUp size={14} style={{ color: 'var(--br-accent)' }} />
+                          <span>Totals ({filteredPayouts.length})</span>
+                        </div>
+                      </td>
+                      <td className="money"><CompactAmount value={totalBase} /></td>
+                      <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
+                        {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />
+                      </td>
+                      <td className="money positive" style={{ fontWeight: 800 }}>
+                        <CompactAmount value={totalFinal} />
+                      </td>
+                      <td colSpan={4}></td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
           )}
         </div>
         <Pagination

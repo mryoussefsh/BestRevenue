@@ -4,6 +4,9 @@ import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import { 
+  Clock, Settings, CheckCircle, Lock, Shield, User, Search, RefreshCw, AlertTriangle, Plus, Tag, HelpCircle, Building
+} from 'lucide-react'
 
 export default function AdminTickets() {
   const { formatDate } = useSettings()
@@ -74,28 +77,60 @@ export default function AdminTickets() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'open':
-        return <span className="badge badge-pending">⏳ Open</span>
+        return (
+          <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Clock size={12} /> Open
+          </span>
+        )
       case 'in_progress':
-        return <span className="badge badge-approved">⚙️ In Progress</span>
+        return (
+          <span className="badge badge-info" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Settings size={12} /> In Progress
+          </span>
+        )
       case 'resolved':
-        return <span className="badge badge-active">✅ Resolved</span>
+        return (
+          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle size={12} /> Resolved
+          </span>
+        )
       case 'closed':
-        return <span className="badge badge-inactive">🔒 Closed</span>
+        return (
+          <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Lock size={12} /> Closed
+          </span>
+        )
       default:
-        return <span className="badge badge-inactive">{status}</span>
+        return <span className="badge badge-neutral">{status}</span>
     }
   }
 
   const getPriorityBadge = (prio) => {
     switch (prio) {
       case 'low':
-        return <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>🟢 Low</span>
+        return (
+          <span style={{ color: 'var(--br-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-accent)' }} /> Low
+          </span>
+        )
       case 'medium':
-        return <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>🟡 Medium</span>
+        return (
+          <span style={{ color: 'var(--br-warning)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-warning)' }} /> Medium
+          </span>
+        )
       case 'high':
-        return <span style={{ color: '#f97316', fontWeight: 600 }}>🟠 High</span>
+        return (
+          <span style={{ color: '#f97316', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: '#f97316' }} /> High
+          </span>
+        )
       case 'urgent':
-        return <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>🔴 Urgent</span>
+        return (
+          <span style={{ color: 'var(--br-danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-danger)' }} /> Urgent
+          </span>
+        )
       default:
         return <span>{prio}</span>
     }
@@ -104,14 +139,14 @@ export default function AdminTickets() {
   const getCategoryLabel = (cat) => {
     switch (cat) {
       case 'billing':
-        return '💳 Billing'
+        return 'Billing'
       case 'technical':
-        return '🛠️ Technical'
+        return 'Technical'
       case 'gam':
-        return '📡 GAM Sync'
+        return 'GAM Sync'
       case 'other':
       default:
-        return '📝 Other'
+        return 'Other'
     }
   }
 
@@ -123,7 +158,9 @@ export default function AdminTickets() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">🎫 Support Tickets Panel</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Shield size={24} style={{ color: 'var(--br-primary)' }} /> Support Tickets Panel
+          </h1>
           <p className="page-subtitle">
             Manage, assign, and respond to publisher support requests across the platform.
           </p>
@@ -131,7 +168,7 @@ export default function AdminTickets() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="card" style={{ marginBottom: 20, padding: 20 }}>
+      <div className="glass-card" style={{ marginBottom: 20, padding: 20 }}>
         <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             
@@ -158,10 +195,10 @@ export default function AdminTickets() {
                 style={{ padding: '6px 10px', fontSize: 13 }}
               >
                 <option value="">All Statuses</option>
-                <option value="open">⏳ Open</option>
-                <option value="in_progress">⚙️ In Progress</option>
-                <option value="resolved">✅ Resolved</option>
-                <option value="closed">🔒 Closed</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
               </select>
             </div>
 
@@ -175,10 +212,10 @@ export default function AdminTickets() {
                 style={{ padding: '6px 10px', fontSize: 13 }}
               >
                 <option value="">All Categories</option>
-                <option value="billing">💳 Billing</option>
-                <option value="technical">🛠️ Technical</option>
-                <option value="gam">📡 GAM Sync</option>
-                <option value="other">📝 Other</option>
+                <option value="billing">Billing</option>
+                <option value="technical">Technical</option>
+                <option value="gam">GAM Sync</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
@@ -192,10 +229,10 @@ export default function AdminTickets() {
                 style={{ padding: '6px 10px', fontSize: 13 }}
               >
                 <option value="">All Priorities</option>
-                <option value="low">🟢 Low</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="high">🟠 High</option>
-                <option value="urgent">🔴 Urgent</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
               </select>
             </div>
 
@@ -216,17 +253,17 @@ export default function AdminTickets() {
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="submit" className="btn btn-primary btn-sm" style={{ padding: '8px 16px' }}>
-                🔍 Search
+              <button type="submit" className="btn btn-primary btn-sm" style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Search size={14} /> Search
               </button>
               {(search || filterStatus || filterCategory || filterPriority || filterPublisher) && (
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
                   onClick={handleResetFilters}
-                  style={{ padding: '8px 16px' }}
+                  style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  ✕ Reset
+                  <RefreshCw size={14} /> Reset
                 </button>
               )}
             </div>
@@ -236,13 +273,13 @@ export default function AdminTickets() {
       </div>
 
       {/* Tickets List Card */}
-      <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+      <div className="glass-card" style={{ padding: 0 }}>
+        <div className="table-wrap">
           {tickets.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">🎫</div>
-              <div className="empty-state-text">No support tickets found</div>
-              <div className="empty-state-sub">Adjust your filters or query to find tickets.</div>
+            <div className="empty-state" style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <div style={{ marginBottom: 12 }}><Shield size={48} style={{ color: 'var(--color-text-subtle)', margin: '0 auto' }} /></div>
+              <div className="empty-state-text" style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>No support tickets found</div>
+              <div className="empty-state-sub" style={{ fontSize: 13, color: 'var(--color-text-subtle)' }}>Adjust your filters or query to find tickets.</div>
             </div>
           ) : (
             <table className="table">
@@ -266,7 +303,10 @@ export default function AdminTickets() {
                     style={{ cursor: 'pointer' }}
                   >
                     <td style={{ fontWeight: 700, color: 'var(--color-primary-light)' }}>
-                      🏢 {t.publisher?.name || 'Guest / Unlinked'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Building size={14} />
+                        {t.publisher?.name || 'Guest / Unlinked'}
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -281,7 +321,12 @@ export default function AdminTickets() {
                     <td>{getPriorityBadge(t.priority)}</td>
                     <td>{getStatusBadge(t.status)}</td>
                     <td style={{ color: t.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)' }}>
-                      {t.assignee ? `👤 ${t.assignee.name}` : 'Unassigned'}
+                      {t.assignee ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <User size={14} style={{ color: 'var(--br-primary)' }} />
+                          {t.assignee.name}
+                        </div>
+                      ) : 'Unassigned'}
                     </td>
                     <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
                       {formatDate(t.updated_at)}

@@ -18,6 +18,7 @@ import PageDetail          from './pages/PageDetail'
 import RegisterPage        from './pages/RegisterPage'
 import ForgotPasswordPage  from './pages/ForgotPasswordPage'
 import ResetPasswordPage   from './pages/ResetPasswordPage'
+import DesignSystemPreview from './pages/DesignSystemPreview'
 
 // Admin pages
 import AdminDashboard   from './pages/admin/Dashboard'
@@ -64,6 +65,7 @@ function App() {
           <BrowserRouter>
           <Toaster
             position="top-right"
+            containerStyle={{ zIndex: 100000 }}
             toastOptions={{
               style: {
                 background: '#1a1a2e',
@@ -80,6 +82,7 @@ function App() {
             {/* Root landing page */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/design-system" element={<DesignSystemPreview />} />
             <Route path="/page/:slug" element={<PageDetail />} />
 
             {/* Auth */}

@@ -4,6 +4,9 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
+import { 
+  DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye 
+} from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -262,20 +265,29 @@ export default function PublisherRevenue() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">💰 My Revenue</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <DollarSign size={24} style={{ color: 'var(--br-primary)' }} />
+            My Revenue
+          </h1>
           <p className="page-subtitle">{records.length} records</p>
         </div>
-        <button className="btn btn-secondary" onClick={handleExportPDF} id="export-pdf-btn">
-          📄 Export PDF
+        <button
+          className="btn btn-secondary"
+          onClick={handleExportPDF}
+          id="export-pdf-btn"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          <FileText size={16} />
+          Export PDF
         </button>
       </div>
 
       {/* Filter Panel */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+      <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+        <div className="responsive-filters">
           
           {/* Preset Selector */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Time Range</label>
             <select
               className="form-select"
@@ -293,7 +305,7 @@ export default function PublisherRevenue() {
           </div>
 
           {/* Start Date */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Start Date</label>
             <input
               type="date"
@@ -304,7 +316,7 @@ export default function PublisherRevenue() {
           </div>
 
           {/* End Date */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>End Date</label>
             <input
               type="date"
@@ -315,7 +327,7 @@ export default function PublisherRevenue() {
           </div>
 
           {/* Status Filter */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Status</label>
             <select
               className="form-select"
@@ -330,33 +342,40 @@ export default function PublisherRevenue() {
           </div>
 
           {/* Reset Button */}
-          <div>
-            <button
-              id="reset-pub-revenue-filter-btn"
-              className="btn btn-secondary"
-              style={{ width: '100%', padding: '10px 16px' }}
-              onClick={handleResetFilters}
-            >
-              🧹 Reset
-            </button>
-          </div>
+          {(filters.preset !== '30d' || filters.ad_unit_id !== '' || filters.status !== '') && (
+            <div className="flex-btn">
+              <button
+                id="reset-pub-revenue-filter-btn"
+                className="btn btn-secondary"
+                style={{ width: '100%', padding: '10px 16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                onClick={handleResetFilters}
+              >
+                <Ban size={16} />
+                Reset
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 24 }}>
         <div className="stat-card primary">
+          <div className="stat-icon"><TrendingUp size={20} /></div>
           <div className="stat-label">Total Earnings</div>
           <div className="stat-value money"><CompactAmount value={totalEarningsCard} /></div>
         </div>
         <div className="stat-card accent">
+          <div className="stat-icon"><DollarSign size={20} /></div>
           <div className="stat-label">Approved Earnings</div>
           <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
         </div>
         <div className="stat-card warning">
+          <div className="stat-icon"><Clock size={20} /></div>
           <div className="stat-label">Pending Earnings</div>
           <div className="stat-value money"><CompactAmount value={totalPendingEarnings} /></div>
         </div>
         <div className="stat-card info">
+          <div className="stat-icon"><Eye size={20} /></div>
           <div className="stat-label">Total Impressions</div>
           <div className="stat-value">
             <CompactAmount value={totalImpressions} prefix="" decimals={0} />
@@ -364,76 +383,91 @@ export default function PublisherRevenue() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+      <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>
           ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>Date {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>Ad Unit {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>Impressions {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>CTR {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('publisher_cpm')} style={{cursor: 'pointer'}}>My CPM {sortField === 'publisher_cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>My Earnings {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.length === 0 && (
-                  <tr><td colSpan={9}>
-                    <div className="empty-state">
-                      <div className="empty-state-icon">💰</div>
-                      <div className="empty-state-text">No revenue for this period</div>
-                    </div>
-                  </td></tr>
+            <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>Date {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>Ad Unit {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>Impressions {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>CTR {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('publisher_cpm')} style={{cursor: 'pointer'}}>My CPM {sortField === 'publisher_cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>My Earnings {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.length === 0 && (
+                    <tr><td colSpan={9}>
+                      <div className="empty-state">
+                        <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                          <DollarSign size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
+                        </div>
+                        <div className="empty-state-text">No revenue for this period</div>
+                      </div>
+                    </td></tr>
+                  )}
+                  {paginated.map(r => (
+                    <tr key={r.id}>
+                      <td className="text-sm">{r.date?.slice?.(0,10) || r.date}</td>
+                      <td className="text-sm">
+                        <div style={{ fontWeight: 600 }}>{r.ad_unit?.display_name || '—'}</div>
+                        <div className="text-muted" style={{ fontSize: 11 }}>{r.ad_unit?.website?.domain}</div>
+                      </td>
+                      <td className="money">
+                        <CompactAmount value={r.impressions} prefix="" decimals={0} />
+                      </td>
+                      <td className="money">{(parseFloat(r.ctr) * 100).toFixed(2)}%</td>
+                      <td className="money">${parseFloat(r.publisher_cpm || 0).toFixed(3)}</td>
+                      <td className="money positive" style={{ fontWeight: 700 }}>
+                        <CompactAmount value={r.publisher_earnings} />
+                      </td>
+                      <td>
+                        {r.is_closed ? (
+                          <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Lock size={12} /> Closed
+                          </span>
+                        ) : r.approval_status === 'pending' ? (
+                          <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Clock size={12} /> Pending
+                          </span>
+                        ) : (
+                          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircle size={12} /> Approved
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                {records.length > 0 && (
+                  <tfoot>
+                    <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
+                      <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <TrendingUp size={14} style={{ color: 'var(--br-accent)' }} />
+                          <span>Totals</span>
+                        </div>
+                      </td>
+                      <td className="money">
+                        <CompactAmount value={impressionsTotal} prefix="" decimals={0} />
+                      </td>
+                      <td className="money">{avgCtr.toFixed(2)}%</td>
+                      <td className="money">${avgCpm.toFixed(3)}</td>
+                      <td className="money positive" style={{ fontWeight: 700 }}>
+                        <CompactAmount value={totalEarnings} />
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
                 )}
-                {paginated.map(r => (
-                  <tr key={r.id}>
-                    <td className="text-sm">{r.date?.slice?.(0,10) || r.date}</td>
-                    <td className="text-sm">
-                      <div style={{ fontWeight: 600 }}>{r.ad_unit?.display_name || '—'}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{r.ad_unit?.website?.domain}</div>
-                    </td>
-                    <td className="money">
-                      <CompactAmount value={r.impressions} prefix="" decimals={0} />
-                    </td>
-                    <td className="money">{(parseFloat(r.ctr) * 100).toFixed(2)}%</td>
-                    <td className="money">${parseFloat(r.publisher_cpm || 0).toFixed(3)}</td>
-                    <td className="money positive" style={{ fontWeight: 700 }}>
-                      <CompactAmount value={r.publisher_earnings} />
-                    </td>
-                    <td>
-                      {r.is_closed ? (
-                        <span className="badge badge-closed">🔒 Closed</span>
-                      ) : r.approval_status === 'pending' ? (
-                        <span className="badge badge-pending">⏳ Pending</span>
-                      ) : (
-                        <span className="badge badge-approved">🟢 Approved</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              {records.length > 0 && (
-                <tfoot>
-                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals</td>
-                    <td className="money">
-                      <CompactAmount value={impressionsTotal} prefix="" decimals={0} />
-                    </td>
-                    <td className="money">{avgCtr.toFixed(2)}%</td>
-                    <td className="money">${avgCpm.toFixed(3)}</td>
-                    <td className="money positive" style={{ fontWeight: 700 }}>
-                      <CompactAmount value={totalEarnings} />
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
+              </table>
+            </div>
           )}
         </div>
         <Pagination

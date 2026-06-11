@@ -8,6 +8,10 @@ import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import AnnouncementsRenderer from '../../components/AnnouncementsRenderer'
+import { 
+  Sparkles, Clock, RefreshCw, FileText, DollarSign, Eye, MousePointer, 
+  Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle 
+} from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -316,30 +320,7 @@ export default function PublisherDashboard() {
     .sort((a, b) => a.date < b.date ? -1 : 1)
     .map(d => ({ ...d, approved: +d.approved.toFixed(2), pending: +d.pending.toFixed(2) }))
 
-  const [currentTime, setCurrentTime] = useState('')
 
-  useEffect(() => {
-    const timezone = settings.platform_timezone || 'UTC'
-    const updateClock = () => {
-      try {
-        const formatted = new Date().toLocaleTimeString([], {
-          timeZone: timezone,
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-          timeZoneName: 'short'
-        })
-        setCurrentTime(formatted)
-      } catch (err) {
-        console.error('Timezone formatting error:', err)
-        setCurrentTime(new Date().toLocaleTimeString())
-      }
-    }
-    updateClock()
-    const interval = setInterval(updateClock, 1000)
-    return () => clearInterval(interval)
-  }, [settings.platform_timezone])
 
   // Group daily performance records
   const dailyData = {}
@@ -427,41 +408,36 @@ export default function PublisherDashboard() {
       {/* Welcome Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">👋 {getGreeting()}, {user?.name || 'Publisher'}!</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '20px' }}>
+            <Sparkles size={16} style={{ color: 'var(--br-primary)' }} />
+            {getGreeting()}, {user?.name || 'Publisher'}!
+          </h1>
           <p className="page-subtitle">
-            Here's your earnings overview — {formatDateString(filters.date_from)} to {formatDateString(filters.date_to)}
-            {currentTime && (
-              <>
-                <span style={{ margin: '0 8px', color: '#94a3b8' }}>•</span>
-                <span className="live-clock" style={{ color: '#6366f1', fontWeight: '500' }}>
-                  Platform Time: {currentTime}
-                </span>
-              </>
-            )}
-            {lastSyncAt && (
-              <>
-                <span style={{ margin: '0 8px', color: '#94a3b8' }}>•</span>
-                <span className="last-sync-time" style={{ color: '#10b981', fontWeight: '500' }}>
-                  Last Updated: {formatDateTime(lastSyncAt)}
-                </span>
-              </>
-            )}
+            Earnings overview: {formatDateString(filters.date_from)} - {formatDateString(filters.date_to)}
           </p>
+          {lastSyncAt && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--br-text-3)', marginTop: 4 }}>
+              <span className="dot" style={{ color: 'var(--br-accent)', width: 6, height: 6, display: 'inline-block', borderRadius: '50%', background: 'currentColor' }} />
+              <span>Last updated: {formatDateTime(lastSyncAt)}</span>
+            </div>
+          )}
         </div>
         <button
           className="btn btn-secondary"
           onClick={handleExportPDF}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          📄 Export PDF Statement
+          <FileText size={16} />
+          Export PDF Statement
         </button>
       </div>
 
       {/* Filter Panel */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+      <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+        <div className="responsive-filters">
           
           {/* Preset Selector */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Time Range</label>
             <select
               className="form-select"
@@ -479,7 +455,7 @@ export default function PublisherDashboard() {
           </div>
 
           {/* Start Date */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Start Date</label>
             <input
               type="date"
@@ -490,7 +466,7 @@ export default function PublisherDashboard() {
           </div>
 
           {/* End Date */}
-          <div style={{ flex: '1 1 140px' }}>
+          <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>End Date</label>
             <input
               type="date"
@@ -501,7 +477,7 @@ export default function PublisherDashboard() {
           </div>
 
           {/* Website Filter */}
-          <div style={{ flex: '1 1 170px' }}>
+          <div className="flex-wide">
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Website</label>
             <SearchableSelect
               value={filters.website_id}
@@ -515,7 +491,7 @@ export default function PublisherDashboard() {
           </div>
 
           {/* Ad Unit Filter */}
-          <div style={{ flex: '1 1 170px' }}>
+          <div className="flex-wide">
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Ad Unit</label>
             <SearchableSelect
               value={filters.ad_unit_id}
@@ -529,18 +505,19 @@ export default function PublisherDashboard() {
             />
           </div>
 
-
-
           {/* Reset Action */}
-          <div>
-            <button
-              className="btn btn-secondary"
-              style={{ width: '100%', padding: '10px 16px' }}
-              onClick={handleResetFilters}
-            >
-              🧹 Clear
-            </button>
-          </div>
+          {(filters.preset !== '30d' || filters.website_id !== '' || filters.ad_unit_id !== '') && (
+            <div className="flex-btn">
+              <button
+                className="btn btn-secondary"
+                style={{ width: '100%', padding: '10px 16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                onClick={handleResetFilters}
+              >
+                <Ban size={16} />
+                Clear
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -550,21 +527,21 @@ export default function PublisherDashboard() {
         {/* Stat Cards */}
         <div className="stat-grid">
           <div className="stat-card accent">
-            <div className="stat-icon">💰</div>
+            <div className="stat-icon"><DollarSign size={20} /></div>
             <div className="stat-label">Approved Earnings</div>
             <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
-            <div className="stat-change up">▲ Approved</div>
+            <div className="stat-change up">Approved</div>
           </div>
           
           <div className="stat-card warning">
-            <div className="stat-icon">⏳</div>
+            <div className="stat-icon"><Clock size={20} /></div>
             <div className="stat-label">Pending Earnings</div>
             <div className="stat-value money"><CompactAmount value={totalPendingEarnings} /></div>
-            <div className="stat-change">⏳ Holding</div>
+            <div className="stat-change">Holding</div>
           </div>
           
           <div className="stat-card info">
-            <div className="stat-icon">👀</div>
+            <div className="stat-icon"><Eye size={20} /></div>
             <div className="stat-label">Total Impressions</div>
             <div className="stat-value">
               <CompactAmount value={totalImpressions} prefix="" decimals={0} />
@@ -573,7 +550,7 @@ export default function PublisherDashboard() {
           </div>
           
           <div className="stat-card info">
-            <div className="stat-icon">💨</div>
+            <div className="stat-icon"><Ban size={20} /></div>
             <div className="stat-label">Unfilled Impressions</div>
             <div className="stat-value">
               <CompactAmount value={totalUnfilled} prefix="" decimals={0} />
@@ -582,7 +559,7 @@ export default function PublisherDashboard() {
           </div>
 
           <div className="stat-card info">
-            <div className="stat-icon">🖱️</div>
+            <div className="stat-icon"><MousePointer size={20} /></div>
             <div className="stat-label">Total Clicks</div>
             <div className="stat-value">
               <CompactAmount value={totalClicks} prefix="" decimals={0} />
@@ -591,27 +568,34 @@ export default function PublisherDashboard() {
           </div>
 
           <div className="stat-card primary">
-            <div className="stat-icon">🎯</div>
+            <div className="stat-icon"><Target size={20} /></div>
             <div className="stat-label">Average CTR</div>
             <div className="stat-value">{averageCtr.toFixed(2)}%</div>
             <div className="stat-change text-muted">Click-through rate</div>
           </div>
 
           <div className="stat-card primary">
-            <div className="stat-icon">👁️</div>
+            <div className="stat-icon"><Eye size={20} /></div>
             <div className="stat-label">Viewability Rate</div>
             <div className="stat-value">
               {viewabilityRate !== null ? `${viewabilityRate.toFixed(1)}%` : 'N/A'}
             </div>
             <div className="stat-change text-muted">
-              {viewabilityRate !== null
-                ? `${totalAvViewable.toLocaleString()} / ${totalAvEligible.toLocaleString()} measurable`
-                : 'No Active View data'}
+              {viewabilityRate !== null ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <CompactAmount value={totalAvViewable} prefix="" decimals={0} />
+                  <span>/</span>
+                  <CompactAmount value={totalAvEligible} prefix="" decimals={0} />
+                  <span>measurable</span>
+                </span>
+              ) : (
+                'No Active View data'
+              )}
             </div>
           </div>
 
           <div className="stat-card primary">
-            <div className="stat-icon">📊</div>
+            <div className="stat-icon"><TrendingUp size={20} /></div>
             <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               Monetized CPM
               <span 
@@ -626,7 +610,7 @@ export default function PublisherDashboard() {
           </div>
           
           <div className="stat-card primary">
-            <div className="stat-icon">💳</div>
+            <div className="stat-icon"><CreditCard size={20} /></div>
             <div className="stat-label">Last Payout</div>
             <div className="stat-value money">
               {lastPayout ? <CompactAmount value={lastPayout.final_amount} /> : '—'}
@@ -640,10 +624,11 @@ export default function PublisherDashboard() {
         </div>
 
         {/* Charts Section */}
-        <div className="card">
+        <div className="glass-card" style={{ marginBottom: 24 }}>
           <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
-            <div className="card-title">
-              📈 Earnings Trend ({
+            <div className="card-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
+              Earnings Trend ({
                 filters.preset === 'today' ? 'Today' :
                 filters.preset === 'yesterday' ? 'Yesterday' :
                 filters.preset === '7d' ? 'Last 7 Days' :
@@ -655,13 +640,13 @@ export default function PublisherDashboard() {
             </div>
             {/* Legend */}
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#10b981' }}>
-                <span style={{ width: 24, height: 2, background: '#10b981', display: 'inline-block', borderRadius: 2 }} />
-                ✅ Approved
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-accent)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-accent)', display: 'inline-block' }} />
+                Approved
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#f59e0b' }}>
-                <span style={{ width: 24, height: 2, background: '#f59e0b', display: 'inline-block', borderRadius: 2, borderTop: '2px dashed #f59e0b', boxSizing: 'border-box' }} />
-                ⏳ Pending
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-warning)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-warning)', display: 'inline-block' }} />
+                Pending
               </div>
             </div>
           </div>
@@ -670,47 +655,48 @@ export default function PublisherDashboard() {
               <AreaChart data={chart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%"  stopColor="var(--br-accent)" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="var(--br-accent)" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    <stop offset="5%"  stopColor="var(--br-warning)" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="var(--br-warning)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
-                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--br-border)" />
+                <XAxis dataKey="date" stroke="var(--br-text-3)" tick={{ fontSize: 11 }}
                   tickFormatter={d => d?.slice?.(5) || d} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11 }}
+                <YAxis stroke="var(--br-text-3)" tick={{ fontSize: 11 }}
                   tickFormatter={v => `$${v}`} />
                 <Tooltip
-                  contentStyle={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 8 }}
-                  labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
+                  contentStyle={{ background: 'var(--br-bg-2)', border: '0.5px solid var(--br-border)', borderRadius: 'var(--br-radius)', backdropFilter: 'blur(10px)' }}
+                  labelStyle={{ color: 'var(--br-text)', fontWeight: 600, marginBottom: 4 }}
+                  itemStyle={{ color: 'var(--br-text-2)' }}
                   formatter={(v, name) => [
                     `$${v}`,
-                    name === 'approved' ? '✅ Approved' : '⏳ Pending'
+                    name === 'approved' ? 'Approved' : 'Pending'
                   ]}
                 />
-                <Area type="monotone" dataKey="approved" stroke="#10b981"
+                <Area type="monotone" dataKey="approved" stroke="var(--br-accent)"
                   fill="url(#approvedGrad)" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="pending" stroke="#f59e0b"
+                <Area type="monotone" dataKey="pending" stroke="var(--br-warning)"
                   fill="url(#pendingGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">📊</div>
+              <TrendingUp size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
               <div className="empty-state-text">No earnings data for this selection</div>
             </div>
           )}
         </div>
 
         {/* Daily Performance Table */}
-        <div className="card" style={{ marginTop: 24, padding: 0 }}>
-          <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-            <div className="card-title">📅 Daily Performance</div>
+        <div className="glass-card" style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
+          <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--br-border)' }}>
+            <div className="card-title">Daily Performance</div>
           </div>
-          <div className="table-container">
+          <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
@@ -745,7 +731,7 @@ export default function PublisherDashboard() {
                   <tr>
                     <td colSpan={8}>
                       <div className="empty-state">
-                        <div className="empty-state-icon">📊</div>
+                        <TrendingUp size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
                         <div className="empty-state-text">No performance data for this selection</div>
                       </div>
                     </td>
@@ -756,7 +742,7 @@ export default function PublisherDashboard() {
                     const cpm = r.impressions > 0 ? (r.earnings / r.impressions) * 1000 : 0
                     return (
                       <tr key={r.date}>
-                        <td className="text-sm" style={{ fontWeight: '500' }}>{formatDateString(r.date)}</td>
+                        <td className="text-sm td-primary" style={{ fontWeight: '500' }}>{formatDateString(r.date)}</td>
                         <td className="money">
                           <CompactAmount value={r.impressions} prefix="" decimals={0} />
                         </td>
@@ -764,11 +750,11 @@ export default function PublisherDashboard() {
                           <CompactAmount value={r.clicks} prefix="" decimals={0} />
                         </td>
                         <td className="money">{ctr.toFixed(2)}%</td>
-                        <td className="money">${cpm.toFixed(2)}</td>
+                        <td className="money td-amount">${cpm.toFixed(2)}</td>
                         <td className="money positive" style={{ fontWeight: '600' }}>
                           <CompactAmount value={r.approved} />
                         </td>
-                        <td className="money" style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
+                        <td className="money" style={{ color: 'var(--br-warning)', fontWeight: '600' }}>
                           <CompactAmount value={r.pending} />
                         </td>
                         <td className="money positive" style={{ fontWeight: '800' }}>
@@ -781,8 +767,8 @@ export default function PublisherDashboard() {
               </tbody>
               {sortedDailyRecords.length > 0 && (
                 <tfoot>
-                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({sortedDailyRecords.length}d)</td>
+                  <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '1px solid var(--br-border)' }}>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({sortedDailyRecords.length}d)</td>
                     <td className="money">
                       <CompactAmount value={dailyTotals.impressions} prefix="" decimals={0} />
                     </td>
@@ -798,7 +784,7 @@ export default function PublisherDashboard() {
                     <td className="money positive" style={{ fontWeight: '600' }}>
                       <CompactAmount value={dailyTotals.approved} />
                     </td>
-                    <td className="money" style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
+                    <td className="money" style={{ color: 'var(--br-warning)', fontWeight: '600' }}>
                       <CompactAmount value={dailyTotals.pending} />
                     </td>
                     <td className="money positive" style={{ fontWeight: '800' }}>
@@ -810,12 +796,14 @@ export default function PublisherDashboard() {
             </table>
           </div>
           {sortedDailyRecords.length > 0 && (
-            <Pagination
-              currentPage={dailyPage}
-              totalItems={sortedDailyRecords.length}
-              pageSize={10}
-              onPageChange={setDailyPage}
-            />
+            <div style={{ padding: '12px 20px' }}>
+              <Pagination
+                currentPage={dailyPage}
+                totalItems={sortedDailyRecords.length}
+                pageSize={10}
+                onPageChange={setDailyPage}
+              />
+            </div>
           )}
         </div>
       </div>

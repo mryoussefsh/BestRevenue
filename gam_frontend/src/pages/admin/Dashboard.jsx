@@ -658,9 +658,16 @@ export default function AdminDashboard() {
                 : 'N/A'}
             </div>
             <div className="stat-change text-muted">
-              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
-                ? `${(stats.totalAvViewable || 0).toLocaleString()} / ${(stats.totalAvEligible || 0).toLocaleString()} measurable`
-                : 'No Active View data'}
+              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} />
+                  <span>/</span>
+                  <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} />
+                  <span>measurable</span>
+                </span>
+              ) : (
+                'No Active View data'
+              )}
             </div>
           </div>
           <div className="stat-card accent">

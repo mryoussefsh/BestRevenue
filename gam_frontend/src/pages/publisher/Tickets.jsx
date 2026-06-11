@@ -4,6 +4,10 @@ import { publisherApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import { 
+  MessageSquare, Plus, Clock, HelpCircle, CheckCircle, Lock, AlertTriangle, 
+  User, Settings, Mail, X 
+} from 'lucide-react'
 
 export default function PublisherTickets() {
   const { formatDate } = useSettings()
@@ -84,28 +88,60 @@ export default function PublisherTickets() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'open':
-        return <span className="badge badge-pending">⏳ Open</span>
+        return (
+          <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Clock size={12} /> Open
+          </span>
+        )
       case 'in_progress':
-        return <span className="badge badge-approved">⚙️ In Progress</span>
+        return (
+          <span className="badge badge-info" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Settings size={12} /> In Progress
+          </span>
+        )
       case 'resolved':
-        return <span className="badge badge-active">✅ Resolved</span>
+        return (
+          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle size={12} /> Resolved
+          </span>
+        )
       case 'closed':
-        return <span className="badge badge-inactive">🔒 Closed</span>
+        return (
+          <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Lock size={12} /> Closed
+          </span>
+        )
       default:
-        return <span className="badge badge-inactive">{status}</span>
+        return <span className="badge badge-neutral">{status}</span>
     }
   }
 
   const getPriorityBadge = (prio) => {
     switch (prio) {
       case 'low':
-        return <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>🟢 Low</span>
+        return (
+          <span style={{ color: 'var(--br-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-accent)' }} /> Low
+          </span>
+        )
       case 'medium':
-        return <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>🟡 Medium</span>
+        return (
+          <span style={{ color: 'var(--br-warning)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-warning)' }} /> Medium
+          </span>
+        )
       case 'high':
-        return <span style={{ color: '#f97316', fontWeight: 600 }}>🟠 High</span>
+        return (
+          <span style={{ color: '#f97316', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: '#f97316' }} /> High
+          </span>
+        )
       case 'urgent':
-        return <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>🔴 Urgent</span>
+        return (
+          <span style={{ color: 'var(--br-danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot" style={{ background: 'var(--br-danger)' }} /> Urgent
+          </span>
+        )
       default:
         return <span>{prio}</span>
     }
@@ -114,14 +150,14 @@ export default function PublisherTickets() {
   const getCategoryLabel = (cat) => {
     switch (cat) {
       case 'billing':
-        return '💳 Billing'
+        return 'Billing'
       case 'technical':
-        return '🛠️ Technical'
+        return 'Technical'
       case 'gam':
-        return '📡 GAM Sync'
+        return 'GAM Sync'
       case 'other':
       default:
-        return '📝 Other'
+        return 'Other'
     }
   }
 
@@ -133,13 +169,16 @@ export default function PublisherTickets() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">🎫 Support Tickets</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <MessageSquare size={24} style={{ color: 'var(--br-primary)' }} />
+            Support Tickets
+          </h1>
           <p className="page-subtitle">
             Need help? Open a ticket to reach our administration team directly.
           </p>
           {hasActiveTicket && (
-            <p style={{ color: 'var(--color-warning)', fontSize: 13, marginTop: 6, fontWeight: 500 }}>
-              ⚠️ You have an active support ticket. You must close or resolve it before you can open a new one.
+            <p style={{ color: 'var(--br-warning)', fontSize: 13, marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
+              <AlertTriangle size={14} /> You have an active support ticket. You must close or resolve it before you can open a new one.
             </p>
           )}
         </div>
@@ -147,78 +186,86 @@ export default function PublisherTickets() {
           className="btn btn-primary" 
           onClick={handleOpenModal}
           disabled={hasActiveTicket}
-          style={hasActiveTicket ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+          style={hasActiveTicket ? { opacity: 0.6, cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 } : { display: 'inline-flex', alignItems: 'center', gap: 8 }}
           title={hasActiveTicket ? "You already have an active ticket" : "Open a new ticket"}
         >
-          ➕ Open Support Ticket
+          <Plus size={16} /> Open Support Ticket
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="card" style={{ marginBottom: 20, padding: '14px 20px' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 160 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Filter Status</label>
+      <div className="glass-card" style={{ marginBottom: 20, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+        <div className="responsive-filters">
+          <div>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Filter Status</label>
             <select
               className="form-select"
               value={filterStatus}
               onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
-              style={{ padding: '6px 10px', fontSize: 13 }}
             >
               <option value="">All Tickets</option>
-              <option value="open">⏳ Open</option>
-              <option value="in_progress">⚙️ In Progress</option>
-              <option value="resolved">✅ Resolved</option>
-              <option value="closed">🔒 Closed</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Tickets List */}
-      <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+      <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           {tickets.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🎫</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <MessageSquare size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
+              </div>
               <div className="empty-state-text">No support tickets found</div>
               <div className="empty-state-sub">If you have any questions, feel free to open a ticket above.</div>
             </div>
           ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Ticket Subject</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Assigned Agent</th>
-                  <th>Last Update</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map(t => (
-                  <tr
-                    key={t.id}
-                    onClick={() => navigate(`/publisher/tickets/${t.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-                      {t.subject}
-                    </td>
-                    <td>{getCategoryLabel(t.category)}</td>
-                    <td>{getPriorityBadge(t.priority)}</td>
-                    <td>{getStatusBadge(t.status)}</td>
-                    <td style={{ color: t.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)' }}>
-                      {t.assignee ? `👤 ${t.assignee.name}` : 'Unassigned'}
-                    </td>
-                    <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                      {formatDate(t.updated_at)}
-                    </td>
+            <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Ticket Subject</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned Agent</th>
+                    <th>Last Update</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tickets.map(t => (
+                    <tr
+                      key={t.id}
+                      onClick={() => navigate(`/publisher/tickets/${t.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                        {t.subject}
+                      </td>
+                      <td>{getCategoryLabel(t.category)}</td>
+                      <td>{getPriorityBadge(t.priority)}</td>
+                      <td>{getStatusBadge(t.status)}</td>
+                      <td style={{ color: t.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)' }}>
+                        {t.assignee ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <User size={12} style={{ color: 'var(--br-primary)' }} />
+                            {t.assignee.name}
+                          </span>
+                        ) : 'Unassigned'}
+                      </td>
+                      <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+                        {formatDate(t.updated_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
         {totalItems > 15 && (
@@ -234,10 +281,15 @@ export default function PublisherTickets() {
       {/* Create Ticket Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600, background: 'rgba(15, 17, 23, 0.75)', backdropFilter: 'blur(24px)', border: '0.5px solid var(--br-border)' }}>
             <div className="modal-header">
-              <h3 className="modal-title">✉️ Create Support Ticket</h3>
-              <button className="modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
+              <h3 className="modal-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Mail size={18} style={{ color: 'var(--br-primary)' }} />
+                Create Support Ticket
+              </h3>
+              <button className="modal-close" onClick={() => setIsModalOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={16} />
+              </button>
             </div>
             <form onSubmit={handleCreateTicket}>
               <div className="form-group">
@@ -260,10 +312,10 @@ export default function PublisherTickets() {
                     value={category}
                     onChange={e => setCategory(e.target.value)}
                   >
-                    <option value="billing">💳 Billing Inquiry</option>
-                    <option value="technical">🛠️ Technical Issue</option>
-                    <option value="gam">📡 Google Ad Manager Sync</option>
-                    <option value="other">📝 Other Question</option>
+                    <option value="billing">Billing Inquiry</option>
+                    <option value="technical">Technical Issue</option>
+                    <option value="gam">Google Ad Manager Sync</option>
+                    <option value="other">Other Question</option>
                   </select>
                 </div>
 
@@ -274,10 +326,10 @@ export default function PublisherTickets() {
                     value={priority}
                     onChange={e => setPriority(e.target.value)}
                   >
-                    <option value="low">🟢 Low</option>
-                    <option value="medium">🟡 Medium</option>
-                    <option value="high">🟠 High</option>
-                    <option value="urgent">🔴 Urgent</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                   </select>
                 </div>
               </div>
@@ -307,8 +359,9 @@ export default function PublisherTickets() {
                   type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  {submitting ? 'Submitting...' : '✉️ Submit Ticket'}
+                  {submitting ? 'Submitting...' : <><Mail size={16} /> Submit Ticket</>}
                 </button>
               </div>
             </form>

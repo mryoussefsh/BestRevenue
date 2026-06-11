@@ -153,6 +153,14 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Programmed frontend React layout settings page `/admin/profile` supporting tabs and premium UI inputs.
 - [x] Connected administrator profile name card in sidebar navigation footer to link directly to profile page.
 - [x] Completed `AdminProfileTest.php` feature tests checking name, email, duplicate emails, password validation, and hash comparison.
+### Milestone 10: Portal UI Polish & Viewability Formatting (Sprint 15)
+- [x] Reorganized publisher Settings view to display "Profile Info" and "Security Preferences" side-by-side.
+- [x] Wrapped the publisher profile block inside the sidebar navigation in a React Router Link pointing to settings.
+- [x] Converted the language select buttons in the topbar header into a custom-styled dropdown selector matching the brand design.
+- [x] Removed the redundant "Publisher Portal" header and user email address text block from the topbar left section.
+- [x] Redesigned the country code phone search box dropdown to hide search emojis and use vector SVG magnifying glass icon instead.
+- [x] Reformatted the Viewability Rate card subtitle to render compact amounts (e.g. `1.2M ⓘ / 1.7M ⓘ measurable`) with interactive hover tooltips.
+- [x] Resolved card layout overflows by updating `.stat-card` to use `minmax(0, 1fr) auto` grid columns and adding `flex-wrap: wrap` to `.stat-change`.
 
 ---
 

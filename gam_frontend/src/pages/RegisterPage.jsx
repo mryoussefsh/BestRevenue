@@ -5,6 +5,10 @@ import toast from 'react-hot-toast'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import { useSettings } from '../contexts/SettingsContext'
+import { 
+  TrendingUp, Lock, ArrowRight, ArrowLeft, Phone, Send, Clock, 
+  AlertTriangle, Check, FileText 
+} from 'lucide-react'
 
 export default function RegisterPage() {
   const { settings } = useSettings()
@@ -32,7 +36,7 @@ export default function RegisterPage() {
     return Math.min(score, 4)
   }
   const strength = calculatePasswordStrength(form.password)
-  const strengthColors = ['var(--color-border)', 'var(--color-danger)', 'var(--color-warning)', 'var(--color-primary)', 'var(--color-success)']
+  const strengthColors = ['var(--br-border)', 'var(--br-danger)', 'var(--br-warning)', 'var(--br-primary)', 'var(--br-accent)']
   const strengthLabels = ['Too short', 'Weak', 'Fair', 'Good', 'Strong']
 
   const set = (field) => (e) => {
@@ -96,29 +100,32 @@ export default function RegisterPage() {
   if (pendingMessage) {
     return (
       <div className="auth-wrapper">
+        <div className="auth-glow-1"></div>
+        <div className="auth-glow-2"></div>
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 64, marginBottom: 12 }}>⏳</div>
+            <Clock size={40} style={{ color: 'var(--br-warning)', marginBottom: 12 }} />
             <h1 className="auth-title" style={{ fontSize: 22 }}>Registration Received!</h1>
             <p className="auth-subtitle">Your account is under review</p>
           </div>
 
-          <div className="alert alert-info" style={{ marginBottom: 20 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>📋 Account Pending Review</div>
-            <p style={{ margin: 0, lineHeight: 1.6 }}>
+          <div className="alert alert-info" style={{ marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <FileText size={18} style={{ color: 'var(--br-primary)', flexShrink: 0, marginTop: 2 }} />
+            <div style={{ margin: 0, lineHeight: 1.6 }}>
               {pendingMessage}
-            </p>
+            </div>
           </div>
 
           <div style={{
-            background: 'var(--color-surface-3)',
-            borderRadius: 'var(--radius-md)',
+            background: 'rgba(255,255,255,0.015)',
+            border: '0.5px solid var(--br-border)',
+            borderRadius: 'var(--br-radius)',
             padding: 16,
             fontSize: 13,
-            color: 'var(--color-text-muted)',
+            color: 'var(--br-text-2)',
             marginBottom: 24
           }}>
-            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--color-text-secondary)' }}>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--br-text)' }}>
               What happens next?
             </div>
             <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
@@ -133,7 +140,10 @@ export default function RegisterPage() {
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
           >
-            🔑 Back to Login
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <ArrowLeft size={16} />
+              Back to Login
+            </span>
           </Link>
         </div>
       </div>
@@ -143,9 +153,11 @@ export default function RegisterPage() {
   if (settings.registration_status === 'closed') {
     return (
       <div className="auth-wrapper">
+        <div className="auth-glow-1"></div>
+        <div className="auth-glow-2"></div>
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 64, marginBottom: 12 }}>🔒</div>
+            <Lock size={40} style={{ color: 'var(--br-danger)', marginBottom: 12 }} />
             <h1 className="auth-title" style={{ fontSize: 22 }}>Registration Closed</h1>
             <p className="auth-subtitle">We are not accepting new publisher registrations at this time.</p>
           </div>
@@ -154,7 +166,10 @@ export default function RegisterPage() {
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
           >
-            🔑 Back to Login
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <ArrowLeft size={16} />
+              Back to Login
+            </span>
           </Link>
         </div>
       </div>
@@ -164,20 +179,30 @@ export default function RegisterPage() {
   // ── Registration Form ────────────────────────────────────────────────
   return (
     <div className="auth-wrapper">
+      <div className="auth-glow-1"></div>
+      <div className="auth-glow-2"></div>
+
       <div className="auth-card" style={{ maxWidth: 520 }}>
         <div className="auth-logo">
           {settings.site_logo ? (
-            <img src={settings.site_logo} alt="Logo" style={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain', marginBottom: 16 }} />
+            <Link to="/" style={{ display: 'inline-block' }}>
+              <img src={settings.site_logo} alt="Logo" className="auth-logo-img" style={{ maxHeight: 50, maxWidth: '100%', objectFit: 'contain', marginBottom: 16 }} />
+            </Link>
           ) : (
-            <div className="auth-logo-icon">💹</div>
+            <Link to="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              <div className="auth-logo-icon">
+                <TrendingUp size={24} />
+              </div>
+            </Link>
           )}
-          <h1 className="auth-title">Create Publisher Account</h1>
+          <h1 className="auth-title">Create Account</h1>
           <p className="auth-subtitle">Join {settings.site_name || 'BestRevenue'} and start monetizing your traffic</p>
         </div>
 
         {errors.general && (
-          <div className="alert alert-danger" style={{ marginBottom: 20 }}>
-            ⚠️ {errors.general}
+          <div className="alert alert-danger" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+            <span>{errors.general}</span>
           </div>
         )}
 
@@ -197,7 +222,11 @@ export default function RegisterPage() {
               required
               autoFocus
             />
-            {errors.name && <div style={{ color: 'var(--color-danger)', fontSize: 12, marginTop: 4 }}>⚠ {errors.name}</div>}
+            {errors.name && (
+              <div style={{ color: 'var(--br-danger)', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> {errors.name}
+              </div>
+            )}
           </div>
 
           {/* Email */}
@@ -212,7 +241,11 @@ export default function RegisterPage() {
               onChange={set('email')}
               required
             />
-            {errors.email && <div style={{ color: 'var(--color-danger)', fontSize: 12, marginTop: 4 }}>⚠ {errors.email}</div>}
+            {errors.email && (
+              <div style={{ color: 'var(--br-danger)', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> {errors.email}
+              </div>
+            )}
           </div>
 
           {/* Password */}
@@ -227,7 +260,11 @@ export default function RegisterPage() {
               onChange={set('password')}
               required
             />
-            {errors.password && <div style={{ color: 'var(--color-danger)', fontSize: 12, marginTop: 4 }}>⚠ {errors.password}</div>}
+            {errors.password && (
+              <div style={{ color: 'var(--br-danger)', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> {errors.password}
+              </div>
+            )}
             
             {form.password && (
               <div style={{ marginTop: 8 }}>
@@ -236,7 +273,7 @@ export default function RegisterPage() {
                     <div key={level} style={{
                       flex: 1,
                       borderRadius: 4,
-                      background: strength >= level ? strengthColors[strength] : 'var(--color-surface-3)',
+                      background: strength >= level ? strengthColors[strength] : 'rgba(255,255,255,0.06)',
                       transition: 'background 0.3s'
                     }} />
                   ))}
@@ -260,32 +297,36 @@ export default function RegisterPage() {
               onChange={set('password_confirmation')}
               required
             />
-            {errors.password_confirmation && <div style={{ color: 'var(--color-danger)', fontSize: 12, marginTop: 4 }}>⚠ {errors.password_confirmation}</div>}
+            {errors.password_confirmation && (
+              <div style={{ color: 'var(--br-danger)', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> {errors.password_confirmation}
+              </div>
+            )}
           </div>
 
           {/* Contact Info */}
           <div style={{
-            border: `1px solid ${errors.contact ? 'var(--color-danger)' : 'var(--color-border)'}`,
-            borderRadius: 'var(--radius-md)',
+            border: `0.5px solid ${errors.contact ? 'var(--br-danger)' : 'var(--br-border)'}`,
+            borderRadius: 'var(--br-radius)',
             padding: '16px',
             marginBottom: 20,
-            background: 'var(--color-surface-2)',
+            background: 'rgba(255,255,255,0.01)',
           }}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--color-text-secondary)' }}>
-              📞 Contact Information <span style={{ color: 'var(--color-danger)' }}>*</span>
+            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--br-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Phone size={14} style={{ color: 'var(--br-primary)' }} /> Contact Information <span style={{ color: 'var(--br-danger)' }}>*</span>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: 'var(--br-text-3)', marginBottom: 12 }}>
               At least one contact method is required
             </div>
 
             {errors.contact && (
-              <div style={{ color: 'var(--color-danger)', fontSize: 12, marginBottom: 10, fontWeight: 500 }}>
-                ⚠ {errors.contact}
+              <div style={{ color: 'var(--br-danger)', fontSize: 12, marginBottom: 10, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={12} /> {errors.contact}
               </div>
             )}
 
             <div className="form-group" style={{ marginBottom: 12 }}>
-              <label className="form-label" htmlFor="reg-phone" style={{ fontSize: 12 }}>📱 Phone / WhatsApp</label>
+              <label className="form-label" htmlFor="reg-phone" style={{ fontSize: 12 }}>Phone / WhatsApp</label>
               <div className="phone-input-wrapper">
                 {(() => {
                   const PhoneInputComp = PhoneInput.default || PhoneInput;
@@ -296,22 +337,7 @@ export default function RegisterPage() {
                       onChange={phone => setForm(f => ({ ...f, phone: phone ? '+' + phone : '' }))}
                       enableSearch={true}
                       searchPlaceholder="Search country..."
-                      searchStyle={{
-                        width: '90%',
-                        height: '38px',
-                        margin: '8px auto',
-                        padding: '8px 12px',
-                        background: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '13px'
-                      }}
                       inputClass="form-input"
-                      containerStyle={{ width: '100%' }}
-                      inputStyle={{ width: '100%', height: '42px', paddingLeft: '48px', background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}
-                      buttonStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}
-                      dropdownStyle={{ background: 'var(--color-surface-2)', color: 'var(--color-text)' }}
                     />
                   );
                 })()}
@@ -319,7 +345,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="reg-telegram" style={{ fontSize: 12 }}>✈️ Telegram Username</label>
+              <label className="form-label" htmlFor="reg-telegram" style={{ fontSize: 12 }}>Telegram Username</label>
               <input
                 id="reg-telegram"
                 type="text"
@@ -339,23 +365,27 @@ export default function RegisterPage() {
             fontSize: 12,
           }}>
             {[
-              { label: 'Phone', val: form.phone, icon: '📱' },
-              { label: 'Telegram', val: form.telegram, icon: '✈️' },
-            ].map(({ label, val, icon }) => (
+              { label: 'Phone', val: form.phone, Icon: Phone },
+              { label: 'Telegram', val: form.telegram, Icon: Send },
+            ].map(({ label, val, Icon }) => (
               <div
                 key={label}
                 style={{
                   flex: 1,
                   padding: '6px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: val ? 'rgba(16,185,129,0.1)' : 'var(--color-surface-3)',
-                  border: `1px solid ${val ? 'rgba(16,185,129,0.3)' : 'var(--color-border)'}`,
-                  color: val ? 'var(--color-success)' : 'var(--color-text-muted)',
-                  textAlign: 'center',
+                  borderRadius: 'var(--br-radius-sm)',
+                  background: val ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.015)',
+                  border: `0.5px solid ${val ? 'rgba(16,185,129,0.3)' : 'var(--br-border)'}`,
+                  color: val ? 'var(--br-accent)' : 'var(--br-text-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
                   transition: 'all 0.2s',
                 }}
               >
-                {icon} {val ? `✓ ${label}` : label}
+                <Icon size={12} />
+                <span>{val ? `✓ ${label}` : label}</span>
               </div>
             ))}
           </div>
@@ -368,14 +398,22 @@ export default function RegisterPage() {
             disabled={loading}
           >
             {loading ? (
-              <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div> Creating Account…</>
-            ) : '🚀 Create Publisher Account'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
+                Creating Account…
+              </span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                Create Publisher Account
+                <ArrowRight size={14} />
+              </span>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+          <Link to="/login" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none' }}>
             Sign in here
           </Link>
         </div>

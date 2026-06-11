@@ -1,0 +1,691 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --br-primary: #6366f1;
+    --br-primary-hover: #4f46e5;
+    --br-primary-subtle: rgba(99,102,241,0.12);
+    --br-accent: #10b981;
+    --br-accent-hover: #059669;
+    --br-accent-subtle: rgba(16,185,129,0.12);
+    --br-danger: #f43f5e;
+    --br-danger-hover: #e11d48;
+    --br-danger-subtle: rgba(244,63,94,0.12);
+    --br-warning: #f59e0b;
+    --br-warning-subtle: rgba(245,158,11,0.12);
+    --br-bg: #090a0f;
+    --br-bg-2: #0f1117;
+    --br-bg-3: #161b27;
+    --br-surface: rgba(255,255,255,0.04);
+    --br-surface-hover: rgba(255,255,255,0.07);
+    --br-border: rgba(255,255,255,0.07);
+    --br-border-strong: rgba(255,255,255,0.13);
+    --br-text: #f1f5f9;
+    --br-text-2: #94a3b8;
+    --br-text-3: #475569;
+    --br-radius: 10px;
+    --br-radius-lg: 14px;
+    --br-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .ds-root {
+    font-family: 'Inter', sans-serif;
+    background: var(--br-bg);
+    color: var(--br-text);
+    padding: 32px 24px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .ds-section { margin-bottom: 48px; }
+  .ds-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--br-text-3);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--br-border);
+  }
+
+  .ds-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .ds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; }
+  .ds-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 12px; }
+
+  /* Color Swatches */
+  .swatch {
+    border-radius: var(--br-radius);
+    overflow: hidden;
+    border: 0.5px solid var(--br-border);
+  }
+  .swatch-color { height: 64px; }
+  .swatch-info { padding: 10px 12px; background: var(--br-surface); }
+  .swatch-name { font-size: 12px; font-weight: 500; color: var(--br-text); margin-bottom: 2px; }
+  .swatch-hex { font-size: 11px; color: var(--br-text-3); font-family: monospace; }
+
+  /* Typography */
+  .type-display { font-size: 32px; font-weight: 700; color: var(--br-text); line-height: 1.2; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .type-h1 { font-size: 24px; font-weight: 600; color: var(--br-text); line-height: 1.3; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .type-h2 { font-size: 20px; font-weight: 600; color: var(--br-text); margin-bottom: 6px; }
+  .type-h3 { font-size: 16px; font-weight: 500; color: var(--br-text); margin-bottom: 6px; }
+  .type-body { font-size: 14px; color: var(--br-text-2); margin-bottom: 6px; line-height: 1.7; }
+  .type-caption { font-size: 12px; color: var(--br-text-3); margin-bottom: 6px; }
+  .type-mono { font-size: 13px; font-family: monospace; color: var(--br-primary); background: var(--br-primary-subtle); padding: 2px 8px; border-radius: 6px; display: inline-block; margin-bottom: 6px; }
+  .type-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--br-text-3); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; cursor: pointer; border: none; outline: none;
+    transition: var(--br-transition); border-radius: var(--br-radius);
+    white-space: nowrap; letter-spacing: 0.01em;
+  }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-md { padding: 9px 18px; font-size: 13px; }
+  .btn-lg { padding: 12px 24px; font-size: 14px; }
+  .btn-primary { background: var(--br-primary); color: #fff; }
+  .btn-primary:hover { background: var(--br-primary-hover); transform: translateY(-1px); }
+  .btn-secondary { background: var(--br-surface); color: var(--br-text); border: 0.5px solid var(--br-border-strong); }
+  .btn-secondary:hover { background: var(--br-surface-hover); }
+  .btn-accent { background: var(--br-accent); color: #fff; }
+  .btn-accent:hover { background: var(--br-accent-hover); transform: translateY(-1px); }
+  .btn-danger { background: var(--br-danger-subtle); color: var(--br-danger); border: 0.5px solid rgba(244,63,94,0.25); }
+  .btn-danger:hover { background: var(--br-danger); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--br-text-2); border: 0.5px solid var(--br-border); }
+  .btn-ghost:hover { background: var(--br-surface); color: var(--br-text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  /* Glass Cards */
+  .glass-card {
+    background: var(--br-surface);
+    border: 0.5px solid var(--br-border);
+    border-radius: var(--br-radius-lg);
+    padding: 20px;
+    transition: var(--br-transition);
+    backdrop-filter: blur(16px);
+  }
+  .glass-card:hover { background: var(--br-surface-hover); border-color: var(--br-border-strong); transform: translateY(-2px); }
+  .glass-card-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--br-text-3); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .glass-card-value { font-size: 28px; font-weight: 700; color: var(--br-text); letter-spacing: -0.02em; margin-bottom: 6px; }
+  .glass-card-meta { font-size: 12px; color: var(--br-text-3); display: flex; align-items: center; gap: 5px; }
+  .badge-up { background: var(--br-accent-subtle); color: var(--br-accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 3px; }
+  .badge-down { background: var(--br-danger-subtle); color: var(--br-danger); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-success { background: var(--br-accent-subtle); color: var(--br-accent); }
+  .badge-warning { background: var(--br-warning-subtle); color: var(--br-warning); }
+  .badge-danger { background: var(--br-danger-subtle); color: var(--br-danger); }
+  .badge-info { background: var(--br-primary-subtle); color: var(--br-primary); }
+  .badge-neutral { background: rgba(255,255,255,0.06); color: var(--br-text-2); border: 0.5px solid var(--br-border); }
+
+  /* Dot */
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+  /* Forms */
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--br-text-2); }
+  .form-input {
+    background: var(--br-surface);
+    border: 0.5px solid var(--br-border-strong);
+    border-radius: var(--br-radius);
+    color: var(--br-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: var(--br-transition);
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--br-primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  .form-input::placeholder { color: var(--br-text-3); }
+  .form-select {
+    background: var(--br-surface);
+    border: 0.5px solid var(--br-border-strong);
+    border-radius: var(--br-radius);
+    color: var(--br-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+  }
+  .form-hint { font-size: 11px; color: var(--br-text-3); }
+  .form-error { font-size: 11px; color: var(--br-danger); }
+
+  /* Alerts */
+  .alert { padding: 14px 16px; border-radius: var(--br-radius); display: flex; gap: 12px; align-items: flex-start; border: 0.5px solid transparent; }
+  .alert-icon { margin-top: 1px; flex-shrink: 0; }
+  .alert-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .alert-body { font-size: 12px; opacity: 0.8; }
+  .alert-info { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.2); color: #a5b4fc; }
+  .alert-success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); color: #6ee7b7; }
+  .alert-warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); color: #fcd34d; }
+  .alert-danger { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.2); color: #fda4af; }
+
+  /* Table */
+  .table-wrap { border: 0.5px solid var(--br-border); border-radius: var(--br-radius-lg); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(255,255,255,0.03); }
+  th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--br-text-3); border-bottom: 0.5px solid var(--br-border); }
+  td { padding: 13px 16px; color: var(--br-text-2); border-bottom: 0.5px solid var(--br-border); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: var(--br-transition); }
+  tbody tr:hover { background: var(--br-surface); }
+  .td-primary { color: var(--br-text); font-weight: 500; }
+  .td-amount { color: var(--br-accent); font-weight: 600; font-family: monospace; font-size: 13px; }
+
+  /* Skeleton */
+  .skeleton { background: linear-gradient(90deg, var(--br-surface) 25%, rgba(255,255,255,0.08) 50%, var(--br-surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Nav Preview */
+  .nav-preview {
+    background: rgba(9,10,15,0.95);
+    border: 0.5px solid var(--br-border);
+    border-radius: var(--br-radius-lg);
+    padding: 0 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo { font-size: 15px; font-weight: 700; color: var(--br-text); display: flex; align-items: center; gap: 8px; }
+  .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--br-primary); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { padding: 6px 12px; border-radius: 7px; font-size: 13px; color: var(--br-text-2); cursor: pointer; transition: var(--br-transition); }
+  .nav-link:hover, .nav-link.active { background: var(--br-surface); color: var(--br-text); }
+  .nav-link.active { color: var(--br-primary); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--br-primary-subtle); border: 1.5px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--br-primary); }
+
+  /* Sidebar Preview */
+  .sidebar-preview {
+    background: var(--br-bg-2);
+    border: 0.5px solid var(--br-border);
+    border-radius: var(--br-radius-lg);
+    padding: 16px;
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .sidebar-item { padding: 8px 10px; border-radius: 8px; font-size: 12px; color: var(--br-text-3); display: flex; align-items: center; gap: 8px; cursor: pointer; transition: var(--br-transition); margin-bottom: 2px; }
+  .sidebar-item:hover { background: var(--br-surface); color: var(--br-text-2); }
+  .sidebar-item.active { background: var(--br-primary-subtle); color: var(--br-primary); font-weight: 500; }
+  .sidebar-section { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--br-text-3); padding: 12px 10px 6px; }
+
+  /* Spacing tokens */
+  .spacing-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .spacing-bar { background: var(--br-primary-subtle); border-left: 2px solid var(--br-primary); height: 16px; border-radius: 0 3px 3px 0; }
+  .spacing-label { font-size: 12px; color: var(--br-text-2); font-family: monospace; min-width: 60px; }
+  .spacing-value { font-size: 11px; color: var(--br-text-3); }
+
+  /* Page title */
+  .page-brand {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 40px;
+    padding-bottom: 24px; border-bottom: 0.5px solid var(--br-border);
+  }
+  .page-brand-logo { width: 36px; height: 36px; border-radius: 9px; background: var(--br-primary); display: flex; align-items: center; justify-content: center; }
+  .page-brand-name { font-size: 18px; font-weight: 700; color: var(--br-text); }
+  .page-brand-tag { font-size: 11px; color: var(--br-text-3); margin-top: 1px; }
+
+  /* Divider */
+  .divider { height: 0.5px; background: var(--br-border); margin: 32px 0; }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .sidebar-preview { display: none; }
+    .ds-root { padding: 20px 16px; }
+  }
+</style>
+
+<div class="ds-root">
+  <h2 class="sr-only">BestRevenue Design System Preview — colors, typography, components, and patterns</h2>
+
+  <!-- Brand Header -->
+  <div class="page-brand">
+    <div class="page-brand-logo">
+      <i class="ti ti-chart-line" style="font-size:18px; color:#fff;" aria-hidden="true"></i>
+    </div>
+    <div>
+      <div class="page-brand-name">BestRevenue</div>
+      <div class="page-brand-tag">Design System v1.0 — Preview</div>
+    </div>
+    <span class="badge badge-info" style="margin-left:auto;">
+      <span class="dot"></span> Draft
+    </span>
+  </div>
+
+  <!-- Colors -->
+  <div class="ds-section">
+    <div class="ds-section-title">Color System</div>
+    <div class="ds-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(135deg,#6366f1,#4f46e5);"></div>
+        <div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-hex">#6366f1 · #4f46e5</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(135deg,#10b981,#059669);"></div>
+        <div class="swatch-info"><div class="swatch-name">Accent</div><div class="swatch-hex">#10b981 · #059669</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(135deg,#f43f5e,#e11d48);"></div>
+        <div class="swatch-info"><div class="swatch-name">Danger</div><div class="swatch-hex">#f43f5e · #e11d48</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(135deg,#f59e0b,#d97706);"></div>
+        <div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-hex">#f59e0b · #d97706</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#090a0f; border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+        <div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-hex">#090a0f · #030712</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);"></div>
+        <div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">rgba(255,255,255,0.04)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div class="ds-section">
+    <div class="ds-section-title">Typography — Inter</div>
+    <div style="background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius-lg); padding:24px;">
+      <div class="type-display">Display / 32px 700</div>
+      <div class="type-h1">Heading 1 / 24px 600</div>
+      <div class="type-h2">Heading 2 / 20px 600</div>
+      <div class="type-h3">Heading 3 / 16px 500</div>
+      <div class="type-body">Body text / 14px 400 — Revenue sharing platform for Google Ad Manager publishers. Track earnings, manage payouts, and monitor performance.</div>
+      <div class="type-caption">Caption / 12px — Last updated 3 minutes ago</div>
+      <div style="margin-top:8px;"><span class="type-mono">$42,810.00</span></div>
+      <div style="margin-top:8px;"><span class="type-label">Revenue Share</span></div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="ds-section">
+    <div class="ds-section-title">Buttons</div>
+    <div class="ds-row" style="margin-bottom:12px;">
+      <button class="btn btn-primary btn-md"><i class="ti ti-plus" aria-hidden="true"></i>New Payout</button>
+      <button class="btn btn-secondary btn-md"><i class="ti ti-filter" aria-hidden="true"></i>Filter</button>
+      <button class="btn btn-accent btn-md"><i class="ti ti-check" aria-hidden="true"></i>Approve</button>
+      <button class="btn btn-danger btn-md"><i class="ti ti-ban" aria-hidden="true"></i>Reject</button>
+      <button class="btn btn-ghost btn-md"><i class="ti ti-download" aria-hidden="true"></i>Export</button>
+    </div>
+    <div class="ds-row">
+      <button class="btn btn-primary btn-sm">Small</button>
+      <button class="btn btn-primary btn-md">Medium</button>
+      <button class="btn btn-primary btn-lg">Large</button>
+      <button class="btn btn-primary btn-md" disabled>Disabled</button>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="ds-section">
+    <div class="ds-section-title">Metric Cards</div>
+    <div class="ds-grid">
+      <div class="glass-card">
+        <div class="glass-card-label"><i class="ti ti-currency-dollar" aria-hidden="true"></i>Total Revenue</div>
+        <div class="glass-card-value">$84,210</div>
+        <div class="glass-card-meta"><span class="badge-up"><i class="ti ti-trending-up" style="font-size:10px;" aria-hidden="true"></i>+12.4%</span> vs last month</div>
+      </div>
+      <div class="glass-card">
+        <div class="glass-card-label"><i class="ti ti-users" aria-hidden="true"></i>Publishers</div>
+        <div class="glass-card-value">138</div>
+        <div class="glass-card-meta"><span class="badge-up">+3</span> new this week</div>
+      </div>
+      <div class="glass-card">
+        <div class="glass-card-label"><i class="ti ti-credit-card" aria-hidden="true"></i>Pending Payouts</div>
+        <div class="glass-card-value">$12,450</div>
+        <div class="glass-card-meta"><span class="badge-down">7 pending</span></div>
+      </div>
+      <div class="glass-card">
+        <div class="glass-card-label"><i class="ti ti-eye" aria-hidden="true"></i>Impressions</div>
+        <div class="glass-card-value">4.2M</div>
+        <div class="glass-card-meta"><span class="badge-up">+8.1%</span> this week</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="ds-section">
+    <div class="ds-section-title">Badges & Status</div>
+    <div class="ds-row">
+      <span class="badge badge-success"><span class="dot"></span>Active</span>
+      <span class="badge badge-warning"><span class="dot"></span>Pending</span>
+      <span class="badge badge-danger"><span class="dot"></span>Rejected</span>
+      <span class="badge badge-info"><span class="dot"></span>Processing</span>
+      <span class="badge badge-neutral"><span class="dot"></span>Inactive</span>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="ds-section">
+    <div class="ds-section-title">Alerts</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="alert alert-info">
+        <i class="ti ti-info-circle alert-icon" style="font-size:16px;" aria-hidden="true"></i>
+        <div><div class="alert-title">Revenue sync in progress</div><div class="alert-body">GAM data is being pulled for the last 24 hours. This may take a few moments.</div></div>
+      </div>
+      <div class="alert alert-success">
+        <i class="ti ti-circle-check alert-icon" style="font-size:16px;" aria-hidden="true"></i>
+        <div><div class="alert-title">Payout approved</div><div class="alert-body">$3,240.00 has been approved and queued for processing.</div></div>
+      </div>
+      <div class="alert alert-warning">
+        <i class="ti ti-alert-triangle alert-icon" style="font-size:16px;" aria-hidden="true"></i>
+        <div><div class="alert-title">Minimum threshold not met</div><div class="alert-body">Publisher earnings of $18.40 are below the $50 payout minimum.</div></div>
+      </div>
+      <div class="alert alert-danger">
+        <i class="ti ti-circle-x alert-icon" style="font-size:16px;" aria-hidden="true"></i>
+        <div><div class="alert-title">GAM sync failed</div><div class="alert-body">Connection to Google Ad Manager timed out. Retrying in 5 minutes.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forms -->
+  <div class="ds-section">
+    <div class="ds-section-title">Form Controls</div>
+    <div class="ds-grid-2" style="gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Publisher Name</label>
+        <input class="form-input" type="text" placeholder="e.g. Acme Media LLC" />
+        <span class="form-hint">Used for payout records and reports.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Revenue Share %</label>
+        <input class="form-input" type="text" placeholder="e.g. 70" />
+        <span class="form-hint">Percentage paid to publisher. Hidden from publisher view.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payout Method</label>
+        <select class="form-select">
+          <option>Bank Transfer</option>
+          <option>PayPal</option>
+          <option>Wise</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" placeholder="publisher@domain.com" />
+        <span class="form-error">This email is already registered.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="ds-section">
+    <div class="ds-section-title">Table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Publisher</th>
+            <th>Website</th>
+            <th>Earnings</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-primary">Acme Media</td>
+            <td>acmemedia.com</td>
+            <td class="td-amount">$4,812.00</td>
+            <td><span class="badge badge-success"><span class="dot"></span>Active</span></td>
+            <td><button class="btn btn-ghost btn-sm"><i class="ti ti-eye" aria-hidden="true"></i></button></td>
+          </tr>
+          <tr>
+            <td class="td-primary">Cairo Digital</td>
+            <td>cairodigital.net</td>
+            <td class="td-amount">$1,230.50</td>
+            <td><span class="badge badge-warning"><span class="dot"></span>Pending</span></td>
+            <td><button class="btn btn-ghost btn-sm"><i class="ti ti-eye" aria-hidden="true"></i></button></td>
+          </tr>
+          <tr>
+            <td class="td-primary">Gulf News Hub</td>
+            <td>gnhub.com</td>
+            <td class="td-amount">$8,041.20</td>
+            <td><span class="badge badge-success"><span class="dot"></span>Active</span></td>
+            <td><button class="btn btn-ghost btn-sm"><i class="ti ti-eye" aria-hidden="true"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Skeleton -->
+  <div class="ds-section">
+    <div class="ds-section-title">Loading States</div>
+    <div class="ds-grid">
+      <div class="glass-card">
+        <div class="skeleton" style="height:10px; width:60%; margin-bottom:14px;"></div>
+        <div class="skeleton" style="height:28px; width:80%; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:10px; width:40%;"></div>
+      </div>
+      <div class="glass-card">
+        <div class="skeleton" style="height:10px; width:50%; margin-bottom:14px;"></div>
+        <div class="skeleton" style="height:28px; width:70%; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:10px; width:35%;"></div>
+      </div>
+      <div class="glass-card">
+        <div class="skeleton" style="height:10px; width:65%; margin-bottom:14px;"></div>
+        <div class="skeleton" style="height:28px; width:55%; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:10px; width:45%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Preview -->
+  <div class="ds-section">
+    <div class="ds-section-title">Navigation — Top Bar</div>
+    <div class="nav-preview">
+      <div class="nav-logo"><div class="nav-logo-dot"></div>BestRevenue</div>
+      <div class="nav-links">
+        <div class="nav-link active">Dashboard</div>
+        <div class="nav-link">Reports</div>
+        <div class="nav-link">Payouts</div>
+        <div class="nav-link">Publishers</div>
+      </div>
+      <div class="nav-right">
+        <button class="btn btn-ghost btn-sm" style="padding:6px 10px;"><i class="ti ti-bell" aria-hidden="true"></i></button>
+        <div class="avatar">YA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Preview -->
+  <div class="ds-section">
+    <div class="ds-section-title">Navigation — Sidebar</div>
+    <div style="display:flex; gap:12px;">
+      <div class="sidebar-preview">
+        <div class="sidebar-section">Main</div>
+        <div class="sidebar-item active"><i class="ti ti-layout-dashboard" style="font-size:14px;" aria-hidden="true"></i>Dashboard</div>
+        <div class="sidebar-item"><i class="ti ti-chart-bar" style="font-size:14px;" aria-hidden="true"></i>Reports</div>
+        <div class="sidebar-item"><i class="ti ti-credit-card" style="font-size:14px;" aria-hidden="true"></i>Payouts</div>
+        <div class="sidebar-section">Manage</div>
+        <div class="sidebar-item"><i class="ti ti-users" style="font-size:14px;" aria-hidden="true"></i>Publishers</div>
+        <div class="sidebar-item"><i class="ti ti-world" style="font-size:14px;" aria-hidden="true"></i>Websites</div>
+        <div class="sidebar-item"><i class="ti ti-ad" style="font-size:14px;" aria-hidden="true"></i>Ad Units</div>
+        <div class="sidebar-section">System</div>
+        <div class="sidebar-item"><i class="ti ti-settings" style="font-size:14px;" aria-hidden="true"></i>Settings</div>
+      </div>
+      <div style="flex:1; background:var(--br-bg-2); border:0.5px solid var(--br-border); border-radius:var(--br-radius-lg); padding:20px; display:flex; align-items:center; justify-content:center;">
+        <div style="text-align:center;">
+          <i class="ti ti-layout-dashboard" style="font-size:32px; color:var(--br-text-3);" aria-hidden="true"></i>
+          <div style="font-size:13px; color:var(--br-text-3); margin-top:8px;">Page content area</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spacing Tokens -->
+  <div class="ds-section">
+    <div class="ds-section-title">Spacing Tokens</div>
+    <div style="background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius-lg); padding:20px;">
+      <div class="spacing-item"><div class="spacing-bar" style="width:4px;"></div><div class="spacing-label">space-1</div><div class="spacing-value">4px</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:8px;"></div><div class="spacing-label">space-2</div><div class="spacing-value">8px</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:12px;"></div><div class="spacing-label">space-3</div><div class="spacing-value">12px</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:16px;"></div><div class="spacing-label">space-4</div><div class="spacing-value">16px (base)</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:24px;"></div><div class="spacing-label">space-6</div><div class="spacing-value">24px</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:32px;"></div><div class="spacing-label">space-8</div><div class="spacing-value">32px</div></div>
+      <div class="spacing-item"><div class="spacing-bar" style="width:48px;"></div><div class="spacing-label">space-12</div><div class="spacing-value">48px</div></div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="ds-section">
+    <div class="ds-section-title">Chart — Revenue Trend</div>
+    <div style="background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius-lg); padding:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+          <div style="font-size:13px; font-weight:500; color:var(--br-text);">Monthly Revenue</div>
+          <div style="font-size:11px; color:var(--br-text-3);">Last 6 months</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--br-text-3);"><span style="width:8px;height:8px;border-radius:2px;background:#6366f1;display:inline-block;"></span>Platform</span>
+          <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--br-text-3);"><span style="width:8px;height:8px;border-radius:2px;background:#10b981;display:inline-block;"></span>Publisher Earnings</span>
+        </div>
+      </div>
+      <div style="position:relative; width:100%; height:220px;">
+        <canvas id="revenueChart" role="img" aria-label="Bar chart of monthly revenue for last 6 months">Monthly revenue data for Jan through Jun.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Border Radius -->
+  <div class="ds-section">
+    <div class="ds-section-title">Border Radius</div>
+    <div class="ds-row">
+      <div style="text-align:center;">
+        <div style="width:56px; height:56px; background:var(--br-primary-subtle); border:1px solid var(--br-primary); border-radius:4px; margin:0 auto 6px;"></div>
+        <div class="type-caption">4px</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:56px; height:56px; background:var(--br-primary-subtle); border:1px solid var(--br-primary); border-radius:8px; margin:0 auto 6px;"></div>
+        <div class="type-caption">8px</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:56px; height:56px; background:var(--br-primary-subtle); border:1px solid var(--br-primary); border-radius:10px; margin:0 auto 6px;"></div>
+        <div class="type-caption">10px (default)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:56px; height:56px; background:var(--br-primary-subtle); border:1px solid var(--br-primary); border-radius:14px; margin:0 auto 6px;"></div>
+        <div class="type-caption">14px (card)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:56px; height:56px; background:var(--br-primary-subtle); border:1px solid var(--br-primary); border-radius:50%; margin:0 auto 6px;"></div>
+        <div class="type-caption">50% (avatar)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Icons -->
+  <div class="ds-section">
+    <div class="ds-section-title">Icon Set — Lucide / Tabler (line)</div>
+    <div class="ds-row">
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-dashboard" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Dashboard</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-chart-line" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Reports</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-credit-card" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Payouts</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-world" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Websites</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-bell" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Notifications</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-settings" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Settings</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-user" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Profile</div>
+      </div>
+      <div style="text-align:center; padding:12px 14px; background:var(--br-surface); border:0.5px solid var(--br-border); border-radius:var(--br-radius);">
+        <i class="ti ti-ad" style="font-size:22px; color:var(--br-text-2);" aria-hidden="true"></i>
+        <div class="type-caption" style="margin-top:6px;">Ad Units</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="text-align:center; padding-top:16px; border-top:0.5px solid var(--br-border);">
+    <div class="type-caption">BestRevenue Design System v1.0 · Pending approval before page implementation</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const ctx = document.getElementById('revenueChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [
+          {
+            label: 'Platform',
+            data: [52000, 61000, 58000, 74000, 69000, 84000],
+            backgroundColor: 'rgba(99,102,241,0.7)',
+            borderRadius: 6,
+            borderSkipped: false
+          },
+          {
+            label: 'Publisher Earnings',
+            data: [36000, 43000, 41000, 52000, 48000, 59000],
+            backgroundColor: 'rgba(16,185,129,0.7)',
+            borderRadius: 6,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#161b27',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            titleColor: '#f1f5f9',
+            bodyColor: '#94a3b8',
+            padding: 10,
+            callbacks: {
+              label: function(ctx) {
+                return ' $' + ctx.parsed.y.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#475569', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#475569',
+              font: { size: 11 },
+              callback: v => '$' + (v/1000).toFixed(0) + 'k'
+            }
+          }
+        }
+      }
+    });
+  }
+</script>

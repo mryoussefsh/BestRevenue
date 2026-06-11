@@ -3,14 +3,18 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
 import { useSettings } from '../contexts/SettingsContext'
+import { 
+  LayoutDashboard, Globe, DollarSign, CreditCard, HelpCircle, 
+  Settings, LogOut, User, TrendingUp, Menu, X 
+} from 'lucide-react'
 
 const navItems = [
-  { to: '/publisher',          icon: '📊', label: 'Dashboard',   end: true },
-  { to: '/publisher/websites', icon: '🌐', label: 'My Websites' },
-  { to: '/publisher/revenue',  icon: '💰', label: 'Revenue'     },
-  { to: '/publisher/payouts',  icon: '💳', label: 'Payouts'     },
-  { to: '/publisher/tickets',  icon: '🎫', label: 'Support Tickets' },
-  { to: '/publisher/settings', icon: '⚙️', label: 'Settings'    },
+  { to: '/publisher',          icon: <LayoutDashboard size={18} />, label: 'Dashboard',   end: true },
+  { to: '/publisher/websites', icon: <Globe size={18} />,           label: 'My Websites' },
+  { to: '/publisher/revenue',  icon: <DollarSign size={18} />,      label: 'Revenue'     },
+  { to: '/publisher/payouts',  icon: <CreditCard size={18} />,      label: 'Payouts'     },
+  { to: '/publisher/tickets',  icon: <HelpCircle size={18} />,      label: 'Support Tickets' },
+  { to: '/publisher/settings', icon: <Settings size={18} />,        label: 'Settings'    },
 ]
 
 export default function PublisherLayout({ children }) {
@@ -19,6 +23,7 @@ export default function PublisherLayout({ children }) {
   const { settings } = useSettings()
   const navigate = useNavigate()
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [isImpersonating, setIsImpersonating] = useState(false)
   useEffect(() => {
     setIsImpersonating(!!(sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')))
@@ -31,16 +36,32 @@ export default function PublisherLayout({ children }) {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} />
+      )}
+
+      <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {settings.site_logo ? (
-            <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
+            <Link to="/publisher" style={{ display: 'inline-flex', alignItems: 'center' }} onClick={() => setMobileSidebarOpen(false)}>
+              <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
+            </Link>
           ) : (
-            <>
-              <div className="sidebar-logo-icon">💹</div>
+            <Link to="/publisher" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, textDecoration: 'none' }} onClick={() => setMobileSidebarOpen(false)}>
+              <div className="sidebar-logo-icon">
+                <TrendingUp size={20} />
+              </div>
               <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
-            </>
+            </Link>
           )}
+          <button
+            className="mobile-sidebar-close"
+            onClick={() => setMobileSidebarOpen(false)}
+            style={{ display: 'none' }}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -51,6 +72,7 @@ export default function PublisherLayout({ children }) {
               to={item.to}
               end={item.end}
               className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              onClick={() => setMobileSidebarOpen(false)}
             >
               <span className="nav-icon">{item.icon}</span>
               {item.label}
@@ -58,20 +80,44 @@ export default function PublisherLayout({ children }) {
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="nav-item" style={{ marginBottom: 8 }}>
-            <span className="nav-icon">👤</span>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{user?.name || 'Publisher'}</div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Publisher Account</div>
+        <div className="sidebar-footer" style={{ borderTop: '1px solid var(--br-border)', padding: '16px 12px' }}>
+          <Link 
+            to="/publisher/settings"
+            onClick={() => setMobileSidebarOpen(false)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 12, 
+              padding: '11px 12px', 
+              marginBottom: 8, 
+              color: 'var(--br-text)',
+              textDecoration: 'none',
+              borderRadius: 'var(--br-radius)',
+              transition: 'var(--br-transition)',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'var(--br-surface-hover)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent'
+            }}
+          >
+            <div className="avatar">
+              <User size={16} />
             </div>
-          </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'Publisher'}</div>
+              <div style={{ fontSize: 11, color: 'var(--br-text-3)' }}>Publisher Account</div>
+            </div>
+          </Link>
           <button
             className="btn btn-secondary"
-            style={{ width: '100%', justifyContent: 'center' }}
+            style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 8 }}
             onClick={handleLogout}
           >
-            🚪 Logout
+            <LogOut size={16} />
+            Logout
           </button>
         </div>
       </aside>
@@ -129,22 +175,42 @@ export default function PublisherLayout({ children }) {
           </div>
         )}
         <header className="topbar">
-          <div className="topbar-left">
-            <div>
-              <div className="topbar-title">Publisher Portal</div>
-              <div className="topbar-subtitle">{user?.email}</div>
-            </div>
+          <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              className="mobile-sidebar-toggle"
+              onClick={() => setMobileSidebarOpen(true)}
+              style={{ display: 'none' }}
+            >
+              <Menu size={20} />
+            </button>
           </div>
           <div className="topbar-right">
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                className={`btn btn-xs ${locale === 'en' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => switchLocale('en')}
-              >EN</button>
-              <button
-                className={`btn btn-xs ${locale === 'ar' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => switchLocale('ar')}
-              >AR</button>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <select
+                className="form-select"
+                value={locale}
+                onChange={e => switchLocale(e.target.value)}
+                style={{ 
+                  padding: '6px 28px 6px 12px', 
+                  fontSize: 13, 
+                  background: 'var(--br-surface)', 
+                  border: '0.5px solid var(--br-border)', 
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--br-text)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  outline: 'none',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'calc(100% - 10px) center',
+                  minWidth: 70
+                }}
+              >
+                <option value="en" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>EN</option>
+                <option value="ar" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>AR</option>
+              </select>
             </div>
           </div>
         </header>

@@ -3,6 +3,10 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
+import { 
+  Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, 
+  Sparkles, X 
+} from 'lucide-react'
 
 function groupAdUnits(units) {
   const grouped = [];
@@ -549,15 +553,20 @@ ${queueItems}
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">🌐 My Websites</h1>
+          <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Globe size={24} style={{ color: 'var(--br-primary)' }} />
+            My Websites
+          </h1>
           <p className="page-subtitle">{websites.length} websites assigned to you</p>
         </div>
       </div>
 
       {websites.length === 0 ? (
-        <div className="card">
+        <div className="glass-card">
           <div className="empty-state">
-            <div className="empty-state-icon">🌐</div>
+            <div className="empty-state-icon">
+              <Globe size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
+            </div>
             <div className="empty-state-text">No websites assigned yet</div>
             <div className="empty-state-sub">Contact your account manager to get started</div>
           </div>
@@ -566,37 +575,46 @@ ${queueItems}
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {paginatedWebsites.map(w => (
-              <div key={w.id} className="card">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={w.id} className="glass-card">
+                <div className="website-card-header">
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>🌐 {w.domain}</div>
+                    <div style={{ fontWeight: 700, fontSize: 18, display: 'inline-flex', alignItems: 'center', gap: 8, wordBreak: 'break-all' }}>
+                      <Globe size={18} style={{ color: 'var(--br-primary)', flexShrink: 0 }} />
+                      {w.domain}
+                    </div>
                     <div className="text-muted text-sm" style={{ marginTop: 4 }}>
                       GAM: <code>{w.gam_network_code}</code>
                     </div>
                   </div>
-                  <div className="flex gap-3 items-center">
-                    <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                      {w.is_active ? '🟢 Active' : '⚫ Inactive'}
+                  <div className="website-card-actions">
+                    <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ flexShrink: 0 }}>
+                      {w.is_active ? 'Active' : 'Inactive'}
                     </span>
                     {w.ads_txt && (
                       <button
                         className="btn btn-secondary btn-sm"
                         onClick={() => setSelectedAdsTxt({ domain: w.domain, content: w.ads_txt })}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                       >
-                        📋 Show ads.txt
+                        <FileText size={14} />
+                        Show ads.txt
                       </button>
                     )}
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => toggleAdUnits(w.id)}
                     >
-                      {expanded === w.id ? '▲ Hide' : '▼ Ad Units'} ({w.ad_units_count ?? '?'})
+                      {expanded === w.id ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronUp size={14} /> Hide</span>
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronDown size={14} /> Ad Units</span>
+                      )} ({w.ad_units_count ?? '?'})
                     </button>
                   </div>
                 </div>
 
                 {expanded === w.id && (
-                  <div style={{ marginTop: 20, borderTop: '1px solid var(--color-border)', paddingTop: 20 }}>
+                  <div style={{ marginTop: 20, borderTop: '1px solid var(--br-border)', paddingTop: 20 }}>
                     {!adUnits[w.id] ? (
                       <div className="flex items-center gap-2">
                         <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
@@ -607,47 +625,51 @@ ${queueItems}
                     ) : (() => {
                       const groupedUnits = groupAdUnits(adUnits[w.id]);
                       return (
-                        <table className="table">
-                          <thead>
-                            <tr>
-                              <th>Ad Unit Name</th>
-                              <th>Status</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {groupedUnits.map(a => (
-                              <tr key={a.id}>
-                                <td style={{ fontWeight: 600 }}>{a.display_name}</td>
-                                <td>
-                                  <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                                    {a.is_active ? '🟢 Active' : '⚫ Inactive'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <button
-                                    className="btn btn-secondary btn-xs"
-                                    onClick={() => setSelectedAdUnitCode({
-                                      displayName: a.display_name,
-                                      networkCode: w.gam_network_code,
-                                      adUnitName: a.gam_ad_unit_name,
-                                      id: a.id,
-                                      adType: a.ad_type || 'banner',
-                                      adSubtype: a.ad_subtype || '',
-                                      websiteId: w.id,
-                                      domain: w.domain,
-                                      children: a.children,
-                                      repeat_count: a.repeat_count,
-                                      delay_between_ads: a.delay_between_ads
-                                    })}
-                                  >
-                                    🏷️ Get Code
-                                  </button>
-                                </td>
+                        <div className="table-wrap">
+                          <table className="table">
+                            <thead>
+                              <tr>
+                                <th>Ad Unit Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {groupedUnits.map(a => (
+                                <tr key={a.id}>
+                                  <td className="td-primary" style={{ fontWeight: 600 }}>{a.display_name}</td>
+                                  <td>
+                                    <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
+                                      {a.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <button
+                                      className="btn btn-secondary btn-xs"
+                                      onClick={() => setSelectedAdUnitCode({
+                                        displayName: a.display_name,
+                                        networkCode: w.gam_network_code,
+                                        adUnitName: a.gam_ad_unit_name,
+                                        id: a.id,
+                                        adType: a.ad_type || 'banner',
+                                        adSubtype: a.ad_subtype || '',
+                                        websiteId: w.id,
+                                        domain: w.domain,
+                                        children: a.children,
+                                        repeat_count: a.repeat_count,
+                                        delay_between_ads: a.delay_between_ads
+                                      })}
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <Code size={12} />
+                                      Get Code
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       );
                     })()}
                   </div>
@@ -668,8 +690,31 @@ ${queueItems}
         <div className="modal-backdrop">
           <div className="modal" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h2>📋 Ads.txt for {selectedAdsTxt.domain}</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAdsTxt(null)}>✕</button>
+              <h2>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={20} style={{ color: 'var(--br-primary)' }} />
+                  Ads.txt for {selectedAdsTxt.domain}
+                </span>
+              </h2>
+              <button
+                onClick={() => setSelectedAdsTxt(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--br-text-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 4,
+                  borderRadius: 6,
+                  transition: 'var(--br-transition)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--br-text)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--br-text-3)'}
+              >
+                <X size={18} />
+              </button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p className="text-muted text-sm" style={{ margin: 0 }}>
@@ -718,8 +763,31 @@ ${queueItems}
           <div className="modal-backdrop">
             <div className="modal" style={{ maxWidth: '650px' }}>
               <div className="modal-header">
-                <h2>🏷️ Ad Unit Code: {selectedAdUnitCode.displayName}</h2>
-                <button className="btn btn-secondary btn-sm" onClick={() => setSelectedAdUnitCode(null)}>✕</button>
+                <h2>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Code size={20} style={{ color: 'var(--br-primary)' }} />
+                    Ad Unit Code: {selectedAdUnitCode.displayName}
+                  </span>
+                </h2>
+                <button
+                  onClick={() => setSelectedAdUnitCode(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--br-text-3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 4,
+                    borderRadius: 6,
+                    transition: 'var(--br-transition)'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--br-text)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--br-text-3)'}
+                >
+                  <X size={18} />
+                </button>
               </div>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="text-sm text-muted" style={{ marginBottom: 4 }}>
@@ -760,7 +828,7 @@ ${queueItems}
                         toast.success('Header code copied!');
                       }}
                     >
-                      📋 Copy
+                      Copy
                     </button>
                   </div>
                 </div>
@@ -799,7 +867,7 @@ ${queueItems}
                           toast.success('Body code copied!');
                         }}
                       >
-                        📋 Copy
+                        Copy
                       </button>
                     </div>
                   </div>

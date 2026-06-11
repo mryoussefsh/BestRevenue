@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { authApi } from '../api/endpoints'
+import { useSettings } from '../contexts/SettingsContext'
 import toast from 'react-hot-toast'
+import { Lock, Mail, ArrowLeft, ArrowRight } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
+  const { settings } = useSettings()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -24,19 +27,35 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-wrapper">
+      <div className="auth-glow-1"></div>
+      <div className="auth-glow-2"></div>
+
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">🔐</div>
+          {settings.site_logo ? (
+            <Link to="/" style={{ display: 'inline-block' }}>
+              <img src={settings.site_logo} alt="Logo" className="auth-logo-img" style={{ maxHeight: 50, maxWidth: '100%', objectFit: 'contain', marginBottom: 16 }} />
+            </Link>
+          ) : (
+            <Link to="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              <div className="auth-logo-icon">
+                <Lock size={24} />
+              </div>
+            </Link>
+          )}
           <h1 className="auth-title">Forgot Password</h1>
           <p className="auth-subtitle">Enter your email to receive a reset link</p>
         </div>
 
         {sent ? (
           <div>
-            <div className="alert alert-info" style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--color-text)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>📧 Check your inbox</div>
+            <div className="alert alert-info" style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 10, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <Mail size={18} style={{ color: 'var(--br-primary)', flexShrink: 0, marginTop: 2 }} />
               <div style={{ fontSize: 13 }}>
-                If an account with <strong>{email}</strong> exists, a password reset link has been sent. Please check your email (and spam folder).
+                <strong>Check your inbox</strong>
+                <div style={{ marginTop: 4, color: 'var(--br-text-2)', lineHeight: 1.5 }}>
+                  If an account with <strong>{email}</strong> exists, a password reset link has been sent. Please check your email (and spam folder).
+                </div>
               </div>
             </div>
             <Link
@@ -44,7 +63,10 @@ export default function ForgotPasswordPage() {
               className="btn btn-secondary"
               style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
             >
-              ← Back to Login
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <ArrowLeft size={16} />
+                Back to Login
+              </span>
             </Link>
           </div>
         ) : (
@@ -71,13 +93,21 @@ export default function ForgotPasswordPage() {
               disabled={loading}
             >
               {loading ? (
-                <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Sending…</>
-              ) : '📧 Send Reset Link'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                  Sending…
+                </span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  Send Reset Link
+                  <ArrowRight size={14} />
+                </span>
+              )}
             </button>
 
-            <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>
-              <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                ← Back to Login
+            <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
+              <Link to="/login" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <ArrowLeft size={14} /> Back to Login
               </Link>
             </div>
           </form>

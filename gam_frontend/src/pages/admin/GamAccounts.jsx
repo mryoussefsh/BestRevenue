@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { gamAccountsApi, adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
+import { X } from 'lucide-react'
 
 export default function GamAccountsPage() {
   const [accounts, setAccounts] = useState([])
@@ -316,7 +317,25 @@ export default function GamAccountsPage() {
           <div className="modal">
             <div className="modal-header">
               <h2>Edit GAM Account</h2>
-              <button className="btn btn-secondary btn-sm" onClick={() => setEditingAccount(null)}>✕</button>
+              <button
+                onClick={() => setEditingAccount(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--br-text-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 4,
+                  borderRadius: 6,
+                  transition: 'var(--br-transition)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--br-text)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--br-text-3)'}
+              >
+                <X size={18} />
+              </button>
             </div>
             <form onSubmit={handleEditSave} className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="form-group">

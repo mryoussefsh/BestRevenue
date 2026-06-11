@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { publicApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
+import { TrendingUp, Lock, LayoutDashboard, ArrowRight, X, Menu } from 'lucide-react'
+import './LandingPage.css'
 import './PageDetail.css'
 
 export default function PageDetail() {
@@ -50,15 +52,18 @@ export default function PageDetail() {
             {settings.site_logo ? (
               <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} />
             ) : (
-              <span>💹 {settings.site_name || 'BestRevenue'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
+                <span>{settings.site_name || 'BestRevenue'}</span>
+              </span>
             )}
           </Link>
 
           <nav className="landing-nav-links">
             <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
             <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Earnings Calculator</a>
-            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payments Proof</a>
+            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
+            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
             <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Support</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
               <Link
@@ -66,32 +71,57 @@ export default function PageDetail() {
                 to={`/page/${p.slug}`}
                 className={`landing-nav-link ${p.slug === slug ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
-                style={p.slug === slug ? { color: 'var(--color-primary-light)' } : {}}
               >
                 {p.title}
               </Link>
             ))}
+            
+            {/* Mobile CTAs placed at the end of the dropdown menu list */}
+            <div className="mobile-menu-ctas">
+              {user ? (
+                <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
+                  <LayoutDashboard size={14} /> Dashboard
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  {settings.registration_status !== 'closed' ? (
+                    <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                      Get Started <ArrowRight size={14} />
+                    </Link>
+                  ) : (
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                  )}
+                  <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                    <Lock size={14} /> Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="landing-nav-ctas">
             {user ? (
-              <button onClick={handleDashboardRedirect} className="btn btn-primary">
-                💻 Go to Dashboard
+              <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
+                <LayoutDashboard size={14} /> Dashboard
               </button>
             ) : (
               <>
-                <Link to="/login" className="btn btn-secondary btn-sm">🔑 Sign In</Link>
+                <Link to="/login" className="btn btn-secondary btn-sm">
+                  <Lock size={12} /> Sign In
+                </Link>
                 {settings.registration_status !== 'closed' ? (
-                  <Link to="/register" className="btn btn-primary btn-sm">🚀 Get Started</Link>
+                  <Link to="/register" className="btn btn-primary btn-sm">
+                    Get Started <ArrowRight size={12} />
+                  </Link>
                 ) : (
-                  <span className="badge badge-inactive">Registration Closed</span>
+                  <span className="badge badge-neutral">Registration Closed</span>
                 )}
               </>
             )}
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? '✕' : '☰'}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </header>
@@ -118,11 +148,14 @@ export default function PageDetail() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <Link to="/" className="landing-logo" style={{ fontSize: 24 }}>
+            <Link to="/" className="footer-logo">
               {settings.site_logo ? (
                 <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} style={{ maxHeight: 50 }} />
               ) : (
-                <span>💹 {settings.site_name || 'BestRevenue'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={20} style={{ color: 'var(--br-primary)' }} />
+                  <span>{settings.site_name || 'BestRevenue'}</span>
+                </span>
               )}
             </Link>
             <p className="footer-desc">

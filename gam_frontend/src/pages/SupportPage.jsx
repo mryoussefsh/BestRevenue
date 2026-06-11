@@ -4,6 +4,11 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { publicApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
+import { 
+  TrendingUp, Lock, LayoutDashboard, ArrowRight, X, Menu, Phone, Mail, 
+  MessageSquare, Send, CheckCircle2, Globe
+} from 'lucide-react'
+import './LandingPage.css'
 import './SupportPage.css'
 
 export default function SupportPage() {
@@ -65,40 +70,69 @@ export default function SupportPage() {
             {settings.site_logo ? (
               <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} />
             ) : (
-              <span>💹 {settings.site_name || 'BestRevenue'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
+                <span>{settings.site_name || 'BestRevenue'}</span>
+              </span>
             )}
           </Link>
 
           <nav className="landing-nav-links">
-            <Link to="/" className="landing-nav-link">Home</Link>
-            <a href="/#features" className="landing-nav-link">Features</a>
-            <a href="/#calculator" className="landing-nav-link">Earnings Calculator</a>
-            <a href="/#proofs" className="landing-nav-link">Payments Proof</a>
-            <Link to="/support" className="landing-nav-link active" style={{ color: 'var(--color-primary-light)' }}>Support</Link>
+            <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
+            <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
+            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
+            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
+            <Link to="/support" className="landing-nav-link active" onClick={() => setMenuOpen(false)}>Support</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
               <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>{p.title}</Link>
             ))}
+            
+            {/* Mobile CTAs placed at the end of the dropdown menu list */}
+            <div className="mobile-menu-ctas">
+              {user ? (
+                <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
+                  <LayoutDashboard size={14} /> Dashboard
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  {settings.registration_status !== 'closed' ? (
+                    <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                      Get Started <ArrowRight size={14} />
+                    </Link>
+                  ) : (
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                  )}
+                  <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                    <Lock size={14} /> Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="landing-nav-ctas">
             {user ? (
-              <button onClick={handleDashboardRedirect} className="btn btn-primary">
-                💻 Go to Dashboard
+              <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
+                <LayoutDashboard size={14} /> Dashboard
               </button>
             ) : (
               <>
-                <Link to="/login" className="btn btn-secondary btn-sm">🔑 Sign In</Link>
+                <Link to="/login" className="btn btn-secondary btn-sm">
+                  <Lock size={12} /> Sign In
+                </Link>
                 {settings.registration_status !== 'closed' ? (
-                  <Link to="/register" className="btn btn-primary btn-sm">🚀 Get Started</Link>
+                  <Link to="/register" className="btn btn-primary btn-sm">
+                    Get Started <ArrowRight size={12} />
+                  </Link>
                 ) : (
-                  <span className="badge badge-inactive">Registration Closed</span>
+                  <span className="badge badge-neutral">Registration Closed</span>
                 )}
               </>
             )}
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? '✕' : '☰'}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </header>
@@ -116,12 +150,16 @@ export default function SupportPage() {
         {/* Contact Info Column */}
         <div className="support-info-col">
           <div className="support-info-card">
-            <h3 className="support-card-title">💬 Live Channels</h3>
+            <h3 className="support-card-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <MessageSquare size={20} style={{ color: 'var(--br-primary)' }} /> Live Channels
+            </h3>
             
             <div className="support-channel-list">
               {/* Telegram */}
               <a href={supportTelegram} target="_blank" rel="noreferrer" className="support-channel-item">
-                <div className="support-channel-icon">✈️</div>
+                <div className="support-channel-icon">
+                  <Send size={20} />
+                </div>
                 <div className="support-channel-details">
                   <span className="support-channel-label">Telegram Channel</span>
                   <span className="support-channel-value">@BestRevenueSupport</span>
@@ -131,7 +169,9 @@ export default function SupportPage() {
 
               {/* WhatsApp */}
               <a href={supportWhatsapp} target="_blank" rel="noreferrer" className="support-channel-item whatsapp">
-                <div className="support-channel-icon">📞</div>
+                <div className="support-channel-icon">
+                  <Phone size={20} />
+                </div>
                 <div className="support-channel-details">
                   <span className="support-channel-label">WhatsApp Support</span>
                   <span className="support-channel-value">Direct Chat Integration</span>
@@ -141,7 +181,9 @@ export default function SupportPage() {
 
               {/* Email */}
               <a href={`mailto:${supportEmail}`} className="support-channel-item">
-                <div className="support-channel-icon">📧</div>
+                <div className="support-channel-icon">
+                  <Mail size={20} />
+                </div>
                 <div className="support-channel-details">
                   <span className="support-channel-label">Official Email</span>
                   <span className="support-channel-value">{supportEmail}</span>
@@ -155,11 +197,13 @@ export default function SupportPage() {
         {/* Contact Form Column */}
         <div className="support-form-col">
           <div className="support-form-card">
-            <h3 className="support-card-title">✉️ Send Message</h3>
+            <h3 className="support-card-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Mail size={20} style={{ color: 'var(--br-primary)' }} /> Send Message
+            </h3>
             
             {submitted ? (
               <div className="alert alert-success" style={{ margin: '16px 0', padding: 24, borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
+                <CheckCircle2 size={32} style={{ color: 'var(--br-accent)', display: 'block', margin: '0 auto 12px' }} />
                 <h4 style={{ fontWeight: 700, marginBottom: 8 }}>Thank You!</h4>
                 <p style={{ fontSize: 13, color: '#047857', lineHeight: 1.5 }}>
                   Your message has been sent successfully. Our support desk will reach out to you at the email provided shortly.
@@ -230,7 +274,7 @@ export default function SupportPage() {
                 >
                   {submitting ? (
                     <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div> Dispatching message…</>
-                  ) : '✉️ Submit Ticket'}
+                  ) : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Mail size={16} /> Submit Ticket</span>}
                 </button>
               </form>
             )}
@@ -242,11 +286,14 @@ export default function SupportPage() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <Link to="/" className="landing-logo" style={{ fontSize: 24 }}>
+            <Link to="/" className="footer-logo">
               {settings.site_logo ? (
                 <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} style={{ maxHeight: 50 }} />
               ) : (
-                <span>💹 {settings.site_name || 'BestRevenue'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={20} style={{ color: 'var(--br-primary)' }} />
+                  <span>{settings.site_name || 'BestRevenue'}</span>
+                </span>
               )}
             </Link>
             <p className="footer-desc">

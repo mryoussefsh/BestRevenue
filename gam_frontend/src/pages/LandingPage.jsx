@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
+import { 
+  TrendingUp, Plus, Filter, Check, Ban, Download, DollarSign, Users, 
+  CreditCard, Eye, Info, CheckCircle2, AlertTriangle, XCircle, Bell, 
+  LayoutDashboard, Globe, Settings, User, LayoutGrid, Sparkles, Lock,
+  ArrowRight, RefreshCw, LineChart, Shield, ShieldAlert, MessageSquare,
+  ChevronDown, X, Menu, Calendar, HelpCircle
+} from 'lucide-react'
 import './LandingPage.css'
 
 export default function LandingPage() {
@@ -139,41 +146,70 @@ export default function LandingPage() {
             {settings.site_logo ? (
               <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} />
             ) : (
-              <span>💹 {settings.site_name || 'BestRevenue'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
+                <span>{settings.site_name || 'BestRevenue'}</span>
+              </span>
             )}
           </Link>
 
           <nav className="landing-nav-links">
             <a href="#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Earnings Calculator</a>
+            <a href="#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
             <a href="#how-it-works" className="landing-nav-link" onClick={() => setMenuOpen(false)}>How It Works</a>
-            <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payments Proof</a>
+            <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
             <a href="#faqs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>FAQs</a>
-            <Link to="/support" className="landing-nav-link">Support</Link>
+            <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Support</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
               <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>{p.title}</Link>
             ))}
+            
+            {/* Mobile CTAs placed at the end of the dropdown menu list */}
+            <div className="mobile-menu-ctas">
+              {user ? (
+                <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
+                  <LayoutDashboard size={14} /> Dashboard
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  {settings.registration_status !== 'closed' ? (
+                    <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                      Get Started <ArrowRight size={14} />
+                    </Link>
+                  ) : (
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                  )}
+                  <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
+                    <Lock size={14} /> Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="landing-nav-ctas">
             {user ? (
-              <button onClick={handleDashboardRedirect} className="btn btn-primary">
-                💻 Go to Dashboard
+              <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
+                <LayoutDashboard size={14} /> Dashboard
               </button>
             ) : (
               <>
-                <Link to="/login" className="btn btn-secondary btn-sm">🔑 Sign In</Link>
+                <Link to="/login" className="btn btn-secondary btn-sm">
+                  <Lock size={12} /> Sign In
+                </Link>
                 {settings.registration_status !== 'closed' ? (
-                  <Link to="/register" className="btn btn-primary btn-sm">🚀 Get Started</Link>
+                  <Link to="/register" className="btn btn-primary btn-sm">
+                    Get Started <ArrowRight size={12} />
+                  </Link>
                 ) : (
-                  <span className="badge badge-inactive">Registration Closed</span>
+                  <span className="badge badge-neutral">Registration Closed</span>
                 )}
               </>
             )}
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? '✕' : '☰'}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </header>
@@ -181,7 +217,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-badge">
-          ⚡ Automated Google Ad Manager Optimization
+          <Sparkles size={13} style={{ color: 'var(--br-accent)' }} /> Automated Google Ad Manager Optimization
         </div>
         <h1 className="hero-title">
           Scale Your Publisher Earnings <br />
@@ -194,16 +230,22 @@ export default function LandingPage() {
         <div className="hero-ctas">
           {user ? (
             <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
-              💻 Access Dashboard
+              <LayoutDashboard size={16} /> Access Dashboard
             </button>
           ) : (
             <>
               {settings.registration_status !== 'closed' ? (
-                <Link to="/register" className="btn btn-primary btn-lg">🚀 Create Free Account</Link>
+                <Link to="/register" className="btn btn-primary btn-lg">
+                  Create Free Account <ArrowRight size={16} />
+                </Link>
               ) : (
-                <button className="btn btn-secondary btn-lg" disabled>🔒 Registration Closed</button>
+                <button className="btn btn-secondary btn-lg" disabled>
+                  <Lock size={16} /> Registration Closed
+                </button>
               )}
-              <Link to="/login" className="btn btn-secondary btn-lg">🔑 Sign In</Link>
+              <Link to="/login" className="btn btn-secondary btn-lg">
+                Sign In
+              </Link>
             </>
           )}
         </div>
@@ -213,24 +255,36 @@ export default function LandingPage() {
       <section className="landing-section" style={{ paddingTop: 0, paddingBottom: 40 }}>
         <div className="stats-banner">
           <div>
+            <div className="banner-stat-icon" style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}>
+              <Eye size={20} />
+            </div>
             <div className="banner-stat-value">
               {settings.stats_impressions !== undefined ? formatNumber(settings.stats_impressions) : '5.4B+'}
             </div>
             <div className="banner-stat-label">Ad Impressions Served</div>
           </div>
           <div>
+            <div className="banner-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+              <DollarSign size={20} />
+            </div>
             <div className="banner-stat-value">
               {settings.stats_total_paid !== undefined ? formatCurrency(settings.stats_total_paid) : '$12.4M+'}
             </div>
             <div className="banner-stat-label">Total Paid to Publishers</div>
           </div>
           <div>
+            <div className="banner-stat-icon" style={{ background: 'rgba(6, 182, 212, 0.12)', color: '#06b6d4' }}>
+              <Users size={20} />
+            </div>
             <div className="banner-stat-value">
               {settings.stats_publishers !== undefined ? settings.stats_publishers : '250+'}
             </div>
             <div className="banner-stat-label">Active Global Publishers</div>
           </div>
           <div>
+            <div className="banner-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
+              <Globe size={20} />
+            </div>
             <div className="banner-stat-value">
               {settings.stats_websites !== undefined ? settings.stats_websites : '180+'}
             </div>
@@ -251,7 +305,9 @@ export default function LandingPage() {
 
         <div className="features-grid">
           <div className="feature-card primary">
-            <div className="feature-icon-wrapper">🔄</div>
+            <div className="feature-icon-wrapper">
+              <RefreshCw size={20} />
+            </div>
             <h3 className="feature-card-title">GAM Auto-Sync</h3>
             <p className="feature-card-desc">
               Connect Google Ad Manager directly. Automatically fetch billing data, impressions, clicks, gross revenues, and views hourly.
@@ -259,7 +315,9 @@ export default function LandingPage() {
           </div>
 
           <div className="feature-card accent">
-            <div className="feature-icon-wrapper">📈</div>
+            <div className="feature-icon-wrapper">
+              <LineChart size={20} />
+            </div>
             <h3 className="feature-card-title">Granular Performance Reports</h3>
             <p className="feature-card-desc">
               Track daily metrics like CPM, CTR, and unfilled impressions. Dive deep into analytics filterable by website and specific ad units.
@@ -267,7 +325,9 @@ export default function LandingPage() {
           </div>
 
           <div className="feature-card info">
-            <div className="feature-icon-wrapper">🛡️</div>
+            <div className="feature-icon-wrapper">
+              <Shield size={20} />
+            </div>
             <h3 className="feature-card-title">Anti-Tamper Tag Generator</h3>
             <p className="feature-card-desc">
               Instantly generate clean GPT header and body codes. Customize refresh rates, anchor/float triggers, and anti-adblock tools.
@@ -275,7 +335,9 @@ export default function LandingPage() {
           </div>
 
           <div className="feature-card primary">
-            <div className="feature-icon-wrapper">💳</div>
+            <div className="feature-icon-wrapper">
+              <CreditCard size={20} />
+            </div>
             <h3 className="feature-card-title">Automated Period Closings</h3>
             <p className="feature-card-desc">
               Never worry about payment schedules. Verified earnings are locked at month-end, generating statements and clear billing PDFs.
@@ -283,7 +345,9 @@ export default function LandingPage() {
           </div>
 
           <div className="feature-card accent">
-            <div className="feature-icon-wrapper">🔒</div>
+            <div className="feature-icon-wrapper">
+              <ShieldAlert size={20} />
+            </div>
             <h3 className="feature-card-title">Fraud & IVT Protection</h3>
             <p className="feature-card-desc">
               Comprehensive balance adjustments support deducting Invalid Traffic (IVT) or applying bonuses fairly with details logged in your portal.
@@ -291,7 +355,9 @@ export default function LandingPage() {
           </div>
 
           <div className="feature-card info">
-            <div className="feature-icon-wrapper">💬</div>
+            <div className="feature-icon-wrapper">
+              <Bell size={20} />
+            </div>
             <h3 className="feature-card-title">Real-Time Notifications</h3>
             <p className="feature-card-desc">
               Receive updates on payouts, policy updates, and critical maintenance notices instantly via integrated announcements and emails.
@@ -424,7 +490,7 @@ export default function LandingPage() {
           <div className="step-card">
             <div className="step-number">1</div>
             <h4 className="step-title">Join Platform</h4>
-            <p className="step-desc">Register a publisher account and submit your target domains for approval checks.</p>
+            <p className="step-desc">Register a publisher account and submit your domains for approval checks.</p>
           </div>
           <div className="step-card">
             <div className="step-number">2</div>
@@ -454,14 +520,14 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div style={{ overflowX: 'auto', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
-          <table className="table" style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <div className="table-wrap">
+          <table className="table">
             <thead>
               <tr>
-                <th style={{ padding: '16px 24px', textAlign: 'left' }}>Publisher</th>
-                <th style={{ textAlign: 'left' }}>Amount</th>
-                <th style={{ textAlign: 'left' }}>Date</th>
-                <th style={{ textAlign: 'left' }}>Status</th>
+                <th>Publisher</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -469,21 +535,20 @@ export default function LandingPage() {
                 <tr 
                   key={idx} 
                   onClick={() => setSelectedProof(proof)}
-                  style={{ cursor: 'pointer', transition: 'background 0.2s' }}
                   className="clickable-payout-row"
                 >
-                  <td style={{ padding: '20px 24px', fontWeight: 700, color: 'var(--color-text)' }}>
+                  <td className="td-primary" style={{ fontWeight: 600 }}>
                     {proof.publisher}
                   </td>
-                  <td style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
+                  <td className="td-amount">
                     {formatCurrency(proof.amount)}
                   </td>
-                  <td style={{ color: 'var(--color-text-muted)' }}>
+                  <td>
                     {proof.date}
                   </td>
                   <td>
-                    <span className="badge" style={{ background: '#d1fae5', color: '#065f46', fontSize: 13, padding: '4px 12px', fontWeight: 600 }}>
-                      Paid successfully
+                    <span className="badge badge-success">
+                      <span className="dot"></span> Paid
                     </span>
                   </td>
                 </tr>
@@ -508,7 +573,7 @@ export default function LandingPage() {
             <div key={index} className={`faq-item ${activeFaq === index ? 'active' : ''}`}>
               <button className="faq-question-btn" onClick={() => toggleFaq(index)}>
                 <span>{item.q}</span>
-                <span className="faq-toggle-icon">▼</span>
+                <ChevronDown size={14} className="faq-toggle-icon" />
               </button>
               <div className="faq-answer-panel">
                 <p className="faq-answer-text">{item.a}</p>
@@ -528,16 +593,22 @@ export default function LandingPage() {
           <div className="cta-banner-buttons">
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
-                💻 Go to Dashboard
+                <LayoutDashboard size={16} /> Dashboard
               </button>
             ) : (
               <>
                 {settings.registration_status !== 'closed' ? (
-                  <Link to="/register" className="btn btn-primary btn-lg">🚀 Get Started Now</Link>
+                  <Link to="/register" className="btn btn-primary btn-lg">
+                    Get Started Now <ArrowRight size={16} />
+                  </Link>
                 ) : (
-                  <button className="btn btn-secondary btn-lg" disabled>🔒 Registration Closed</button>
+                  <button className="btn btn-secondary btn-lg" disabled>
+                    <Lock size={16} /> Registration Closed
+                  </button>
                 )}
-                <Link to="/login" className="btn btn-secondary btn-lg">🔑 Sign In</Link>
+                <Link to="/login" className="btn btn-secondary btn-lg">
+                  Sign In
+                </Link>
               </>
             )}
           </div>
@@ -548,15 +619,18 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <Link to="/" className="landing-logo" style={{ fontSize: 24 }}>
+            <Link to="/" className="footer-logo">
               {settings.site_logo ? (
                 <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} style={{ maxHeight: 50 }} />
               ) : (
-                <span>💹 {settings.site_name || 'BestRevenue'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={20} style={{ color: 'var(--br-primary)' }} />
+                  <span>{settings.site_name || 'BestRevenue'}</span>
+                </span>
               )}
             </Link>
             <p className="footer-desc">
-              A premium, automated ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.
+              A premium, ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.
             </p>
             {(settings.social_facebook || settings.social_instagram || settings.social_x || settings.social_telegram) && (
               <div className="footer-socials" style={{ display: 'flex', gap: 14, marginTop: 18 }}>
@@ -608,7 +682,7 @@ export default function LandingPage() {
                 <a href="#features" className="footer-link">Features</a>
                 <a href="#calculator" className="footer-link">Calculator</a>
                 <a href="#how-it-works" className="footer-link">How it Works</a>
-                <a href="#proofs" className="footer-link">Payments Proof</a>
+                <a href="#proofs" className="footer-link">Payouts Proof</a>
                 <a href="#faqs" className="footer-link">FAQs</a>
               </div>
             </div>
@@ -645,49 +719,51 @@ export default function LandingPage() {
       {/* Verification Receipt Modal */}
       {selectedProof && (
         <div className="modal-overlay" onClick={() => setSelectedProof(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, border: '1px solid rgba(16, 185, 129, 0.4)' }}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, border: '0.5px solid rgba(16, 185, 129, 0.4)', background: 'var(--br-bg-2)', backdropFilter: 'blur(20px)' }}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ color: 'var(--color-accent)' }}>✅</span> Payment Receipt
+                <CheckCircle2 size={18} style={{ color: 'var(--br-accent)' }} /> Payment Receipt
               </h3>
-              <button className="modal-close" onClick={() => setSelectedProof(null)}>✕</button>
+              <button className="modal-close" onClick={() => setSelectedProof(null)}>
+                <X size={16} />
+              </button>
             </div>
             
-            <div style={{ background: 'var(--color-surface-2)', padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', margin: '8px 0 24px' }}>
+            <div style={{ background: 'var(--br-bg-3)', padding: 24, borderRadius: 'var(--br-radius)', border: '0.5px solid var(--br-border)', margin: '8px 0 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 {settings.site_logo ? (
                   <img src={settings.site_logo} alt="Logo" style={{ maxHeight: 36, marginBottom: 8 }} />
                 ) : (
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>💹</div>
+                  <TrendingUp size={32} style={{ color: 'var(--br-primary)', marginBottom: 8 }} />
                 )}
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Transaction Certified</div>
+                <div style={{ fontSize: 11, color: 'var(--br-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Transaction Certified</div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--color-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Issue Date:</span>
-                  <span>{selectedProof.date}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
+                  <span style={{ color: 'var(--br-text-2)' }}>Issue Date:</span>
+                  <span style={{ color: 'var(--br-text)' }}>{selectedProof.date}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--color-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Recipient:</span>
-                  <span>{selectedProof.publisher}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
+                  <span style={{ color: 'var(--br-text-2)' }}>Recipient:</span>
+                  <span style={{ color: 'var(--br-text)' }}>{selectedProof.publisher}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--color-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Payment Route:</span>
-                  <span>{selectedProof.method}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
+                  <span style={{ color: 'var(--br-text-2)' }}>Payment Route:</span>
+                  <span style={{ color: 'var(--br-text)' }}>{selectedProof.method}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--color-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Transaction Ref:</span>
-                  <span style={{ fontFamily: 'monospace' }}>{selectedProof.ref}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
+                  <span style={{ color: 'var(--br-text-2)' }}>Transaction Ref:</span>
+                  <span style={{ fontFamily: 'monospace', color: 'var(--br-text)' }}>{selectedProof.ref}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700 }}>Total Disbursed:</span>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-accent)' }}>{formatCurrency(selectedProof.amount)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--br-text)' }}>Total Disbursed:</span>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--br-accent)' }}>{formatCurrency(selectedProof.amount)}</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-text-subtle)' }}>
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--br-text-3)', lineHeight: 1.4 }}>
               This payout was verified via banking network records and signed by {settings.site_name || 'BestRevenue'} Treasury.
             </div>
 

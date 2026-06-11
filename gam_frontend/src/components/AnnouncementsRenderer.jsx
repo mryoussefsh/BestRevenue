@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { publisherApi } from '../api/endpoints'
+import { Megaphone, X } from 'lucide-react'
 
 // Renders active announcements fetched from the backend.
 // Banners are shown at the top of the page.
@@ -118,48 +119,33 @@ export default function AnnouncementsRenderer() {
 function BannerItem({ banner, onClose, onButtonClick, onView }) {
   useEffect(() => { onView() }, [])
 
-  const colors = getBannerColors(banner)
-
   return (
-    <div style={{
-      background: colors.bg,
-      borderBottom: `1px solid ${colors.border}`,
-      padding: '10px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      flexWrap: 'wrap',
-      animation: 'slideDown 0.3s ease'
-    }}>
-      <div style={{ flex: 1, minWidth: 200 }}>
-        {banner.title && (
-          <span style={{ fontWeight: 700, fontSize: 13, color: colors.text, marginRight: 8 }}>
-            {banner.title}:
-          </span>
-        )}
-        <span
-          style={{ fontSize: 13, color: colors.text }}
-          dangerouslySetInnerHTML={{ __html: banner.content }}
-        />
+    <div className="glass-card announcement-banner">
+      <div className="announcement-banner-body">
+        <div className="announcement-banner-icon">
+          <Megaphone size={18} />
+        </div>
+        <div className="announcement-banner-text">
+          {banner.title && (
+            <h4 className="announcement-banner-title">
+              {banner.title}
+            </h4>
+          )}
+          <div
+            className="announcement-content text-sm"
+            style={{ color: 'var(--br-text-2)', lineHeight: 1.5 }}
+            dangerouslySetInnerHTML={{ __html: banner.content }}
+          />
+        </div>
       </div>
 
       {(banner.buttons || []).length > 0 && (
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+        <div className="announcement-banner-actions">
           {banner.buttons.map((btn, idx) => (
             <button
               key={idx}
               onClick={() => onButtonClick(btn, idx)}
-              style={{
-                background: colors.btnBg,
-                color: colors.btnText,
-                border: `1px solid ${colors.btnBorder}`,
-                borderRadius: 20,
-                padding: '4px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
+              className="btn btn-primary btn-xs announcement-banner-btn"
             >
               {btn.text}
             </button>
@@ -170,12 +156,10 @@ function BannerItem({ banner, onClose, onButtonClick, onView }) {
       <button
         onClick={onClose}
         title="Dismiss"
-        style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: colors.text, opacity: 0.7, fontSize: 18, flexShrink: 0,
-          lineHeight: 1, padding: '0 4px'
-        }}
-      >×</button>
+        className="announcement-banner-close"
+      >
+        <X size={18} />
+      </button>
     </div>
   )
 }
@@ -186,43 +170,73 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 20, animation: 'fadeIn 0.25s ease'
     }}>
       <div style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 16,
+        background: 'var(--br-bg-2)',
+        border: '1px solid var(--br-border)',
+        borderLeft: '4px solid var(--br-primary)',
+        borderRadius: 'var(--br-radius-lg)',
         width: '100%',
-        maxWidth: 520,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
+        maxWidth: 500,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1)',
         overflow: 'hidden',
         animation: 'slideUp 0.3s ease'
       }}>
         {/* Header */}
         <div style={{
-          padding: '18px 24px 14px',
-          borderBottom: '1px solid var(--color-border)',
+          padding: '18px 24px',
+          borderBottom: '1px solid var(--br-border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(16,185,129,0.05))'
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(0, 0, 0, 0))'
         }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>
-            📢 {announcement.title}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 30,
+              height: 30,
+              borderRadius: 6,
+              background: 'rgba(99, 102, 241, 0.15)',
+              color: 'var(--br-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Megaphone size={15} />
+            </div>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--br-text)' }}>
+              {announcement.title}
+            </h3>
+          </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 22, lineHeight: 1 }}
-          >×</button>
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--br-text-3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 4,
+              borderRadius: 6,
+              transition: 'var(--br-transition)'
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--br-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--br-text-3)'}
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Content */}
-        <div style={{ padding: '20px 24px' }}>
+        <div style={{ padding: '24px' }}>
           <div
             className="announcement-content"
             style={{
-              fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-secondary)',
-              marginBottom: (announcement.buttons || []).length > 0 ? 20 : 0
+              fontSize: 14, lineHeight: 1.6, color: 'var(--br-text-2)',
+              marginBottom: (announcement.buttons || []).length > 0 ? 24 : 0
             }}
             dangerouslySetInnerHTML={{ __html: announcement.content }}
           />
@@ -235,7 +249,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
                   key={idx}
                   onClick={() => onButtonClick(btn, idx)}
                   className="btn btn-primary"
-                  style={{ flex: '1 1 auto' }}
+                  style={{ flex: '1 1 auto', justifyContent: 'center', padding: '10px 20px', borderRadius: 8 }}
                 >
                   {btn.text}
                 </button>
@@ -246,25 +260,34 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
 
         {/* Footer */}
         <div style={{
-          padding: '12px 24px',
-          borderTop: '1px solid var(--color-border)',
+          padding: '16px 24px',
+          borderTop: '1px solid var(--br-border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: 'var(--color-surface-2)'
+          background: 'var(--br-bg-3)'
         }}>
           {announcement.allow_dismiss ? (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--color-text-muted)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--br-text-2)' }}>
               <input
                 type="checkbox"
                 checked={dontShowAgain}
                 onChange={e => onDontShowAgainChange(e.target.checked)}
-                style={{ width: 14, height: 14, cursor: 'pointer' }}
+                style={{
+                  width: 14,
+                  height: 14,
+                  cursor: 'pointer',
+                  accentColor: 'var(--br-primary)'
+                }}
               />
               Don't show this again
             </label>
           ) : (
             <span />
           )}
-          <button className="btn btn-secondary" onClick={onClose} style={{ minWidth: 80 }}>
+          <button
+            className="btn btn-secondary"
+            onClick={onClose}
+            style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8 }}
+          >
             Close
           </button>
         </div>

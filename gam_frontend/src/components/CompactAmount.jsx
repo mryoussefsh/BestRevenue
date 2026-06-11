@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function CompactAmount({ value, prefix = '$', suffix = '', decimals = 2 }) {
+export default function CompactAmount({ value, prefix = '$', suffix = '', decimals = 2, showInfo = true }) {
   const [showFull, setShowFull] = useState(false)
   
   const cleanVal = typeof value === 'string' ? value.replace(/,/g, '') : value
@@ -43,38 +43,47 @@ export default function CompactAmount({ value, prefix = '$', suffix = '', decima
   const fullText = formatFull()
   
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
+    <span 
+      title={`Click to show ${showFull ? 'compact' : 'full'} amount\nFull: ${fullText}`}
+      onClick={(e) => {
+        e.stopPropagation()
+        setShowFull(!showFull)
+      }}
+      style={{ 
+        display: 'inline-flex', 
+        alignItems: 'center', 
+        gap: '4px', 
+        verticalAlign: 'middle',
+        cursor: 'pointer'
+      }}
+    >
       <span>{displayText}</span>
-      <span 
-        title={`Click to show ${showFull ? 'compact' : 'full'} amount\nFull: ${fullText}`}
-        onClick={(e) => {
-          e.stopPropagation()
-          setShowFull(!showFull)
-        }}
-        style={{ 
-          cursor: 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          color: 'var(--color-text-muted, #8b949e)',
-          userSelect: 'none'
-        }}
-      >
-        <svg 
-          viewBox="0 0 24 24" 
-          width="13" 
-          height="13" 
-          stroke="currentColor" 
-          strokeWidth="2.5" 
-          fill="none" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-          style={{ verticalAlign: 'middle' }}
+      {showInfo && (
+        <span 
+          style={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            color: 'var(--color-text-muted, #8b949e)',
+            userSelect: 'none'
+          }}
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-      </span>
+          <svg 
+            viewBox="0 0 24 24" 
+            width="13" 
+            height="13" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            fill="none" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{ verticalAlign: 'middle' }}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        </span>
+      )}
     </span>
   )
 }

@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.9.0] - 2026-06-11
+
+### Added
+- **Clickable Sidebar Profile Block**: Wrapped the publisher profile block inside a React Router `<Link>` pointing to settings with a hover highlight.
+- **Custom Language Select Dropdown**: Converted inline buttons into a custom-styled HTML select dropdown with glass aesthetics.
+- **Settings Tab Reorganization**: Reorganized settings to display "Profile & Contact Details" and "Security & Password Preferences" side-by-side.
+- **Search Emoji Elimination**: Redesigned the country code phone search box to hide the search emoji and render a vector SVG search background icon instead.
+
+### Changed
+- **Viewability Rate Card Subtitle Formatting**: Configured viewability rate subtitles on both publisher and admin dashboards to render compact values (e.g., `1.2M / 1.7M measurable`) with interactive hover tooltips and toggle actions bound directly to the numbers.
+- **Topbar Text Removal**: Removed the "Publisher Portal" heading and user email address text block from the left side of the topbar.
+
+### Fixed
+- **Viewability Rate Card Overflow**: Solved layout overflows where displaying full uncompacted numbers pushed the right-side eye icon out of the card by modifying CSS grid columns to `minmax(0, 1fr) auto` and enabling `flex-wrap: wrap` on subtitles.
+
 ## [1.8.0] - 2026-06-11
 
 ### Added
