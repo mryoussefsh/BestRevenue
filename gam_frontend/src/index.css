@@ -1616,6 +1616,9 @@ input, select, textarea { outline: none; }
   gap: 24px;
   align-items: start;
 }
+.profile-grid > * {
+  min-width: 0;
+}
 @media (max-width: 991px) {
   .profile-grid {
     grid-template-columns: 1fr !important;

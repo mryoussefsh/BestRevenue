@@ -459,7 +459,7 @@ export default function PublisherProfile() {
       <div className="profile-grid">
         
         {/* Left Column: Contact and Metadata info */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div className="card" style={{ marginBottom: 24 }}>
             <div className="card-header" style={{ paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
               <div className="card-title" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -623,7 +623,7 @@ export default function PublisherProfile() {
         </div>
 
         {/* Right Column: Tabbed list of resources */}
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card" style={{ padding: 0, minWidth: 0 }}>
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -681,30 +681,30 @@ export default function PublisherProfile() {
                     </div>
                     {websites.filter(w => !selectedWebsite || w.id === selectedWebsite).map(web => (
                       <div key={web.id} className="card" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div className="website-card-header" style={{ marginBottom: 12 }}>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+                              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, wordBreak: 'break-all' }}>
                                 <a href={`https://${web.domain}`} target="_blank" rel="noreferrer" className="hover-link" style={{ color: 'var(--color-primary-light)' }}>
                                   {web.domain}
                                 </a>
                               </h3>
-                              <span className={`badge ${web.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <span className={`badge ${web.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                                 {web.is_active ? 'Active' : 'Inactive'}
                               </span>
                             </div>
-                            <div className="text-muted text-sm" style={{ marginTop: 4 }}>
-                              GAM Account: <strong>{web.gam_account_email || 'Not Linked'}</strong> {web.gam_network_code && `(Network: ${web.gam_network_code})`}
+                            <div className="text-muted text-sm" style={{ marginTop: 4, wordBreak: 'break-word' }}>
+                              GAM Account: <strong style={{ wordBreak: 'break-all' }}>{web.gam_account_email || 'Not Linked'}</strong> {web.gam_network_code && `(Network: ${web.gam_network_code})`}
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div className="website-card-actions">
                             {web.ratio_override && (
-                              <div className="badge badge-active" style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)' }}>
+                              <div className="badge badge-active" style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', flexShrink: 0 }}>
                                 Ratio Override: <strong>{(parseFloat(web.ratio_override) * 100).toFixed(0)}%</strong>
                               </div>
                             )}
-                            <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                               <Edit2 size={12} /> Edit
                             </button>
                           </div>
