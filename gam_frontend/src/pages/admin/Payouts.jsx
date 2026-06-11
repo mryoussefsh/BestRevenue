@@ -3,6 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { CreditCard, Check, X, Copy, RefreshCw, Clock, DollarSign, Ban } from 'lucide-react'
 
 function ApproveModal({ payout, onClose, onDone }) {
   const [note, setNote] = useState('')
@@ -24,7 +25,10 @@ function ApproveModal({ payout, onClose, onDone }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">✅ Approve Payout</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Check size={18} style={{ color: 'var(--br-accent)' }} />
+            <span>Approve Payout</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <p style={{ marginBottom: 20, color: 'var(--color-text-muted)', fontSize: 14 }}>
@@ -61,8 +65,8 @@ function ApproveModal({ payout, onClose, onDone }) {
         </div>
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button id="confirm-approve-btn" className="btn btn-success" onClick={handleApprove} disabled={saving}>
-            {saving ? 'Approving…' : <>✅ Approve <CompactAmount value={payout.final_amount} /></>}
+          <button id="confirm-approve-btn" className="btn btn-success" onClick={handleApprove} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            {saving ? 'Approving…' : <><Check size={14} /> Approve <CompactAmount value={payout.final_amount} /></>}
           </button>
         </div>
       </div>
@@ -88,7 +92,10 @@ function MarkPaidModal({ payout, onClose, onDone }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">💳 Mark as Paid</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>Mark as Paid</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <p style={{ marginBottom: 20, color: 'var(--color-text-muted)', fontSize: 14 }}>
@@ -102,8 +109,8 @@ function MarkPaidModal({ payout, onClose, onDone }) {
         </div>
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button id="confirm-mark-paid-btn" className="btn btn-primary" onClick={handlePaid} disabled={saving || !ref}>
-            {saving ? 'Saving…' : '💳 Confirm Payment'}
+          <button id="confirm-mark-paid-btn" className="btn btn-primary" onClick={handlePaid} disabled={saving || !ref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            {saving ? 'Saving…' : <><CreditCard size={14} /> Confirm Payment</>}
           </button>
         </div>
       </div>
@@ -317,11 +324,14 @@ export default function PayoutsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">💳 Payouts</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CreditCard size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Payouts</span>
+          </h1>
           <p className="page-subtitle">
             {filteredPayouts.length === payouts.length
-              ? `${payouts.length} payouts`
-              : `${filteredPayouts.length} of ${payouts.length} payouts`}
+               ? `${payouts.length} payouts`
+               : `${filteredPayouts.length} of ${payouts.length} payouts`}
           </p>
         </div>
       </div>
@@ -340,10 +350,10 @@ export default function PayoutsPage() {
               onChange={e => { setFilterStatus(e.target.value) }}
             >
               <option value="">All Statuses</option>
-              <option value="pending">⏳ Pending</option>
-              <option value="approved">✅ Approved</option>
-              <option value="paid">💰 Paid</option>
-              <option value="rejected">❌ Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="paid">Paid</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
 
@@ -443,7 +453,7 @@ export default function PayoutsPage() {
                 {filteredPayouts.length === 0 && (
                   <tr><td colSpan={8}>
                     <div className="empty-state">
-                      <div className="empty-state-icon">💳</div>
+                      <div className="empty-state-icon"><CreditCard size={40} /></div>
                       <div className="empty-state-text">No payouts found</div>
                       {hasFilter && <div className="empty-state-sub">Try adjusting your filters</div>}
                     </div>
@@ -497,11 +507,11 @@ export default function PayoutsPage() {
                             </code>
                             <button
                               className="btn btn-secondary btn-xs"
-                              style={{ padding: '2px 8px', height: 22, fontSize: 10, borderRadius: 6 }}
+                              style={{ padding: '2px 8px', height: 22, fontSize: 10, borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                               onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(account); toast.success('Copied!') }}
                               title="Copy account details"
                             >
-                              📋 Copy
+                              <Copy size={10} /> Copy
                             </button>
                           </div>
                         )
@@ -516,15 +526,15 @@ export default function PayoutsPage() {
                       <div className="flex gap-2">
                         {p.status === 'pending' && (
                           <>
-                            <button id={`approve-${p.id}`} className="btn btn-success btn-xs" onClick={() => setModal(p)}>✅ Approve</button>
-                            <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)}>✗ Reject</button>
+                            <button id={`approve-${p.id}`} className="btn btn-success btn-xs" onClick={() => setModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Approve</button>
+                            <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><X size={12} /> Reject</button>
                           </>
                         )}
                         {p.status === 'approved' && (
-                          <button id={`mark-paid-${p.id}`} className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)}>💳 Mark Paid</button>
+                          <button id={`mark-paid-${p.id}`} className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CreditCard size={12} /> Mark Paid</button>
                         )}
                         {p.status === 'paid' && (
-                          <span className="text-sm" style={{ color: 'var(--color-accent)' }}>✓ Paid</span>
+                          <span className="text-sm" style={{ color: 'var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Paid</span>
                         )}
                       </div>
                     </td>
@@ -534,7 +544,7 @@ export default function PayoutsPage() {
               {filteredPayouts.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals ({filteredPayouts.length})</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals ({filteredPayouts.length})</td>
                     <td className="money"><CompactAmount value={totalBase} /></td>
                     <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
                       {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />

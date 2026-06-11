@@ -3,6 +3,8 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
+import { ClipboardList } from 'lucide-react'
+
 
 export default function AuditLogsPage() {
   const { formatDateTime } = useSettings()
@@ -45,7 +47,9 @@ export default function AuditLogsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📜 Audit Logs</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ClipboardList size={24} style={{ color: 'var(--color-primary)' }} /> Audit Logs
+          </h1>
           <p className="page-subtitle">Track admin and system actions</p>
         </div>
       </div>
@@ -88,7 +92,7 @@ export default function AuditLogsPage() {
             <div className="empty-state"><div className="spinner"></div></div>
           ) : logs.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">📜</div>
+              <div className="empty-state-icon"><ClipboardList size={40} /></div>
               <div className="empty-state-text">No audit logs found</div>
             </div>
           ) : (

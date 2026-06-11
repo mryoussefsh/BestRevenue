@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { Mail, Send, RotateCcw, Save, Edit2, Eye, Paperclip } from 'lucide-react'
 
 const VARIABLES = [
   { key: '{{ name }}',              desc: 'Publisher full name' },
@@ -113,7 +114,10 @@ export default function EmailTemplatesPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📧 Email Templates</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Mail size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Email Templates</span>
+          </h1>
           <p className="page-subtitle">Customize the subject and content of all system emails</p>
         </div>
       </div>
@@ -170,8 +174,9 @@ export default function EmailTemplatesPage() {
                     className="btn btn-secondary btn-sm"
                     onClick={handlePreview}
                     disabled={previewing}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {previewing ? '⏳ Sending…' : '📤 Send Test Email'}
+                    {previewing ? 'Sending…' : <><Send size={14} /> Send Test Email</>}
                   </button>
                   {selected.is_customized && (
                     <button
@@ -179,9 +184,9 @@ export default function EmailTemplatesPage() {
                       className="btn btn-secondary btn-sm"
                       onClick={handleReset}
                       disabled={resetting}
-                      style={{ color: 'var(--color-warning)' }}
+                      style={{ color: 'var(--color-warning)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      {resetting ? '⏳' : '↩ Reset Default'}
+                      {resetting ? 'Resetting…' : <><RotateCcw size={14} /> Reset Default</>}
                     </button>
                   )}
                   <button
@@ -189,8 +194,9 @@ export default function EmailTemplatesPage() {
                     className="btn btn-primary btn-sm"
                     onClick={handleSave}
                     disabled={saving || !isDirty}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {saving ? '⏳ Saving…' : '💾 Save Template'}
+                    {saving ? 'Saving…' : <><Save size={14} /> Save Template</>}
                   </button>
                 </div>
               </div>
@@ -218,8 +224,8 @@ export default function EmailTemplatesPage() {
               <div className="card-header">
                 <div className="card-title">Email Body (HTML)</div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button className={`btn btn-xs ${previewTab==='edit' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('edit')}>✏️ Edit</button>
-                  <button className={`btn btn-xs ${previewTab==='preview' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('preview')}>👁 Preview</button>
+                  <button className={`btn btn-xs ${previewTab==='edit' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('edit')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
+                  <button className={`btn btn-xs ${previewTab==='preview' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('preview')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={12} /> Preview</button>
                 </div>
               </div>
 
@@ -247,8 +253,11 @@ export default function EmailTemplatesPage() {
 
             {/* Variables helper */}
             <div className="card">
-              <div className="card-header">
-                <div className="card-title">📎 Available Variables</div>
+              <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Paperclip size={18} style={{ color: 'var(--br-primary)' }} />
+                  <span>Available Variables</span>
+                </div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Click to insert at cursor position</div>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

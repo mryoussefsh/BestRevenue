@@ -6,6 +6,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { Users, Clock, Plus, Eye, Check, Info } from 'lucide-react'
 
 export function PublisherModal({ publisher, onClose, onSaved }) {
   const isEdit = !!publisher?.id
@@ -90,7 +91,7 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: '650px' }}>
         <div className="modal-header">
-          <span className="modal-title">{isEdit ? '✏️ Edit Publisher' : '➕ New Publisher'}</span>
+          <span className="modal-title">{isEdit ? 'Edit Publisher' : 'New Publisher'}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -272,13 +273,14 @@ export default function PublishersPage() {
       ? 'badge-pending'
       : 'badge-inactive'
 
-  const statusIcon = s => s === 'active' ? '🟢' : s === 'pending' ? '🟡' : '🔴'
-
   return (
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">👥 Publishers</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Publishers</span>
+          </h1>
           <p className="page-subtitle">
             {publishers.length} total
             {pendingCount > 0 && (
@@ -291,24 +293,28 @@ export default function PublishersPage() {
                 padding: '2px 10px',
                 fontSize: 12,
                 fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
               }}>
-                ⏳ {pendingCount} pending
+                <Clock size={12} />
+                <span>{pendingCount} pending</span>
               </span>
             )}
           </p>
         </div>
         <button id="add-publisher-btn" className="btn btn-primary" onClick={() => setModal('create')}>
-          ➕ Add Publisher
+          <Plus size={16} /> Add Publisher
         </button>
       </div>
 
       {publishers.filter(p => p.status === 'pending').length > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 20 }}>⏳</span>
+          <Clock size={20} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
           <div>
             <strong>{publishers.filter(p => p.status === 'pending').length} publisher(s) pending approval</strong>
             <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--color-text-muted)' }}>
-              — Click "✅ Approve" to activate them
+              — Click "Approve" to activate them
             </span>
           </div>
         </div>
@@ -317,7 +323,7 @@ export default function PublishersPage() {
       <div className="filter-bar" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <input
           className="form-input"
-          placeholder="🔍 Search name or email…"
+          placeholder="Search name or email…"
           style={{ flex: 1 }}
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -330,9 +336,9 @@ export default function PublishersPage() {
           onChange={e => setStatusFilter(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="active">🟢 Active</option>
-          <option value="pending">🟡 Pending</option>
-          <option value="suspended">🔴 Suspended</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="suspended">Suspended</option>
         </select>
       </div>
 
@@ -357,7 +363,7 @@ export default function PublishersPage() {
                 {filtered.length === 0 && (
                   <tr><td colSpan={7}>
                     <div className="empty-state">
-                      <div className="empty-state-icon">👥</div>
+                      <div className="empty-state-icon"><Users size={40} style={{ color: 'var(--br-text-2)' }} /></div>
                       <div className="empty-state-text">No publishers yet</div>
                       <div className="empty-state-sub">Click "Add Publisher" to create one</div>
                     </div>
@@ -367,14 +373,15 @@ export default function PublishersPage() {
                   <tr key={pub.id}>
                     <td>
                       <Link to={`/admin/publishers/${pub.id}`} className="hover-link" style={{ fontWeight: 600, display: 'block' }}>
-                        👤 {pub.name}
+                        {pub.name}
                       </Link>
                       <div className="text-muted text-sm">{pub.email}</div>
                       <div className="text-muted" style={{ fontSize: 11, marginTop: 2, userSelect: 'all' }} title="Publisher ID">ID: {pub.id}</div>
                     </td>
                     <td>
                       <span className={`badge ${statusBadge(pub.status)}`}>
-                        {statusIcon(pub.status)} {pub.status}
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                        {pub.status}
                       </span>
                     </td>
                     <td>
@@ -397,17 +404,17 @@ export default function PublishersPage() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        <Link id={`view-pub-${pub.id}`} to={`/admin/publishers/${pub.id}`} className="btn btn-secondary btn-xs" style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)' }}>
-                          👁 View
+                        <Link id={`view-pub-${pub.id}`} to={`/admin/publishers/${pub.id}`} className="btn btn-secondary btn-xs" style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Eye size={12} /> View
                         </Link>
                         {pub.status === 'pending' && (
                           <button
                             id={`activate-pub-${pub.id}`}
                             className="btn btn-success btn-xs"
                             onClick={() => handleActivate(pub)}
-                            style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-success)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: '6px', fontSize: 12, cursor: 'pointer' }}
+                            style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-success)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: '6px', fontSize: 12, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
-                            ✅ Approve
+                            <Check size={12} /> Approve
                           </button>
                         )}
                       </div>
@@ -418,7 +425,7 @@ export default function PublishersPage() {
               {filtered.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals ({filtered.length})</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals ({filtered.length})</td>
                     <td className="money" style={{ fontWeight: 700 }}>
                       {(avgRatio * 100).toFixed(0)}%
                     </td>
@@ -490,11 +497,14 @@ export function AdjustBalanceModal({ publisher, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">💰 Adjust Balance — {publisher.name}</span>
+          <span className="modal-title">Adjust Balance — {publisher.name}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <div className="alert alert-warning" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0' }}>
-          💡 This amount will accumulate and automatically apply as a payout adjustment when the current monthly period is closed. Use positive numbers for bonuses and negative numbers for deductions.
+        <div className="alert alert-warning" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Info size={20} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
+          <div>
+            This amount will accumulate and automatically apply as a payout adjustment when the current monthly period is closed. Use positive numbers for bonuses and negative numbers for deductions.
+          </div>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 16 }}>

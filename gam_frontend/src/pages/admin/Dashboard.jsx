@@ -23,7 +23,9 @@ import {
   Lock,
   ArrowRight,
   TrendingUp,
-  Scale
+  Scale,
+  LayoutDashboard,
+  RefreshCw
 } from 'lucide-react'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
@@ -475,7 +477,10 @@ export default function AdminDashboard() {
       {/* ── Header ── */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">📊 Dashboard</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LayoutDashboard size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Dashboard</span>
+          </h1>
           <p className="page-subtitle" style={{ color: 'var(--color-text-muted)' }}>
             {loading ? 'Loading…' : `${stats?.recordCount?.toLocaleString() || 0} revenue records · ${filters.date_from} → ${filters.date_to}`}
           </p>
@@ -486,7 +491,7 @@ export default function AdminDashboard() {
         >
           {syncing
             ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
-            : '🔄 Run GAM Sync'}
+            : <><RefreshCw size={14} /> Run GAM Sync</>}
         </button>
       </div>
 
@@ -498,8 +503,8 @@ export default function AdminDashboard() {
       }}>
         {/* Date Presets Row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginRight: 4 }}>
-            📅 Period
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginRight: 4 }}>
+            <Calendar size={14} /> Period
           </span>
           {DATE_PRESETS.map(p => (
             <button key={p.key} onClick={() => applyPreset(p.key)}
@@ -615,7 +620,10 @@ export default function AdminDashboard() {
             <div className="stat-icon"><Clock size={20} /></div>
             <div className="stat-label">Pending Earnings</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
-            <div className="stat-change">⏳ Holding period</div>
+            <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={12} />
+              <span>Holding period</span>
+            </div>
           </div>
           <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
             <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
@@ -731,7 +739,7 @@ export default function AdminDashboard() {
                   padding: '2px 8px', borderRadius: 12, fontWeight: 600,
                   display: 'inline-flex', alignItems: 'center', gap: 4,
                 }}>
-                  ⏳ {stats.pendingPublishers} pending
+                  <Clock size={12} /> {stats.pendingPublishers} pending
                 </span>
               )}
             </div>

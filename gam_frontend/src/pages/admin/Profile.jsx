@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { User, Lock, Save } from 'lucide-react'
 
 export default function AdminProfilePage() {
   const { user, updateUser } = useAuth()
@@ -69,7 +70,10 @@ export default function AdminProfilePage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">👤 Admin Profile</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <User size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Admin Profile</span>
+          </h1>
           <p className="page-subtitle">Manage your administrator profile details and security preferences.</p>
         </div>
       </div>
@@ -79,16 +83,18 @@ export default function AdminProfilePage() {
         <button
           className={`btn ${activeTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('profile')}
-          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8 }}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          👤 Profile Details
+          <User size={14} />
+          Profile Details
         </button>
         <button
           className={`btn ${activeTab === 'password' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('password')}
-          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8 }}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          🔒 Security & Password
+          <Lock size={14} />
+          Security & Password
         </button>
       </div>
 
@@ -125,8 +131,9 @@ export default function AdminProfilePage() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={savingProfile}>
-              {savingProfile ? 'Saving Changes...' : '💾 Save Profile'}
+            <button type="submit" className="btn btn-primary" disabled={savingProfile} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Save size={14} />
+              {savingProfile ? 'Saving Changes...' : 'Save Profile'}
             </button>
           </form>
         </div>
@@ -178,8 +185,9 @@ export default function AdminProfilePage() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={savingPassword}>
-              {savingPassword ? 'Changing Password...' : '🔒 Change Password'}
+            <button type="submit" className="btn btn-primary" disabled={savingPassword} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Lock size={14} />
+              {savingPassword ? 'Changing Password...' : 'Change Password'}
             </button>
           </form>
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
+import { RefreshCw, Play, Check, AlertTriangle, X, Cpu, Terminal, History, BarChart2, User } from 'lucide-react'
 
 
 
@@ -13,19 +14,20 @@ function fmtDuration(sec) {
 
 function StatusBadge({ status }) {
   const map = {
-    running:  { color: '#3b82f6', label: '⟳ Running'  },
-    success:  { color: '#10b981', label: '✓ Success'  },
-    partial:  { color: '#f59e0b', label: '⚠ Partial'  },
-    failed:   { color: '#ef4444', label: '✗ Failed'   },
+    running:  { icon: <RefreshCw size={12} className="spinner" />, color: '#3b82f6', label: 'Running'  },
+    success:  { icon: <Check size={12} />, color: '#10b981', label: 'Success'  },
+    partial:  { icon: <AlertTriangle size={12} />, color: '#f59e0b', label: 'Partial'  },
+    failed:   { icon: <X size={12} />, color: '#ef4444', label: 'Failed'   },
   }
-  const s = map[status] || { color: '#64748b', label: status }
+  const s = map[status] || { icon: null, color: '#64748b', label: status }
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
+      display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600,
       background: s.color + '22', color: s.color, border: `1px solid ${s.color}44`,
     }}>
-      {s.label}
+      {s.icon}
+      <span>{s.label}</span>
     </span>
   )
 }
@@ -34,13 +36,13 @@ function TriggerBadge({ triggeredBy }) {
   const isManual = triggeredBy === 'manual'
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
+      display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600,
       background: isManual ? '#8b5cf622' : '#64748b22',
       color:      isManual ? '#a78bfa'   : '#94a3b8',
       border:     `1px solid ${isManual ? '#8b5cf644' : '#64748b44'}`,
     }}>
-      {isManual ? '🖱 Manual' : '🤖 Automatic'}
+      {isManual ? <><User size={11} /> Manual</> : <><Cpu size={11} /> Automatic</>}
     </span>
   )
 }
@@ -190,8 +192,9 @@ export default function GamSyncPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)' }}>
-            🔄 Manual Sync Center
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <RefreshCw size={26} style={{ color: 'var(--br-primary)' }} />
+            <span>Manual Sync Center</span>
           </h1>
           <p style={{ margin: '4px 0 0', color: 'var(--color-text-subtle)', fontSize: 14 }}>
             Trigger targeted GAM data synchronisation with custom filters
@@ -202,9 +205,13 @@ export default function GamSyncPage() {
           className={`btn btn-primary${syncing ? ' btn-loading' : ''}`}
           disabled={syncing}
           onClick={handleSync}
-          style={{ fontSize: 15, padding: '10px 28px', borderRadius: 10 }}
+          style={{ fontSize: 15, padding: '10px 28px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
         >
-          {syncing ? '⟳ Syncing…' : '▶ Run Sync Now'}
+          {syncing ? (
+            <><RefreshCw size={14} className="spinner" /> Syncing…</>
+          ) : (
+            <><Play size={14} /> Run Sync Now</>
+          )}
         </button>
       </div>
 
@@ -254,7 +261,7 @@ export default function GamSyncPage() {
       {/* Filter Panel */}
       <div className="card" style={{ padding: 24 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>
-          🎯 Sync Filters
+          Sync Filters
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
 
@@ -353,8 +360,8 @@ export default function GamSyncPage() {
             padding: '12px 20px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-subtle)' }}>
-              💻 Sync Output
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-subtle)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Terminal size={14} /> Sync Output
             </span>
             <button className="btn btn-secondary btn-xs" onClick={() => setShowOutput(false)}>✕ Hide</button>
           </div>
@@ -387,15 +394,16 @@ export default function GamSyncPage() {
           borderBottom: '1px solid var(--color-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>
-            📋 Sync History
+          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <History size={16} /> Sync History
           </span>
           <button
             className="btn btn-secondary btn-xs"
             onClick={loadAll}
             disabled={logsLoading}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            {logsLoading ? '…' : '↻ Refresh'}
+            {logsLoading ? '…' : <><RefreshCw size={12} /> Refresh</>}
           </button>
         </div>
 
@@ -438,7 +446,7 @@ export default function GamSyncPage() {
                     <td style={{ color: '#64748b' }}>{log.rows_locked ?? 0}</td>
                     <td style={{ fontSize: 11, color: log.error_message ? '#ef4444' : 'var(--color-text-subtle)', maxWidth: 220 }}>
                       {log.error_message
-                        ? <span title={log.error_message}>⚠ {log.error_message.slice(0, 60)}{log.error_message.length > 60 ? '…' : ''}</span>
+                        ? <span title={log.error_message} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {log.error_message.slice(0, 60)}{log.error_message.length > 60 ? '…' : ''}</span>
                         : '—'
                       }
                     </td>
@@ -448,7 +456,7 @@ export default function GamSyncPage() {
               {logs.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={5}>📊 Totals ({logs.length})</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={5}>Totals ({logs.length})</td>
                     <td style={{ color: '#94a3b8' }}>
                       {logs.reduce((s, l) => s + (l.rows_fetched || 0), 0).toLocaleString()}
                     </td>
@@ -477,37 +485,37 @@ export default function GamSyncPage() {
             {
               label: 'Total Syncs',
               value: logs.length,
-              icon: '🔄',
+              icon: <RefreshCw size={20} />,
               color: '#8b5cf6',
             },
             {
               label: 'Manual Syncs',
               value: logs.filter(l => l.triggered_by === 'manual').length,
-              icon: '🖱',
+              icon: <User size={20} />,
               color: '#a78bfa',
             },
             {
               label: 'Auto Syncs',
               value: logs.filter(l => l.triggered_by === 'scheduler').length,
-              icon: '🤖',
+              icon: <Cpu size={20} />,
               color: '#3b82f6',
             },
             {
               label: 'Successful',
               value: logs.filter(l => l.status === 'success').length,
-              icon: '✅',
+              icon: <Check size={20} />,
               color: '#10b981',
             },
             {
               label: 'Failed',
               value: logs.filter(l => l.status === 'failed').length,
-              icon: '❌',
+              icon: <X size={20} />,
               color: '#ef4444',
             },
             {
               label: 'Total Rows Matched',
               value: logs.reduce((s, l) => s + (l.rows_matched || 0), 0).toLocaleString(),
-              icon: '📊',
+              icon: <BarChart2 size={20} />,
               color: '#f59e0b',
             },
           ].map(stat => (
@@ -520,7 +528,7 @@ export default function GamSyncPage() {
                 borderLeft: `3px solid ${stat.color}`,
               }}
             >
-              <div style={{ fontSize: 22 }}>{stat.icon}</div>
+              <div style={{ color: stat.color }}>{stat.icon}</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: stat.color }}>{stat.value}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{stat.label}</div>
             </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
+import { Megaphone, Check, X, Trash2, Edit2, Save, Send, Calendar, Users, Globe, Play, Plus } from 'lucide-react'
 
 // Lightweight built-in rich text editor (no external deps)
 function RichEditor({ value, onChange }) {
@@ -106,7 +107,7 @@ const EMPTY_FORM = {
 }
 
 const TYPE_COLORS = { banner: '#6366f1', modal: '#10b981' }
-const TYPE_LABELS = { banner: '📌 Fixed Banner', modal: '💬 Modal Popup' }
+const TYPE_LABELS = { banner: 'Fixed Banner', modal: 'Modal Popup' }
 
 export default function AdminAnnouncements() {
   const { formatDate, formatDateTimeLocal } = useSettings()
@@ -321,11 +322,14 @@ export default function AdminAnnouncements() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📢 Announcements</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Megaphone size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Announcements</span>
+          </h1>
           <p className="page-subtitle">Manage banners and modal popups for publishers</p>
         </div>
-        <button className="btn btn-primary" id="create-announcement-btn" onClick={openCreate}>
-          + New Announcement
+        <button className="btn btn-primary" id="create-announcement-btn" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={16} /> New Announcement
         </button>
       </div>
 
@@ -350,7 +354,7 @@ export default function AdminAnnouncements() {
       {/* Table */}
       {items.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📢</div>
+          <div className="empty-state-icon"><Megaphone size={40} /></div>
           <div className="empty-state-text">No announcements yet</div>
           <div className="empty-state-sub">Click "New Announcement" to create one</div>
         </div>
@@ -392,8 +396,9 @@ export default function AdminAnnouncements() {
                     <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{item.priority}</span>
                   </td>
                   <td>
-                    <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`}>
-                      {item.is_active ? '🟢 Active' : '⚫ Inactive'}
+                    <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                      {item.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
@@ -409,13 +414,14 @@ export default function AdminAnnouncements() {
                   <td style={{ textAlign: 'center', color: 'var(--color-warning)' }}>{item.dismissals_count || 0}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)}>✏️ Edit</button>
+                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
                       <button
                         className="btn btn-danger btn-xs"
                         onClick={() => handleDelete(item.id)}
                         disabled={deleting === item.id}
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        {deleting === item.id ? '…' : '🗑️'}
+                        {deleting === item.id ? '…' : <Trash2 size={12} />}
                       </button>
                     </div>
                   </td>
@@ -439,7 +445,10 @@ export default function AdminAnnouncements() {
             margin: 'auto'
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{editing ? '✏️ Edit Announcement' : '📢 New Announcement'}</h2>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {editing ? <Edit2 size={18} style={{ color: 'var(--br-primary)' }} /> : <Megaphone size={18} style={{ color: 'var(--br-primary)' }} />}
+                <span>{editing ? 'Edit Announcement' : 'New Announcement'}</span>
+              </h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 22 }}>×</button>
             </div>
 
@@ -455,8 +464,8 @@ export default function AdminAnnouncements() {
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Type</label>
                   <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                    <option value="banner">📌 Fixed Banner</option>
-                    <option value="modal">💬 Modal Popup</option>
+                    <option value="banner">Fixed Banner</option>
+                    <option value="modal">Modal Popup</option>
                   </select>
                 </div>
 
@@ -491,8 +500,8 @@ export default function AdminAnnouncements() {
               {/* Toggles */}
               <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
                 {[
-                  { key: 'is_active', label: '🟢 Active' },
-                  { key: 'allow_dismiss', label: '❌ Allow "Don\'t show again"' },
+                  { key: 'is_active', label: 'Active' },
+                  { key: 'allow_dismiss', label: 'Allow "Don\'t show again"' },
                 ].map(({ key, label }) => (
                   <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                     <div style={{
@@ -515,10 +524,10 @@ export default function AdminAnnouncements() {
               <div className="form-group" style={{ marginBottom: 16 }}>
                 <label className="form-label">Target Audience</label>
                 <select className="form-input" value={form.target_type} onChange={e => setForm(f => ({ ...f, target_type: e.target.value }))}>
-                  <option value="all">🌍 All Publishers</option>
-                  <option value="publishers">👤 Specific Publishers</option>
-                  <option value="countries">🌐 Specific Countries</option>
-                  <option value="roles">🎭 Specific Roles</option>
+                  <option value="all">All Publishers</option>
+                  <option value="publishers">Specific Publishers</option>
+                  <option value="countries">Specific Countries</option>
+                  <option value="roles">Specific Roles</option>
                 </select>
               </div>
 
@@ -567,8 +576,14 @@ export default function AdminAnnouncements() {
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</> : (editing ? '💾 Update' : '🚀 Create')}
+                <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  {saving ? (
+                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</>
+                  ) : editing ? (
+                    <><Save size={14} /> Update</>
+                  ) : (
+                    <><Send size={14} /> Create</>
+                  )}
                 </button>
               </div>
             </form>

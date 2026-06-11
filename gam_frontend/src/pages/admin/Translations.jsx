@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
+import { Languages } from 'lucide-react'
+
 
 export default function TranslationsPage() {
   const [locale, setLocale] = useState('en')
@@ -52,19 +54,21 @@ export default function TranslationsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">🌍 Translations</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Languages size={24} style={{ color: 'var(--color-primary)' }} /> Translations
+          </h1>
           <p className="page-subtitle">Edit UI strings for English and Arabic</p>
         </div>
         <div className="flex gap-3">
           <button className={`btn ${locale === 'en' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setLocale('en')}>🇺🇸 English</button>
+            onClick={() => setLocale('en')}>English</button>
           <button className={`btn ${locale === 'ar' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setLocale('ar')}>🇸🇦 Arabic</button>
+            onClick={() => setLocale('ar')}>Arabic</button>
         </div>
       </div>
 
       <div className="filter-bar">
-        <input className="form-input" placeholder="🔍 Filter by key or value…"
+        <input className="form-input" placeholder="Filter by key or value…"
           value={search} onChange={e => setSearch(e.target.value)} />
         <span className="text-muted text-sm">{filtered.length} strings</span>
       </div>

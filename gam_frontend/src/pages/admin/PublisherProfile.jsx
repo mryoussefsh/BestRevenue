@@ -8,6 +8,13 @@ import CompactAmount from '../../components/CompactAmount'
 import { PublisherModal, AdjustBalanceModal } from './Publishers'
 import { BulkAdUnitGeneratorModal } from '../../components/BulkAdUnitGeneratorModal'
 import { WebsiteModal, AdUnitModal } from './Websites'
+import { 
+  Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, 
+  Trash2, Globe, Calendar, FileText, Clipboard, Link as LinkIcon, 
+  History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus,
+  Lock, Clock
+} from 'lucide-react'
+
 
 export default function PublisherProfile() {
   const { id } = useParams()
@@ -206,8 +213,9 @@ export default function PublisherProfile() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <h1 className="page-title" style={{ margin: 0, fontSize: 24 }}>{publisher.name}</h1>
-                <span className={`badge ${publisher.status === 'active' ? 'badge-active' : publisher.status === 'pending' ? 'badge-pending' : 'badge-inactive'}`}>
-                  {publisher.status === 'active' ? '🟢' : publisher.status === 'pending' ? '🟡' : '🔴'} {publisher.status}
+                <span className={`badge ${publisher.status === 'active' ? 'badge-active' : publisher.status === 'pending' ? 'badge-pending' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                  {publisher.status}
                 </span>
               </div>
               <div className="text-muted" style={{ fontSize: 14, marginTop: 4 }}>{publisher.email}</div>
@@ -216,40 +224,49 @@ export default function PublisherProfile() {
 
           {/* Quick Actions Panel */}
           <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)}>
-              ✏️ Edit Profile
+            <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Edit2 size={14} /> Edit Profile
             </button>
             <button className="btn btn-secondary"
-              style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)' }}
+              style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onClick={() => setAdjustBalanceOpen(true)}>
-              💰 Adjust Balance
+              <DollarSign size={14} /> Adjust Balance
             </button>
             <button className="btn btn-secondary"
-              style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
+              style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onClick={() => setManualPayoutOpen(true)}>
-              💸 Manual Payout
+              <CreditCard size={14} /> Manual Payout
             </button>
             <button className="btn btn-secondary"
-              style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}
+              style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onClick={() => setBulkAdModalOpen(true)}>
-              ✨ Generate Ad Units
+              <Sparkles size={14} /> Generate Ad Units
             </button>
             <button className="btn btn-secondary"
-              style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)' }}
+              style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onClick={() => setImpersonateModalOpen(true)}>
-              👤 Log In
+              <User size={14} /> Log In
             </button>
             <button className="btn"
               style={{
                 background: publisher.status === 'active' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
                 color: publisher.status === 'active' ? 'var(--color-warning)' : 'var(--color-accent)',
-                border: publisher.status === 'active' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(16,185,129,0.3)'
+                border: publisher.status === 'active' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(16,185,129,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
               onClick={handleToggleSuspend}>
-              {publisher.status === 'active' ? '⏸ Suspend' : publisher.status === 'pending' ? '✅ Approve' : '▶ Activate'}
+              {publisher.status === 'active' ? (
+                <><Pause size={14} /> Suspend</>
+              ) : publisher.status === 'pending' ? (
+                <><Check size={14} /> Approve</>
+              ) : (
+                <><Play size={14} /> Activate</>
+              )}
             </button>
-            <button className="btn btn-danger" onClick={handleDelete}>
-              🗑 Delete
+            <button className="btn btn-danger" onClick={handleDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Trash2 size={14} /> Delete
             </button>
           </div>
         </div>
@@ -262,8 +279,8 @@ export default function PublisherProfile() {
             
             {/* Website Selector */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 200 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                🌐 Filter by Website
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Globe size={12} /> Filter by Website
               </label>
               <select
                 className="form-select"
@@ -280,8 +297,8 @@ export default function PublisherProfile() {
 
             {/* Date From Selector */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                📅 Date From
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Calendar size={12} /> Date From
               </label>
               <input
                 type="date"
@@ -294,8 +311,8 @@ export default function PublisherProfile() {
 
             {/* Date To Selector */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                📅 Date To
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Calendar size={12} /> Date To
               </label>
               <input
                 type="date"
@@ -331,7 +348,7 @@ export default function PublisherProfile() {
       {/* Stats Cards */}
       <div className="stat-grid" style={{ marginBottom: 24 }}>
         <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))' }}>
-          <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>💵</div>
+          <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><DollarSign size={20} /></div>
           <div className="stat-label">Ready for Payout</div>
           <div className="stat-value money" style={{ color: 'var(--color-accent)' }}>
             <CompactAmount value={publisher.ready_for_payout_balance || 0} />
@@ -339,7 +356,7 @@ export default function PublisherProfile() {
           <div className="stat-change text-muted">Total wallet balance</div>
         </div>
         <div className="stat-card info">
-          <div className="stat-icon">🟢</div>
+          <div className="stat-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}><Check size={20} /></div>
           <div className="stat-label">Approved Balance</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.approved_balance || 0} />
@@ -347,7 +364,7 @@ export default function PublisherProfile() {
           <div className="stat-change text-muted">Filtered for period</div>
         </div>
         <div className="stat-card warning">
-          <div className="stat-icon">⏳</div>
+          <div className="stat-icon" style={{ background: 'rgba(245,158,11,0.15)', color: 'var(--color-warning)' }}><Clock size={20} /></div>
           <div className="stat-label">Pending Balance</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.pending_balance || 0} />
@@ -355,7 +372,7 @@ export default function PublisherProfile() {
           <div className="stat-change text-muted">Holding period</div>
         </div>
         <div className="stat-card primary">
-          <div className="stat-icon">⚖️</div>
+          <div className="stat-icon" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}><Scale size={20} /></div>
           <div className="stat-label">Upcoming Adjustment</div>
           <div className="stat-value money" style={{
             color: publisher.pending_balance_adjustment > 0 ? 'var(--color-accent)' : publisher.pending_balance_adjustment < 0 ? 'var(--color-danger)' : 'inherit'
@@ -365,7 +382,7 @@ export default function PublisherProfile() {
           <div className="stat-change text-muted">Pending balance adjust</div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid var(--color-text-subtle)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)' }}>💳</div>
+          <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)' }}><CreditCard size={20} /></div>
           <div className="stat-label">Total Payouts Paid</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.total_payout || 0} />
@@ -381,7 +398,10 @@ export default function PublisherProfile() {
         <div>
           <div className="card" style={{ marginBottom: 24 }}>
             <div className="card-header" style={{ paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
-              <div className="card-title" style={{ fontSize: 16 }}>📋 Contact & System Info</div>
+              <div className="card-title" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={18} style={{ color: 'var(--br-primary)' }} />
+                <span>Contact & System Info</span>
+              </div>
             </div>
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -498,7 +518,7 @@ export default function PublisherProfile() {
                               }}
                               title="Copy account details"
                             >
-                              📋 Copy
+                              <Clipboard size={10} /> Copy
                             </button>
                           </div>
                         ) : (
@@ -549,10 +569,10 @@ export default function PublisherProfile() {
             overflow: 'hidden'
           }}>
             {[
-              { id: 'websites', label: '🌐 Websites & Ad Units' },
-              { id: 'payouts', label: '💳 Payouts History' },
-              { id: 'revenue', label: '📊 Revenue Logs' },
-              { id: 'history', label: '⏳ Ratio Changes' }
+              { id: 'websites', label: 'Websites & Ad Units', icon: <Globe size={16} /> },
+              { id: 'payouts', label: 'Payouts History', icon: <CreditCard size={16} /> },
+              { id: 'revenue', label: 'Revenue Logs', icon: <BarChart2 size={16} /> },
+              { id: 'history', label: 'Ratio Changes', icon: <History size={16} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -564,10 +584,14 @@ export default function PublisherProfile() {
                   color: activeTab === tab.id ? 'var(--color-primary-light)' : 'var(--color-text-muted)',
                   borderBottom: activeTab === tab.id ? '2px solid var(--color-primary)' : 'none',
                   background: activeTab === tab.id ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                  transition: 'all var(--transition)'
+                  transition: 'all var(--transition)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                {tab.label}
+                {tab.icon}
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -577,18 +601,18 @@ export default function PublisherProfile() {
               <div>
                 {websites.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">🌐</div>
+                    <div className="empty-state-icon"><Globe size={40} /></div>
                     <div className="empty-state-text">No websites linked</div>
                     <div className="empty-state-sub" style={{ marginBottom: 12 }}>Add websites to this publisher</div>
-                    <button className="btn btn-primary" onClick={() => setWebsiteModal('create')}>
-                      ➕ Add Website
+                    <button className="btn btn-primary" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Plus size={14} /> Add Website
                     </button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="btn btn-primary btn-sm" onClick={() => setWebsiteModal('create')}>
-                        ➕ Add Website
+                      <button className="btn btn-primary btn-sm" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={14} /> Add Website
                       </button>
                     </div>
                     {websites.filter(w => !selectedWebsite || w.id === selectedWebsite).map(web => (
@@ -601,7 +625,8 @@ export default function PublisherProfile() {
                                   {web.domain}
                                 </a>
                               </h3>
-                              <span className={`badge ${web.is_active ? 'badge-active' : 'badge-inactive'}`}>
+                              <span className={`badge ${web.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                                 {web.is_active ? 'Active' : 'Inactive'}
                               </span>
                             </div>
@@ -615,8 +640,8 @@ export default function PublisherProfile() {
                                 Ratio Override: <strong>{(parseFloat(web.ratio_override) * 100).toFixed(0)}%</strong>
                               </div>
                             )}
-                            <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)}>
-                              ✏️ Edit
+                            <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <Edit2 size={12} /> Edit
                             </button>
                           </div>
                         </div>
@@ -627,8 +652,8 @@ export default function PublisherProfile() {
                             <h4 style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: 0.5, margin: 0 }}>
                               Ad Units ({adUnitsByWebsite[web.id]?.length || 0})
                             </h4>
-                            <button className="btn btn-secondary btn-xs" style={{ padding: '3px 8px', fontSize: 11 }} onClick={() => setAdModal({ website_id: web.id })}>
-                              ➕ Add Existing Ad Unit
+                            <button className="btn btn-secondary btn-xs" style={{ padding: '3px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => setAdModal({ website_id: web.id })}>
+                              <Plus size={12} /> Add Existing Ad Unit
                             </button>
                           </div>
                           {!adUnitsByWebsite[web.id] || adUnitsByWebsite[web.id].length === 0 ? (
@@ -660,9 +685,9 @@ export default function PublisherProfile() {
                                     </td>
                                     <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
                                       <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
-                                        <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px' }} onClick={() => setAdModal(ad)}>✏️</button>
+                                        <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
                                         <button className="btn btn-xs"
-                                          style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+                                          style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
                                           title="Delete from platform only (keep in GAM)"
                                           onClick={async () => {
                                             if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
@@ -673,8 +698,8 @@ export default function PublisherProfile() {
                                             } catch {
                                               toast.error('Failed to delete ad unit')
                                             }
-                                          }}>🗑</button>
-                                        <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px' }}
+                                          }}><Trash2 size={12} /></button>
+                                        <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
                                           title="Delete from platform and archive in GAM"
                                           onClick={async () => {
                                             if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
@@ -685,7 +710,7 @@ export default function PublisherProfile() {
                                             } catch {
                                               toast.error('Failed to delete ad unit')
                                             }
-                                          }}>🗑</button>
+                                          }}><Trash2 size={12} /></button>
                                       </div>
                                     </td>
                                   </tr>
@@ -705,7 +730,7 @@ export default function PublisherProfile() {
               <div>
                 {payouts.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">💳</div>
+                    <div className="empty-state-icon"><CreditCard size={40} /></div>
                     <div className="empty-state-text">No payout records yet</div>
                     <div className="empty-state-sub">Payouts are generated when closing a monthly period</div>
                   </div>
@@ -734,7 +759,8 @@ export default function PublisherProfile() {
                             </td>
                             <td style={{ fontWeight: 700 }} className="positive"><CompactAmount value={p.final_amount} /></td>
                             <td>
-                              <span className={`badge badge-${p.status}`}>
+                              <span className={`badge badge-${p.status}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                                 {p.status}
                               </span>
                             </td>
@@ -744,7 +770,7 @@ export default function PublisherProfile() {
                       </tbody>
                       <tfoot>
                         <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                          <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({payouts.length})</td>
+                          <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({payouts.length})</td>
                           <td><CompactAmount value={totalPayoutBase} /></td>
                           <td style={{
                             color: totalPayoutAdj > 0 ? 'var(--color-accent)' : totalPayoutAdj < 0 ? 'var(--color-danger)' : 'inherit'
@@ -765,7 +791,7 @@ export default function PublisherProfile() {
               <div>
                 {revenue.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">📊</div>
+                    <div className="empty-state-icon"><BarChart2 size={40} /></div>
                     <div className="empty-state-text">No revenue logs found</div>
                     <div className="empty-state-sub">Revenue records will appear once synchronized from Google Ad Manager</div>
                   </div>
@@ -804,7 +830,9 @@ export default function PublisherProfile() {
                             <td style={{ textAlign: 'center', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                               <span className={`badge ${r.period_closing_id !== null ? 'badge-inactive' : r.is_approved ? 'badge-active' : 'badge-inactive'}`}
                                     style={{
-                                      display: 'inline-block',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
                                       whiteSpace: 'nowrap',
                                       padding: '4px 8px',
                                       borderRadius: '4px',
@@ -813,7 +841,13 @@ export default function PublisherProfile() {
                                       background: r.period_closing_id !== null ? 'rgba(99,102,241,0.15)' : r.is_approved ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
                                       color: r.period_closing_id !== null ? 'var(--color-primary-light)' : r.is_approved ? 'var(--color-accent)' : 'var(--color-warning)',
                                     }}>
-                                {r.period_closing_id !== null ? '🔒 closed' : r.is_approved ? '✓ approved' : '⏳ pending'}
+                                {r.period_closing_id !== null ? (
+                                  <><Lock size={12} /> closed</>
+                                ) : r.is_approved ? (
+                                  <><Check size={12} /> approved</>
+                                ) : (
+                                  <><Clock size={12} /> pending</>
+                                )}
                               </span>
                             </td>
                           </tr>
@@ -822,7 +856,7 @@ export default function PublisherProfile() {
                       <tfoot>
                         <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
                           <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>
-                            📊 Totals {revenue.length > 50 ? `(all ${revenue.length} logs)` : ''}
+                            Totals {revenue.length > 50 ? `(all ${revenue.length} logs)` : ''}
                           </td>
                           <td style={{ textAlign: 'right', paddingRight: 24, fontFamily: 'monospace' }}>
                             <CompactAmount value={totalRevImpr} prefix="" decimals={0} />
@@ -851,7 +885,7 @@ export default function PublisherProfile() {
               <div>
                 {ratioHistory.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">⏳</div>
+                    <div className="empty-state-icon"><History size={40} /></div>
                     <div className="empty-state-text">No ratio changes logged</div>
                     <div className="empty-state-sub">Revenue ratio change logs will show up here</div>
                   </div>
@@ -982,7 +1016,10 @@ function ImpersonateModal({ publisher, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: '480px' }}>
         <div className="modal-header">
-          <span className="modal-title">👤 Log In as Publisher</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <User size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>Log In as Publisher</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div style={{ padding: '20px 0' }}>
@@ -1033,8 +1070,9 @@ function ImpersonateModal({ publisher, onClose }) {
             className="btn btn-primary" 
             onClick={() => handleImpersonate(true)} 
             disabled={loading}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            {loading ? 'Logging in…' : '🚀 Open in New Tab'}
+            {loading ? 'Logging in…' : <><ExternalLink size={14} /> Open in New Tab</>}
           </button>
         </div>
       </div>
@@ -1079,12 +1117,16 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">💸 Record Manual Payment</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>Record Manual Payment</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="alert alert-info" style={{ fontSize: 13, marginBottom: 16 }}>
-            💡 This will record an out-of-cycle manual payment for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. It will be immediately logged as Paid.
+          <div className="alert alert-info" style={{ fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <Info size={16} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-info)' }} />
+            <span>This will record an out-of-cycle manual payment for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. It will be immediately logged as Paid.</span>
           </div>
 
           <div className="form-group">
@@ -1110,8 +1152,8 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Recording…' : '💸 Record Payment'}
+            <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {saving ? 'Recording…' : <><CreditCard size={14} /> Record Payment</>}
             </button>
           </div>
         </form>

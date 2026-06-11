@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../contexts/SettingsContext'
+import { Sparkles, Eye, Info, Settings } from 'lucide-react'
 
 export function SearchableSelect({ value, onChange, options, placeholder, emptyMessage, isOptional, clearLabel, style, disabled }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -330,7 +331,10 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 640, width: '95vw' }}>
         <div className="modal-header">
-          <span className="modal-title">✨ Generate Ad Units in GAM</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>Generate Ad Units in GAM</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -507,8 +511,9 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
               background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
               borderRadius: 8, padding: '12px 16px', marginBottom: 16,
             }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 8, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                📋 Preview — names will be assigned round number automatically
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 8, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                <Eye size={14} style={{ color: 'var(--br-primary)' }} />
+                <span>Preview — names will be assigned round number automatically</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {previewNames.map((name, i) => (
@@ -523,8 +528,9 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-muted)' }}>
-                ⚙️ <code>?</code> will be replaced with the next available round (e.g. <code>r1</code>, <code>r2</code>, …) based on existing ad units for this website.
+              <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Info size={12} style={{ color: 'var(--color-text-subtle)' }} />
+                <span><code>?</code> will be replaced with the next available round (e.g. <code>r1</code>, <code>r2</code>, …) based on existing ad units for this website.</span>
               </div>
             </div>
           )}
@@ -532,7 +538,12 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving || !form.website_id || form.sizes.length === 0}>
-              {saving ? 'Generating…' : `✨ Generate ${form.count || ''} Ad Unit${form.count > 1 ? 's' : ''} in GAM`}
+              {saving ? 'Generating…' : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} />
+                  <span>Generate {form.count || ''} Ad Unit{form.count > 1 ? 's' : ''} in GAM</span>
+                </span>
+              )}
             </button>
           </div>
         </form>

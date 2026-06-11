@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { gamAccountsApi, adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { X, Radio, Trash2, RefreshCw, Plus, Key, Edit, Check } from 'lucide-react'
+
 
 export default function GamAccountsPage() {
   const [accounts, setAccounts] = useState([])
@@ -161,18 +162,20 @@ export default function GamAccountsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📡 GAM Accounts</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Radio size={24} style={{ color: 'var(--color-primary)' }} /> GAM Accounts
+          </h1>
           <p className="page-subtitle">Connect Google Ad Manager accounts via OAuth</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing}>
-            🗑️ Wipe All Revenue
+          <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Trash2 size={14} /> Wipe All Revenue
           </button>
-          <button className="btn btn-secondary" onClick={handleManualSync} disabled={syncing}>
-            {syncing ? 'Syncing...' : '🔄 Run GAM Sync Now'}
+          <button className="btn btn-secondary" onClick={handleManualSync} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            {syncing ? 'Syncing...' : <><RefreshCw size={14} /> Run GAM Sync Now</>}
           </button>
-          <button className="btn btn-primary" onClick={handleConnect} disabled={loading || !credentials.google_client_id}>
-            + Connect with Google
+          <button className="btn btn-primary" onClick={handleConnect} disabled={loading || !credentials.google_client_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={14} /> Connect with Google
           </button>
         </div>
       </div>
@@ -196,13 +199,15 @@ export default function GamAccountsPage() {
             }}
             onClick={() => setShowConfig(true)}
           >
-            ✅ Google API Configured (Click to edit)
+            <Check size={16} /> Google API Configured (Click to edit)
           </button>
         </div>
       ) : (
         <div className="card" style={{ marginBottom: 24 }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="card-title">🔑 Google API Configuration</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Key size={18} style={{ color: 'var(--br-primary)' }} /> Google API Configuration
+            </div>
             {credentials.google_client_id && credentials.google_client_secret && (
               <button 
                 type="button"
@@ -251,11 +256,11 @@ export default function GamAccountsPage() {
         <div className="loading-screen"><div className="spinner"></div></div>
       ) : accounts.length === 0 ? (
         <div className="empty-state">
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔌</div>
+          <div className="empty-state-icon" style={{ marginBottom: 16 }}><Radio size={40} /></div>
           <h3>No GAM Accounts Connected</h3>
           <p className="text-muted">Connect a Google account to start syncing revenue data.</p>
-          <button className="btn btn-primary" onClick={handleConnect} style={{ marginTop: 16 }}>
-            Connect Now
+          <button className="btn btn-primary" onClick={handleConnect} style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={14} /> Connect Now
           </button>
         </div>
       ) : (
@@ -286,24 +291,26 @@ export default function GamAccountsPage() {
               <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
                 <button 
                   className="btn btn-secondary btn-sm" 
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                   onClick={() => openEditModal(acc)}
                 >
-                  ✏️ Edit
+                  <Edit size={12} /> Edit
                 </button>
                 <button 
                   className="btn btn-secondary btn-sm" 
                   onClick={() => handleRefresh(acc.id)}
                   title="Refresh Token"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  🔄
+                  <RefreshCw size={12} />
                 </button>
                 <button 
                   className="btn btn-danger btn-sm"
                   onClick={() => handleDelete(acc.id)}
                   title="Disconnect"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  🗑️
+                  <Trash2 size={12} />
                 </button>
               </div>
             </div>
@@ -316,7 +323,9 @@ export default function GamAccountsPage() {
         <div className="modal-backdrop">
           <div className="modal">
             <div className="modal-header">
-              <h2>Edit GAM Account</h2>
+              <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit size={18} style={{ color: 'var(--br-primary)' }} /> Edit GAM Account
+              </span>
               <button
                 onClick={() => setEditingAccount(null)}
                 style={{

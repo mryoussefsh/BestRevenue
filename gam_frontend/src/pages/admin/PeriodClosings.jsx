@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
 import CompactAmount from '../../components/CompactAmount'
+import { Calendar, Lock, Eye, Trash2, RefreshCw, AlertTriangle } from 'lucide-react'
 
 function CloseModal({ onClose, onDone }) {
   const now = new Date()
@@ -27,12 +28,18 @@ function CloseModal({ onClose, onDone }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">📅 Close Financial Period</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>Close Financial Period</span>
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <div className="alert alert-warning">
-          ⚠️ Closing a period <strong>locks</strong> all revenue records for that month and
-          auto-generates payout records for all publishers. This action cannot be undone.
+        <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <AlertTriangle size={20} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
+          <div>
+            Closing a period <strong>locks</strong> all revenue records for that month and
+            auto-generates payout records for all publishers. This action cannot be undone.
+          </div>
         </div>
         <div className="form-row">
           <div className="form-group">
@@ -54,8 +61,9 @@ function CloseModal({ onClose, onDone }) {
         </div>
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button id="confirm-close-period-btn" className="btn btn-danger" onClick={handleClose} disabled={closing}>
-            {closing ? 'Closing…' : '🔒 Close Period & Generate Payouts'}
+          <button id="confirm-close-period-btn" className="btn btn-danger" onClick={handleClose} disabled={closing} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Lock size={14} />
+            <span>{closing ? 'Closing…' : 'Close Period & Generate Payouts'}</span>
           </button>
         </div>
       </div>
@@ -111,11 +119,14 @@ export default function PeriodClosingsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📅 Period Closings</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Period Closings</span>
+          </h1>
           <p className="page-subtitle">Financial month-end closing system</p>
         </div>
-        <button id="open-close-period-btn" className="btn btn-danger" onClick={() => setShowModal(true)}>
-          🔒 Close a Period
+        <button id="open-close-period-btn" className="btn btn-danger" onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <Lock size={16} /> Close a Period
         </button>
       </div>
 
@@ -132,7 +143,7 @@ export default function PeriodClosingsPage() {
                   {closings.length === 0 && (
                     <tr><td colSpan={8}>
                       <div className="empty-state">
-                        <div className="empty-state-icon">📅</div>
+                        <div className="empty-state-icon"><Calendar size={40} style={{ color: 'var(--br-text-2)' }} /></div>
                         <div className="empty-state-text">No closed periods yet</div>
                         <div className="empty-state-sub">Use the button above to close a financial period</div>
                       </div>
@@ -143,7 +154,17 @@ export default function PeriodClosingsPage() {
                         <td style={{ fontWeight: 700 }}>{monthLabel(c.period_year, c.period_month)}</td>
                         <td>
                           <span className={`badge ${c.status === 'closed' ? 'badge-closed' : 'badge-pending'}`}>
-                            {c.status === 'closed' ? '🔒 Closed' : '🔄 ' + c.status}
+                            {c.status === 'closed' ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Lock size={12} />
+                                Closed
+                              </span>
+                            ) : (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <RefreshCw size={12} />
+                                {c.status}
+                              </span>
+                            )}
                           </span>
                         </td>
                         <td className="money positive"><CompactAmount value={c.total_gross_revenue || 0} /></td>
@@ -157,11 +178,11 @@ export default function PeriodClosingsPage() {
                         <td className="text-sm text-muted">{c.closed_at ? formatDate(c.closed_at) : '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="btn btn-secondary btn-xs" onClick={() => loadDetail(c.id)}>
-                              👁 View
+                            <button className="btn btn-secondary btn-xs" onClick={() => loadDetail(c.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <Eye size={12} /> View
                             </button>
-                            <button className="btn btn-danger btn-xs" onClick={() => handleDelete(c.id, c.period_year, c.period_month)}>
-                              🗑 Delete
+                            <button className="btn btn-danger btn-xs" onClick={() => handleDelete(c.id, c.period_year, c.period_month)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <Trash2 size={12} /> Delete
                             </button>
                           </div>
                         </td>
@@ -171,7 +192,7 @@ export default function PeriodClosingsPage() {
                   {closings.length > 0 && (
                     <tfoot>
                       <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                        <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals ({closings.length})</td>
+                        <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals ({closings.length})</td>
                         <td className="money positive">
                           <CompactAmount value={closings.reduce((s, c) => s + parseFloat(c.total_gross_revenue || 0), 0)} />
                         </td>
@@ -235,7 +256,7 @@ export default function PeriodClosingsPage() {
                 {detail.payouts && detail.payouts.length > 0 && (
                   <tfoot>
                     <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                      <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({detail.payouts.length})</td>
+                      <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({detail.payouts.length})</td>
                       <td className="money positive" style={{ fontWeight: 700 }}>
                         <CompactAmount value={detail.payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)} />
                       </td>

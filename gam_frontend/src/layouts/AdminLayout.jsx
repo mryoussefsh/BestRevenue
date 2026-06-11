@@ -4,24 +4,45 @@ import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { adminApi } from '../api/endpoints'
+import { 
+  LayoutDashboard, 
+  Users, 
+  Globe, 
+  DollarSign, 
+  Calendar, 
+  CreditCard, 
+  Scale, 
+  Ticket, 
+  Megaphone, 
+  FileText, 
+  History, 
+  Server, 
+  RefreshCw, 
+  Settings, 
+  Mail, 
+  Languages,
+  TrendingUp,
+  User,
+  LogOut
+} from 'lucide-react'
 
 const navItems = [
-  { to: '/admin',              icon: '📊', label: 'Dashboard',      end: true },
-  { to: '/admin/publishers',   icon: '👥', label: 'Publishers', countKey: 'pending_publishers' },
-  { to: '/admin/websites',     icon: '🌐', label: 'Websites'    },
-  { to: '/admin/revenue',      icon: '💰', label: 'Revenue'     },
-  { to: '/admin/closings',     icon: '📅', label: 'Period Closings' },
-  { to: '/admin/payouts',      icon: '💳', label: 'Payouts',    countKey: 'pending_payouts' },
-  { to: '/admin/adjustments',  icon: '⚖️', label: 'Adjustments' },
-  { to: '/admin/tickets',      icon: '🎫', label: 'Support Tickets', countKey: 'pending_tickets' },
-  { to: '/admin/announcements',icon: '📢', label: 'Announcements' },
-  { to: '/admin/pages',        icon: '📄', label: 'Pages'         },
-  { to: '/admin/audit-logs',   icon: '📜', label: 'Audit Logs'  },
-  { to: '/admin/gam-accounts', icon: '📡', label: 'GAM Accounts'},
-  { to: '/admin/gam-sync',     icon: '🔄', label: 'Manual Sync' },
-  { to: '/admin/settings',     icon: '⚙️',  label: 'Settings'   },
-  { to: '/admin/email-templates', icon: '📧', label: 'Email Templates' },
-  { to: '/admin/translations', icon: '🌍', label: 'Translations' },
+  { to: '/admin',              icon: LayoutDashboard, label: 'Dashboard',      end: true },
+  { to: '/admin/publishers',   icon: Users, label: 'Publishers', countKey: 'pending_publishers' },
+  { to: '/admin/websites',     icon: Globe, label: 'Websites'    },
+  { to: '/admin/revenue',      icon: DollarSign, label: 'Revenue'     },
+  { to: '/admin/closings',     icon: Calendar, label: 'Period Closings' },
+  { to: '/admin/payouts',      icon: CreditCard, label: 'Payouts',    countKey: 'pending_payouts' },
+  { to: '/admin/adjustments',  icon: Scale, label: 'Adjustments' },
+  { to: '/admin/tickets',      icon: Ticket, label: 'Support Tickets', countKey: 'pending_tickets' },
+  { to: '/admin/announcements',icon: Megaphone, label: 'Announcements' },
+  { to: '/admin/pages',        icon: FileText, label: 'Pages'         },
+  { to: '/admin/audit-logs',   icon: History, label: 'Audit Logs'  },
+  { to: '/admin/gam-accounts', icon: Server, label: 'GAM Accounts'},
+  { to: '/admin/gam-sync',     icon: RefreshCw, label: 'Manual Sync' },
+  { to: '/admin/settings',     icon: Settings,  label: 'Settings'   },
+  { to: '/admin/email-templates', icon: Mail, label: 'Email Templates' },
+  { to: '/admin/translations', icon: Languages, label: 'Translations' },
 ]
 
 export default function AdminLayout({ children }) {
@@ -54,7 +75,9 @@ export default function AdminLayout({ children }) {
             <img src={settings.site_logo} alt="Logo" style={{ height: 32, maxWidth: '100%', objectFit: 'contain' }} />
           ) : (
             <>
-              <div className="sidebar-logo-icon">💹</div>
+              <div className="sidebar-logo-icon">
+                <TrendingUp size={20} style={{ color: '#fff' }} />
+              </div>
               <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
             </>
           )}
@@ -74,9 +97,9 @@ export default function AdminLayout({ children }) {
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <div>
-                  <span className="nav-icon">{item.icon}</span>
-                  {item.label}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <item.icon className="nav-icon" size={18} />
+                  <span>{item.label}</span>
                 </div>
                 {count > 0 && (
                   <span style={{
@@ -102,10 +125,10 @@ export default function AdminLayout({ children }) {
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
             style={{ marginBottom: 8, display: 'flex', gap: 12, alignItems: 'center', textDecoration: 'none' }}
           >
-            <span className="nav-icon">👤</span>
+            <User className="nav-icon" size={18} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{user?.name || 'Admin'}</div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Administrator ⚙️</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Administrator</div>
             </div>
           </NavLink>
           <button
@@ -113,7 +136,7 @@ export default function AdminLayout({ children }) {
             style={{ width: '100%', justifyContent: 'center' }}
             onClick={handleLogout}
           >
-            🚪 Logout
+            <LogOut size={16} /> Logout
           </button>
         </div>
       </aside>
@@ -139,7 +162,15 @@ export default function AdminLayout({ children }) {
                 onClick={() => switchLocale('ar')}
               >AR</button>
             </div>
-            <div className="badge badge-active">🟢 Online</div>
+            <div className="badge badge-active">
+              <span style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: 'currentColor'
+              }} />
+              Online
+            </div>
           </div>
         </header>
 

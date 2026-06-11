@@ -6,6 +6,10 @@ import Pagination from '../../components/Pagination'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import { useSettings } from '../../contexts/SettingsContext'
 import CompactAmount from '../../components/CompactAmount'
+import { 
+  Scale, Gift, Zap, Plus, Lock, Clock, Trash2, BarChart2, Info, Globe
+} from 'lucide-react'
+
 
 export default function AdjustmentsPage() {
   const { formatDate } = useSettings()
@@ -72,18 +76,20 @@ export default function AdjustmentsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">⚖️ Adjustments</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Scale size={24} style={{ color: 'var(--color-primary)' }} /> Adjustments
+          </h1>
           <p className="page-subtitle">{totalItems} total adjustments</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={() => setShowBonusModal(true)} style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)' }}>
-            🎁 Apply Bonus
+          <button className="btn btn-secondary" onClick={() => setShowBonusModal(true)} style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Gift size={14} /> Apply Bonus
           </button>
-          <button className="btn btn-secondary" onClick={() => setShowIvtModal(true)}>
-            ⚡ Apply IVT Deduction
+          <button className="btn btn-secondary" onClick={() => setShowIvtModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Zap size={14} /> Apply IVT Deduction
           </button>
-          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-            ➕ Create Adjustment
+          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={14} /> Create Adjustment
           </button>
         </div>
       </div>
@@ -92,7 +98,7 @@ export default function AdjustmentsPage() {
         <input
           className="form-input"
           style={{ flex: 1, minWidth: 200 }}
-          placeholder="🔍 Search publisher name, email, or notes…"
+          placeholder="Search publisher name, email, or notes…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -130,7 +136,7 @@ export default function AdjustmentsPage() {
                   <tr>
                     <td colSpan={7}>
                       <div className="empty-state">
-                        <div className="empty-state-icon">⚖️</div>
+                        <div className="empty-state-icon"><Scale size={40} /></div>
                         <div className="empty-state-text">No adjustments found</div>
                         <div className="empty-state-sub">Click "Create Adjustment" to add a new one</div>
                       </div>
@@ -168,13 +174,17 @@ export default function AdjustmentsPage() {
                               background: adj.status === 'applied' ? 'rgba(99,102,241,0.15)' : 'rgba(245,158,11,0.15)',
                               color: adj.status === 'applied' ? 'var(--color-primary-light)' : 'var(--color-warning)'
                             }}>
-                        {adj.status === 'applied' ? '🔒 Applied' : '⏳ Pending'}
+                        {adj.status === 'applied' ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Lock size={12} /> Applied</span>
+                        ) : (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> Pending</span>
+                        )}
                       </span>
                     </td>
                     <td>
                       {adj.status === 'pending' ? (
-                        <button className="btn btn-danger btn-xs" onClick={() => handleDelete(adj)}>
-                          🗑 Delete
+                        <button className="btn btn-danger btn-xs" onClick={() => handleDelete(adj)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Trash2 size={12} /> Delete
                         </button>
                       ) : (
                         <span className="text-muted text-sm">—</span>
@@ -186,7 +196,11 @@ export default function AdjustmentsPage() {
               {adjustments.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals (Page)</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <BarChart2 size={14} /> Totals (Page)
+                      </span>
+                    </td>
                     <td>
                       <span className={`badge ${totalAmount >= 0 ? 'badge-active' : 'badge-inactive'}`}
                             style={{
@@ -284,12 +298,15 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">➕ Create Adjustment</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} style={{ color: 'var(--br-primary)' }} /> Create Adjustment
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="alert alert-warning" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0' }}>
-          💡 Adjustments created here will accumulate and automatically apply when the current monthly period is closed. Use positive values for bonuses, and negative values for deductions.
+        <div className="alert alert-warning" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-warning)' }} />
+          <span>Adjustments created here will accumulate and automatically apply when the current monthly period is closed. Use positive values for bonuses, and negative values for deductions.</span>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -336,8 +353,8 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Creating…' : 'Create Adjustment'}
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {loading ? 'Creating…' : <><Plus size={14} /> Create Adjustment</>}
             </button>
           </div>
         </form>
@@ -460,12 +477,15 @@ function ApplyIvtModal({ onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
-          <span className="modal-title">⚡ Apply IVT Deduction</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Zap size={18} style={{ color: 'var(--br-primary)' }} /> Apply IVT Deduction
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0' }}>
-          💡 This tool automatically creates negative pending adjustments for the selected websites based on their total publisher earnings in the selected period.
+        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
+          <span>This tool automatically creates negative pending adjustments for the selected websites based on their total publisher earnings in the selected period.</span>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -501,7 +521,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
                   disabled={loadingWebsites || websites.length === 0}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  🌐 Select Websites...
+                  <Globe size={14} /> Select Websites...
                 </button>
                 <span style={{ fontSize: '13px', fontWeight: 500 }}>
                   {loadingWebsites ? (
@@ -556,8 +576,8 @@ function ApplyIvtModal({ onClose, onSaved }) {
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)}>
-              {submitting ? 'Applying…' : 'Apply IVT Deduction'}
+            <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {submitting ? 'Applying…' : <><Zap size={14} /> Apply IVT Deduction</>}
             </button>
           </div>
         </form>
@@ -617,12 +637,15 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
     <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 700, zIndex: 1101 }}>
         <div className="modal-header">
-          <span className="modal-title">🌐 Select Websites</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Globe size={18} style={{ color: 'var(--br-primary)' }} /> Select Websites
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 16px 0' }}>
-          Select websites to apply the IVT deduction. Use search to filter if needed.
+        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 16px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
+          <span>Select websites to apply the IVT deduction. Use search to filter if needed.</span>
         </div>
 
         <div className="form-group" style={{ marginBottom: 16 }}>
@@ -643,7 +666,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Search websites by domain or publisher name..."
+            placeholder="Search websites by domain or publisher name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ marginBottom: 12, height: 36, fontSize: '13px' }}
@@ -817,12 +840,15 @@ function ApplyBonusModal({ onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
-          <span className="modal-title">🎁 Apply Bonus Adjustment</span>
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Gift size={18} style={{ color: 'var(--br-primary)' }} /> Apply Bonus Adjustment
+          </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0' }}>
-          💡 This tool automatically creates positive pending adjustments (bonuses) for the selected websites based on their total publisher earnings in the selected period.
+        <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
+          <span>This tool automatically creates positive pending adjustments (bonuses) for the selected websites based on their total publisher earnings in the selected period.</span>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -858,7 +884,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
                   disabled={loadingWebsites || websites.length === 0}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  🌐 Select Websites...
+                  <Globe size={14} /> Select Websites...
                 </button>
                 <span style={{ fontSize: '13px', fontWeight: 500 }}>
                   {loadingWebsites ? (
@@ -913,8 +939,8 @@ function ApplyBonusModal({ onClose, onSaved }) {
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)}>
-              {submitting ? 'Applying…' : 'Apply Bonus'}
+            <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {submitting ? 'Applying…' : <><Gift size={14} /> Apply Bonus</>}
             </button>
           </div>
         </form>

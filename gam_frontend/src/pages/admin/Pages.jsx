@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
+import { FileText, Edit2, Trash2, Save, Send } from 'lucide-react'
 
 // Lightweight built-in rich text editor
 function RichEditor({ value, onChange }) {
@@ -224,7 +225,10 @@ export default function AdminPages() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">📄 Page Management</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Page Management</span>
+          </h1>
           <p className="page-subtitle">Add and edit dynamic pages (Privacy Policy, Terms, etc.) and specify where they appear</p>
         </div>
         <button className="btn btn-primary" id="create-page-btn" onClick={openCreate}>
@@ -235,7 +239,7 @@ export default function AdminPages() {
       {/* Pages Table */}
       {items.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📄</div>
+          <div className="empty-state-icon"><FileText size={40} /></div>
           <div className="empty-state-text">No custom pages created yet</div>
           <div className="empty-state-sub">Click "New Page" to create one</div>
         </div>
@@ -275,19 +279,21 @@ export default function AdminPages() {
                     </div>
                   </td>
                   <td>
-                    <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`}>
-                      {item.is_active ? '🟢 Active' : '⚫ Inactive'}
+                    <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                      {item.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)}>✏️ Edit</button>
+                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
                       <button
                         className="btn btn-danger btn-xs"
                         onClick={() => handleDelete(item.id)}
                         disabled={deleting === item.id}
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        {deleting === item.id ? '…' : '🗑️'}
+                        {deleting === item.id ? '…' : <Trash2 size={12} />}
                       </button>
                     </div>
                   </td>
@@ -311,7 +317,10 @@ export default function AdminPages() {
             margin: 'auto'
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{editing ? '✏️ Edit Page' : '📄 New Page'}</h2>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {editing ? <Edit2 size={18} style={{ color: 'var(--br-primary)' }} /> : <FileText size={18} style={{ color: 'var(--br-primary)' }} />}
+                <span>{editing ? 'Edit Page' : 'New Page'}</span>
+              </h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 22 }}>×</button>
             </div>
 
@@ -362,10 +371,10 @@ export default function AdminPages() {
                 <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600 }}>Placement & Visibility</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
-                    { key: 'show_in_public_footer', label: '🌐 Show in Public Footer (Landing & Support Pages)' },
-                    { key: 'show_in_publisher_footer', label: '🔑 Show in Publisher Dashboard Footer' },
-                    { key: 'show_in_landing_menu', label: '📱 Show in Landing Page Navigation Menu' },
-                    { key: 'is_active', label: '🟢 Page is Active and Published' },
+                    { key: 'show_in_public_footer', label: 'Show in Public Footer (Landing & Support Pages)' },
+                    { key: 'show_in_publisher_footer', label: 'Show in Publisher Dashboard Footer' },
+                    { key: 'show_in_landing_menu', label: 'Show in Landing Page Navigation Menu' },
+                    { key: 'is_active', label: 'Page is Active and Published' },
                   ].map(({ key, label }) => (
                     <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
                       <div style={{
@@ -387,8 +396,14 @@ export default function AdminPages() {
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</> : (editing ? '💾 Update Page' : '🚀 Create Page')}
+                <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  {saving ? (
+                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</>
+                  ) : editing ? (
+                    <><Save size={14} /> Update Page</>
+                  ) : (
+                    <><Send size={14} /> Create Page</>
+                  )}
                 </button>
               </div>
             </form>

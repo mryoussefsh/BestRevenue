@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.9.1] - 2026-06-11
+
+### Changed
+- **Emoji Elimination**: Replaced old emojis with modern Lucide icons in the Adjustments, Audit Logs, GAM Accounts, and Translations admin views.
+
+### Fixed
+- **Publisher Profile Blank Page**: Fixed a runtime ReferenceError crashing the Publisher Profile page due to missing `Lock` and `Clock` imports from `lucide-react`.
+
 ## [1.9.0] - 2026-06-11
 
 ### Added

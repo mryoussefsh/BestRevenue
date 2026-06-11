@@ -3,6 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { DollarSign, RefreshCw, Search, Lock, Clock, Check } from 'lucide-react'
 
 function PublisherSelect({ publishers, value, onChange }) {
   const [search, setSearch] = useState('')
@@ -152,11 +153,14 @@ export default function RevenuePage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">💰 Revenue</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <DollarSign size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Revenue</span>
+          </h1>
           <p className="page-subtitle">{records.length} records · Full admin view</p>
         </div>
         <button id="apply-revenue-filters-btn" className="btn btn-secondary" onClick={loadData}>
-          ↻ Refresh
+          <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
@@ -191,11 +195,11 @@ export default function RevenuePage() {
         <select className="form-select" value={filters.status}
           onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
           <option value="">All Statuses</option>
-          <option value="pending">⏳ Pending</option>
-          <option value="approved">🟢 Approved</option>
-          <option value="closed">🔒 Closed</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="closed">Closed</option>
         </select>
-        <input className="form-input" placeholder="🔍 Search publishers, domains, ad units…" style={{ flex: 1, minWidth: 240 }}
+        <input className="form-input" placeholder="Search publishers, domains, ad units…" style={{ flex: 1, minWidth: 240 }}
           value={filters.search}
           onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
         <button className="btn btn-secondary" onClick={resetFilters} title="Reset Filters" style={{ height: '38px', padding: '0 12px' }}>
@@ -226,7 +230,7 @@ export default function RevenuePage() {
                 {records.length === 0 && (
                   <tr><td colSpan={11}>
                     <div className="empty-state">
-                      <div className="empty-state-icon">💰</div>
+                      <div className="empty-state-icon"><DollarSign size={40} style={{ color: 'var(--br-text-2)' }} /></div>
                       <div className="empty-state-text">No revenue records for this period</div>
                     </div>
                   </td></tr>
@@ -238,9 +242,9 @@ export default function RevenuePage() {
                       <div style={{ fontWeight: 600 }}>{r.ad_unit?.display_name || '—'}</div>
                       <div className="text-muted" style={{ fontSize: 11 }}>{r.ad_unit?.website?.domain}</div>
                     </td>
-                     <td className="money">
-                       <CompactAmount value={r.impressions} prefix="" decimals={0} />
-                     </td>
+                    <td className="money">
+                      <CompactAmount value={r.impressions} prefix="" decimals={0} />
+                    </td>
                     <td className="money">{(parseFloat(r.ctr) * 100).toFixed(2)}%</td>
                     <td className="money">${parseFloat(r.cpm).toFixed(2)}</td>
                     <td className="money positive"><CompactAmount value={r.gross_revenue} /></td>
@@ -254,11 +258,20 @@ export default function RevenuePage() {
                     </td>
                     <td>
                       {r.period_closing_id ? (
-                        <span className="badge badge-closed">🔒 Closed</span>
+                        <span className="badge badge-closed">
+                          <Lock size={12} />
+                          Closed
+                        </span>
                       ) : r.approval_status === 'pending' ? (
-                        <span className="badge badge-pending">⏳ Pending</span>
+                        <span className="badge badge-pending">
+                          <Clock size={12} />
+                          Pending
+                        </span>
                       ) : (
-                        <span className="badge badge-approved">🟢 Approved</span>
+                        <span className="badge badge-approved">
+                          <Check size={12} />
+                          Approved
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -267,7 +280,7 @@ export default function RevenuePage() {
               {records.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>📊 Totals</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals</td>
                     <td className="money">
                       <CompactAmount value={totalImpr} prefix="" decimals={0} />
                     </td>

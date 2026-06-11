@@ -3,6 +3,7 @@ import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { BulkAdUnitGeneratorModal, SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
+import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers } from 'lucide-react'
 
 export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSaved, hidePublisherSelect }) {
   const isEdit = !!website?.id
@@ -47,7 +48,7 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">{isEdit ? '✏️ Edit Website' : '➕ Add Website'}</span>
+          <span className="modal-title">{isEdit ? 'Edit Website' : 'Add Website'}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -174,7 +175,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">{isEdit ? '✏️ Edit Ad Unit' : '➕ Add Ad Unit'}</span>
+          <span className="modal-title">{isEdit ? 'Edit Ad Unit' : 'Add Ad Unit'}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -400,18 +401,21 @@ export default function WebsitesPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">🌐 Websites & Ad Units</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Globe size={28} style={{ color: 'var(--br-primary)' }} />
+            <span>Websites & Ad Units</span>
+          </h1>
           <p className="page-subtitle">{websites.length} websites · {adUnits.length} ad units</p>
         </div>
         <div className="flex gap-3">
           <button id="add-website-btn" className="btn btn-secondary" onClick={() => setModal('create')}>
-            ➕ Add Website
+            <Plus size={16} /> Add Website
           </button>
           <button className="btn btn-secondary" onClick={() => setAdModal('create')}>
-            ➕ Add Existing Ad Unit
+            <Plus size={16} /> Add Existing Ad Unit
           </button>
           <button className="btn btn-primary" onClick={() => setGamAdModal(true)} style={{ background: 'var(--color-accent)' }}>
-            ✨ Generate Ad Units
+            <Sparkles size={16} /> Generate Ad Units
           </button>
         </div>
       </div>
@@ -426,7 +430,7 @@ export default function WebsitesPage() {
               color: tab === t ? 'var(--color-primary-light)' : 'var(--color-text-muted)',
               transition: 'all 0.2s'
             }}>
-            {t === 'websites' ? `🌐 Websites (${filteredWebsites.length})` : `📦 Ad Units (${filteredAdUnits.length})`}
+            {t === 'websites' ? `Websites (${filteredWebsites.length})` : `Ad Units (${filteredAdUnits.length})`}
           </button>
         ))}
       </div>
@@ -438,7 +442,7 @@ export default function WebsitesPage() {
           padding: '14px 0', marginBottom: 4
         }}>
           <input
-            className="form-input" placeholder="🔍 Search domain…"
+            className="form-input" placeholder="Search domain…"
             value={wSearch} onChange={e => setWSearch(e.target.value)}
             style={{ minWidth: 180, maxWidth: 220 }}
           />
@@ -459,14 +463,14 @@ export default function WebsitesPage() {
           <select className="form-select" value={wGamLinked} onChange={e => setWGamLinked(e.target.value)}
             style={{ minWidth: 150 }}>
             <option value="">GAM Account: All</option>
-            <option value="linked">🔗 Linked to GAM</option>
-            <option value="unlinked">⚠️ No GAM Account</option>
+            <option value="linked">Linked to GAM</option>
+            <option value="unlinked">No GAM Account</option>
           </select>
           <select className="form-select" value={wStatus} onChange={e => setWStatus(e.target.value)}
             style={{ minWidth: 130 }}>
             <option value="">All Statuses</option>
-            <option value="active">🟢 Active</option>
-            <option value="inactive">⚫ Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
           <select className="form-select" value={wRatio} onChange={e => setWRatio(e.target.value)}
             style={{ minWidth: 150 }}>
@@ -548,7 +552,7 @@ export default function WebsitesPage() {
           ) : (
             <>
               <input
-            className="form-input" placeholder="🔍 Search name or GAM code…"
+            className="form-input" placeholder="Search name or GAM code…"
             value={aSearch} onChange={e => setASearch(e.target.value)}
             style={{ minWidth: 210, maxWidth: 260 }}
           />
@@ -582,8 +586,8 @@ export default function WebsitesPage() {
           <select className="form-select" value={aStatus} onChange={e => setAStatus(e.target.value)}
             style={{ minWidth: 130 }}>
             <option value="">All Statuses</option>
-            <option value="active">🟢 Active</option>
-            <option value="inactive">⚫ Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
           <select className="form-select" value={aRatio} onChange={e => setARatio(e.target.value)}
             style={{ minWidth: 150 }}>
@@ -619,7 +623,7 @@ export default function WebsitesPage() {
                   <tbody>
                     {filteredWebsites.length === 0 && (
                       <tr><td colSpan={6}><div className="empty-state">
-                        <div className="empty-state-icon">🌐</div>
+                        <div className="empty-state-icon"><Globe size={40} style={{ color: 'var(--br-text-2)' }} /></div>
                         <div className="empty-state-text">{hasWFilters ? 'No websites match your filters' : 'No websites yet'}</div>
                       </div></td></tr>
                     )}
@@ -632,7 +636,7 @@ export default function WebsitesPage() {
                           <td>
                             <div className="flex gap-2 align-center">
                               <span className="text-sm"><code>{w.gam_network_code}</code></span>
-                              {w.gam_account_id && <span className="badge badge-active" title="Linked to GAM OAuth Account">🔗</span>}
+                              {w.gam_account_id && <span className="badge badge-active" title="Linked to GAM OAuth Account" style={{ padding: '3px 6px' }}><Link size={12} /></span>}
                             </div>
                           </td>
                           <td>
@@ -642,18 +646,19 @@ export default function WebsitesPage() {
                           </td>
                           <td>
                             <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                              {w.is_active ? '🟢 Active' : '⚫ Inactive'}
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                              {w.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
                           <td>
                             <div className="flex gap-2">
-                              <button className="btn btn-secondary btn-xs" onClick={() => setModal(w)}>✏️ Edit</button>
+                              <button className="btn btn-secondary btn-xs" onClick={() => setModal(w)}><Edit2 size={12} /> Edit</button>
                               <button className="btn btn-danger btn-xs"
                                 onClick={async () => {
                                   if (!confirm(`Delete ${w.domain}?`)) return
                                   await adminApi.deleteWebsite(w.id)
                                   loadAll()
-                                }}>🗑</button>
+                                }}><Trash2 size={12} /></button>
                             </div>
                           </td>
                         </tr>
@@ -691,7 +696,7 @@ export default function WebsitesPage() {
                   <tbody>
                     {filteredAdUnits.length === 0 && (
                       <tr><td colSpan={7}><div className="empty-state">
-                        <div className="empty-state-icon">📦</div>
+                        <div className="empty-state-icon"><Layers size={40} style={{ color: 'var(--br-text-2)' }} /></div>
                         <div className="empty-state-text">{hasAFilters ? 'No ad units match your filters' : 'No ad units yet'}</div>
                       </div></td></tr>
                     )}
@@ -724,12 +729,13 @@ export default function WebsitesPage() {
                           </td>
                           <td>
                             <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                              {a.is_active ? '🟢 Active' : '⚫ Inactive'}
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
+                              {a.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
                           <td>
                             <div className="flex gap-2">
-                              <button className="btn btn-secondary btn-xs" onClick={() => setAdModal(a)}>✏️ Edit</button>
+                              <button className="btn btn-secondary btn-xs" onClick={() => setAdModal(a)}><Edit2 size={12} /> Edit</button>
                               <button className="btn btn-xs"
                                 style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
                                 title="Delete from platform only (keep in GAM)"
@@ -737,14 +743,14 @@ export default function WebsitesPage() {
                                   if (!confirm(`Delete ad unit "${a.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
                                   await adminApi.deleteAdUnit(a.id, { archive: false })
                                   loadAll()
-                                }}>🗑</button>
+                                }}><Trash2 size={12} /></button>
                               <button className="btn btn-danger btn-xs"
                                 title="Delete from platform and archive in GAM"
                                 onClick={async () => {
                                   if (!confirm(`Delete ad unit "${a.display_name}" from platform and archive it in Google Ad Manager?`)) return
                                   await adminApi.deleteAdUnit(a.id, { archive: true })
                                   loadAll()
-                                }}>🗑</button>
+                                }}><Trash2 size={12} /></button>
                             </div>
                           </td>
                         </tr>
