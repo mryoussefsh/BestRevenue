@@ -147,6 +147,13 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Integrated conditional social icons inside public footers (Landing, Support, Dynamic Pages) and publisher dashboard layout footer.
 - [x] Created and placed layout footer in the Admin dashboard layout showing the copyright notice and "Administrator" portal indicator.
 
+### Milestone 9: Admin Profile & Password Management (Sprint 14)
+- [x] Created backend PUT `/admin/profile` and `/admin/change-password` routes and `AdminProfileController` to handle updates.
+- [x] Added automated validation checking email uniqueness in `users` database table.
+- [x] Programmed frontend React layout settings page `/admin/profile` supporting tabs and premium UI inputs.
+- [x] Connected administrator profile name card in sidebar navigation footer to link directly to profile page.
+- [x] Completed `AdminProfileTest.php` feature tests checking name, email, duplicate emails, password validation, and hash comparison.
+
 ---
 
 ## 📅 Remaining Roadmap Tasks

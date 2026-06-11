@@ -120,6 +120,8 @@ export const adminApi = {
   updateTicket:        (id, data) => api.put(`/admin/tickets/${id}`, data),
   replyTicket:         (id, data) => api.post(`/admin/tickets/${id}/reply`, data),
   getAdminsList:       ()         => api.get('/admin/tickets/admins'),
+  updateProfile:       (data)     => api.put('/admin/profile', data),
+  changePassword:      (data)     => api.put('/admin/change-password', data),
 }
 
 export const gamAccountsApi = {

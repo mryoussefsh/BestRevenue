@@ -58,6 +58,9 @@ The backend is built around standard MVC and Service Layer patterns. Key respons
 6. **Dynamic Custom Pages Service**
    - Serves custom-created static HTML pages (like Privacy Policy, Terms) generated via an administrative panel rich-text WYSIWYG editor.
    - Integrates with the public settings service to list active page metadata parameters on startup, ensuring zero-latency header/footer lists.
+7. **Admin Profile & Password Management**
+   - Implements PUT routes under the admin auth middleware scope allowing administrators to edit their profile credentials (name, email) and update passwords.
+   - Safeguards profiles by checking email uniqueness in the database and verifying current passwords before executing hash updates.
 
 ---
 

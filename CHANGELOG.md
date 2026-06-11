@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.8.0] - 2026-06-11
+
+### Added
+- **Admin Profile Edit Page**: Designed and built a dedicated Profile page for administrators to edit their name and email, integrated with the global auth context for immediate visual updates.
+- **Admin Password Change Controls**: Added secure password update forms for the administrator requiring current password confirmation, new password validation, and secure password hashing.
+- **Admin Profile API Endpoints**: Created PUT endpoints `/admin/profile` and `/admin/change-password` with request validators, email uniqueness validation, and password hash checks.
+- **Integrated Sidebar Footer Link**: Linked the administrator user card at the bottom of the sidebar navigation to redirect to the new `/admin/profile` page, replacing static details with a NavLink.
+- **Robust Integration Test Coverage**: Added `AdminProfileTest.php` feature tests verifying name/email updates, validation constraints, and password changing sequences.
+
 ## [1.7.0] - 2026-06-11
 
 ### Added

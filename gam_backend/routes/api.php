@@ -148,6 +148,10 @@ Route::prefix('v1')->group(function () {
         Route::put('tickets/{id}',   [AdminTicketController::class, 'update']);
         Route::post('tickets/{id}/reply', [AdminTicketController::class, 'reply']);
 
+        // Admin Profile
+        Route::put('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updateProfile']);
+        Route::put('change-password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'changePassword']);
+
     });
 
     // ──────────────────────────────────────────────────────

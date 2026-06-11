@@ -97,13 +97,17 @@ export default function AdminLayout({ children }) {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="nav-item" style={{ marginBottom: 8 }}>
+          <NavLink
+            to="/admin/profile"
+            className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+            style={{ marginBottom: 8, display: 'flex', gap: 12, alignItems: 'center', textDecoration: 'none' }}
+          >
             <span className="nav-icon">👤</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{user?.name || 'Admin'}</div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Administrator</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Administrator ⚙️</div>
             </div>
-          </div>
+          </NavLink>
           <button
             className="btn btn-secondary"
             style={{ width: '100%', justifyContent: 'center' }}

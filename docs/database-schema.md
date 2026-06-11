@@ -38,7 +38,7 @@ Holds the profiles of publisher clients.
 - `payment_info` (text/json, Nullable): Encrypted payment destination details (IBAN, PayPal email, crypto address).
 - `notes` (text, Nullable): Internal administrative notes.
 - `pending_balance_adjustment` (decimal(12,2), Default: 0.00): Accumulated adjustments awaiting next period closing.
-- `phone`, `telegram`, `skype` (varchar(100), Nullable): Messenger contact details.
+- `phone`, `telegram` (varchar(100), Nullable): Messenger contact details.
 - `country` (varchar(100), Nullable): Country location.
 - `reg_ip`, `last_ip` (varchar(45), Nullable): IP addresses for registrations and logging.
 - `timestamps` (created_at, updated_at).

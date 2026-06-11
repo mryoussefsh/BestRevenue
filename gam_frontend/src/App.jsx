@@ -38,6 +38,7 @@ import EmailTemplates   from './pages/admin/EmailTemplates'
 import AdminTickets     from './pages/admin/Tickets'
 import AdminTicketDetail from './pages/admin/TicketDetail'
 import AdminPages         from './pages/admin/Pages'
+import AdminProfile       from './pages/admin/Profile'
 
 // Publisher pages
 import PubDashboard from './pages/publisher/Dashboard'
@@ -131,6 +132,11 @@ function App() {
             <Route path="/admin/settings" element={
               <PrivateRoute role="admin">
                 <AdminLayout><Settings /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/profile" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminProfile /></AdminLayout>
               </PrivateRoute>
             } />
             <Route path="/admin/translations" element={
