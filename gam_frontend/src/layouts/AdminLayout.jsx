@@ -169,31 +169,35 @@ export default function AdminLayout({ children }) {
             >
               <Menu size={20} />
             </button>
-            <div>
-              <div className="topbar-title">Admin Panel</div>
-              <div className="topbar-subtitle">BestRevenue Management</div>
-            </div>
           </div>
           <div className="topbar-right">
             {/* Language switcher */}
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                className={`btn btn-xs ${locale === 'en' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => switchLocale('en')}
-              >EN</button>
-              <button
-                className={`btn btn-xs ${locale === 'ar' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => switchLocale('ar')}
-              >AR</button>
-            </div>
-            <div className="badge badge-active">
-              <span style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: 'currentColor'
-              }} />
-              Online
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <select
+                className="form-select"
+                value={locale}
+                onChange={e => switchLocale(e.target.value)}
+                style={{ 
+                  padding: '6px 28px 6px 12px', 
+                  fontSize: 13, 
+                  background: 'var(--br-surface)', 
+                  border: '0.5px solid var(--br-border)', 
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--br-text)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  outline: 'none',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'calc(100% - 10px) center',
+                  minWidth: 70
+                }}
+              >
+                <option value="en" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>EN</option>
+                <option value="ar" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>AR</option>
+              </select>
             </div>
           </div>
         </header>
