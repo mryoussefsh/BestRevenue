@@ -239,3 +239,15 @@ Stores the messages/replies under a support ticket thread.
 - `is_admin_reply` (boolean): Flag identifying if the sender is an administrator.
 - `timestamps` (created_at, updated_at).
 
+### N. `pages`
+Stores dynamic custom pages managed by administrators (e.g. Privacy Policy, Terms of Service).
+- `id` (UUID, Primary Key): Unique page identifier.
+- `title` (varchar(255)): Page title (e.g. "Privacy Policy").
+- `slug` (varchar(255), Unique): URL path slug (e.g. "privacy-policy").
+- `content` (longText): Rich-text HTML content of the page.
+- `show_in_public_footer` (boolean, Default: false): If true, displays in public page footers (Landing & Support).
+- `show_in_publisher_footer` (boolean, Default: false): If true, displays in publisher portal dashboard footer.
+- `show_in_landing_menu` (boolean, Default: false): If true, displays in landing page header navigation menu.
+- `is_active` (boolean, Default: true): Control publishing status.
+- `timestamps` (created_at, updated_at).
+

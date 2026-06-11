@@ -12,6 +12,7 @@ export const authApi = {
 export const publicApi = {
   getSettings:   ()                => api.get('/public/settings'),
   submitContact: (data)            => api.post('/public/contact', data),
+  getPage:       (slug)            => api.get(`/public/pages/${slug}`),
 }
 
 export const adminApi = {
@@ -100,6 +101,12 @@ export const adminApi = {
   createAnnouncement:  (data)    => api.post('/admin/announcements', data),
   updateAnnouncement:  (id, data)=> api.put(`/admin/announcements/${id}`, data),
   deleteAnnouncement:  (id)      => api.delete(`/admin/announcements/${id}`),
+
+  // Pages
+  getPages:            ()        => api.get('/admin/pages'),
+  createPage:          (data)    => api.post('/admin/pages', data),
+  updatePage:          (id, data)=> api.put(`/admin/pages/${id}`, data),
+  deletePage:          (id)      => api.delete(`/admin/pages/${id}`),
 
   // Email Templates
   getEmailTemplates:     ()           => api.get('/admin/email-templates'),

@@ -256,6 +256,11 @@ class SettingController extends Controller
 
         $map['recent_payouts'] = $realPayouts;
 
+        // Dynamic active pages
+        $map['pages'] = \App\Models\Page::where('is_active', true)
+            ->select(['id', 'title', 'slug', 'show_in_public_footer', 'show_in_publisher_footer', 'show_in_landing_menu'])
+            ->get();
+
         return response()->json($map);
     }
 

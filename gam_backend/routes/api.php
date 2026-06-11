@@ -47,6 +47,7 @@ Route::prefix('v1')->group(function () {
     Route::get('translations/{locale}', [TranslationController::class, 'show']);
     Route::get('public/settings', [SettingController::class, 'getPublicSettings']);
     Route::post('public/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:5,1');
+    Route::get('public/pages/{slug}', [\App\Http\Controllers\PublicPageController::class, 'show']);
 
     // ──────────────────────────────────────────────────────
     // Google OAuth callback (public — Google redirects here)
@@ -136,6 +137,9 @@ Route::prefix('v1')->group(function () {
 
         // Announcements
         Route::apiResource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class);
+
+        // Pages CRUD
+        Route::apiResource('pages', \App\Http\Controllers\Admin\PageController::class);
 
         // Tickets
         Route::get('tickets/admins', [AdminTicketController::class, 'getAdmins']);

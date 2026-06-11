@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.7.0] - 2026-06-11
+
+### Added
+- **Dynamic Pages Management**: Built complete CRUD capabilities for custom pages (Privacy Policy, Terms of Service, etc.) inside the Admin Portal.
+- **Selective Page Placements**: Added administrative configuration options allowing pages to be assigned to the public footer, logged-in publishers footer, both footers, or the landing page navigation menu.
+- **Wysiwyg Content Editor**: Integrated the built-in rich-text editor into the Page Management panel, enabling custom HTML layout formatting.
+- **Automatic Slugification**: Enabled automated, real-time generation of URL-friendly slugs during title entry, with support for manual overrides.
+- **Optimized Frontend Cache**: Appended active page lists directly to the public settings endpoint, allowing headers and layouts to render links dynamically without making extra API calls.
+- **Public Page Detail view**: Programmed public route `/page/:slug` and matching stylesheet (`PageDetail.css`) displaying structured page content inside a responsive, premium glassmorphic dark mode layout.
+- **Auto-Seeded Default Pages**: Seeded working Privacy Policy and Terms of Service layouts during database migration.
+
 ## [1.6.0] - 2026-06-11
 
 ### Added

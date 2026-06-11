@@ -55,6 +55,9 @@ The backend is built around standard MVC and Service Layer patterns. Key respons
 5. **Dynamic Platform Settings (Timezone Configuration)**
    - Dynamically loads and sets the platform-wide timezone setting (`platform_timezone`) from the database during the Laravel booting lifecycle (in `AppServiceProvider.php`).
    - Overrides both PHP default timezone (`date_default_timezone_set()`) and Laravel's timezone config (`config(['app.timezone' => ...])`) to ensure all datetime operations, cron schedules, and GAM sync ranges operate under the configured timezone.
+6. **Dynamic Custom Pages Service**
+   - Serves custom-created static HTML pages (like Privacy Policy, Terms) generated via an administrative panel rich-text WYSIWYG editor.
+   - Integrates with the public settings service to list active page metadata parameters on startup, ensuring zero-latency header/footer lists.
 
 ---
 

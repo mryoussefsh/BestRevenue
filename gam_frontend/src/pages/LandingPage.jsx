@@ -150,6 +150,9 @@ export default function LandingPage() {
             <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payments Proof</a>
             <a href="#faqs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>FAQs</a>
             <Link to="/support" className="landing-nav-link">Support</Link>
+            {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
+              <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>{p.title}</Link>
+            ))}
           </nav>
 
           <div className="landing-nav-ctas">
@@ -579,6 +582,16 @@ export default function LandingPage() {
                 <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">Google Ad Manager Help</a>
               </div>
             </div>
+            {settings.pages && settings.pages.some(p => p.show_in_public_footer) && (
+              <div className="footer-link-group">
+                <h5 className="footer-link-title">Information</h5>
+                <div className="footer-links-list">
+                  {settings.pages.filter(p => p.show_in_public_footer).map(p => (
+                    <Link key={p.slug} to={`/page/${p.slug}`} className="footer-link">{p.title}</Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

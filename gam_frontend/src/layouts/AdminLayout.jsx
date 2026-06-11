@@ -15,6 +15,7 @@ const navItems = [
   { to: '/admin/adjustments',  icon: '⚖️', label: 'Adjustments' },
   { to: '/admin/tickets',      icon: '🎫', label: 'Support Tickets', countKey: 'pending_tickets' },
   { to: '/admin/announcements',icon: '📢', label: 'Announcements' },
+  { to: '/admin/pages',        icon: '📄', label: 'Pages'         },
   { to: '/admin/audit-logs',   icon: '📜', label: 'Audit Logs'  },
   { to: '/admin/gam-accounts', icon: '📡', label: 'GAM Accounts'},
   { to: '/admin/gam-sync',     icon: '🔄', label: 'Manual Sync' },

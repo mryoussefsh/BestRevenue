@@ -164,9 +164,12 @@ export default function PublisherLayout({ children }) {
           color: 'var(--color-text-subtle)',
         }}>
           <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'} Platform. All rights reserved.</div>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Home Page</Link>
             <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Google Ad Manager Help</a>
+            {settings.pages && settings.pages.filter(p => p.show_in_publisher_footer).map(p => (
+              <Link key={p.slug} to={`/page/${p.slug}`} style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{p.title}</Link>
+            ))}
           </div>
         </footer>
       </div>

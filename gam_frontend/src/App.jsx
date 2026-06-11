@@ -14,6 +14,7 @@ import PublisherLayout from './layouts/PublisherLayout'
 import LandingPage         from './pages/LandingPage'
 import SupportPage         from './pages/SupportPage'
 import LoginPage           from './pages/LoginPage'
+import PageDetail          from './pages/PageDetail'
 import RegisterPage        from './pages/RegisterPage'
 import ForgotPasswordPage  from './pages/ForgotPasswordPage'
 import ResetPasswordPage   from './pages/ResetPasswordPage'
@@ -36,6 +37,7 @@ import Announcements    from './pages/admin/Announcements'
 import EmailTemplates   from './pages/admin/EmailTemplates'
 import AdminTickets     from './pages/admin/Tickets'
 import AdminTicketDetail from './pages/admin/TicketDetail'
+import AdminPages         from './pages/admin/Pages'
 
 // Publisher pages
 import PubDashboard from './pages/publisher/Dashboard'
@@ -77,6 +79,7 @@ function App() {
             {/* Root landing page */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/page/:slug" element={<PageDetail />} />
 
             {/* Auth */}
             <Route path="/login"          element={<LoginPage />} />
@@ -153,6 +156,11 @@ function App() {
             <Route path="/admin/announcements" element={
               <PrivateRoute role="admin">
                 <AdminLayout><Announcements /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/pages" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminPages /></AdminLayout>
               </PrivateRoute>
             } />
             <Route path="/admin/email-templates" element={
