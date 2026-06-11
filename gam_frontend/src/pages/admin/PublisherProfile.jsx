@@ -12,7 +12,7 @@ import {
   Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, 
   Trash2, Globe, Calendar, FileText, Clipboard, Link as LinkIcon, 
   History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus,
-  Lock, Clock
+  Lock, Clock, Filter
 } from 'lucide-react'
 
 
@@ -35,6 +35,7 @@ export default function PublisherProfile() {
   const [selectedWebsite, setSelectedWebsite] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
 
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -182,6 +183,12 @@ export default function PublisherProfile() {
     adUnitsByWebsite[ad.website_id].push(ad)
   })
 
+  const activeFiltersCount = [
+    selectedWebsite,
+    dateFrom,
+    dateTo
+  ].filter(Boolean).length
+
   return (
     <div>
       {/* Top back navigation */}
@@ -212,7 +219,7 @@ export default function PublisherProfile() {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <h1 className="page-title" style={{ margin: 0, fontSize: 24 }}>{publisher.name}</h1>
+                <h1 className="profile-name">{publisher.name}</h1>
                 <span className={`badge ${publisher.status === 'active' ? 'badge-active' : publisher.status === 'pending' ? 'badge-pending' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                   {publisher.status}
@@ -247,6 +254,35 @@ export default function PublisherProfile() {
               onClick={() => setImpersonateModalOpen(true)}>
               <User size={14} /> Log In
             </button>
+            <button className="btn btn-secondary"
+              style={{ 
+                background: showFilters ? 'var(--color-primary)' : 'rgba(99,102,241,0.12)', 
+                color: showFilters ? '#fff' : 'var(--color-primary-light)', 
+                border: '1px solid rgba(99,102,241,0.3)', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '6px' 
+              }}
+              onClick={() => setShowFilters(!showFilters)}>
+              <Filter size={14} /> Filter Data
+              {activeFiltersCount > 0 && (
+                <span style={{
+                  background: showFilters ? '#fff' : 'var(--br-primary)',
+                  color: showFilters ? 'var(--br-primary)' : '#fff',
+                  borderRadius: '50%',
+                  width: 18,
+                  height: 18,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 10,
+                  fontWeight: 'bold',
+                  marginLeft: 4
+                }}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
             <button className="btn"
               style={{
                 background: publisher.status === 'active' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
@@ -273,7 +309,8 @@ export default function PublisherProfile() {
       </div>
 
       {/* Filter Bar */}
-      <div className="card" style={{ padding: '16px 24px', marginBottom: 24, background: 'var(--color-surface-2)' }}>
+      {showFilters && (
+        <div className="card" style={{ padding: '16px 24px', marginBottom: 24, background: 'var(--color-surface-2)' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, flex: 1 }}>
             
@@ -330,13 +367,31 @@ export default function PublisherProfile() {
             <div style={{ display: 'flex', alignSelf: 'flex-end', height: 40 }}>
               <button
                 className="btn btn-secondary"
-                style={{ height: '100%', display: 'flex', alignItems: 'center', gap: 8 }}
+                style={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 8,
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  transition: 'var(--transition)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ef4444'
+                  e.currentTarget.style.color = '#fff'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                  e.currentTarget.style.color = '#ef4444'
+                }}
                 onClick={() => {
                   setSelectedWebsite('')
                   setDateFrom('')
                   setDateTo('')
                 }}
               >
+                <X size={14} />
                 Clear Filters
               </button>
             </div>
@@ -344,6 +399,7 @@ export default function PublisherProfile() {
 
         </div>
       </div>
+      )}
 
       {/* Stats Cards */}
       <div className="stat-grid" style={{ marginBottom: 24 }}>
