@@ -2,6 +2,26 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
+import {
+  Settings,
+  CreditCard,
+  Server,
+  DollarSign,
+  Palette,
+  Globe,
+  UserPlus,
+  Mail,
+  Search,
+  MessageSquare,
+  Share2,
+  Trash2,
+  Plus,
+  Clock,
+  Info,
+  Send,
+  CheckCircle2,
+  FileText
+} from 'lucide-react'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState([])
@@ -69,7 +89,21 @@ export default function SettingsPage() {
   const groups = [...new Set(settings.map(s => s.group))].filter(g => g !== 'system_info')
   const projectPath = settings.find(s => s.key === 'project_path')?.value || '/path-to-your-project'
 
-  const groupIcon = { payout: '💳', gam: '📡', payment: '🏦', display: '🎨', localization: '🌍', registration: '📝', email: '📧', seo: '🔍', support: '💬', social: '📱' }
+  const renderGroupIcon = (group) => {
+    const icons = {
+      payout: <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />,
+      gam: <Server size={18} style={{ color: 'var(--br-primary)' }} />,
+      payment: <DollarSign size={18} style={{ color: 'var(--br-primary)' }} />,
+      display: <Palette size={18} style={{ color: 'var(--br-primary)' }} />,
+      localization: <Globe size={18} style={{ color: 'var(--br-primary)' }} />,
+      registration: <UserPlus size={18} style={{ color: 'var(--br-primary)' }} />,
+      email: <Mail size={18} style={{ color: 'var(--br-primary)' }} />,
+      seo: <Search size={18} style={{ color: 'var(--br-primary)' }} />,
+      support: <MessageSquare size={18} style={{ color: 'var(--br-primary)' }} />,
+      social: <Share2 size={18} style={{ color: 'var(--br-primary)' }} />
+    }
+    return icons[group] || <Settings size={18} style={{ color: 'var(--br-primary)' }} />
+  }
 
   if (loading) return (
     <div className="loading-screen"><div className="spinner"></div></div>
@@ -79,7 +113,9 @@ export default function SettingsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">⚙️ Settings</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Settings size={28} style={{ color: 'var(--br-primary)' }} /> Settings
+          </h1>
           <p className="page-subtitle">Global platform configuration</p>
         </div>
       </div>
@@ -87,8 +123,9 @@ export default function SettingsPage() {
       {groups.map(group => (
         <div key={group} className="card" style={{ marginBottom: 24 }}>
           <div className="card-header">
-            <div className="card-title">
-              {groupIcon[group] || '⚙️'} {group.charAt(0).toUpperCase() + group.slice(1)} Settings
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {renderGroupIcon(group)}
+              <span>{group.charAt(0).toUpperCase() + group.slice(1)} Settings</span>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -168,9 +205,9 @@ export default function SettingsPage() {
                             onClick={() => {
                               setEdited(v => ({ ...v, [s.key]: '' }))
                             }}
-                            style={{ color: 'var(--color-danger)' }}
+                            style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 4 }}
                           >
-                            🗑️ Clear
+                            <Trash2 size={12} /> Clear
                           </button>
                         </div>
                       )}
@@ -182,8 +219,8 @@ export default function SettingsPage() {
                           value={edited[s.key] ?? ''}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         />
-                        <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap', margin: 0 }}>
-                          📁 Upload File
+                        <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <FileText size={14} /> Upload File
                           <input
                             type="file"
                             accept="image/*"
@@ -221,17 +258,17 @@ export default function SettingsPage() {
                               }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <div style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
-                                    💳 Method #{idx + 1}
+                                    Method #{idx + 1}
                                   </div>
                                   <button
                                     className="btn btn-secondary btn-xs"
-                                    style={{ color: 'var(--color-danger)' }}
+                                    style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 4 }}
                                     onClick={() => {
                                       const updated = list.filter((_, i) => i !== idx)
                                       setEdited(v => ({ ...v, [s.key]: updated }))
                                     }}
                                   >
-                                    🗑️ Remove
+                                    <Trash2 size={12} /> Remove
                                   </button>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -278,13 +315,13 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               className="btn btn-secondary btn-sm"
-                              style={{ alignSelf: 'flex-start' }}
+                              style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                               onClick={() => {
                                 const updated = [...list, { name: '', minimum: 0, guidance: '' }]
                                 setEdited(v => ({ ...v, [s.key]: updated }))
                               }}
                             >
-                              ➕ Add Payment Method
+                              <Plus size={14} /> Add Payment Method
                             </button>
                           </>
                         )
@@ -327,7 +364,7 @@ export default function SettingsPage() {
                                 }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', fontSize: 13 }}>
-                                      🏷️ {type.label} Sizes
+                                      {type.label} Sizes
                                     </div>
                                   </div>
                                   
@@ -436,8 +473,8 @@ export default function SettingsPage() {
                       value={edited[s.key] ?? 'open'}
                       onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                     >
-                      <option value="open">🟢 Open — Anyone can register</option>
-                      <option value="closed">🔴 Closed — Registrations are disabled</option>
+                      <option value="open">Open — Anyone can register</option>
+                      <option value="closed">Closed — Registrations are disabled</option>
                     </select>
                   ) : s.key === 'publisher_registration_status' ? (
                     <div>
@@ -446,13 +483,13 @@ export default function SettingsPage() {
                         value={edited[s.key] ?? 'pending'}
                         onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                       >
-                        <option value="active">✅ Active — Publisher can log in immediately</option>
-                        <option value="pending">⏳ Pending — Wait for admin approval</option>
+                        <option value="active">Active — Publisher can log in immediately</option>
+                        <option value="pending">Pending — Wait for admin approval</option>
                       </select>
                       <div style={{ marginTop: 8, fontSize: 12, color: 'var(--color-text-muted)' }}>
                         {edited[s.key] === 'pending'
-                          ? '⚠️ New publishers will see a "pending review" message after registration and cannot log in until activated.'
-                          : '✅ New publishers will be automatically activated and can log in right after registering.'}
+                          ? 'New publishers will see a "pending review" message after registration and cannot log in until activated.'
+                          : 'New publishers will be automatically activated and can log in right after registering.'}
                       </div>
                     </div>
                   ) : s.key === 'publisher_pending_message' ? (
@@ -466,7 +503,7 @@ export default function SettingsPage() {
                         placeholder="Message shown to publisher after registration when status is pending…"
                       />
                       <div style={{ marginTop: 6, fontSize: 12, color: 'var(--color-text-muted)' }}>
-                        ✏️ This message is shown to the publisher on the registration confirmation screen when their account requires admin approval.
+                        This message is shown to the publisher on the registration confirmation screen when their account requires admin approval.
                       </div>
                     </div>
                   ) : s.key === 'mail_mailer' ? (
@@ -538,7 +575,7 @@ export default function SettingsPage() {
           {group === 'gam' && (
             <div className="alert alert-info" style={{ marginTop: 24, padding: 20, fontSize: '13px' }}>
               <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                ⏰ Production Task Scheduler (Cron Job) Setup Instructions
+                <Clock size={16} /> Production Task Scheduler (Cron Job) Setup Instructions
               </div>
               <p style={{ marginBottom: '12px' }}>
                 Laravel's task scheduler requires a system-level trigger to execute the dynamic auto-sync settings configured above.
@@ -571,8 +608,8 @@ export default function SettingsPage() {
                   <pre style={{ background: 'var(--color-bg)', padding: '6px 10px', borderRadius: '4px', overflowX: 'auto', fontFamily: 'monospace' }}>
                     /usr/bin/php {projectPath}/artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
                   </pre>
-                  <div className="text-xs text-muted" style={{ marginTop: 4 }}>
-                    💡 <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path (usually displayed next to the PHP version in hPanel or cPanel). If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }} className="text-xs text-muted">
+                    <Info size={12} /> <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path (usually displayed next to the PHP version in hPanel or cPanel). If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
                   </div>
                 </div>
               </div>
@@ -581,7 +618,7 @@ export default function SettingsPage() {
           {group === 'email' && (
             <div className="alert alert-info" style={{ marginTop: 24, padding: 20 }}>
               <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🧪 Test SMTP Configuration
+                <Mail size={16} /> Test SMTP Configuration
               </div>
               <p style={{ fontSize: '13px', marginBottom: '12px', color: 'var(--color-text-subtle)' }}>
                 Before using SMTP in production, send a test email to verify your mail server credentials.
@@ -599,8 +636,10 @@ export default function SettingsPage() {
                   className="btn btn-secondary btn-sm"
                   onClick={handleSendTestEmail}
                   disabled={sendingTestMail || !testEmailRecipient}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  {sendingTestMail ? '⏳ Sending…' : '📤 Send Test Email'}
+                  {sendingTestMail ? <Clock size={14} className="spinner" /> : <Send size={14} />}
+                  <span>Send Test Email</span>
                 </button>
               </div>
             </div>

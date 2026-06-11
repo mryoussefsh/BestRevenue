@@ -6,6 +6,25 @@ import {
 } from 'recharts'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
+import {
+  DollarSign,
+  Users,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Eye,
+  MousePointer,
+  Ban,
+  BarChart2,
+  Target,
+  Percent,
+  Calendar,
+  Award,
+  Lock,
+  ArrowRight,
+  TrendingUp,
+  Scale
+} from 'lucide-react'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
 // Use local-timezone formatting to avoid UTC shift (e.g. UTC+3 offset causing day-1 errors)
@@ -548,9 +567,9 @@ export default function AdminDashboard() {
             onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
             style={{ height: 38, fontSize: 13, minWidth: 150 }}>
             <option value="">All Statuses</option>
-            <option value="pending">⏳ Pending</option>
-            <option value="approved">🟢 Approved</option>
-            <option value="closed">🔒 Closed</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="closed">Closed</option>
           </select>
 
           {/* Reset */}
@@ -570,36 +589,36 @@ export default function AdminDashboard() {
 
       {/* ── Revenue Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-          💰 Revenue Metrics
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> Revenue Metrics
         </div>
         <div className="stat-grid">
           <div className="stat-card primary">
-            <div className="stat-icon">💰</div>
+            <div className="stat-icon"><DollarSign size={20} /></div>
             <div className="stat-label">Total Gross Revenue</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
             <div className="stat-change up">▲ Selected period</div>
           </div>
           <div className="stat-card accent">
-            <div className="stat-icon">🤝</div>
+            <div className="stat-icon"><Users size={20} /></div>
             <div className="stat-label">Total Pub. Earnings</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
             <div className="stat-change up">▲ Ratio split</div>
           </div>
           <div className="stat-card accent">
-            <div className="stat-icon">🟢</div>
+            <div className="stat-icon"><CheckCircle2 size={20} /></div>
             <div className="stat-label">Approved Earnings</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
             <div className="stat-change up">✓ Approved</div>
           </div>
           <div className="stat-card warning">
-            <div className="stat-icon">⏳</div>
+            <div className="stat-icon"><Clock size={20} /></div>
             <div className="stat-label">Pending Earnings</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
             <div className="stat-change">⏳ Holding period</div>
           </div>
           <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
-            <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>💵</div>
+            <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
             <div className="stat-label">Ready for Payout</div>
             <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
             <div className="stat-change text-muted">Filtered wallet balance</div>
@@ -609,12 +628,12 @@ export default function AdminDashboard() {
 
       {/* ── Performance Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-          📈 Performance Metrics
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <BarChart2 size={14} style={{ color: 'var(--br-primary)' }} /> Performance Metrics
         </div>
         <div className="stat-grid">
           <div className="stat-card info">
-            <div className="stat-icon">👀</div>
+            <div className="stat-icon"><Eye size={20} /></div>
             <div className="stat-label">Total Impressions</div>
             <div className="stat-value">
               {stats?.totalImpressions !== undefined ? <CompactAmount value={stats.totalImpressions} prefix="" decimals={0} /> : '—'}
@@ -622,7 +641,7 @@ export default function AdminDashboard() {
             <div className="stat-change up">▲ All ad units</div>
           </div>
           <div className="stat-card info">
-            <div className="stat-icon">🖱️</div>
+            <div className="stat-icon"><MousePointer size={20} /></div>
             <div className="stat-label">Total Clicks</div>
             <div className="stat-value">
               {stats?.totalClicks !== undefined ? <CompactAmount value={stats.totalClicks} prefix="" decimals={0} /> : '—'}
@@ -630,7 +649,7 @@ export default function AdminDashboard() {
             <div className="stat-change up">▲ All ad units</div>
           </div>
           <div className="stat-card info">
-            <div className="stat-icon">💨</div>
+            <div className="stat-icon"><Ban size={20} /></div>
             <div className="stat-label">Unfilled Impressions</div>
             <div className="stat-value">
               {stats?.totalUnfilled !== undefined ? <CompactAmount value={stats.totalUnfilled} prefix="" decimals={0} /> : '—'}
@@ -638,19 +657,19 @@ export default function AdminDashboard() {
             <div className="stat-change text-muted">Unserved inventory</div>
           </div>
           <div className="stat-card primary">
-            <div className="stat-icon">📊</div>
+            <div className="stat-icon"><TrendingUp size={20} /></div>
             <div className="stat-label">Avg. Gross CPM</div>
             <div className="stat-value money">${stats?.avgCPM ?? '—'}</div>
             <div className="stat-change">Per 1000 impressions</div>
           </div>
           <div className="stat-card primary">
-            <div className="stat-icon">🎯</div>
+            <div className="stat-icon"><Target size={20} /></div>
             <div className="stat-label">Avg. CTR</div>
             <div className="stat-value">{stats?.avgCTR ?? '—'}%</div>
             <div className="stat-change">Click-through rate</div>
           </div>
           <div className="stat-card primary">
-            <div className="stat-icon">👁️</div>
+            <div className="stat-icon"><Eye size={20} /></div>
             <div className="stat-label">Viewability Rate</div>
             <div className="stat-value">
               {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
@@ -660,9 +679,9 @@ export default function AdminDashboard() {
             <div className="stat-change text-muted">
               {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} />
+                  <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} showInfo={false} />
                   <span>/</span>
-                  <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} />
+                  <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} showInfo={false} />
                   <span>measurable</span>
                 </span>
               ) : (
@@ -671,7 +690,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="stat-card accent">
-            <div className="stat-icon">⚖️</div>
+            <div className="stat-icon"><Percent size={20} /></div>
             <div className="stat-label">Avg. Revenue Ratio</div>
             <div className="stat-value">{stats?.avgRatio ?? '—'}%</div>
             <div className="stat-change">Publisher share</div>
@@ -681,12 +700,12 @@ export default function AdminDashboard() {
 
       {/* ── Platform Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-          🏢 Platform Overview
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Scale size={14} style={{ color: 'var(--br-primary)' }} /> Platform Overview
         </div>
         <div className="stat-grid">
           <div className="stat-card warning">
-            <div className="stat-icon">💳</div>
+            <div className="stat-icon"><CreditCard size={20} /></div>
             <div className="stat-label">Pending Payouts</div>
             <div className="stat-value money" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <CompactAmount value={stats?.pendingPayoutsTotal} />
@@ -701,7 +720,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="stat-card accent">
-            <div className="stat-icon">👥</div>
+            <div className="stat-icon"><Users size={20} /></div>
             <div className="stat-label">Active Publishers</div>
             <div className="stat-value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {stats?.activePublishers ?? '—'}
@@ -719,7 +738,7 @@ export default function AdminDashboard() {
             <div className="stat-change">{stats?.publishers ?? '—'} total publishers</div>
           </div>
           <div className="stat-card primary">
-            <div className="stat-icon">📅</div>
+            <div className="stat-icon"><Lock size={20} /></div>
             <div className="stat-label">Closed Periods</div>
             <div className="stat-value">{stats?.closedPeriods ?? '—'}</div>
             <div className="stat-change">Historical periods</div>
@@ -730,7 +749,7 @@ export default function AdminDashboard() {
             background: 'linear-gradient(135deg, rgba(99,102,241,.12) 0%, rgba(16,185,129,.08) 100%)',
             border: '1px solid rgba(99,102,241,.25)',
           }}>
-            <div className="stat-icon">📆</div>
+            <div className="stat-icon"><Calendar size={20} /></div>
             <div className="stat-label">Daily Avg. Pub. Earnings</div>
             <div className="stat-value money"><CompactAmount value={stats?.avgDailyEarnings} /></div>
             {stats?.periodChangePct !== null && stats?.periodChangePct !== undefined ? (
@@ -751,7 +770,7 @@ export default function AdminDashboard() {
             background: 'linear-gradient(135deg, rgba(245,158,11,.12) 0%, rgba(251,191,36,.06) 100%)',
             border: '1px solid rgba(245,158,11,.25)',
           }}>
-            <div className="stat-icon">🏆</div>
+            <div className="stat-icon"><Award size={20} /></div>
             <div className="stat-label">Best Day (Pub. Earnings)</div>
             {stats?.bestDay ? (
               <>
@@ -778,7 +797,9 @@ export default function AdminDashboard() {
       <div className="card">
         <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div className="card-title">📈 Revenue Trend</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <TrendingUp size={16} style={{ color: 'var(--br-primary)' }} /> Revenue Trend
+            </div>
             <div className="card-subtitle">
               {filters.date_from} → {filters.date_to}
               {filters.publisher_id && ` · ${publishers.find(p => p.id === filters.publisher_id)?.name}`}
@@ -791,8 +812,8 @@ export default function AdminDashboard() {
             {[
               { key: 'gross',    label: 'Gross Revenue', color: '#6366f1' },
               { key: 'earnings', label: 'Pub. Earnings',  color: '#10b981' },
-              { key: 'approved', label: '✅ Approved',    color: '#22d3ee' },
-              { key: 'pending',  label: '⏳ Pending',     color: '#f59e0b' },
+              { key: 'approved', label: 'Approved',    color: '#22d3ee' },
+              { key: 'pending',  label: 'Pending',     color: '#f59e0b' },
             ].map(s => (
               <button
                 key={s.key}
@@ -853,8 +874,8 @@ export default function AdminDashboard() {
                   const labels = {
                     gross:    'Gross Revenue',
                     earnings: 'Pub. Earnings',
-                    approved: '✅ Approved',
-                    pending:  '⏳ Pending',
+                    approved: 'Approved',
+                    pending:  'Pending',
                   }
                   return [`$${v}`, labels[n] || n]
                 }}
@@ -867,7 +888,7 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         ) : (
           <div className="empty-state">
-            <div className="empty-state-icon">📊</div>
+            <div className="empty-state-icon"><BarChart2 size={40} style={{ color: 'var(--br-text-2)' }} /></div>
             <div className="empty-state-text">No revenue data for this period</div>
             <div className="empty-state-sub">Adjust your filters or run a GAM sync to populate records</div>
           </div>
@@ -893,8 +914,8 @@ const TABLE_COLS = [
   { key: 'impressions', label: 'Impressions', fmt: v => parseInt(v).toLocaleString() },
   { key: 'gross',    label: 'Gross Revenue',  fmt: v => `$${parseFloat(v).toFixed(2)}` },
   { key: 'earnings', label: 'Pub. Earnings',  fmt: v => `$${parseFloat(v).toFixed(2)}` },
-  { key: 'approved', label: '✅ Approved',    fmt: v => `$${parseFloat(v).toFixed(2)}` },
-  { key: 'pending',  label: '⏳ Pending',     fmt: v => `$${parseFloat(v).toFixed(2)}` },
+  { key: 'approved', label: 'Approved',    fmt: v => `$${parseFloat(v).toFixed(2)}` },
+  { key: 'pending',  label: 'Pending',     fmt: v => `$${parseFloat(v).toFixed(2)}` },
 ]
 
 function DailyTable({ rows, bestDay }) {
@@ -929,7 +950,9 @@ function DailyTable({ rows, bestDay }) {
     <div className="card" style={{ padding: 0, marginTop: 24 }}>
       <div className="card-header" style={{ padding: '16px 20px' }}>
         <div>
-          <div className="card-title">📋 Daily Performance</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Calendar size={16} style={{ color: 'var(--br-primary)' }} /> Daily Performance
+          </div>
           <div className="card-subtitle">{rows.length} days · click column headers to sort</div>
         </div>
       </div>
@@ -963,7 +986,7 @@ function DailyTable({ rows, bestDay }) {
                       <span style={{
                         marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 6,
                         background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 700,
-                       }}>🏆 Best</span>
+                       }}>Best</span>
                     )}
                   </td>
                   <td className="money">
@@ -979,7 +1002,7 @@ function DailyTable({ rows, bestDay }) {
           </tbody>
           <tfoot>
             <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-              <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals ({rows.length}d)</td>
+              <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({rows.length}d)</td>
               <td className="money">
                 <CompactAmount value={totals.impressions} prefix="" decimals={0} />
               </td>
@@ -1016,13 +1039,20 @@ function Top10Publishers({ rows }) {
   const arrow = key => sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
   const maxEarnings = rows[0]?.earnings || 1  // rows already sorted by earnings desc
 
-  const rankEmoji = i => ['🥇','🥈','🥉'][i] || `#${i + 1}`
+  const rankBadge = i => {
+    if (i === 0) return <span style={{ background: 'gold', color: '#000', borderRadius: '50%', width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>1</span>
+    if (i === 1) return <span style={{ background: 'silver', color: '#000', borderRadius: '50%', width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>2</span>
+    if (i === 2) return <span style={{ background: '#cd7f32', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>3</span>
+    return <span style={{ color: 'var(--br-text-2)', fontSize: 12 }}>#{i + 1}</span>
+  }
 
   return (
     <div className="card" style={{ padding: 0, marginTop: 24 }}>
       <div className="card-header" style={{ padding: '16px 20px' }}>
         <div>
-          <div className="card-title">🏆 Top {rows.length} Publishers</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Award size={16} style={{ color: 'var(--br-primary)' }} /> Top {rows.length} Publishers
+          </div>
           <div className="card-subtitle">Ranked by publisher earnings for selected period</div>
         </div>
       </div>
@@ -1034,8 +1064,8 @@ function Top10Publishers({ rows }) {
               <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Publisher{arrow('name')}</th>
               <th onClick={() => handleSort('earnings')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Pub. Earnings{arrow('earnings')}</th>
               <th style={{ minWidth: 140 }}>Approved %</th>
-              <th onClick={() => handleSort('approved')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>✅ Approved{arrow('approved')}</th>
-              <th onClick={() => handleSort('pending')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>⏳ Pending{arrow('pending')}</th>
+              <th onClick={() => handleSort('approved')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Approved{arrow('approved')}</th>
+              <th onClick={() => handleSort('pending')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Pending{arrow('pending')}</th>
               <th onClick={() => handleSort('gross')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Gross Rev.{arrow('gross')}</th>
               <th onClick={() => handleSort('impressions')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Impressions{arrow('impressions')}</th>
             </tr>
@@ -1047,8 +1077,8 @@ function Top10Publishers({ rows }) {
               const approvedPct = pub.earnings > 0 ? (pub.approved / pub.earnings) * 100 : 0
               return (
                 <tr key={pub.id || pub.name}>
-                  <td style={{ textAlign: 'center', fontSize: 16, padding: '10px 12px' }}>
-                    {rankEmoji(originalRank)}
+                  <td style={{ textAlign: 'center', padding: '10px 12px' }}>
+                    {rankBadge(originalRank)}
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{pub.name}</div>
@@ -1088,7 +1118,7 @@ function Top10Publishers({ rows }) {
           <tfoot>
             <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
               <td />
-              <td style={{ padding: '10px 16px', fontSize: 12 }}>📊 Totals</td>
+              <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals</td>
               <td className="money positive">
                 <CompactAmount value={rows.reduce((s, r) => s + r.earnings, 0)} />
               </td>
