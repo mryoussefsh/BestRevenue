@@ -160,6 +160,36 @@ function TimezoneSelect({ value, onChange }) {
   )
 }
 
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    toast.success('Copied to clipboard!')
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <button
+      type="button"
+      className="btn btn-secondary btn-xs"
+      onClick={handleCopy}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '2px 8px',
+        fontSize: '11px',
+        height: '24px',
+        background: 'var(--color-surface-3)',
+        border: '1px solid var(--color-border-light)',
+        flexShrink: 0
+      }}
+    >
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  )
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -880,43 +910,97 @@ export default function SettingsPage() {
 
               {/* Special informational or testing blocks per tab */}
               {activeTab === 'gam' && (
-                <div className="alert alert-info" style={{ marginTop: 32, padding: 20, fontSize: '13px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={16} /> Production Task Scheduler (Cron Job) Setup Instructions
-                  </div>
-                  <p style={{ marginBottom: '12px' }}>
-                    Laravel's task scheduler requires a system-level trigger to execute the dynamic auto-sync settings configured above.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
-                      <strong>1. Locally (For Testing):</strong>
-                      <pre style={{ background: 'var(--color-bg)', padding: '6px 10px', borderRadius: '4px', marginTop: '4px', fontFamily: 'monospace' }}>
-                        php artisan schedule:work
-                      </pre>
+                <div className="alert alert-info" style={{ marginTop: 32, padding: 24, display: 'block' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{
+                        background: 'rgba(99,102,241,0.15)',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        color: 'var(--color-primary, #6366f1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Clock size={18} />
+                      </div>
+                      <span style={{ fontWeight: 700, fontSize: '15px' }}>Production Task Scheduler (Cron Job) Setup</span>
                     </div>
-                    <div>
-                      <strong>2. Linux Server (Production Cron):</strong>
-                      <p style={{ margin: '2px 0 4px' }}>Add this entry to your server's crontab:</p>
-                      <pre style={{ background: 'var(--color-bg)', padding: '6px 10px', borderRadius: '4px', overflowX: 'auto', fontFamily: 'monospace' }}>
-                        * * * * * cd {projectPath} && php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
-                      </pre>
-                    </div>
-                    <div>
-                      <strong>3. Windows Server (Task Scheduler):</strong>
-                      <p style={{ margin: '2px 0 0' }}>
-                        Create a basic task triggering every <strong>1 minute</strong> to run <code>php artisan schedule:run</code> inside the <code>{projectPath}</code> root path.
-                      </p>
-                    </div>
-                    <div>
-                      <strong>4. Shared Hosting (Hostinger, cPanel, etc.):</strong>
-                      <p style={{ margin: '2px 0 4px' }}>
-                        Go to the <strong>Cron Jobs</strong> section in your hPanel or cPanel. Select the <strong>Custom</strong> option, set the frequency to <strong>every 1 minute (<code>* * * * *</code>)</strong>, and configure the command:
-                      </p>
-                      <pre style={{ background: 'var(--color-bg)', padding: '6px 10px', borderRadius: '4px', overflowX: 'auto', fontFamily: 'monospace' }}>
-                        /usr/bin/php {projectPath}/artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
-                      </pre>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }} className="text-xs text-muted">
-                        <Info size={12} /> <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path. If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
+
+                    <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: 1.5 }}>
+                      Laravel's task scheduler requires a system-level trigger to execute the dynamic auto-sync settings configured above in production. Configure one of the following methods:
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      {/* Linux Server Cron */}
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: 4 }}>
+                          1. Linux Server (Production Cron)
+                        </div>
+                        <p style={{ margin: '0 0 6px', fontSize: '12.5px', opacity: 0.8 }}>
+                          Add this entry to your server's crontab:
+                        </p>
+                        <div style={{ 
+                          background: 'var(--color-bg)', 
+                          padding: '8px 12px', 
+                          borderRadius: '6px', 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          gap: 12,
+                          border: '1px solid var(--color-border-light)'
+                        }}>
+                          <code style={{ 
+                            fontFamily: 'monospace', 
+                            fontSize: '12px', 
+                            color: 'var(--color-text)',
+                            whiteSpace: 'nowrap',
+                            overflowX: 'auto',
+                            flex: 1,
+                            paddingBottom: '2px'
+                          }}>
+                            * * * * * cd {projectPath} && php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
+                          </code>
+                          <CopyButton text={`* * * * * cd ${projectPath} && php artisan schedule:run >> /dev/null 2>&1`} />
+                        </div>
+                      </div>
+
+                      {/* Shared Hosting Cron */}
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: 4 }}>
+                          2. Shared Hosting (Hostinger, cPanel, etc.)
+                        </div>
+                        <p style={{ margin: '0 0 6px', fontSize: '12.5px', opacity: 0.8 }}>
+                          Go to the <strong>Cron Jobs</strong> section in your hosting control panel. Select the <strong>Custom</strong> option, set the frequency to <strong>every 1 minute (<code>* * * * *</code>)</strong>, and configure the command:
+                        </p>
+                        <div style={{ 
+                          background: 'var(--color-bg)', 
+                          padding: '8px 12px', 
+                          borderRadius: '6px', 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          gap: 12,
+                          border: '1px solid var(--color-border-light)'
+                        }}>
+                          <code style={{ 
+                            fontFamily: 'monospace', 
+                            fontSize: '12px', 
+                            color: 'var(--color-text)',
+                            whiteSpace: 'nowrap',
+                            overflowX: 'auto',
+                            flex: 1,
+                            paddingBottom: '2px'
+                          }}>
+                            /usr/bin/php {projectPath}/artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1
+                          </code>
+                          <CopyButton text={`/usr/bin/php ${projectPath}/artisan schedule:run >> /dev/null 2>&1`} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }} className="text-xs text-muted">
+                          <Info size={12} style={{ flexShrink: 0 }} /> 
+                          <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path. If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
+                        </div>
                       </div>
                     </div>
                   </div>
