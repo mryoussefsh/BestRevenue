@@ -169,6 +169,7 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Restructured the vertically stacked filter fields inside the Publisher Profile filter card into a clean, horizontal responsive grid layout for desktop viewports.
 - [x] Redesigned the Period Closings admin panel page layout to use a full-width card layout with CSS grid safeguards (`minWidth: 0` and `overflow: 'hidden'`) to enable responsive horizontal scrolling on mobile viewports.
 - [x] Implemented a premium, floating modal-based breakdown viewer (`BreakdownModal`) for Period Closings payouts detail summaries.
+- [x] Integrated a "Pending Payouts" summary card (displaying total pending amount and count) on the admin payouts page, updated the layout to stretch summary cards to full screen width on desktop, and added a "Created Date" column to the payouts listing table.
 
 ---
 

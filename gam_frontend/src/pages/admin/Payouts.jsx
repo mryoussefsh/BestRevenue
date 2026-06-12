@@ -3,6 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
+import { useSettings } from '../../contexts/SettingsContext'
 import { CreditCard, Check, X, Copy, RefreshCw, Clock, DollarSign, Ban, Filter } from 'lucide-react'
 
 function ApproveModal({ payout, onClose, onDone }) {
@@ -230,6 +231,7 @@ function PublisherSelect({ publishers, value, onChange }) {
 
 /* ── Main Page ───────────────────────────────────────────────────────────── */
 export default function PayoutsPage() {
+  const { formatDate } = useSettings()
   const [payouts,    setPayouts]    = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading,    setLoading]    = useState(true)
@@ -294,6 +296,10 @@ export default function PayoutsPage() {
   const availableBalance = selectedPub
     ? parseFloat(selectedPub.approved_balance || 0)
     : publishers.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
+
+  const pendingPayouts = filteredPayouts.filter(p => p.status === 'pending')
+  const pendingCount = pendingPayouts.length
+  const pendingSum = pendingPayouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)
 
   const hasFilter = filterStatus || filterPublisher || filterYear || filterMonth
   const activeFiltersCount = [
@@ -450,7 +456,7 @@ export default function PayoutsPage() {
       )}
 
       {/* ── Summary Cards ──────────────────────────────────────────────── */}
-      <div className="stat-grid" style={{ marginBottom: 24 }}>
+      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: 24 }}>
         <div className="stat-card accent">
           <div className="stat-label">Total Paid Out</div>
           <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
@@ -467,6 +473,15 @@ export default function PayoutsPage() {
             {selectedPub ? `Approved & awaiting next cycle for ${selectedPub.name}` : 'Total approved & awaiting next cycle'}
           </div>
         </div>
+        <div className="stat-card warning">
+          <div className="stat-label">Pending Payouts</div>
+          <div className="stat-value money" style={{ color: 'var(--color-warning)' }}>
+            <CompactAmount value={pendingSum} />
+          </div>
+          <div className="stat-sub">
+            {pendingCount} {pendingCount === 1 ? 'payout' : 'payouts'} pending
+          </div>
+        </div>
       </div>
 
       {/* ── Table ──────────────────────────────────────────────────────── */}
@@ -478,14 +493,14 @@ export default function PayoutsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Publisher</th><th>Period</th><th>Base Amount</th>
+                  <th>Publisher</th><th>Period</th><th>Created</th><th>Base Amount</th>
                   <th>Adjustment</th><th>Final Amount</th><th>Status</th>
                   <th>Payment Method</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredPayouts.length === 0 && (
-                  <tr><td colSpan={8}>
+                  <tr><td colSpan={9}>
                     <div className="empty-state">
                       <div className="empty-state-icon"><CreditCard size={40} /></div>
                       <div className="empty-state-text">No payouts found</div>
@@ -500,7 +515,10 @@ export default function PayoutsPage() {
                       <div className="text-muted text-sm">{p.publisher?.email}</div>
                     </td>
                     <td className="money text-sm">
-                      {p.period_year}-{String(p.period_month).padStart(2,'0')}
+                      {p.period_year ? `${p.period_year}-${String(p.period_month).padStart(2,'0')}` : '—'}
+                    </td>
+                    <td className="text-sm text-muted">
+                      {p.created_at ? formatDate(p.created_at) : '—'}
                     </td>
                     <td className="money"><CompactAmount value={p.amount} /></td>
                     <td className={`money ${parseFloat(p.adjustment) >= 0 ? 'positive' : 'negative'}`}>
@@ -578,7 +596,7 @@ export default function PayoutsPage() {
               {filteredPayouts.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals ({filteredPayouts.length})</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={3}>Totals ({filteredPayouts.length})</td>
                     <td className="money"><CompactAmount value={totalBase} /></td>
                     <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
                       {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />
