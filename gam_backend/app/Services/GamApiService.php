@@ -47,6 +47,28 @@ class GamApiService
             ->withRefreshToken($account->refresh_token)
             ->build();
 
+        // Automatically refresh token if it is expired or missing in database
+        if ($account->isTokenExpired() || !$account->access_token) {
+            try {
+                $tokenData = $oAuth2Credential->fetchAuthToken();
+                if (isset($tokenData['access_token'])) {
+                    $account->access_token = $tokenData['access_token'];
+                    if (isset($tokenData['expires_in'])) {
+                        $account->token_expires_at = now()->addSeconds($tokenData['expires_in'] - 30);
+                    } else {
+                        $account->token_expires_at = now()->addHour();
+                    }
+                    $account->status = 'active';
+                    $account->save();
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to automatically refresh GAM token for {$account->email}: " . $e->getMessage());
+                $account->status = 'disconnected';
+                $account->save();
+                throw new RuntimeException("GAM Account authentication failed: " . $e->getMessage(), 0, $e);
+            }
+        }
+
         $session = (new AdManagerSessionBuilder())
             ->withNetworkCode($account->network_code)
             ->withApplicationName('BestRevenue Sync System')

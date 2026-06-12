@@ -48,14 +48,14 @@ class GamAccount extends Model
 
     public function isTokenExpired(): bool
     {
-        if (!$this->token_expires_at) return false;
-        return $this->token_expires_at->isPast();
+        if (!$this->token_expires_at || !$this->access_token) return true;
+        return $this->token_expires_at->subMinutes(2)->isPast();
     }
 
     public function getStatusBadge(): string
     {
         if ($this->status === 'disconnected') return 'disconnected';
-        if ($this->isTokenExpired()) return 'expired';
+        if (!$this->refresh_token) return 'expired';
         return 'active';
     }
 

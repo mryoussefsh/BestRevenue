@@ -501,8 +501,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
             <label className="form-label">Ratio Override % <span className="text-muted text-xs">(optional — leave empty to inherit)</span></label>
             <input className="form-input" type="number" min="1" max="100" placeholder="Inherit from website / publisher"
               value={form.ratio_override}
-              onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))}
-              style={{ maxWidth: 220 }} />
+              onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
           </div>
 
           {/* Live Preview */}

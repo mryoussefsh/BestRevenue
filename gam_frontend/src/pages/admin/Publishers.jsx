@@ -6,7 +6,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
-import { Users, Clock, Plus, Eye, Check, Info } from 'lucide-react'
+import { Users, Clock, Plus, Eye, Check, Info, Filter } from 'lucide-react'
 
 export function PublisherModal({ publisher, onClose, onSaved }) {
   const isEdit = !!publisher?.id
@@ -200,7 +200,10 @@ export default function PublishersPage() {
   const [adjustBalanceModal, setAdjustBalanceModal] = useState(null) // null | publisher obj
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
+
+  const activeFiltersCount = (search !== '' ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0)
 
   useEffect(() => { loadPublishers() }, [])
 
@@ -303,9 +306,35 @@ export default function PublishersPage() {
             )}
           </p>
         </div>
-        <button id="add-publisher-btn" className="btn btn-primary" onClick={() => setModal('create')}>
-          <Plus size={16} /> Add Publisher
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button id="add-publisher-btn" className="btn btn-primary" onClick={() => setModal('create')}>
+            <Plus size={16} /> Add Publisher
+          </button>
+        </div>
       </div>
 
       {publishers.filter(p => p.status === 'pending').length > 0 && (
@@ -320,27 +349,29 @@ export default function PublishersPage() {
         </div>
       )}
 
-      <div className="filter-bar" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <input
-          className="form-input"
-          placeholder="Search name or email…"
-          style={{ flex: 1 }}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <select
-          id="status-filter"
-          className="form-select"
-          style={{ width: 180 }}
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="pending">Pending</option>
-          <option value="suspended">Suspended</option>
-        </select>
-      </div>
+      {showFiltersPanel && (
+        <div className="filter-bar" style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 }}>
+          <input
+            className="form-input"
+            placeholder="Search name or email…"
+            style={{ flex: 1 }}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select
+            id="status-filter"
+            className="form-select"
+            style={{ width: 180 }}
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="table-wrap">

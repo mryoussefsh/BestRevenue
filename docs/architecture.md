@@ -85,6 +85,7 @@ The frontend is a single-page application focused on high-performance state rend
 3. **Card Grid & Text Wrapping**: Configures stats widgets using a two-column grid (`minmax(0, 1fr) auto`) paired with `flex-wrap: wrap` on subtitles. This ensures that even when users click a number to reveal long un-compacted figures, the subtitle wraps cleanly without expanding the card width or pushing the right-hand status icon off-screen.
 4. **Emoji-Free Standardized Icons**: Restricts raw browser emojis from forms, lists, and pages, substituting them with high-fidelity vector SVGs (such as country search magnifying glass backgrounds) and clean line icons from `lucide-react`.
 5. **Interactive Navigation Elements**: Includes a click-to-settings Link wrapping the sidebar publisher user profile block, a simplified topbar header with a custom-styled `<select>` dropdown menu, and responsive side-by-side profile and security form cards.
+6. **Collapsible Header Filters (Publisher Profile)**: Relocates the filter toggle button to the top-right header aligned with back navigation, restructuring filter fields into a responsive, wrapping horizontal grid and grouping the "Clear Filters" actions on the bottom right to optimize desktop real estate and align layout standards.
 
 ---
 

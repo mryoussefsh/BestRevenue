@@ -5,7 +5,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { 
-  Clock, Settings, CheckCircle, Lock, Shield, User, Search, RefreshCw, AlertTriangle, Plus, Tag, HelpCircle, Building
+  Clock, Settings, CheckCircle, Lock, Shield, User, Search, RefreshCw, AlertTriangle, Plus, Tag, HelpCircle, Building, Filter
 } from 'lucide-react'
 
 export default function AdminTickets() {
@@ -25,6 +25,7 @@ export default function AdminTickets() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterPriority, setFilterPriority] = useState('')
   const [filterPublisher, setFilterPublisher] = useState('')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   useEffect(() => {
     // Load publishers for dropdown
@@ -154,6 +155,14 @@ export default function AdminTickets() {
     return <div className="loading-screen"><div className="spinner"></div></div>
   }
 
+  const activeFiltersCount = [
+    search !== '',
+    filterStatus !== '',
+    filterCategory !== '',
+    filterPriority !== '',
+    filterPublisher !== ''
+  ].filter(Boolean).length
+
   return (
     <div>
       <div className="page-header">
@@ -165,12 +174,39 @@ export default function AdminTickets() {
             Manage, assign, and respond to publisher support requests across the platform.
           </p>
         </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="glass-card" style={{ marginBottom: 20, padding: 20 }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="filter-bar">
+      {showFiltersPanel && (
+        <div className="glass-card" style={{ marginBottom: 20, padding: 20 }}>
+          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="filter-bar">
             
             {/* Search query */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 200 }}>
@@ -271,6 +307,7 @@ export default function AdminTickets() {
           </div>
         </form>
       </div>
+      )}
 
       {/* Tickets List Card */}
       <div className="glass-card" style={{ padding: 0 }}>

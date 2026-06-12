@@ -191,12 +191,128 @@ export default function PublisherProfile() {
 
   return (
     <div>
-      {/* Top back navigation */}
-      <div style={{ marginBottom: 16 }}>
+      {/* Top back navigation and Filter */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <Link to="/admin/publishers" className="text-muted hover-link" style={{ fontSize: 14, fontWeight: 500 }}>
           ← Back to Publishers List
         </Link>
+        <button 
+          className="btn btn-secondary"
+          onClick={() => setShowFilters(!showFilters)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          <Filter size={16} />
+          <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+          {activeFiltersCount > 0 && (
+            <span style={{
+              background: 'var(--br-primary)',
+              color: '#fff',
+              borderRadius: '50%',
+              width: 20,
+              height: 20,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 'bold'
+            }}>
+              {activeFiltersCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Filter Bar */}
+      {showFilters && (
+        <div className="card filter-bar-card" style={{ padding: '16px 20px', marginBottom: 24, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              gap: 12 
+            }}>
+              {/* Website Selector */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Globe size={12} /> Filter by Website
+                </label>
+                <select
+                  className="form-select"
+                  style={{ width: '100%', height: 38 }}
+                  value={selectedWebsite}
+                  onChange={e => setSelectedWebsite(e.target.value)}
+                >
+                  <option value="">All Websites</option>
+                  {websites.map(w => (
+                    <option key={w.id} value={w.id}>{w.domain}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From Selector */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Calendar size={12} /> Date From
+                </label>
+                <input
+                  type="date"
+                  className="form-input"
+                  style={{ width: '100%', height: 38 }}
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                />
+              </div>
+
+              {/* Date To Selector */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Calendar size={12} /> Date To
+                </label>
+                <input
+                  type="date"
+                  className="form-input"
+                  style={{ width: '100%', height: 38 }}
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {(selectedWebsite || dateFrom || dateTo) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => {
+                    setSelectedWebsite('')
+                    setDateFrom('')
+                    setDateTo('')
+                  }}
+                  style={{ 
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    color: '#ef4444',
+                    padding: '6px 12px',
+                    fontWeight: 600,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#ef4444'
+                    e.currentTarget.style.color = '#fff'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                    e.currentTarget.style.color = '#ef4444'
+                  }}
+                >
+                  <X size={12} /> Clear Filters
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Profile Header */}
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
@@ -279,135 +395,7 @@ export default function PublisherProfile() {
         </div>
       </div>
 
-      {/* Filter Toggle Button */}
-      <div style={{ marginBottom: 24 }}>
-        <button className="btn btn-secondary"
-          style={{ 
-            width: '100%',
-            background: showFilters ? 'var(--color-primary)' : 'rgba(99,102,241,0.12)', 
-            color: showFilters ? '#fff' : 'var(--color-primary-light)', 
-            border: '1px solid rgba(99,102,241,0.3)', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: '6px',
-            height: 42,
-            fontSize: 14,
-            fontWeight: 600,
-            borderRadius: 8
-          }}
-          onClick={() => setShowFilters(!showFilters)}>
-          <Filter size={14} /> {showFilters ? 'Hide Filter' : 'Show Filter'}
-          {activeFiltersCount > 0 && (
-            <span style={{
-              background: showFilters ? '#fff' : 'var(--br-primary)',
-              color: showFilters ? 'var(--br-primary)' : '#fff',
-              borderRadius: '50%',
-              width: 18,
-              height: 18,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 10,
-              fontWeight: 'bold',
-              marginLeft: 4
-            }}>
-              {activeFiltersCount}
-            </span>
-          )}
-        </button>
-      </div>
 
-      {/* Filter Bar */}
-      {showFilters && (
-        <div className="card" style={{ padding: 20, marginBottom: 24, background: 'var(--color-surface-2)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            
-            {/* Website Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Globe size={12} /> Filter by Website
-              </label>
-              <select
-                className="form-select"
-                style={{ width: '100%', padding: '8px 12px', height: 40 }}
-                value={selectedWebsite}
-                onChange={e => setSelectedWebsite(e.target.value)}
-              >
-                <option value="">All Websites</option>
-                {websites.map(w => (
-                  <option key={w.id} value={w.id}>{w.domain}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date From Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> Date From
-              </label>
-              <input
-                type="date"
-                className="form-input"
-                style={{ width: '100%', padding: '8px 12px', height: 40 }}
-                value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-              />
-            </div>
-
-            {/* Date To Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> Date To
-              </label>
-              <input
-                type="date"
-                className="form-input"
-                style={{ width: '100%', padding: '8px 12px', height: 40 }}
-                value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-              />
-            </div>
-
-            {/* Reset Filters Button */}
-            {(selectedWebsite || dateFrom || dateTo) && (
-              <button
-                className="btn btn-secondary"
-                style={{ 
-                  width: '100%',
-                  height: 40,
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: 8,
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  color: '#ef4444',
-                  transition: 'var(--transition)',
-                  fontWeight: 600
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#ef4444'
-                  e.currentTarget.style.color = '#fff'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
-                  e.currentTarget.style.color = '#ef4444'
-                }}
-                onClick={() => {
-                  setSelectedWebsite('')
-                  setDateFrom('')
-                  setDateTo('')
-                }}
-              >
-                <X size={14} />
-                Clear Filters
-              </button>
-            )}
-
-          </div>
-        </div>
-      )}
 
       {/* Stats Cards */}
       <div className="stat-grid" style={{ marginBottom: 24 }}>

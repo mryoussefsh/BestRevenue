@@ -3,7 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Filter } from 'lucide-react'
 
 
 export default function AuditLogsPage() {
@@ -12,6 +12,7 @@ export default function AuditLogsPage() {
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ action: '', entity_type: '' })
   const [page, setPage] = useState(1)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   useEffect(() => { load() }, [filters])
 
@@ -43,6 +44,8 @@ export default function AuditLogsPage() {
     closed: 'badge-closed'
   }
 
+  const activeFiltersCount = [filters.action, filters.entity_type].filter(Boolean).length
+
   return (
     <div>
       <div className="page-header">
@@ -52,39 +55,67 @@ export default function AuditLogsPage() {
           </h1>
           <p className="page-subtitle">Track admin and system actions</p>
         </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="filter-bar">
-        <select 
-          className="form-select" 
-          value={filters.action} 
-          onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}
-        >
-          <option value="">All Actions</option>
-          <option value="created">Created</option>
-          <option value="updated">Updated</option>
-          <option value="deleted">Deleted</option>
-          <option value="suspended">Suspended</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-          <option value="paid">Paid</option>
-          <option value="closed">Closed</option>
-        </select>
-        
-        <select 
-          className="form-select" 
-          value={filters.entity_type} 
-          onChange={e => setFilters(f => ({ ...f, entity_type: e.target.value }))}
-        >
-          <option value="">All Entities</option>
-          <option value="Publisher">Publisher</option>
-          <option value="Website">Website</option>
-          <option value="AdUnit">Ad Unit</option>
-          <option value="Setting">Setting</option>
-          <option value="Payout">Payout</option>
-          <option value="PeriodClosing">Period Closing</option>
-        </select>
-      </div>
+      {showFiltersPanel && (
+        <div className="filter-bar">
+          <select 
+            className="form-select" 
+            value={filters.action} 
+            onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}
+          >
+            <option value="">All Actions</option>
+            <option value="created">Created</option>
+            <option value="updated">Updated</option>
+            <option value="deleted">Deleted</option>
+            <option value="suspended">Suspended</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="paid">Paid</option>
+            <option value="closed">Closed</option>
+          </select>
+          
+          <select 
+            className="form-select" 
+            value={filters.entity_type} 
+            onChange={e => setFilters(f => ({ ...f, entity_type: e.target.value }))}
+          >
+            <option value="">All Entities</option>
+            <option value="Publisher">Publisher</option>
+            <option value="Website">Website</option>
+            <option value="AdUnit">Ad Unit</option>
+            <option value="Setting">Setting</option>
+            <option value="Payout">Payout</option>
+            <option value="PeriodClosing">Period Closing</option>
+          </select>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="table-wrap">

@@ -3,29 +3,43 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
-import { DollarSign, RefreshCw, Search, Lock, Clock, Check } from 'lucide-react'
+import { DollarSign, RefreshCw, Search, Lock, Clock, Check, X, Filter } from 'lucide-react'
 
-function PublisherSelect({ publishers, value, onChange }) {
+function PublisherSelect({ publishers, value, onChange, style }) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
+  const [hoveredId, setHoveredId] = useState(null)
   
   const selected = publishers.find(p => p.id === value)
   const filtered = publishers.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.email.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div style={{ position: 'relative', width: 240 }} onBlur={e => { if(!e.currentTarget.contains(e.relatedTarget)) setOpen(false) }}>
+    <div style={{ position: 'relative', width: '100%', ...style }} onBlur={e => { if(!e.currentTarget.contains(e.relatedTarget)) setOpen(false) }}>
       <div 
-        className="form-input" 
-        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px', background: '#1c1f2e', border: '1px solid #333' }} 
+        className="form-select" 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
         onClick={() => setOpen(!open)}
         tabIndex={0}
       >
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : 'All Publishers'}</span>
-        <span style={{ fontSize: 10, color: '#888' }}>▼</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
       </div>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: '#1c1f2e', border: '1px solid #333', borderRadius: 4, marginTop: 4, maxHeight: 300, overflow: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-          <div style={{ padding: 8, borderBottom: '1px solid #333', position: 'sticky', top: 0, background: '#1c1f2e', zIndex: 11 }}>
+        <div style={{ 
+          position: 'absolute', 
+          top: 'calc(100% + 4px)', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: 'var(--color-surface-2)', 
+          border: '1px solid var(--color-border-light)', 
+          borderRadius: 'var(--radius-md)', 
+          marginTop: 4, 
+          maxHeight: 300, 
+          overflow: 'auto', 
+          boxShadow: 'var(--shadow-md)' 
+        }}>
+          <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-light)', position: 'sticky', top: 0, background: 'var(--color-surface-2)', zIndex: 11 }}>
             <input 
               autoFocus
               className="form-input" 
@@ -36,23 +50,44 @@ function PublisherSelect({ publishers, value, onChange }) {
             />
           </div>
           <div 
-            style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #222' }} 
+            style={{ 
+              padding: '8px 12px', 
+              cursor: 'pointer', 
+              borderBottom: '1px solid var(--color-border-light)',
+              background: hoveredId === 'all' ? 'var(--color-surface-3)' : 'transparent',
+              transition: 'background 0.15s'
+            }} 
             onMouseDown={() => { onChange(''); setOpen(false); setSearch('') }}
+            onMouseEnter={() => setHoveredId('all')}
+            onMouseLeave={() => setHoveredId(null)}
           >
             All Publishers
           </div>
-          {filtered.map(p => (
-            <div 
-              key={p.id} 
-              style={{ padding: '8px 12px', cursor: 'pointer', background: value === p.id ? '#2a2d3e' : 'transparent', borderBottom: '1px solid #222' }} 
-              onMouseDown={() => { onChange(p.id); setOpen(false); setSearch('') }}
-            >
-              <div style={{ fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: '#888' }}>{p.email}</div>
-            </div>
-          ))}
+          {filtered.map(p => {
+            const isSelected = value === p.id
+            const isHovered = hoveredId === p.id
+            return (
+              <div 
+                key={p.id} 
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: 'pointer', 
+                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  borderBottom: '1px solid var(--color-border-light)',
+                  color: isSelected ? 'white' : 'var(--color-text)',
+                  transition: 'background 0.15s'
+                }} 
+                onMouseDown={() => { onChange(p.id); setOpen(false); setSearch('') }}
+                onMouseEnter={() => setHoveredId(p.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div style={{ fontWeight: 600 }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
+              </div>
+            )
+          })}
           {filtered.length === 0 && (
-            <div style={{ padding: '8px 12px', color: '#888', fontSize: 12, textAlign: 'center' }}>No publishers found</div>
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No publishers found</div>
           )}
         </div>
       )}
@@ -64,13 +99,16 @@ export default function RevenuePage() {
   const [records, setRecords] = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({
+  
+  const [initialFilters] = useState(() => ({
     date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10),
     date_to: new Date().toISOString().slice(0,10),
     publisher_id: '',
     search: '',
     status: '',
-  })
+  }))
+  const [filters, setFilters] = useState(initialFilters)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
@@ -129,13 +167,7 @@ export default function RevenuePage() {
   })
 
   function resetFilters() {
-    setFilters({
-      date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10),
-      date_to: new Date().toISOString().slice(0,10),
-      publisher_id: '',
-      search: '',
-      status: '',
-    })
+    setFilters(initialFilters)
   }
 
   const paginated = sortedRecords.slice((page - 1) * 15, page * 15)
@@ -149,8 +181,23 @@ export default function RevenuePage() {
   const avgCpm        = totalImpr > 0 ? (totalGross / totalImpr) * 1000 : 0
   const avgRatio      = records.length > 0 ? (records.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / records.length) * 100 : 0
 
+  const hasAppliedFilters = 
+    filters.date_from !== initialFilters.date_from ||
+    filters.date_to !== initialFilters.date_to ||
+    filters.publisher_id !== initialFilters.publisher_id ||
+    filters.search !== initialFilters.search ||
+    filters.status !== initialFilters.status
+
+  const activeFiltersCount = [
+    filters.date_from !== initialFilters.date_from,
+    filters.date_to !== initialFilters.date_to,
+    filters.publisher_id !== initialFilters.publisher_id,
+    filters.search !== initialFilters.search,
+    filters.status !== initialFilters.status
+  ].filter(Boolean).length
+
   return (
-    <div>
+    <div className="revenue-container">
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -159,12 +206,112 @@ export default function RevenuePage() {
           </h1>
           <p className="page-subtitle">{records.length} records · Full admin view</p>
         </div>
-        <button id="apply-revenue-filters-btn" className="btn btn-secondary" onClick={loadData}>
-          <RefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button id="apply-revenue-filters-btn" className="btn btn-secondary" onClick={loadData}>
+            <RefreshCw size={14} /> Refresh
+          </button>
+        </div>
       </div>
 
-      <div className="stat-grid" style={{ marginBottom: 24 }}>
+      {/* Filters */}
+      {showFiltersPanel && (
+        <div className="card filter-bar-card" style={{ padding: '16px 20px', marginBottom: 24, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              gap: 12 
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date From</label>
+                <input type="date" className="form-input" value={filters.date_from}
+                  onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} style={{ height: 38 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date To</label>
+                <input type="date" className="form-input" value={filters.date_to}
+                  onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} style={{ height: 38 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                <PublisherSelect 
+                  publishers={publishers} 
+                  value={filters.publisher_id} 
+                  onChange={val => setFilters(f => ({ ...f, publisher_id: val }))} 
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                <select className="form-select" value={filters.status}
+                  onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} style={{ height: 38 }}>
+                  <option value="">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200 }} className="filter-search-field">
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search</label>
+                <div style={{ position: 'relative' }}>
+                  <input className="form-input" placeholder="Search publishers, domains, ad units…" style={{ height: 38, paddingLeft: 36 }}
+                    value={filters.search}
+                    onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
+                  <Search size={14} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--color-text-muted)' }} />
+                </div>
+              </div>
+            </div>
+
+            {(hasAppliedFilters || records.length !== sortedRecords.length) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                <span className="text-muted text-sm">
+                  Showing {records.length} records
+                </span>
+                {hasAppliedFilters && (
+                  <button className="btn btn-secondary btn-xs" onClick={resetFilters}
+                    style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      color: '#ef4444',
+                      padding: '6px 12px',
+                      fontWeight: 600,
+                    }}>
+                    <X size={12} /> Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: 24 }}>
         <div className="stat-card primary">
           <div className="stat-label">Total Gross Revenue</div>
           <div className="stat-value money"><CompactAmount value={totalGross} /></div>
@@ -181,33 +328,7 @@ export default function RevenuePage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="filter-bar">
-        <input type="date" className="form-input" value={filters.date_from}
-          onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} />
-        <input type="date" className="form-input" value={filters.date_to}
-          onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} />
-        <PublisherSelect 
-          publishers={publishers} 
-          value={filters.publisher_id} 
-          onChange={val => setFilters(f => ({ ...f, publisher_id: val }))} 
-        />
-        <select className="form-select" value={filters.status}
-          onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="closed">Closed</option>
-        </select>
-        <input className="form-input" placeholder="Search publishers, domains, ad units…" style={{ flex: 1, minWidth: 240 }}
-          value={filters.search}
-          onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
-        <button className="btn btn-secondary" onClick={resetFilters} title="Reset Filters" style={{ height: '38px', padding: '0 12px' }}>
-          ✕
-        </button>
-      </div>
-
-      <div className="card" style={{ padding: 0 }}>
+      <div className="card table-card-wrapper" style={{ padding: 0 }}>
         <div className="table-wrap">
           {loading ? (
             <div className="empty-state"><div className="spinner"></div></div>

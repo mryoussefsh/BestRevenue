@@ -162,6 +162,12 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Reformatted the Viewability Rate card subtitle to render compact amounts (e.g. `1.2M ⓘ / 1.7M ⓘ measurable`) with interactive hover tooltips.
 - [x] Resolved card layout overflows by updating `.stat-card` to use `minmax(0, 1fr) auto` grid columns and adding `flex-wrap: wrap` to `.stat-change`.
 
+### Milestone 11: OAuth Token Auto-Refresh & Filters Polish (Sprint 16)
+- [x] Implemented pre-flight OAuth token expiration checks in the backend `buildSession` method of `GamApiService` to automatically request new tokens from Google using stored refresh tokens, writing them back to the database.
+- [x] Updated status badge logic in the `GamAccount` model so that accounts with a valid refresh token remain labeled as `active` rather than showing as "EXPIRED" every hour.
+- [x] Redesigned the filter button inside the admin Publisher Profile portal view, moving it to the top-right header section to align with other page structures.
+- [x] Restructured the vertically stacked filter fields inside the Publisher Profile filter card into a clean, horizontal responsive grid layout for desktop viewports.
+
 ---
 
 ## 📅 Remaining Roadmap Tasks

@@ -3,7 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
-import { CreditCard, Check, X, Copy, RefreshCw, Clock, DollarSign, Ban } from 'lucide-react'
+import { CreditCard, Check, X, Copy, RefreshCw, Clock, DollarSign, Ban, Filter } from 'lucide-react'
 
 function ApproveModal({ payout, onClose, onDone }) {
   const [note, setNote] = useState('')
@@ -242,6 +242,7 @@ export default function PayoutsPage() {
   const [filterPublisher, setFilterPublisher] = useState('')
   const [filterYear,      setFilterYear]      = useState('')
   const [filterMonth,     setFilterMonth]     = useState('')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   // Load publishers list
   async function loadPublishers() {
@@ -295,6 +296,12 @@ export default function PayoutsPage() {
     : publishers.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
 
   const hasFilter = filterStatus || filterPublisher || filterYear || filterMonth
+  const activeFiltersCount = [
+    filterStatus,
+    filterPublisher,
+    filterYear,
+    filterMonth
+  ].filter(Boolean).length
 
   function handleReset() {
     setFilterStatus('')
@@ -334,10 +341,37 @@ export default function PayoutsPage() {
                : `${filteredPayouts.length} of ${payouts.length} payouts`}
           </p>
         </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div className="filter-bar">
+      {showFiltersPanel && (
+        <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
+          <div className="filter-bar">
 
           {/* Status */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -411,8 +445,9 @@ export default function PayoutsPage() {
               ✕ Reset
             </button>
           )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Summary Cards ──────────────────────────────────────────────── */}
       <div className="stat-grid" style={{ marginBottom: 24 }}>

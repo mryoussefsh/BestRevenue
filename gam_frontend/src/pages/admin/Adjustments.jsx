@@ -7,7 +7,7 @@ import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import { useSettings } from '../../contexts/SettingsContext'
 import CompactAmount from '../../components/CompactAmount'
 import { 
-  Scale, Gift, Zap, Plus, Lock, Clock, Trash2, BarChart2, Info, Globe
+  Scale, Gift, Zap, Plus, Lock, Clock, Trash2, BarChart2, Info, Globe, Filter
 } from 'lucide-react'
 
 
@@ -18,7 +18,10 @@ export default function AdjustmentsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
+
+  const activeFiltersCount = (search !== '' ? 1 : 0) + (statusFilter !== '' ? 1 : 0)
   const [totalItems, setTotalItems] = useState(0)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showIvtModal, setShowIvtModal] = useState(false)
@@ -81,7 +84,31 @@ export default function AdjustmentsPage() {
           </h1>
           <p className="page-subtitle">{totalItems} total adjustments</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
           <button className="btn btn-secondary" onClick={() => setShowBonusModal(true)} style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Gift size={14} /> Apply Bonus
           </button>
@@ -94,25 +121,27 @@ export default function AdjustmentsPage() {
         </div>
       </div>
 
-      <div className="filter-bar" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <input
-          className="form-input"
-          style={{ flex: 1, minWidth: 200 }}
-          placeholder="Search publisher name, email, or notes…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <select
-          className="form-select"
-          style={{ width: 180 }}
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="applied">Applied (Processed)</option>
-        </select>
-      </div>
+      {showFiltersPanel && (
+        <div className="filter-bar" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+          <input
+            className="form-input"
+            style={{ flex: 1, minWidth: 200 }}
+            placeholder="Search publisher name, email, or notes…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select
+            className="form-select"
+            style={{ width: 180 }}
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="applied">Applied (Processed)</option>
+          </select>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="table-wrap">

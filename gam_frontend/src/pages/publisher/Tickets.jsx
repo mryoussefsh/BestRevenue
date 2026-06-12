@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { 
   MessageSquare, Plus, Clock, HelpCircle, CheckCircle, Lock, AlertTriangle, 
-  User, Settings, Mail, X 
+  User, Settings, Mail, X, Filter 
 } from 'lucide-react'
 
 export default function PublisherTickets() {
@@ -18,6 +18,7 @@ export default function PublisherTickets() {
   const [totalItems, setTotalItems] = useState(0)
   const [filterStatus, setFilterStatus] = useState('')
   const [hasActiveTicket, setHasActiveTicket] = useState(false)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -165,6 +166,8 @@ export default function PublisherTickets() {
     return <div className="loading-screen"><div className="spinner"></div></div>
   }
 
+  const activeFiltersCount = filterStatus !== '' ? 1 : 0
+
   return (
     <div>
       <div className="page-header">
@@ -182,20 +185,47 @@ export default function PublisherTickets() {
             </p>
           )}
         </div>
-        <button 
-          className="btn btn-primary" 
-          onClick={handleOpenModal}
-          disabled={hasActiveTicket}
-          style={hasActiveTicket ? { opacity: 0.6, cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 } : { display: 'inline-flex', alignItems: 'center', gap: 8 }}
-          title={hasActiveTicket ? "You already have an active ticket" : "Open a new ticket"}
-        >
-          <Plus size={16} /> Open Support Ticket
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleOpenModal}
+            disabled={hasActiveTicket}
+            style={hasActiveTicket ? { opacity: 0.6, cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 } : { display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            title={hasActiveTicket ? "You already have an active ticket" : "Open a new ticket"}
+          >
+            <Plus size={16} /> Open Support Ticket
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="glass-card" style={{ marginBottom: 20, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
-        <div className="responsive-filters">
+      {showFiltersPanel && (
+        <div className="glass-card" style={{ marginBottom: 20, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+          <div className="responsive-filters">
           <div>
             <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Filter Status</label>
             <select
@@ -212,6 +242,7 @@ export default function PublisherTickets() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Tickets List */}
       <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>

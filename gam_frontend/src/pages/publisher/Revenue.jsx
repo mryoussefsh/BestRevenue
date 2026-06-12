@@ -5,7 +5,7 @@ import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 import { 
-  DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye 
+  DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye, Filter 
 } from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
@@ -29,6 +29,7 @@ export default function PublisherRevenue() {
     ad_unit_id: '',
     status: ''
   })
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
@@ -261,6 +262,12 @@ export default function PublisherRevenue() {
     }
   }
 
+  const activeFiltersCount = [
+    filters.preset !== '30d',
+    filters.ad_unit_id !== '',
+    filters.status !== ''
+  ].filter(Boolean).length
+
   return (
     <div>
       <div className="page-header">
@@ -271,20 +278,47 @@ export default function PublisherRevenue() {
           </h1>
           <p className="page-subtitle">{records.length} records</p>
         </div>
-        <button
-          className="btn btn-secondary"
-          onClick={handleExportPDF}
-          id="export-pdf-btn"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-        >
-          <FileText size={16} />
-          Export PDF
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleExportPDF}
+            id="export-pdf-btn"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <FileText size={16} />
+            Export PDF
+          </button>
+        </div>
       </div>
 
       {/* Filter Panel */}
-      <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
-        <div className="responsive-filters">
+      {showFiltersPanel && (
+        <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+          <div className="responsive-filters">
           
           {/* Preset Selector */}
           <div>
@@ -357,6 +391,7 @@ export default function PublisherRevenue() {
           )}
         </div>
       </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 24 }}>
         <div className="stat-card primary">

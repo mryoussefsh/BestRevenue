@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { 
-  CreditCard, DollarSign, Clock, CheckCircle, XCircle, TrendingUp, Ban 
+  CreditCard, DollarSign, Clock, CheckCircle, XCircle, TrendingUp, Ban, Filter 
 } from 'lucide-react'
 
 export default function PublisherPayouts() {
@@ -22,6 +22,7 @@ export default function PublisherPayouts() {
   const [filterStatus, setFilterStatus] = useState('')
   const [filterYear,   setFilterYear]   = useState('')
   const [filterMonth,  setFilterMonth]  = useState('')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
 
   useEffect(() => {
@@ -81,6 +82,8 @@ export default function PublisherPayouts() {
 
   if (loading) return <div className="loading-screen"><div className="spinner"></div></div>
 
+  const activeFiltersCount = [filterStatus, filterYear, filterMonth].filter(Boolean).length
+
   return (
     <div>
       <div className="page-header">
@@ -96,11 +99,38 @@ export default function PublisherPayouts() {
             {' · '}<CompactAmount value={totalPaid} /> total paid
           </p>
         </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="glass-card" style={{ marginBottom: 16, padding: '14px 20px', position: 'relative', zIndex: 10 }}>
-        <div className="responsive-filters">
+      {showFiltersPanel && (
+        <div className="glass-card" style={{ marginBottom: 16, padding: '14px 20px', position: 'relative', zIndex: 10 }}>
+          <div className="responsive-filters">
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Status</label>
@@ -171,6 +201,7 @@ export default function PublisherPayouts() {
           )}
         </div>
       </div>
+      )}
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 24 }}>

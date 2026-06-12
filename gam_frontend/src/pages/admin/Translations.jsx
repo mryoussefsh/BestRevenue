@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
-import { Languages } from 'lucide-react'
+import { Languages, Filter } from 'lucide-react'
 
 
 export default function TranslationsPage() {
@@ -13,6 +13,7 @@ export default function TranslationsPage() {
   const [saving, setSaving] = useState({})
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   useEffect(() => { load(locale) }, [locale])
 
@@ -50,6 +51,8 @@ export default function TranslationsPage() {
 
   const paginated = filtered.slice((page - 1) * 15, page * 15)
 
+  const activeFiltersCount = search !== '' ? 1 : 0
+
   return (
     <div>
       <div className="page-header">
@@ -59,7 +62,31 @@ export default function TranslationsPage() {
           </h1>
           <p className="page-subtitle">Edit UI strings for English and Arabic</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
           <button className={`btn ${locale === 'en' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setLocale('en')}>English</button>
           <button className={`btn ${locale === 'ar' ? 'btn-primary' : 'btn-secondary'}`}
@@ -67,11 +94,13 @@ export default function TranslationsPage() {
         </div>
       </div>
 
-      <div className="filter-bar">
-        <input className="form-input" placeholder="Filter by key or value…"
-          value={search} onChange={e => setSearch(e.target.value)} />
-        <span className="text-muted text-sm">{filtered.length} strings</span>
-      </div>
+      {showFiltersPanel && (
+        <div className="filter-bar">
+          <input className="form-input" placeholder="Filter by key or value…"
+            value={search} onChange={e => setSearch(e.target.value)} />
+          <span className="text-muted text-sm">{filtered.length} strings</span>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>

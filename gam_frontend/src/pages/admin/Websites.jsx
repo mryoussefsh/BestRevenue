@@ -3,7 +3,7 @@ import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { BulkAdUnitGeneratorModal, SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
-import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X } from 'lucide-react'
+import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X, Filter } from 'lucide-react'
 
 export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSaved, hidePublisherSelect }) {
   const isEdit = !!website?.id
@@ -316,6 +316,7 @@ export default function WebsitesPage() {
   const [adModal, setAdModal] = useState(null)
   const [gamAdModal, setGamAdModal] = useState(false)
   const [tab, setTab] = useState('websites')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   // ─── Filters ─────────────────────────────────────────────────────────────
   const [wSearch, setWSearch] = useState('')
@@ -397,6 +398,10 @@ export default function WebsitesPage() {
     finally { setLoading(false) }
   }
 
+  const activeFiltersCount = tab === 'websites' 
+    ? [wSearch, wPublisher, wGamLinked, wStatus, wRatio].filter(Boolean).length
+    : [aSearch, aWebsite, aPublisher, aStatus, aRatio].filter(Boolean).length
+
   return (
     <div>
       <div className="page-header">
@@ -407,7 +412,31 @@ export default function WebsitesPage() {
           </h1>
           <p className="page-subtitle">{websites.length} websites · {adUnits.length} ad units</p>
         </div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', width: '100%' }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
           <button id="add-website-btn" className="btn btn-secondary" onClick={() => setModal('create')}>
             <Plus size={16} /> Add Website
           </button>
@@ -436,8 +465,8 @@ export default function WebsitesPage() {
       </div>
 
       {/* ─── Filter Bar ──────────────────────────────────────────────────── */}
-      {tab === 'websites' ? (
-        <div className="card" style={{ padding: '16px 20px', marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+      {tab === 'websites' && showFiltersPanel && (
+        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ 
               display: 'grid', 
@@ -520,8 +549,10 @@ export default function WebsitesPage() {
             )}
           </div>
         </div>
-      ) : (
-        <div className="card" style={{ padding: '16px 20px', marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+      )}
+
+      {tab !== 'websites' && (selectedAdUnits.length || showFiltersPanel) && (
+        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
           {selectedAdUnits.length > 0 ? (
             <div style={{
               display: 'flex', gap: 12, alignItems: 'center',

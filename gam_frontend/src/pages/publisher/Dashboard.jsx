@@ -10,7 +10,7 @@ import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import AnnouncementsRenderer from '../../components/AnnouncementsRenderer'
 import { 
   Sparkles, Clock, RefreshCw, FileText, DollarSign, Eye, MousePointer, 
-  Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle 
+  Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle, Filter
 } from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
@@ -41,6 +41,7 @@ export default function PublisherDashboard() {
     website_id: '',
     ad_unit_id: '',
   })
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   const isFirstRun = useRef(true)
 
@@ -402,9 +403,14 @@ export default function PublisherDashboard() {
     )
   }
 
+  const activeFiltersCount = [
+    filters.preset !== '30d',
+    filters.website_id !== '',
+    filters.ad_unit_id !== ''
+  ].filter(Boolean).length
+
   return (
     <div>
-      <AnnouncementsRenderer />
       {/* Welcome Header */}
       <div className="page-header">
         <div>
@@ -422,19 +428,48 @@ export default function PublisherDashboard() {
             </div>
           )}
         </div>
-        <button
-          className="btn btn-secondary"
-          onClick={handleExportPDF}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-        >
-          <FileText size={16} />
-          Export PDF Statement
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Filter size={16} />
+            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: 'var(--br-primary)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 'bold'
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleExportPDF}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <FileText size={16} />
+            Export PDF Statement
+          </button>
+        </div>
       </div>
 
+      <AnnouncementsRenderer />
+
       {/* Filter Panel */}
-      <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
-        <div className="responsive-filters">
+      {showFiltersPanel && (
+        <div className="glass-card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
+          <div className="responsive-filters">
           
           {/* Preset Selector */}
           <div>
@@ -520,6 +555,7 @@ export default function PublisherDashboard() {
           )}
         </div>
       </div>
+      )}
 
       {/* Main Stats and Charts Container with Fade Overlay for refreshing */}
       <div style={{ opacity: refreshing ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
