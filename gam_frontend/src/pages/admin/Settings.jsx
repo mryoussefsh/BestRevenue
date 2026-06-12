@@ -225,9 +225,6 @@ export default function SettingsPage() {
                   <div key={s.key} className="settings-row" style={{ gridTemplateColumns: '1fr 2fr', paddingBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
                     <div style={{ paddingRight: 16 }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
-                      <div className="text-xs text-muted" style={{ marginTop: 4 }}>
-                        <code>{s.key}</code>
-                      </div>
                     </div>
                     <div>
                       {s.key === 'gam_sync_frequency' ? (
@@ -716,32 +713,44 @@ export default function SettingsPage() {
               )}
 
               {activeTab === 'email' && (
-                <div className="alert alert-info" style={{ marginTop: 32, padding: 20 }}>
-                  <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Mail size={16} /> Test SMTP Configuration
-                  </div>
-                  <p style={{ fontSize: '13px', marginBottom: '12px', color: 'var(--color-text-subtle)' }}>
-                    Before using SMTP in production, send a test email to verify your mail server credentials.
-                  </p>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <input
-                      type="email"
-                      className="form-input"
-                      style={{ flex: '1 1 240px', maxWidth: 300, fontSize: '13px' }}
-                      placeholder="Recipient email address…"
-                      value={testEmailRecipient}
-                      onChange={e => setTestEmailRecipient(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={handleSendTestEmail}
-                      disabled={sendingTestMail || !testEmailRecipient}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}
-                    >
-                      {sendingTestMail ? <Clock size={14} className="spinner" /> : <Send size={14} />}
-                      <span>Send Test Email</span>
-                    </button>
+                <div className="alert alert-info" style={{ marginTop: 32, padding: 24, display: 'block' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{
+                        background: 'rgba(99,102,241,0.15)',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        color: 'var(--color-primary, #6366f1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Mail size={18} />
+                      </div>
+                      <span style={{ fontWeight: 700, fontSize: '15px' }}>Test SMTP Configuration</span>
+                    </div>
+                    <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: 1.5 }}>
+                      Before using SMTP in production, send a test email to verify your mail server credentials.
+                    </p>
+                    <div className="smtp-test-form" style={{ marginTop: 4 }}>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="Recipient email address…"
+                        value={testEmailRecipient}
+                        onChange={e => setTestEmailRecipient(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleSendTestEmail}
+                        disabled={sendingTestMail || !testEmailRecipient}
+                      >
+                        {sendingTestMail ? <Clock size={14} className="spinner" /> : <Send size={14} />}
+                        <span>Send Test Email</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

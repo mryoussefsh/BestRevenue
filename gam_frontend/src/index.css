@@ -1828,4 +1828,44 @@ input, select, textarea { outline: none; }
   }
 }
 
+/* SMTP Test Form Styling */
+.smtp-test-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.smtp-test-form .form-input {
+  flex: 1 1 240px;
+  max-width: 350px;
+  font-size: 13px;
+  height: 38px;
+}
+
+.smtp-test-form .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+}
+
+@media (max-width: 576px) {
+  .smtp-test-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .smtp-test-form .form-input {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .smtp-test-form .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+
 
