@@ -47,6 +47,192 @@ function TriggerBadge({ triggeredBy }) {
   )
 }
 
+function PublisherSelect({ publishers, value, onChange }) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const [hoveredId, setHoveredId] = useState(null)
+  
+  const selected = publishers.find(p => String(p.id) === String(value))
+  const filtered = publishers.filter(p => 
+    (p.name || '').toLowerCase().includes(search.toLowerCase()) || 
+    (p.email || '').toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }} onBlur={e => { if(!e.currentTarget.contains(e.relatedTarget)) setOpen(false) }}>
+      <div 
+        className="form-select" 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
+        onClick={() => setOpen(!open)}
+        tabIndex={0}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : 'All Publishers'}</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
+      </div>
+      {open && (
+        <div style={{ 
+          position: 'absolute', 
+          top: 'calc(100% + 4px)', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: 'var(--color-surface-2)', 
+          border: '1px solid var(--color-border-light)', 
+          borderRadius: 'var(--radius-md)', 
+          marginTop: 4, 
+          maxHeight: 250, 
+          overflow: 'auto', 
+          boxShadow: 'var(--shadow-md)' 
+        }}>
+          <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-light)', position: 'sticky', top: 0, background: 'var(--color-surface-2)', zIndex: 11 }}>
+            <input 
+              autoFocus
+              className="form-input" 
+              placeholder="Search publisher..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ padding: '4px 8px', height: '30px' }}
+            />
+          </div>
+          <div 
+            style={{ 
+              padding: '8px 12px', 
+              cursor: 'pointer', 
+              borderBottom: '1px solid var(--color-border-light)',
+              background: hoveredId === 'all' ? 'var(--color-surface-3)' : 'transparent',
+              transition: 'background 0.15s'
+            }} 
+            onMouseDown={() => { onChange(''); setOpen(false); setSearch('') }}
+            onMouseEnter={() => setHoveredId('all')}
+            onMouseLeave={() => setHoveredId(null)}
+          >
+            All Publishers
+          </div>
+          {filtered.map(p => {
+            const isSelected = String(value) === String(p.id)
+            const isHovered = hoveredId === p.id
+            return (
+              <div 
+                key={p.id} 
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: 'pointer', 
+                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  borderBottom: '1px solid var(--color-border-light)',
+                  color: isSelected ? 'white' : 'var(--color-text)',
+                  transition: 'background 0.15s'
+                }} 
+                onMouseDown={() => { onChange(p.id); setOpen(false); setSearch('') }}
+                onMouseEnter={() => setHoveredId(p.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div style={{ fontWeight: 600 }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
+              </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No publishers found</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GamAccountSelect({ gamAccounts, value, onChange }) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const [hoveredId, setHoveredId] = useState(null)
+  
+  const selected = gamAccounts.find(a => String(a.id) === String(value))
+  const filtered = gamAccounts.filter(a => 
+    (a.name || '').toLowerCase().includes(search.toLowerCase()) || 
+    (a.email || '').toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }} onBlur={e => { if(!e.currentTarget.contains(e.relatedTarget)) setOpen(false) }}>
+      <div 
+        className="form-select" 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
+        onClick={() => setOpen(!open)}
+        tabIndex={0}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? `${selected.name} (${selected.email})` : 'All GAM Accounts'}</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
+      </div>
+      {open && (
+        <div style={{ 
+          position: 'absolute', 
+          top: 'calc(100% + 4px)', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: 'var(--color-surface-2)', 
+          border: '1px solid var(--color-border-light)', 
+          borderRadius: 'var(--radius-md)', 
+          marginTop: 4, 
+          maxHeight: 250, 
+          overflow: 'auto', 
+          boxShadow: 'var(--shadow-md)' 
+        }}>
+          <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-light)', position: 'sticky', top: 0, background: 'var(--color-surface-2)', zIndex: 11 }}>
+            <input 
+              autoFocus
+              className="form-input" 
+              placeholder="Search account..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ padding: '4px 8px', height: '30px' }}
+            />
+          </div>
+          <div 
+            style={{ 
+              padding: '8px 12px', 
+              cursor: 'pointer', 
+              borderBottom: '1px solid var(--color-border-light)',
+              background: hoveredId === 'all' ? 'var(--color-surface-3)' : 'transparent',
+              transition: 'background 0.15s'
+            }} 
+            onMouseDown={() => { onChange(''); setOpen(false); setSearch('') }}
+            onMouseEnter={() => setHoveredId('all')}
+            onMouseLeave={() => setHoveredId(null)}
+          >
+            All GAM Accounts
+          </div>
+          {filtered.map(a => {
+            const isSelected = String(value) === String(a.id)
+            const isHovered = hoveredId === a.id
+            return (
+              <div 
+                key={a.id} 
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: 'pointer', 
+                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  borderBottom: '1px solid var(--color-border-light)',
+                  color: isSelected ? 'white' : 'var(--color-text)',
+                  transition: 'background 0.15s'
+                }} 
+                onMouseDown={() => { onChange(a.id); setOpen(false); setSearch('') }}
+                onMouseEnter={() => setHoveredId(a.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div style={{ fontWeight: 600 }}>{a.name}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{a.email}</div>
+              </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No accounts found</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function GamSyncPage() {
   const { settings, formatDateTime } = useSettings()
   const fmt = (dt) => {
@@ -200,19 +386,6 @@ export default function GamSyncPage() {
             Trigger targeted GAM data synchronisation with custom filters
           </p>
         </div>
-        <button
-          id="btn-run-sync"
-          className={`btn btn-primary${syncing ? ' btn-loading' : ''}`}
-          disabled={syncing}
-          onClick={handleSync}
-          style={{ fontSize: 15, padding: '10px 28px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-        >
-          {syncing ? (
-            <><RefreshCw size={14} className="spinner" /> Syncing…</>
-          ) : (
-            <><Play size={14} /> Run Sync Now</>
-          )}
-        </button>
       </div>
 
       {/* Last Sync Banner */}
@@ -259,7 +432,7 @@ export default function GamSyncPage() {
       )}
 
       {/* Filter Panel */}
-      <div className="card" style={{ padding: 24 }}>
+      <div className="card" style={{ padding: 24, position: 'relative', zIndex: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>
           Sync Filters
         </div>
@@ -292,32 +465,20 @@ export default function GamSyncPage() {
 
           <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label">Publisher (optional)</label>
-            <select
-              id="sync-publisher"
-              className="form-input"
+            <PublisherSelect
+              publishers={publishers}
               value={filters.publisher_id}
-              onChange={e => setFilters(f => ({ ...f, publisher_id: e.target.value }))}
-            >
-              <option value="">All Publishers</option>
-              {publishers.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
+              onChange={val => setFilters(f => ({ ...f, publisher_id: val }))}
+            />
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label">GAM Account (optional)</label>
-            <select
-              id="sync-gam-account"
-              className="form-input"
+            <GamAccountSelect
+              gamAccounts={gamAccounts}
               value={filters.gam_account_id}
-              onChange={e => setFilters(f => ({ ...f, gam_account_id: e.target.value }))}
-            >
-              <option value="">All GAM Accounts</option>
-              {gamAccounts.map(a => (
-                <option key={a.id} value={a.id}>{a.name} ({a.email})</option>
-              ))}
-            </select>
+              onChange={val => setFilters(f => ({ ...f, gam_account_id: val }))}
+            />
           </div>
         </div>
 
@@ -347,6 +508,22 @@ export default function GamSyncPage() {
             onClick={() => setFilters(f => ({ ...f, publisher_id: '', gam_account_id: '', date_from: threeDaysAgo, date_to: today }))}
           >
             Reset Filters
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+          <button
+            id="btn-run-sync"
+            className={`btn btn-primary${syncing ? ' btn-loading' : ''}`}
+            disabled={syncing}
+            onClick={handleSync}
+            style={{ fontSize: 15, padding: '10px 28px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            {syncing ? (
+              <><RefreshCw size={14} className="spinner" /> Syncing…</>
+            ) : (
+              <><Play size={14} /> Run Sync Now</>
+            )}
           </button>
         </div>
       </div>

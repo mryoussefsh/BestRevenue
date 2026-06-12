@@ -25,7 +25,7 @@ function CloseModal({ onClose, onDone }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -75,7 +75,7 @@ function CloseModal({ onClose, onDone }) {
   const monthLabel = (y, m) => `${new Date(y, m-1).toLocaleString('default', { month: 'long' })} ${y}`
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal" style={{ maxWidth: '600px', width: '95%' }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

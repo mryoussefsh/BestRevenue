@@ -324,7 +324,7 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -503,7 +503,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -663,7 +663,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
   }
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" style={{ zIndex: 1100 }}>
       <div className="modal" style={{ maxWidth: 700, zIndex: 1101 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -870,7 +870,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

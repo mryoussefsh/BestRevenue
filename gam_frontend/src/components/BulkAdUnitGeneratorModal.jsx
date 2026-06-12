@@ -328,7 +328,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
   const previewNames = buildPreviewNames()
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal" style={{ maxWidth: 640, width: '95vw' }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

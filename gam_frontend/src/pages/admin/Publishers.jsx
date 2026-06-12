@@ -88,7 +88,7 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal" style={{ maxWidth: '650px' }}>
         <div className="modal-header">
           <span className="modal-title">{isEdit ? 'Edit Publisher' : 'New Publisher'}</span>
@@ -525,7 +525,7 @@ export function AdjustBalanceModal({ publisher, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title">Adjust Balance — {publisher.name}</span>

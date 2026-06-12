@@ -311,8 +311,8 @@ export default function PublisherTickets() {
 
       {/* Create Ticket Modal */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600, background: 'rgba(15, 17, 23, 0.75)', backdropFilter: 'blur(24px)', border: '0.5px solid var(--br-border)' }}>
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 600, background: 'rgba(15, 17, 23, 0.75)', backdropFilter: 'blur(24px)', border: '0.5px solid var(--br-border)' }}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Mail size={18} style={{ color: 'var(--br-primary)' }} />

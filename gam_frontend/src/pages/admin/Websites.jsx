@@ -45,7 +45,7 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title">{isEdit ? 'Edit Website' : 'Add Website'}</span>
@@ -172,7 +172,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title">{isEdit ? 'Edit Ad Unit' : 'Add Ad Unit'}</span>

@@ -438,7 +438,7 @@ export default function AdminAnnouncements() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000,
           display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
           padding: '20px', overflowY: 'auto'
-        }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
+        }} >
           <div style={{
             background: 'var(--color-surface)', borderRadius: 16, width: '100%', maxWidth: 760,
             border: '1px solid var(--color-border)', boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
@@ -453,7 +453,7 @@ export default function AdminAnnouncements() {
             </div>
 
             <form onSubmit={handleSave} style={{ padding: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div className="form-row" style={{ marginBottom: 16 }}>
                 {/* Title */}
                 <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
                   <label className="form-label">Title *</label>
@@ -486,7 +486,7 @@ export default function AdminAnnouncements() {
               </div>
 
               {/* Dates */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div className="form-row" style={{ marginBottom: 16 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Start Date (optional)</label>
                   <input type="datetime-local" className="form-input" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />

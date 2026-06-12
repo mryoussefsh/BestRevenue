@@ -310,7 +310,7 @@ export default function AdminPages() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000,
           display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
           padding: '20px', overflowY: 'auto'
-        }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
+        }} >
           <div style={{
             background: 'var(--color-surface)', borderRadius: 16, width: '100%', maxWidth: 840,
             border: '1px solid var(--color-border)', boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
@@ -325,7 +325,7 @@ export default function AdminPages() {
             </div>
 
             <form onSubmit={handleSave} style={{ padding: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div className="form-row" style={{ marginBottom: 16 }}>
                 {/* Title */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Page Title *</label>

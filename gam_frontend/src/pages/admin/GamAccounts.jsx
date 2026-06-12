@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { gamAccountsApi, adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
-import { X, Radio, Trash2, RefreshCw, Plus, Key, Edit, Check } from 'lucide-react'
+import { X, Radio, Trash2, RefreshCw, Plus, Key, Edit, Check, Copy } from 'lucide-react'
 
 
 export default function GamAccountsPage() {
@@ -158,6 +158,10 @@ export default function GamAccountsPage() {
     }
   }
 
+  const redirectUri = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+    ? 'http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback'
+    : `${window.location.origin}/api/v1/gam-accounts/oauth/callback`
+
   return (
     <div>
       <div className="page-header">
@@ -203,8 +207,8 @@ export default function GamAccountsPage() {
           </button>
         </div>
       ) : (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="card" style={{ marginBottom: 24, padding: 24 }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 0, marginBottom: 20 }}>
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Key size={18} style={{ color: 'var(--br-primary)' }} /> Google API Configuration
             </div>
@@ -218,35 +222,65 @@ export default function GamAccountsPage() {
               </button>
             )}
           </div>
-          <form onSubmit={handleSaveSettings} className="profile-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            <div className="form-group">
-              <label className="form-label">Google OAuth Client ID *</label>
-              <input 
-                className="form-input" 
-                placeholder="e.g. 123456789.apps.googleusercontent.com"
-                value={credentials.google_client_id}
-                onChange={e => setCredentials(c => ({...c, google_client_id: e.target.value}))}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Google OAuth Client Secret *</label>
-              <input 
-                className="form-input" 
-                type="password"
-                placeholder="e.g. GOCSPX-12345abcdef"
-                value={credentials.google_client_secret}
-                onChange={e => setCredentials(c => ({...c, google_client_secret: e.target.value}))}
-                required
-              />
-            </div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
-              <div className="text-muted text-sm">
-                Redirect URI must be configured as: <code style={{ userSelect: 'all' }}>http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback</code>
+          <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Google OAuth Client ID *</label>
+                <input 
+                  className="form-input" 
+                  placeholder="e.g. 123456789.apps.googleusercontent.com"
+                  value={credentials.google_client_id}
+                  onChange={e => setCredentials(c => ({...c, google_client_id: e.target.value}))}
+                  required
+                />
               </div>
-              <button className="btn btn-secondary" type="submit" disabled={savingSettings}>
-                {savingSettings ? 'Saving...' : 'Save API Keys'}
-              </button>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Google OAuth Client Secret *</label>
+                <input 
+                  className="form-input" 
+                  type="password"
+                  placeholder="e.g. GOCSPX-12345abcdef"
+                  value={credentials.google_client_secret}
+                  onChange={e => setCredentials(c => ({...c, google_client_secret: e.target.value}))}
+                  required
+                />
+              </div>
+            </div>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              marginTop: 12
+            }}>
+              <div className="text-muted text-sm" style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                <div>Redirect URI must be configured as:</div>
+                <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, flexWrap: 'wrap', width: '100%' }}>
+                  <code style={{
+                    background: 'rgba(255,255,255,.05)', border: '1px solid var(--color-border)',
+                    padding: '8px 12px', borderRadius: 6, fontSize: 12,
+                    fontFamily: 'monospace', color: '#e2e8f0',
+                    wordBreak: 'break-all', display: 'block', flex: 1, minWidth: '200px'
+                  }}>
+                    {redirectUri}
+                  </code>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: '8px 16px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(redirectUri)
+                      toast.success('Redirect URI copied!')
+                    }}
+                  >
+                    <Copy size={14} /> Copy
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: 8 }}>
+                <button className="btn btn-primary" type="submit" disabled={savingSettings} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {savingSettings ? 'Saving...' : <><Check size={14} /> Save API Keys</>}
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -239,7 +239,7 @@ export default function RevenuePage() {
 
       {/* Filters */}
       {showFiltersPanel && (
-        <div className="card filter-bar-card" style={{ padding: '16px 20px', marginBottom: 24, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+        <div className="card filter-bar-card" style={{ padding: '16px 20px', marginBottom: 24, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', position: 'relative', zIndex: 10 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ 
               display: 'grid', 

@@ -718,8 +718,8 @@ export default function LandingPage() {
 
       {/* Verification Receipt Modal */}
       {selectedProof && (
-        <div className="modal-overlay" onClick={() => setSelectedProof(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, border: '0.5px solid rgba(16, 185, 129, 0.4)', background: 'var(--br-bg-2)', backdropFilter: 'blur(20px)' }}>
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 460, border: '0.5px solid rgba(16, 185, 129, 0.4)', background: 'var(--br-bg-2)', backdropFilter: 'blur(20px)' }}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CheckCircle2 size={18} style={{ color: 'var(--br-accent)' }} /> Payment Receipt
@@ -751,10 +751,6 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
                   <span style={{ color: 'var(--br-text-2)' }}>Payment Route:</span>
                   <span style={{ color: 'var(--br-text)' }}>{selectedProof.method}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--br-text-2)' }}>Transaction Ref:</span>
-                  <span style={{ fontFamily: 'monospace', color: 'var(--br-text)' }}>{selectedProof.ref}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8 }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--br-text)' }}>Total Disbursed:</span>

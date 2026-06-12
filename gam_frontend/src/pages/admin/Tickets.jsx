@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -204,7 +204,7 @@ export default function AdminTickets() {
 
       {/* Filter and Search Bar */}
       {showFiltersPanel && (
-        <div className="glass-card" style={{ marginBottom: 20, padding: 20 }}>
+        <div className="glass-card" style={{ marginBottom: 20, padding: 20, position: 'relative', zIndex: 10 }}>
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="filter-bar">
             
@@ -273,19 +273,13 @@ export default function AdminTickets() {
             </div>
 
             {/* Publisher */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 180 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Publisher</label>
-              <select
-                className="form-select"
+              <PublisherSelect
+                publishers={publishers}
                 value={filterPublisher}
-                onChange={e => { setFilterPublisher(e.target.value); setPage(1) }}
-                style={{ padding: '6px 10px', fontSize: 13 }}
-              >
-                <option value="">All Publishers</option>
-                {publishers.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                onChange={val => { setFilterPublisher(val); setPage(1) }}
+              />
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
@@ -383,6 +377,112 @@ export default function AdminTickets() {
           />
         )}
       </div>
+    </div>
+  )
+}
+
+function PublisherSelect({ publishers, value, onChange }) {
+  const [search, setSearch]   = useState('')
+  const [open, setOpen]       = useState(false)
+  const containerRef          = useRef(null)
+
+  const selected = publishers.find(p => p.id === value)
+
+  const filtered = publishers.filter(p =>
+    !search || p.name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.email?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false)
+        setSearch('')
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [])
+
+  function handleSelect(pub) {
+    onChange(pub ? pub.id : '')
+    setOpen(false)
+    setSearch('')
+  }
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', minWidth: 220 }}>
+      <div
+        className="form-input"
+        style={{
+          cursor: 'pointer', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '6px 10px',
+          fontSize: 13, userSelect: 'none',
+        }}
+        onClick={() => setOpen(o => !o)}
+      >
+        <span style={{ color: selected ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+          {selected ? selected.name : 'All Publishers'}
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginLeft: 8 }}>{open ? '▲' : '▼'}</span>
+      </div>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 999,
+          maxHeight: 280,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--color-border)' }}>
+            <input
+              autoFocus
+              className="form-input"
+              style={{ padding: '5px 8px', fontSize: 12, width: '100%' }}
+              placeholder="Search publisher…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div
+              style={{
+                padding: '8px 12px', fontSize: 13, cursor: 'pointer',
+                color: 'var(--color-text-muted)',
+                background: !value ? 'rgba(99,102,241,.1)' : 'transparent',
+              }}
+              onClick={() => handleSelect(null)}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = !value ? 'rgba(99,102,241,.1)' : 'transparent'}
+            >
+              All Publishers
+            </div>
+            {filtered.length === 0 && (
+              <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-muted)' }}>No results</div>
+            )}
+            {filtered.map(pub => (
+              <div
+                key={pub.id}
+                style={{
+                  padding: '8px 12px', cursor: 'pointer',
+                  background: value === pub.id ? 'rgba(99,102,241,.1)' : 'transparent',
+                }}
+                onClick={() => handleSelect(pub)}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = value === pub.id ? 'rgba(99,102,241,.1)' : 'transparent'}
+              >
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{pub.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{pub.email}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

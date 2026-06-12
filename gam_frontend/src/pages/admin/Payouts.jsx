@@ -23,7 +23,7 @@ function ApproveModal({ payout, onClose, onDone }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -90,7 +90,7 @@ function MarkPaidModal({ payout, onClose, onDone }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -376,7 +376,7 @@ export default function PayoutsPage() {
       </div>
 
       {showFiltersPanel && (
-        <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
+        <div className="card" style={{ marginBottom: 24, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
           <div className="filter-bar">
 
           {/* Status */}

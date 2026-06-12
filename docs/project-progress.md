@@ -170,6 +170,9 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Redesigned the Period Closings admin panel page layout to use a full-width card layout with CSS grid safeguards (`minWidth: 0` and `overflow: 'hidden'`) to enable responsive horizontal scrolling on mobile viewports.
 - [x] Implemented a premium, floating modal-based breakdown viewer (`BreakdownModal`) for Period Closings payouts detail summaries.
 - [x] Integrated a "Pending Payouts" summary card (displaying total pending amount and count) on the admin payouts page, updated the layout to stretch summary cards to full screen width on desktop, and added a "Created Date" column to the payouts listing table.
+- [x] Integrated a searchable publisher select dropdown inside the admin support tickets filter panel to allow search filtering by publisher.
+- [x] Standardized the admin Announcements and Custom Pages creation/edit modal layouts to stack columns vertically on mobile, and added z-index positioning overrides to admin filter bars to prevent dropdown search overlap bugs.
+- [x] Disabled click-to-close backdrop interactions for all modals and popups across the entire platform (Admin, Publisher, and Public sections), requiring close buttons to dismiss them.
 
 ---
 

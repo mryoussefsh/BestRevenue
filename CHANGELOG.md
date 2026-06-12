@@ -11,12 +11,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - **Pending Payouts Summary Card**: Added a new warning-themed summary card to the admin payouts page displaying the total pending payout amount and count (e.g., "3 payouts pending") calculated dynamically from active lists.
 - **Created Date Table Column**: Added a "Created" column to the admin payouts table to display the formatted date when each payout was requested.
+- **Searchable Publisher Select inside Tickets Filter**: Replaced the native select dropdown for the publisher parameter in the admin Tickets page filter panel with the searchable custom `PublisherSelect` dropdown, enabling administrators to search by publisher name or email address.
 
 ### Changed
 - **Desktop Stat Cards Stretching**: Updated the summary card grid layout from `auto-fill` to `auto-fit` with dynamic flex boundaries, causing the three metrics cards to stretch to fill the entire desktop screen width.
+- **Responsive Announcement & Custom Page Modal Forms**: Switched static grid template columns (`1fr 1fr`) in Announcement and Custom Page creation/editing modals to utilize the standardized `.form-row` responsive utility, automatically stacking input columns vertically on mobile screen widths (< 768px).
+- **Modal Overlay Backdrop Click Behavior**: Disabled click-to-close triggers on all application modal backdrops and popups across the Admin, Publisher, and Public landing portals, ensuring modals can only be dismissed explicitly using close buttons (`X`, `Cancel`, or `Close`).
 
 ### Fixed
 - **Bonus Website Selector Label**: Fixed a hardcoded text reference in `WebsiteSelectionModal` so that it displays "Select websites to apply the bonus" instead of "IVT deduction" when triggered from the Apply Bonus modal.
+- **Dropdown Search Z-Index Overlap**: Fixed a z-index stacking context bug by adding `position: 'relative'` and `zIndex: 10` style overrides to the admin Tickets, Payouts, and Revenue page collapsible filter cards, preventing the searchable dropdown list from rendering behind the table.
 
 ## [1.9.2] - 2026-06-12
 
