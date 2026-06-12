@@ -1860,10 +1860,14 @@ input, select, textarea { outline: none; }
   .smtp-test-form .form-input {
     max-width: 100% !important;
     width: 100% !important;
+    flex: none !important;
+    height: 38px !important;
   }
   .smtp-test-form .btn {
     width: 100% !important;
     justify-content: center !important;
+    flex: none !important;
+    height: 38px !important;
   }
 }
 

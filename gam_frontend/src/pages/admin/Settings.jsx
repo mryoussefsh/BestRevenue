@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
@@ -22,6 +22,143 @@ import {
   CheckCircle2,
   FileText
 } from 'lucide-react'
+
+function TimezoneSelect({ value, onChange }) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const [hoveredVal, setHoveredVal] = useState(null)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const timezones = [
+    { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
+    { value: 'Africa/Cairo', label: 'Africa/Cairo' },
+    { value: 'America/New_York', label: 'America/New_York (EST/EDT)' },
+    { value: 'America/Chicago', label: 'America/Chicago (CST/CDT)' },
+    { value: 'America/Los_Angeles', label: 'America/Los_Angeles (PST/PDT)' },
+    { value: 'Asia/Dubai', label: 'Asia/Dubai' },
+    { value: 'Asia/Riyadh', label: 'Asia/Riyadh' },
+    { value: 'Asia/Kolkata', label: 'Asia/Kolkata (IST)' },
+    { value: 'Asia/Singapore', label: 'Asia/Singapore' },
+    { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)' },
+    { value: 'Australia/Sydney', label: 'Australia/Sydney' },
+    { value: 'Europe/London', label: 'Europe/London (GMT/BST)' },
+    { value: 'Europe/Berlin', label: 'Europe/Berlin (CET/CEST)' },
+    { value: 'Europe/Kiev', label: 'Europe/Kiev (EET/EEST)' },
+    { value: 'Europe/Istanbul', label: 'Europe/Istanbul (TRT)' },
+  ]
+
+  const selected = timezones.find(tz => tz.value === value)
+  const filtered = timezones.filter(tz => 
+    tz.label.toLowerCase().includes(search.toLowerCase()) ||
+    tz.value.toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      <div 
+        className="form-select" 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
+        onClick={() => setOpen(!open)}
+        tabIndex={0}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {selected ? selected.label : value || 'Select Timezone...'}
+        </span>
+        <span style={{ 
+          fontSize: 10, 
+          color: 'var(--color-text-muted)',
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s',
+          display: 'inline-block'
+        }}>▼</span>
+      </div>
+      {open && (
+        <div style={{ 
+          position: 'absolute', 
+          top: 'calc(100% + 4px)', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: 'var(--color-surface-2)', 
+          border: '1px solid var(--color-border-light)', 
+          borderRadius: 'var(--radius-md)', 
+          marginTop: 4, 
+          maxHeight: 250, 
+          overflow: 'auto', 
+          boxShadow: 'var(--shadow-md)' 
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '6px 10px', 
+            borderBottom: '1px solid var(--color-border-light)', 
+            position: 'sticky', 
+            top: 0, 
+            background: 'var(--color-surface-2)', 
+            zIndex: 11 
+          }}>
+            <Search size={14} style={{ color: 'var(--color-text-muted)', marginRight: 8, flexShrink: 0 }} />
+            <input 
+              autoFocus
+              className="form-input" 
+              placeholder="Search timezone..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ 
+                padding: '4px 8px', 
+                height: '30px', 
+                fontSize: '13px', 
+                border: 'none', 
+                background: 'transparent',
+                flex: 1,
+                outline: 'none',
+                boxShadow: 'none'
+              }}
+            />
+          </div>
+          {filtered.map(tz => {
+            const isSelected = value === tz.value
+            const isHovered = hoveredVal === tz.value
+            return (
+              <div 
+                key={tz.value} 
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: 'pointer', 
+                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  borderBottom: '1px solid var(--color-border-light)',
+                  color: isSelected ? 'white' : 'var(--color-text)',
+                  transition: 'background 0.15s',
+                  fontSize: '13px'
+                }} 
+                onClick={() => { onChange(tz.value); setOpen(false); setSearch('') }}
+                onMouseEnter={() => setHoveredVal(tz.value)}
+                onMouseLeave={() => setHoveredVal(null)}
+              >
+                {tz.label}
+              </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>
+              No timezones found
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState([])
@@ -72,8 +209,28 @@ export default function SettingsPage() {
     finally { setLoading(false) }
   }
 
+  const getUiGroup = (s) => {
+    if (['site_name', 'site_description', 'platform_timezone', 'default_currency'].includes(s.key)) {
+      return 'main_settings'
+    }
+    if (['site_logo', 'site_favicon', 'og_image'].includes(s.key)) {
+      return 'branding'
+    }
+    return s.group
+  }
+
+  const getUiGroupKeysOrder = (group) => {
+    if (group === 'main_settings') {
+      return ['site_name', 'site_description', 'platform_timezone', 'default_currency']
+    }
+    if (group === 'branding') {
+      return ['site_logo', 'site_favicon', 'og_image']
+    }
+    return null
+  }
+
   async function handleSaveGroup(group) {
-    const groupSettings = settings.filter(s => s.group === group)
+    const groupSettings = settings.filter(s => getUiGroup(s) === group)
     const changedSettings = groupSettings.filter(s => {
       const edVal = edited[s.key]
       const originalStr = typeof s.value === 'object' || Array.isArray(s.value) ? JSON.stringify(s.value) : String(s.value ?? '')
@@ -96,7 +253,7 @@ export default function SettingsPage() {
       toast.success('Settings saved successfully!', { id: toastId })
       
       setSettings(prev => prev.map(s => {
-        if (s.group === group) {
+        if (getUiGroup(s) === group) {
           return { ...s, value: edited[s.key] }
         }
         return s
@@ -109,7 +266,16 @@ export default function SettingsPage() {
     }
   }
 
-  const groups = [...new Set(settings.map(s => s.group))].filter(g => g !== 'system_info')
+  const groupsOrder = ['main_settings', 'branding']
+  const groups = [...new Set(settings.map(s => getUiGroup(s)))]
+    .filter(g => g !== 'system_info')
+    .sort((a, b) => {
+      const idxA = groupsOrder.indexOf(a)
+      const idxB = groupsOrder.indexOf(b)
+      const valA = idxA === -1 ? 999 : idxA
+      const valB = idxB === -1 ? 999 : idxB
+      return valA - valB
+    })
   const projectPath = settings.find(s => s.key === 'project_path')?.value || '/path-to-your-project'
 
   // Initialize active tab once groups are loaded
@@ -120,11 +286,11 @@ export default function SettingsPage() {
   }, [settings, activeTab, groups])
 
   const groupLabels = {
+    main_settings: 'Main Settings',
+    branding: 'Branding Settings',
     payout: 'Payout Settings',
     gam: 'GAM Sync Settings',
     payment: 'Payment Methods',
-    display: 'Display & Branding',
-    localization: 'Localization',
     registration: 'Registration Rules',
     email: 'SMTP Mail Server',
     seo: 'SEO Configuration',
@@ -134,11 +300,11 @@ export default function SettingsPage() {
 
   const renderGroupIcon = (group) => {
     const icons = {
+      main_settings: <Settings size={18} />,
+      branding: <Palette size={18} />,
       payout: <CreditCard size={18} />,
       gam: <Server size={18} />,
       payment: <DollarSign size={18} />,
-      display: <Palette size={18} />,
-      localization: <Globe size={18} />,
       registration: <UserPlus size={18} />,
       email: <Mail size={18} />,
       seo: <Search size={18} />,
@@ -153,7 +319,7 @@ export default function SettingsPage() {
   )
 
   const isTabChanged = (g) => {
-    return settings.filter(s => s.group === g).some(s => {
+    return settings.filter(s => getUiGroup(s) === g).some(s => {
       const edVal = edited[s.key]
       const originalStr = typeof s.value === 'object' || Array.isArray(s.value) ? JSON.stringify(s.value) : String(s.value ?? '')
       const editedStr = typeof edVal === 'object' || Array.isArray(edVal) ? JSON.stringify(edVal) : String(edVal ?? '')
@@ -216,13 +382,25 @@ export default function SettingsPage() {
               <div className="card-header" style={{ padding: 0, paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
                 <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {renderGroupIcon(activeTab)}
-                  <span>{groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Settings</span>
+                  <span>{groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {settings.filter(s => s.group === activeTab).map(s => (
-                  <div key={s.key} className="settings-row" style={{ gridTemplateColumns: '1fr 2fr', paddingBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
+                {(() => {
+                  const filteredSettings = [...settings].filter(s => getUiGroup(s) === activeTab)
+                  const order = getUiGroupKeysOrder(activeTab)
+                  if (order) {
+                    filteredSettings.sort((a, b) => {
+                      const idxA = order.indexOf(a.key)
+                      const idxB = order.indexOf(b.key)
+                      const valA = idxA === -1 ? 999 : idxA
+                      const valB = idxB === -1 ? 999 : idxB
+                      return valA - valB
+                    })
+                  }
+                  return filteredSettings.map(s => (
+                    <div key={s.key} className="settings-row" style={{ gridTemplateColumns: '1fr 2fr', paddingBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
                     <div style={{ paddingRight: 16 }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
                     </div>
@@ -238,27 +416,10 @@ export default function SettingsPage() {
                           <option value="minutes">Every X Minutes</option>
                         </select>
                       ) : s.key === 'platform_timezone' ? (
-                        <select
-                          className="form-select"
+                        <TimezoneSelect
                           value={edited[s.key] ?? 'UTC'}
-                          onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
-                        >
-                          <option value="UTC">UTC (Coordinated Universal Time)</option>
-                          <option value="Africa/Cairo">Africa/Cairo</option>
-                          <option value="America/New_York">America/New_York (EST/EDT)</option>
-                          <option value="America/Chicago">America/Chicago (CST/CDT)</option>
-                          <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-                          <option value="Asia/Dubai">Asia/Dubai</option>
-                          <option value="Asia/Riyadh">Asia/Riyadh</option>
-                          <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                          <option value="Asia/Singapore">Asia/Singapore</option>
-                          <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-                          <option value="Australia/Sydney">Australia/Sydney</option>
-                          <option value="Europe/London">Europe/London (GMT/BST)</option>
-                          <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
-                          <option value="Europe/Kiev">Europe/Kiev (EET/EEST)</option>
-                          <option value="Europe/Istanbul">Europe/Istanbul (TRT)</option>
-                        </select>
+                          onChange={val => setEdited(v => ({ ...v, [s.key]: val }))}
+                        />
                       ) : ['site_logo', 'site_favicon', 'og_image'].includes(s.key) ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
                           {edited[s.key] && (
@@ -647,7 +808,8 @@ export default function SettingsPage() {
                       )}
                     </div>
                   </div>
-                ))}
+                ))
+              })()}
               </div>
 
               {/* One single Save Button for the entire Active Settings Group */}
