@@ -400,11 +400,25 @@ export default function SettingsPage() {
                     })
                   }
                   return filteredSettings.map(s => (
-                    <div key={s.key} className="settings-row" style={{ gridTemplateColumns: '1fr 2fr', paddingBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ paddingRight: 16 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
-                    </div>
-                    <div>
+                    <div 
+                      key={s.key} 
+                      className={s.key === 'ad_type_preselected_sizes' ? "settings-row-full" : "settings-row"} 
+                      style={s.key === 'ad_type_preselected_sizes' ? {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                        paddingBottom: 24,
+                        borderBottom: '1px solid var(--color-border)'
+                      } : {
+                        gridTemplateColumns: '1fr 2fr',
+                        paddingBottom: 24,
+                        borderBottom: '1px solid var(--color-border)'
+                      }}
+                    >
+                      <div style={s.key === 'ad_type_preselected_sizes' ? { width: '100%' } : { paddingRight: 16 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
+                      </div>
+                      <div style={{ width: '100%' }}>
                       {s.key === 'gam_sync_frequency' ? (
                         <select
                           className="form-select"
@@ -574,7 +588,7 @@ export default function SettingsPage() {
                           })()}
                         </div>
                       ) : s.key === 'ad_type_preselected_sizes' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+                        <div style={{ width: '100%' }}>
                           {(() => {
                             let sizesObj = {}
                             try {
@@ -595,81 +609,75 @@ export default function SettingsPage() {
                             ]
 
                             return (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
+                              <div className="gam-sizes-grid">
                                 {adTypes.map(type => {
                                   const activeSizes = Array.isArray(sizesObj[type.key]) ? sizesObj[type.key] : []
                                   return (
-                                    <div key={type.key} style={{
-                                      border: '1px solid var(--color-border)',
-                                      borderRadius: 8,
-                                      padding: 12,
-                                      background: 'var(--color-surface-2)',
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      gap: 10
-                                    }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ fontWeight: 600, color: 'var(--color-primary-light)', fontSize: 13 }}>
-                                          {type.label} Sizes
-                                        </div>
+                                    <div key={type.key} className="gam-size-card">
+                                      <div className="gam-size-card-header">
+                                        <span className="gam-size-card-title">{type.label} Sizes</span>
+                                        <span className="gam-size-card-badge">{activeSizes.length}</span>
                                       </div>
                                       
-                                      {/* Chips for existing sizes */}
-                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                        {activeSizes.length === 0 ? (
-                                          <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                                            No preselected sizes configured
-                                          </span>
-                                        ) : (
-                                          activeSizes.map(sz => (
-                                            <div key={sz} style={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 6,
-                                              background: 'var(--color-surface-3)',
-                                              border: '1px solid var(--color-border-light)',
-                                              borderRadius: 16,
-                                              padding: '3px 10px',
-                                              fontSize: 12,
-                                              color: 'var(--color-text)'
-                                            }}>
-                                              <span>{sz}</span>
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  const updatedSizes = activeSizes.filter(s => s !== sz)
-                                                  const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
-                                                  setEdited(v => ({ ...v, [s.key]: updatedObj }))
-                                                }}
-                                                style={{
-                                                  background: 'transparent',
-                                                  border: 'none',
-                                                  color: 'var(--color-danger)',
-                                                  cursor: 'pointer',
-                                                  fontSize: 12,
-                                                  padding: 0,
-                                                  display: 'flex',
-                                                  alignItems: 'center'
-                                                }}
-                                              >
-                                                ✕
-                                              </button>
-                                            </div>
-                                          ))
-                                        )}
+                                      <div className="gam-size-card-body">
+                                        {/* Chips for existing sizes */}
+                                        <div className="gam-size-chips-container">
+                                          {activeSizes.length === 0 ? (
+                                            <span className="gam-size-empty">
+                                              No preselected sizes configured
+                                            </span>
+                                          ) : (
+                                            activeSizes.map(sz => (
+                                              <div key={sz} className="gam-size-chip">
+                                                <span>{sz}</span>
+                                                <button
+                                                  type="button"
+                                                  className="gam-size-chip-delete"
+                                                  onClick={() => {
+                                                    const updatedSizes = activeSizes.filter(s => s !== sz)
+                                                    const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                                    setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                                  }}
+                                                >
+                                                  ✕
+                                                </button>
+                                              </div>
+                                            ))
+                                          )}
+                                        </div>
                                       </div>
 
                                       {/* Add new size input */}
-                                      <div style={{ display: 'flex', gap: 8 }}>
-                                        <input
-                                          type="text"
-                                          placeholder="e.g. 300x250, Fluid, Out-of-page"
-                                          className="form-input text-xs"
-                                          style={{ padding: '4px 8px', height: 'auto', flex: 1 }}
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              e.preventDefault()
-                                              const val = e.currentTarget.value.trim()
+                                      <div className="gam-size-card-footer">
+                                        <div className="gam-size-input-wrapper">
+                                          <input
+                                            type="text"
+                                            placeholder="Add size (e.g. 300x250)..."
+                                            className="form-input gam-size-input"
+                                            onKeyDown={e => {
+                                              if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                const val = e.currentTarget.value.trim()
+                                                if (val) {
+                                                  const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
+                                                  const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
+                                                  const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
+                                                  if (uniqueNew.length > 0) {
+                                                    const updatedSizes = [...activeSizes, ...uniqueNew]
+                                                    const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                                    setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                                  }
+                                                  e.currentTarget.value = ''
+                                                }
+                                              }
+                                            }}
+                                          />
+                                          <button
+                                            type="button"
+                                            className="btn btn-primary btn-xs gam-size-add-btn"
+                                            onClick={e => {
+                                              const input = e.currentTarget.previousSibling
+                                              const val = input.value.trim()
                                               if (val) {
                                                 const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
                                                 const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
@@ -679,32 +687,13 @@ export default function SettingsPage() {
                                                   const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
                                                   setEdited(v => ({ ...v, [s.key]: updatedObj }))
                                                 }
-                                                e.currentTarget.value = ''
+                                                input.value = ''
                                               }
-                                            }
-                                          }}
-                                        />
-                                        <button
-                                          type="button"
-                                          className="btn btn-secondary btn-xs"
-                                          onClick={e => {
-                                            const input = e.currentTarget.previousSibling
-                                            const val = input.value.trim()
-                                            if (val) {
-                                              const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
-                                              const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
-                                              const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
-                                              if (uniqueNew.length > 0) {
-                                                const updatedSizes = [...activeSizes, ...uniqueNew]
-                                                const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
-                                                setEdited(v => ({ ...v, [s.key]: updatedObj }))
-                                              }
-                                              input.value = ''
-                                            }
-                                          }}
-                                        >
-                                          Add
-                                        </button>
+                                            }}
+                                          >
+                                            Add
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
                                   )
