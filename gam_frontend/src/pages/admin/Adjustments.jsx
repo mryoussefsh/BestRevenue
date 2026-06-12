@@ -627,7 +627,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
   )
 }
 
-function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfirm }) {
+function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfirm, type = 'ivt' }) {
   const [tempSelectedIds, setTempSelectedIds] = useState(selectedWebsiteIds)
   const [search, setSearch] = useState('')
 
@@ -674,7 +674,11 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
 
         <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 16px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
-          <span>Select websites to apply the IVT deduction. Use search to filter if needed.</span>
+          <span>
+            {type === 'bonus'
+              ? 'Select websites to apply the bonus. Use search to filter if needed.'
+              : 'Select websites to apply the IVT deduction. Use search to filter if needed.'}
+          </span>
         </div>
 
         <div className="form-group" style={{ marginBottom: 16 }}>
@@ -979,6 +983,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
         <WebsiteSelectionModal
           websites={websites}
           selectedWebsiteIds={selectedWebsiteIds}
+          type="bonus"
           onClose={() => setShowWebsiteSelector(false)}
           onConfirm={(ids) => {
             setSelectedWebsiteIds(ids)

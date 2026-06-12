@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - **Desktop Stat Cards Stretching**: Updated the summary card grid layout from `auto-fill` to `auto-fit` with dynamic flex boundaries, causing the three metrics cards to stretch to fill the entire desktop screen width.
 
+### Fixed
+- **Bonus Website Selector Label**: Fixed a hardcoded text reference in `WebsiteSelectionModal` so that it displays "Select websites to apply the bonus" instead of "IVT deduction" when triggered from the Apply Bonus modal.
+
 ## [1.9.2] - 2026-06-12
 
 ### Added
