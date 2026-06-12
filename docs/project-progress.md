@@ -167,6 +167,8 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Updated status badge logic in the `GamAccount` model so that accounts with a valid refresh token remain labeled as `active` rather than showing as "EXPIRED" every hour.
 - [x] Redesigned the filter button inside the admin Publisher Profile portal view, moving it to the top-right header section to align with other page structures.
 - [x] Restructured the vertically stacked filter fields inside the Publisher Profile filter card into a clean, horizontal responsive grid layout for desktop viewports.
+- [x] Redesigned the Period Closings admin panel page layout to use a full-width card layout with CSS grid safeguards (`minWidth: 0` and `overflow: 'hidden'`) to enable responsive horizontal scrolling on mobile viewports.
+- [x] Implemented a premium, floating modal-based breakdown viewer (`BreakdownModal`) for Period Closings payouts detail summaries.
 
 ---
 

@@ -10,11 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - **Automatic OAuth Token Refreshing**: Implemented automatic pre-flight OAuth token expiration checks in the backend (`GamApiService`), which requests a new access token using the refresh token and writes the updated credentials to the database dynamically when initializing GAM API sessions.
+- **Period Closing Floating Modal**: Added a clean, modal-based breakdown viewer (`BreakdownModal`) in the Period Closings admin panel to show detailed publisher payouts overlaying the page.
 
 ### Changed
 - **Publisher Profile Filters Redesign**: Restructured the publisher profile filter panel layout from a vertical column to a clean, responsive horizontal grid to match the styling guidelines of other pages.
 - **Top Header Filters Placement**: Relocated the filters toggle button to the top-right header section alongside the "Back to Publishers List" navigation, and positioned the collapsible filter bar card immediately below it.
 - **GAM Account Status Logic**: Updated status checks in the `GamAccount` model so that accounts configured with a valid refresh token remain labeled as `active` instead of flipping to `expired` after the 1-hour access token timeframe.
+- **Period Closing Responsiveness**: Simplified the main closings grid layout to use full-width columns on all screens instead of a side-by-side split grid when details are opened, preventing overflows and rendering beautifully on mobile viewports.
 
 ## [1.9.1] - 2026-06-11
 
