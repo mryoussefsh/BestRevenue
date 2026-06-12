@@ -2016,3 +2016,26 @@ input, select, textarea { outline: none; }
   justify-content: center !important;
   cursor: pointer !important;
 }
+
+.gam-size-chip-readonly {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--color-border-light);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: monospace;
+}
+
+.gam-size-card.collapsed {
+  cursor: pointer;
+}
+
+.gam-size-card.collapsed:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.01);
+}
+

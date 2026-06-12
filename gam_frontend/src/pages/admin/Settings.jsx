@@ -165,6 +165,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [savingGroup, setSavingGroup] = useState({})
   const [edited, setEdited] = useState({})
+  const [expandedTypes, setExpandedTypes] = useState({})
   const [activeTab, setActiveTab] = useState('')
   const [testEmailRecipient, setTestEmailRecipient] = useState('')
   const [sendingTestMail, setSendingTestMail] = useState(false)
@@ -225,6 +226,17 @@ export default function SettingsPage() {
     }
     if (group === 'branding') {
       return ['site_logo', 'site_favicon', 'og_image']
+    }
+    if (group === 'gam') {
+      return [
+        'gam_timezone',
+        'gam_sync_days_back',
+        'gam_sync_frequency',
+        'gam_sync_interval',
+        'google_client_id',
+        'google_client_secret',
+        'ad_type_preselected_sizes'
+      ]
     }
     return null
   }
@@ -612,89 +624,137 @@ export default function SettingsPage() {
                               <div className="gam-sizes-grid">
                                 {adTypes.map(type => {
                                   const activeSizes = Array.isArray(sizesObj[type.key]) ? sizesObj[type.key] : []
+                                  const isExpanded = expandedTypes[type.key]
+
                                   return (
-                                    <div key={type.key} className="gam-size-card">
-                                      <div className="gam-size-card-header">
-                                        <span className="gam-size-card-title">{type.label} Sizes</span>
+                                    <div 
+                                      key={type.key} 
+                                      className={`gam-size-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+                                      onClick={!isExpanded ? () => setExpandedTypes(prev => ({ ...prev, [type.key]: true })) : undefined}
+                                    >
+                                      <div 
+                                        className="gam-size-card-header"
+                                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                                        onClick={(e) => {
+                                          if (isExpanded) {
+                                            e.stopPropagation()
+                                            setExpandedTypes(prev => ({ ...prev, [type.key]: false }))
+                                          }
+                                        }}
+                                      >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                                          <span style={{ 
+                                            fontSize: 10, 
+                                            color: 'var(--color-text-muted)',
+                                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s',
+                                            display: 'inline-block',
+                                            marginRight: 2,
+                                            flexShrink: 0
+                                          }}>▶</span>
+                                          <span className="gam-size-card-title" style={{ flexShrink: 0 }}>{type.label} Sizes</span>
+                                          {!isExpanded && activeSizes.length > 0 && (
+                                            <span 
+                                              style={{ 
+                                                fontSize: '11px', 
+                                                color: 'var(--color-text-muted)', 
+                                                overflow: 'hidden', 
+                                                textOverflow: 'ellipsis', 
+                                                whiteSpace: 'nowrap',
+                                                fontFamily: 'monospace',
+                                                opacity: 0.7,
+                                                paddingLeft: 6
+                                              }}
+                                              title={activeSizes.join(', ')}
+                                            >
+                                              ({activeSizes.join(', ')})
+                                            </span>
+                                          )}
+                                        </div>
                                         <span className="gam-size-card-badge">{activeSizes.length}</span>
                                       </div>
                                       
-                                      <div className="gam-size-card-body">
-                                        {/* Chips for existing sizes */}
-                                        <div className="gam-size-chips-container">
-                                          {activeSizes.length === 0 ? (
-                                            <span className="gam-size-empty">
-                                              No preselected sizes configured
-                                            </span>
-                                          ) : (
-                                            activeSizes.map(sz => (
-                                              <div key={sz} className="gam-size-chip">
-                                                <span>{sz}</span>
-                                                <button
-                                                  type="button"
-                                                  className="gam-size-chip-delete"
-                                                  onClick={() => {
-                                                    const updatedSizes = activeSizes.filter(s => s !== sz)
-                                                    const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
-                                                    setEdited(v => ({ ...v, [s.key]: updatedObj }))
-                                                  }}
-                                                >
-                                                  ✕
-                                                </button>
-                                              </div>
-                                            ))
-                                          )}
-                                        </div>
-                                      </div>
+                                      {isExpanded && (
+                                        <>
+                                          <div className="gam-size-card-body">
+                                            {/* Chips for existing sizes */}
+                                            <div className="gam-size-chips-container">
+                                              {activeSizes.length === 0 ? (
+                                                <span className="gam-size-empty">
+                                                  No preselected sizes configured
+                                                </span>
+                                              ) : (
+                                                activeSizes.map(sz => (
+                                                  <div key={sz} className="gam-size-chip">
+                                                    <span>{sz}</span>
+                                                    <button
+                                                      type="button"
+                                                      className="gam-size-chip-delete"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        const updatedSizes = activeSizes.filter(s => s !== sz)
+                                                        const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                                        setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                                      }}
+                                                    >
+                                                      ✕
+                                                    </button>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
 
-                                      {/* Add new size input */}
-                                      <div className="gam-size-card-footer">
-                                        <div className="gam-size-input-wrapper">
-                                          <input
-                                            type="text"
-                                            placeholder="Add size (e.g. 300x250)..."
-                                            className="form-input gam-size-input"
-                                            onKeyDown={e => {
-                                              if (e.key === 'Enter') {
-                                                e.preventDefault()
-                                                const val = e.currentTarget.value.trim()
-                                                if (val) {
-                                                  const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
-                                                  const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
-                                                  const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
-                                                  if (uniqueNew.length > 0) {
-                                                    const updatedSizes = [...activeSizes, ...uniqueNew]
-                                                    const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
-                                                    setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                          {/* Add new size input */}
+                                          <div className="gam-size-card-footer" onClick={e => e.stopPropagation()}>
+                                            <div className="gam-size-input-wrapper">
+                                              <input
+                                                type="text"
+                                                placeholder="Add size (e.g. 300x250)..."
+                                                className="form-input gam-size-input"
+                                                onKeyDown={e => {
+                                                  if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    const val = e.currentTarget.value.trim()
+                                                    if (val) {
+                                                      const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
+                                                      const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
+                                                      const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
+                                                      if (uniqueNew.length > 0) {
+                                                        const updatedSizes = [...activeSizes, ...uniqueNew]
+                                                        const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                                        setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                                      }
+                                                      e.currentTarget.value = ''
+                                                    }
                                                   }
-                                                  e.currentTarget.value = ''
-                                                }
-                                              }
-                                            }}
-                                          />
-                                          <button
-                                            type="button"
-                                            className="btn btn-primary btn-xs gam-size-add-btn"
-                                            onClick={e => {
-                                              const input = e.currentTarget.previousSibling
-                                              const val = input.value.trim()
-                                              if (val) {
-                                                const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
-                                                const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
-                                                const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
-                                                if (uniqueNew.length > 0) {
-                                                  const updatedSizes = [...activeSizes, ...uniqueNew]
-                                                  const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
-                                                  setEdited(v => ({ ...v, [s.key]: updatedObj }))
-                                                }
-                                                input.value = ''
-                                              }
-                                            }}
-                                          >
-                                            Add
-                                          </button>
-                                        </div>
-                                      </div>
+                                                }}
+                                              />
+                                              <button
+                                                type="button"
+                                                className="btn btn-primary btn-xs gam-size-add-btn"
+                                                onClick={e => {
+                                                  const input = e.currentTarget.previousSibling
+                                                  const val = input.value.trim()
+                                                  if (val) {
+                                                    const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
+                                                    const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
+                                                    const uniqueNew = normalizedParts.filter(p => !activeSizes.includes(p))
+                                                    if (uniqueNew.length > 0) {
+                                                      const updatedSizes = [...activeSizes, ...uniqueNew]
+                                                      const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
+                                                      setEdited(v => ({ ...v, [s.key]: updatedObj }))
+                                                    }
+                                                    input.value = ''
+                                                  }
+                                                }}
+                                              >
+                                                Add
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </>
+                                      )}
                                     </div>
                                   )
                                 })}
