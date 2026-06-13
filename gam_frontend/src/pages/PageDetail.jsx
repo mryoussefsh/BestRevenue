@@ -23,12 +23,14 @@ export default function PageDetail() {
       .then(res => {
         setPage(res.data)
         setLoading(false)
+        const siteName = settings.site_name || 'BestRevenue'
+        document.title = `${res.data.title} - ${siteName}`
       })
       .catch(() => {
         toast.error('Page not found')
         navigate('/')
       })
-  }, [slug, navigate])
+  }, [slug, navigate, settings.site_name])
 
   const handleDashboardRedirect = () => {
     if (user.role === 'admin') navigate('/admin')

@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { I18nProvider } from './contexts/I18nContext'
-import { SettingsProvider } from './contexts/SettingsContext'
+import { SettingsProvider, useSettings } from './contexts/SettingsContext'
 
 import PrivateRoute from './components/PrivateRoute'
 
@@ -57,12 +58,107 @@ function RootRedirect() {
   return <Navigate to="/publisher" replace />
 }
 
+function PageTitleUpdater() {
+  const location = useLocation()
+  const { settings } = useSettings()
+
+  useEffect(() => {
+    const siteName = settings.site_name || 'BestRevenue'
+    const path = location.pathname
+
+    let title = ''
+
+    if (path === '/') {
+      title = `Maximize your revenue with ${siteName}`
+    } else if (path === '/login') {
+      title = `Login - ${siteName}`
+    } else if (path === '/register') {
+      title = `Register - ${siteName}`
+    } else if (path === '/forgot-password') {
+      title = `Forgot Password - ${siteName}`
+    } else if (path === '/reset-password') {
+      title = `Reset Password - ${siteName}`
+    } else if (path === '/support') {
+      title = `Support - ${siteName}`
+    } else if (path === '/design-system') {
+      title = `Design System - ${siteName}`
+    } else if (path.startsWith('/page/')) {
+      const slug = path.split('/page/')[1] || ''
+      const pageTitle = slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+      title = `${pageTitle} - ${siteName}`
+    }
+    // Admin routes
+    else if (path === '/admin') {
+      title = `Dashboard - ${siteName}`
+    } else if (path === '/admin/publishers') {
+      title = `Publishers - ${siteName}`
+    } else if (path.startsWith('/admin/publishers/')) {
+      title = `Publisher Profile - ${siteName}`
+    } else if (path === '/admin/websites') {
+      title = `Websites - ${siteName}`
+    } else if (path === '/admin/revenue') {
+      title = `Revenue - ${siteName}`
+    } else if (path === '/admin/closings') {
+      title = `Period Closings - ${siteName}`
+    } else if (path === '/admin/payouts') {
+      title = `Payouts - ${siteName}`
+    } else if (path === '/admin/adjustments') {
+      title = `Adjustments - ${siteName}`
+    } else if (path === '/admin/settings') {
+      title = `Settings - ${siteName}`
+    } else if (path === '/admin/profile') {
+      title = `Profile - ${siteName}`
+    } else if (path === '/admin/translations') {
+      title = `Translations - ${siteName}`
+    } else if (path === '/admin/audit-logs') {
+      title = `Audit Logs - ${siteName}`
+    } else if (path === '/admin/gam-accounts') {
+      title = `GAM Accounts - ${siteName}`
+    } else if (path === '/admin/gam-sync') {
+      title = `GAM Sync - ${siteName}`
+    } else if (path === '/admin/announcements') {
+      title = `Announcements - ${siteName}`
+    } else if (path === '/admin/pages') {
+      title = `Pages - ${siteName}`
+    } else if (path === '/admin/email-templates') {
+      title = `Email Templates - ${siteName}`
+    } else if (path === '/admin/tickets') {
+      title = `Support Tickets - ${siteName}`
+    } else if (path.startsWith('/admin/tickets/')) {
+      title = `Ticket Detail - ${siteName}`
+    }
+    // Publisher routes
+    else if (path === '/publisher') {
+      title = `Dashboard - ${siteName}`
+    } else if (path === '/publisher/websites') {
+      title = `Websites - ${siteName}`
+    } else if (path === '/publisher/revenue') {
+      title = `Revenue - ${siteName}`
+    } else if (path === '/publisher/payouts') {
+      title = `Payouts - ${siteName}`
+    } else if (path === '/publisher/settings') {
+      title = `Settings - ${siteName}`
+    } else if (path === '/publisher/tickets') {
+      title = `Support Tickets - ${siteName}`
+    } else if (path.startsWith('/publisher/tickets/')) {
+      title = `Ticket Detail - ${siteName}`
+    } else {
+      title = settings.meta_title || siteName
+    }
+
+    document.title = title
+  }, [location.pathname, settings])
+
+  return null
+}
+
 function App() {
   return (
     <AuthProvider>
       <I18nProvider>
         <SettingsProvider>
           <BrowserRouter>
+          <PageTitleUpdater />
           <Toaster
             position="top-right"
             containerStyle={{ zIndex: 100000 }}

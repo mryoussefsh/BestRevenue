@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Admin Design Style Selector**: Added a dropdown selector for the announcement design style in the admin creation/editing modal, and rendered styled layout/severity badges in the admin announcements table.
 - **Responsive Collapse & Expand for Banners**: Replaced the permanent dismiss button (`X` close trigger) on banner announcements with a collapse button (`ChevronUp`). Added a responsive, glassmorphic minimized banner state (collapsed view) showing a compact banner strip with a visible `Show` button pill and chevron (`ChevronDown`).
 - **Mobile Collapsed Layout Optimization**: Optimized the collapsed banner style in CSS (`.announcement-banner-collapsed`) to prevent column-stacking or vertical wrapping on mobile screen sizes, enforcing clean horizontal alignment and text-overflow ellipses.
+- **Dynamic Browser Tab Titles**: Created a global `<PageTitleUpdater>` component integrated with React Router DOM that automatically updates the browser tab title to reflect the active route dynamically upon navigation (e.g. `Maximize your revenue with WebsiteName` for landing page, `Dashboard - WebsiteName` for portals, and individual descriptive names for all administrator, publisher, and custom page detail views).
 
 ## [1.9.4] - 2026-06-13
 
