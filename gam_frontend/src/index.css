@@ -1828,6 +1828,50 @@ input, select, textarea { outline: none; }
   }
 }
 
+/* Settings Save Bar */
+.settings-save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 0;
+}
+
+/* Remove bottom border from the last settings row so no double-line appears before Save button */
+.settings-rows-container > *:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.settings-save-bar .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .settings-save-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-surface, #1a1b2e);
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 16px 24px;
+    border-top: none;
+    margin-top: 16px;
+    z-index: 10;
+  }
+  .settings-save-bar .btn {
+    width: 100%;
+    justify-content: center;
+    height: 48px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+}
+
 /* SMTP Test Form Styling */
 .smtp-test-form {
   display: flex;
@@ -2039,3 +2083,228 @@ input, select, textarea { outline: none; }
   background: rgba(255, 255, 255, 0.01);
 }
 
+/* Settings Save Bar */
+.settings-save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 0;
+}
+
+.settings-save-bar .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+/* Remove bottom border from last settings row (no double-line before Save button) */
+.settings-rows-container > *:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .settings-save-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-surface, #1a1b2e);
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 16px 24px;
+    border-top: none;
+    margin-top: 16px;
+    z-index: 10;
+  }
+  .settings-save-bar .btn {
+    width: 100%;
+    justify-content: center;
+    height: 48px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+}
+
+
+
+/* ===== Payment Method Cards (collapsible, mirrors gam-size-card style) ===== */
+.pm-card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface-2);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  overflow: hidden;
+}
+
+.pm-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.pm-card.expanded {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.pm-card.collapsed {
+  cursor: pointer;
+}
+
+.pm-card.collapsed:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.pm-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  min-width: 0;
+}
+
+.pm-card.expanded .pm-card-header {
+  border-bottom: 1px solid var(--color-border-light);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.pm-card-title {
+  font-weight: 600;
+  color: var(--color-primary-light, #818cf8);
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  max-width: 160px;
+}
+
+.pm-card-summary {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.75;
+  padding-left: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pm-card-badge {
+  font-size: 11px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-primary-light, #818cf8);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.pm-card-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  border-radius: 7px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.pm-card-remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.pm-card-body {
+  padding: 18px 16px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.pm-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Mobile responsive for pm-cards */
+@media (max-width: 576px) {
+  .pm-card-header {
+    padding: 12px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pm-card-title {
+    font-size: 13px;
+    max-width: 120px;
+  }
+  .pm-card-remove {
+    padding: 3px 9px;
+    font-size: 11px;
+  }
+  .pm-card-body {
+    padding: 14px 12px;
+  }
+}
+
+/* Add Payment Method Button */
+.pm-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  margin-top: 4px;
+  background: transparent;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.pm-add-btn:hover {
+  border-color: var(--color-primary, #6366f1);
+  color: var(--color-primary-light, #818cf8);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.pm-add-btn svg {
+  transition: transform 0.2s;
+}
+
+.pm-add-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 576px) {
+  .pm-add-btn {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+}

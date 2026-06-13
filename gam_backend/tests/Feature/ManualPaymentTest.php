@@ -110,6 +110,14 @@ class ManualPaymentTest extends TestCase
     {
         $admin     = $this->makeAdmin();
         $publisher = $this->makePublisher();
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 100.00,
+            'notes'        => 'Seeded balance',
+            'status'       => 'pending',
+            'created_at'   => now(),
+        ]);
 
         \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
 
@@ -171,7 +179,7 @@ class ManualPaymentTest extends TestCase
         $adj = Adjustment::forceCreate([
             'id'           => Str::uuid()->toString(),
             'publisher_id' => $publisher->id,
-            'amount'       => 25.00,
+            'amount'       => 100.00,
             'notes'        => 'Pre-existing bonus',
             'status'       => 'pending',
             'created_at'   => now(),
@@ -206,6 +214,14 @@ class ManualPaymentTest extends TestCase
 
         $admin  = $this->makeAdmin();
         $pubA   = $this->makePublisher('puba@test.com');
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $pubA->id,
+            'amount'       => 100.00,
+            'notes'        => 'Seeded balance A',
+            'status'       => 'pending',
+            'created_at'   => now(),
+        ]);
         $pubB   = $this->makePublisher('pubb@test.com');
         $revB   = $this->makeRevenue($pubB, '2026-06-15', 100.00);
         $adjB   = Adjustment::forceCreate([
@@ -247,6 +263,14 @@ class ManualPaymentTest extends TestCase
     {
         $admin     = $this->makeAdmin();
         $publisher = $this->makePublisher('pub5@test.com');
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 200.00,
+            'notes'        => 'Seeded balance 5',
+            'status'       => 'pending',
+            'created_at'   => now(),
+        ]);
 
         \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
 
@@ -468,5 +492,103 @@ class ManualPaymentTest extends TestCase
             'is_manual_payment' => 0,
             'status'            => 'pending',
         ]);
+    }
+
+    /**
+     * Standalone manual payment fails if amount exceeds publisher's approved balance.
+     */
+    public function test_standalone_manual_payment_fails_if_exceeds_approved_balance(): void
+    {
+        $admin     = $this->makeAdmin();
+        $publisher = $this->makePublisher();
+
+        \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
+
+        // Give them 10.00 approved balance via adjustment
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 10.00,
+            'notes'        => 'Small bonus',
+            'status'       => 'pending',
+            'created_at'   => now(),
+        ]);
+
+        // Try paying 50.00 (which exceeds 10.00)
+        $response = $this->postJson("/api/v1/admin/publishers/{$publisher->id}/manual-payment", [
+            'amount' => 50.00,
+            'method' => 'Wise',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', 'Payout amount [$50.00] cannot exceed approved balance [$10.00].');
+    }
+
+    /**
+     * Standalone manual payment fails if approved balance is zero or less.
+     */
+    public function test_standalone_manual_payment_fails_if_balance_is_zero(): void
+    {
+        $admin     = $this->makeAdmin();
+        $publisher = $this->makePublisher();
+
+        \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
+
+        // Approved balance is 0.00
+        $response = $this->postJson("/api/v1/admin/publishers/{$publisher->id}/manual-payment", [
+            'amount' => 10.00,
+            'method' => 'Wise',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', 'Publisher has no approved balance to payout.');
+    }
+
+    /**
+     * Cannot directly delete a manual payment adjustment if the payout is still active.
+     */
+    public function test_cannot_delete_adjustment_linked_to_active_manual_payout(): void
+    {
+        $admin     = $this->makeAdmin();
+        $publisher = $this->makePublisher();
+
+        // Give publisher some balance first so they can request manual payment
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 100.00,
+            'notes'        => 'Seeded balance',
+            'status'       => 'pending',
+            'created_at'   => now(),
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
+
+        // Create standalone manual payment
+        $response = $this->postJson("/api/v1/admin/publishers/{$publisher->id}/manual-payment", [
+            'amount' => 50.00,
+            'method' => 'Wise',
+        ]);
+        $response->assertStatus(201);
+        $payoutId = $response->json('payout.id');
+
+        // Locate the created adjustment
+        $adjustment = Adjustment::where('publisher_id', $publisher->id)
+            ->where('notes', 'Deduction for standalone manual payment ' . $payoutId)
+            ->firstOrFail();
+
+        // Trying to delete this adjustment directly should fail with 400
+        $deleteResponse = $this->deleteJson("/api/v1/admin/adjustments/{$adjustment->id}");
+        $deleteResponse->assertStatus(400);
+        $deleteResponse->assertJsonPath('message', fn($msg) => str_contains($msg, 'linked to a manual payout that is currently pending'));
+
+        // If the payout is rejected, the adjustment is automatically deleted/handled via the reject workflow
+        $rejectResponse = $this->postJson("/api/v1/admin/payouts/{$payoutId}/reject", [
+            'admin_note' => 'Rejecting manual payout',
+        ]);
+        $rejectResponse->assertStatus(200);
+
+        // Verify the adjustment is gone (deleted via the reject workflow)
+        $this->assertDatabaseMissing('adjustments', ['id' => $adjustment->id]);
     }
 }

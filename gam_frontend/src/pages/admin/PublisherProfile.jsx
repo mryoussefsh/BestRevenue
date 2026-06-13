@@ -356,7 +356,18 @@ export default function PublisherProfile() {
               <DollarSign size={14} /> Adjust Balance
             </button>
             <button className="btn btn-secondary"
-              style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              style={{
+                background: 'rgba(59,130,246,0.12)',
+                color: '#60a5fa',
+                border: '1px solid rgba(59,130,246,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                opacity: (publisher.ready_for_payout_balance || 0) <= 0 ? 0.5 : 1,
+                cursor: (publisher.ready_for_payout_balance || 0) <= 0 ? 'not-allowed' : 'pointer'
+              }}
+              disabled={(publisher.ready_for_payout_balance || 0) <= 0}
+              title={(publisher.ready_for_payout_balance || 0) <= 0 ? 'Cannot record a manual payout because the publisher has no approved balance' : 'Manual Payout'}
               onClick={() => setManualPayoutOpen(true)}>
               <CreditCard size={14} /> Manual Payout
             </button>
@@ -1154,7 +1165,7 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
   const [reference, setReference] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
-  const walletBalance = publisher.approved_balance || 0.0
+  const walletBalance = publisher.ready_for_payout_balance || 0.0
 
   useEffect(() => {
     setAmount(walletBalance.toFixed(2))
@@ -1164,6 +1175,10 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
     e.preventDefault()
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid payout amount')
+      return
+    }
+    if (parseFloat(amount) > walletBalance) {
+      toast.error("Payout amount cannot exceed the publisher's approved wallet balance")
       return
     }
     setSaving(true)
@@ -1195,7 +1210,7 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
         <form onSubmit={handleSubmit}>
           <div className="alert alert-info" style={{ fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
             <Info size={16} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-info)' }} />
-            <span>This will record an out-of-cycle manual payment for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. It will be immediately logged as Paid.</span>
+            <span>This will record an out-of-cycle manual payout request for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. The request will enter the queue as a <strong>Pending</strong> payout. Once approved by an admin, it can then be processed or marked as paid via the standard payout workflow (similar to auto payouts). The amount is deducted from their approved wallet balance immediately.</span>
           </div>
 
           <div className="form-group">

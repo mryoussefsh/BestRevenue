@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.9.4] - 2026-06-13
+
+### Changed
+- **Manual Payout Warning Message**: Improved the info text inside the Record Manual Payment modal to clearly outline the full lifecycle of manual payouts, explicitly stating that requests enter the queue as "Pending" and must be approved by an administrator before processing.
+
+### Fixed
+- **Manual Payouts for Zero-Balance Publishers**: Fixed a bug allowing admins to trigger manual payouts when the publisher's balance is `$0.00` or less. Updated the frontend action button and modal validation to check the publisher's true, unfiltered `ready_for_payout_balance` (instead of the dynamically-filtered `approved_balance`). The button is now disabled when the wallet balance is $\le 0$.
+- **Adjustment Deletion Double-Payout Loop**: Fixed a vulnerability where admins could delete the negative offset adjustment linked to a pending manual payout, restoring the publisher's balance and allowing a double payout. Added a validation check in `AdjustmentController@destroy` blocking direct deletion of adjustments linked to active manual payouts.
+
 ## [1.9.3] - 2026-06-12
 
 ### Added

@@ -174,6 +174,12 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Standardized the admin Announcements and Custom Pages creation/edit modal layouts to stack columns vertically on mobile, and added z-index positioning overrides to admin filter bars to prevent dropdown search overlap bugs.
 - [x] Disabled click-to-close backdrop interactions for all modals and popups across the entire platform (Admin, Publisher, and Public sections), requiring close buttons to dismiss them.
 
+### Milestone 12: Manual Payout Safeguards & UI Polish (Sprint 17)
+- [x] Disabled "Manual Payout" trigger buttons and forms in frontend profile views when a publisher's true wallet balance (`ready_for_payout_balance`) is `$0.00` or less, resolving the 0-balance payout bug.
+- [x] Improved the manual payout warning modal info text to explicitly clarify the pending/approval workflow lifecycle.
+- [x] Implemented a strict deletion guard in `AdjustmentController` `destroy` method, blocking direct deletion of negative adjustments linked to pending/active manual payouts to prevent double-payout loops.
+- [x] Added unit tests verifying validation rules and adjustment deletion blocks.
+
 ---
 
 ## 📅 Remaining Roadmap Tasks

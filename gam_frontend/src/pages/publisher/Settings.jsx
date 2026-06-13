@@ -152,6 +152,14 @@ export default function SettingsPage() {
           <CreditCard size={14} />
           Payment Method
         </button>
+        <button
+          className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setActiveTab('security')}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <Lock size={14} />
+          Security
+        </button>
       </div>
 
       {/* Tab Contents */}
@@ -204,7 +212,7 @@ export default function SettingsPage() {
                   <PhoneInputComp
                     country={'us'}
                     value={phone}
-                    onChange={phoneVal => setPhone(phoneVal ? '+' + phoneVal : '')}
+                    onChange={phoneVal => setPhone(phoneVal ? (phoneVal.startsWith('+') ? phoneVal : '+' + phoneVal) : '')}
                     enableSearch={true}
                     searchPlaceholder="Search country..."
                     inputClass="form-input"
@@ -251,7 +259,11 @@ export default function SettingsPage() {
               </button>
             </form>
           </div>
+        </div>
+      )}
 
+      {activeTab === 'security' && (
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           {/* Right Card: Security & Password Preferences */}
           <div className="glass-card" style={{ flex: '1 1 350px', maxWidth: 450 }}>
             <div className="card-header" style={{ marginBottom: 16 }}>

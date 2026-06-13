@@ -334,7 +334,7 @@ export default function RegisterPage() {
                     <PhoneInputComp
                       country={'us'}
                       value={form.phone}
-                      onChange={phone => setForm(f => ({ ...f, phone: phone ? '+' + phone : '' }))}
+                      onChange={phone => setForm(f => ({ ...f, phone: phone ? (phone.startsWith('+') ? phone : '+' + phone) : '' }))}
                       enableSearch={true}
                       searchPlaceholder="Search country..."
                       inputClass="form-input"

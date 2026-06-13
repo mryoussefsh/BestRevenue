@@ -123,7 +123,7 @@ class SettingControllerTest extends TestCase
 
     public function test_updating_close_period_day_triggers_auto_close_command(): void
     {
-        \Illuminate\Support\Facades\Artisan::shouldReceive('call')
+        \Illuminate\Support\Facades\Artisan::shouldReceive('queue')
             ->with('period:auto-close')
             ->once()
             ->andReturn(0);
@@ -155,9 +155,9 @@ class SettingControllerTest extends TestCase
 
     public function test_updating_close_period_day_does_not_trigger_auto_close_if_disabled(): void
     {
-        // We expect Artisan::call('period:auto-close') NOT to be called.
+        // We expect Artisan::queue('period:auto-close') NOT to be called.
         // If it is called, Mockery will throw an exception.
-        \Illuminate\Support\Facades\Artisan::shouldReceive('call')
+        \Illuminate\Support\Facades\Artisan::shouldReceive('queue')
             ->with('period:auto-close')
             ->never();
 

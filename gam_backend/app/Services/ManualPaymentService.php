@@ -63,6 +63,43 @@ class ManualPaymentService
             $method = $publisher->payment_info['method'];
         }
 
+        if (!$linkedPayoutId) {
+            // Calculate approved balance
+            $limitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->startOfDay()->format('Y-m-d');
+            
+            $adUnitIds = \App\Models\AdUnit::whereIn('website_id', function ($q) use ($publisher) {
+                $q->select('id')->from('websites')->where('publisher_id', $publisher->id);
+            })->pluck('id')->toArray();
+
+            $rawApprovedRevenue = (float) \App\Models\RevenueRecord::whereIn('ad_unit_id', $adUnitIds)
+                ->whereNull('period_closing_id')
+                ->where('date', '<=', $limitDate)
+                ->sum('publisher_earnings');
+
+            $posAdjustments = (float) $publisher->adjustments()->where('status', 'pending')->where('amount', '>', 0)->sum('amount');
+            $negAdjustments = (float) $publisher->adjustments()->where('status', 'pending')->where('amount', '<', 0)->sum('amount');
+
+            $approvedBalance = $rawApprovedRevenue + $posAdjustments;
+            if ($negAdjustments < 0) {
+                $deduction = abs($negAdjustments);
+                if ($deduction <= $approvedBalance) {
+                    $approvedBalance -= $deduction;
+                } else {
+                    $approvedBalance = 0.0;
+                }
+            }
+
+            if ($approvedBalance <= 0) {
+                throw new \RuntimeException("Publisher has no approved balance to payout.");
+            }
+
+            if ($amount > $approvedBalance) {
+                $amountFmt = number_format($amount, 2);
+                $balanceFmt = number_format($approvedBalance, 2);
+                throw new \RuntimeException("Payout amount [\${$amountFmt}] cannot exceed approved balance [\${$balanceFmt}].");
+            }
+        }
+
         DB::beginTransaction();
 
         try {

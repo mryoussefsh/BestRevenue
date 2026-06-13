@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
@@ -69,6 +69,14 @@ function TimezoneSelect({ value, onChange }) {
         className="form-select" 
         style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
         onClick={() => setOpen(!open)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            setOpen(true)
+          } else if (e.key === 'Escape') {
+            setOpen(false)
+          }
+        }}
         tabIndex={0}
       >
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -114,6 +122,11 @@ function TimezoneSelect({ value, onChange }) {
               placeholder="Search timezone..." 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
+              onKeyDown={e => {
+                if (e.key === 'Escape') {
+                  setOpen(false)
+                }
+              }}
               style={{ 
                 padding: '4px 8px', 
                 height: '30px', 
@@ -163,10 +176,33 @@ function TimezoneSelect({ value, onChange }) {
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false)
   const handleCopy = () => {
+    if (!navigator.clipboard) {
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        setCopied(true)
+        toast.success('Copied to clipboard!')
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        toast.error('Failed to copy text')
+      }
+      return
+    }
     navigator.clipboard.writeText(text)
-    setCopied(true)
-    toast.success('Copied to clipboard!')
-    setTimeout(() => setCopied(false), 2000)
+      .then(() => {
+        setCopied(true)
+        toast.success('Copied to clipboard!')
+        setTimeout(() => setCopied(false), 2000)
+      })
+      .catch(() => {
+        toast.error('Failed to copy text')
+      })
   }
   return (
     <button
@@ -196,6 +232,8 @@ export default function SettingsPage() {
   const [savingGroup, setSavingGroup] = useState({})
   const [edited, setEdited] = useState({})
   const [expandedTypes, setExpandedTypes] = useState({})
+  const [expandedPayments, setExpandedPayments] = useState({})
+  const [newSizeInputs, setNewSizeInputs] = useState({})
   const [activeTab, setActiveTab] = useState('')
   const [testEmailRecipient, setTestEmailRecipient] = useState('')
   const [sendingTestMail, setSendingTestMail] = useState(false)
@@ -309,15 +347,17 @@ export default function SettingsPage() {
   }
 
   const groupsOrder = ['main_settings', 'branding']
-  const groups = [...new Set(settings.map(s => getUiGroup(s)))]
-    .filter(g => g !== 'system_info')
-    .sort((a, b) => {
-      const idxA = groupsOrder.indexOf(a)
-      const idxB = groupsOrder.indexOf(b)
-      const valA = idxA === -1 ? 999 : idxA
-      const valB = idxB === -1 ? 999 : idxB
-      return valA - valB
-    })
+  const groups = useMemo(() => {
+    return [...new Set(settings.map(s => getUiGroup(s)))]
+      .filter(g => g !== 'system_info')
+      .sort((a, b) => {
+        const idxA = groupsOrder.indexOf(a)
+        const idxB = groupsOrder.indexOf(b)
+        const valA = idxA === -1 ? 999 : idxA
+        const valB = idxB === -1 ? 999 : idxB
+        return valA - valB
+      })
+  }, [settings])
   const projectPath = settings.find(s => s.key === 'project_path')?.value || '/path-to-your-project'
 
   // Initialize active tab once groups are loaded
@@ -428,7 +468,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div className="settings-rows-container" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {(() => {
                   const filteredSettings = [...settings].filter(s => getUiGroup(s) === activeTab)
                   const order = getUiGroupKeysOrder(activeTab)
@@ -444,11 +484,11 @@ export default function SettingsPage() {
                   return filteredSettings.map(s => (
                     <div 
                       key={s.key} 
-                      className={s.key === 'ad_type_preselected_sizes' ? "settings-row-full" : "settings-row"} 
-                      style={s.key === 'ad_type_preselected_sizes' ? {
+                      className={['ad_type_preselected_sizes', 'payment_methods'].includes(s.key) ? "settings-row-full" : "settings-row"} 
+                      style={['ad_type_preselected_sizes', 'payment_methods'].includes(s.key) ? {
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 12,
+                        gap: 0,
                         paddingBottom: 24,
                         borderBottom: '1px solid var(--color-border)'
                       } : {
@@ -457,9 +497,20 @@ export default function SettingsPage() {
                         borderBottom: '1px solid var(--color-border)'
                       }}
                     >
-                      <div style={s.key === 'ad_type_preselected_sizes' ? { width: '100%' } : { paddingRight: 16 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
-                      </div>
+                      {s.key === 'payment_methods' ? (
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>
+                            {(s.label || s.key).replace(/\s*\(JSON config\)/i, '')}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
+                            Configure the payout methods publishers can choose from.
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={s.key === 'ad_type_preselected_sizes' ? { width: '100%' } : { paddingRight: 16 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
+                        </div>
+                      )}
                       <div style={{ width: '100%' }}>
                       {s.key === 'gam_sync_frequency' ? (
                         <select
@@ -535,7 +586,7 @@ export default function SettingsPage() {
                           </div>
                         </div>
                       ) : s.key === 'payment_methods' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
                           {(() => {
                             let list = []
                             try {
@@ -547,83 +598,142 @@ export default function SettingsPage() {
 
                             return (
                               <>
-                                {list.map((m, idx) => (
-                                  <div key={idx} style={{
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 8,
-                                    padding: 16,
-                                    background: 'var(--color-surface-2)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 12
-                                  }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                      <div style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
-                                        Method #{idx + 1}
-                                      </div>
-                                      <button
-                                        type="button"
-                                        className="btn btn-secondary btn-xs"
-                                        style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 4 }}
-                                        onClick={() => {
-                                          const updated = list.filter((_, i) => i !== idx)
-                                          setEdited(v => ({ ...v, [s.key]: updated }))
+                                {list.map((m, idx) => {
+                                  const isOpen = !!expandedPayments[idx]
+                                  const hasName = m.name && m.name.trim()
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`pm-card ${isOpen ? 'expanded' : 'collapsed'}`}
+                                      onClick={!isOpen ? () => setExpandedPayments(p => ({ ...p, [idx]: true })) : undefined}
+                                    >
+                                      {/* Card Header */}
+                                      <div
+                                        className="pm-card-header"
+                                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                                        onClick={(e) => {
+                                          if (isOpen) {
+                                            e.stopPropagation()
+                                            setExpandedPayments(p => ({ ...p, [idx]: false }))
+                                          }
                                         }}
                                       >
-                                        <Trash2 size={12} /> Remove
-                                      </button>
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                                      <div>
-                                        <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Name</label>
-                                        <input
-                                          type="text"
-                                          className="form-input text-sm"
-                                          value={m.name ?? ''}
-                                          onChange={e => {
-                                            const updated = list.map((item, i) => i === idx ? { ...item, name: e.target.value } : item)
-                                            setEdited(v => ({ ...v, [s.key]: updated }))
-                                          }}
-                                        />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                                          <span style={{
+                                            fontSize: 10,
+                                            color: 'var(--color-text-muted)',
+                                            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s',
+                                            display: 'inline-block',
+                                            flexShrink: 0
+                                          }}>▶</span>
+                                          <span className="pm-card-title">
+                                            {hasName ? m.name : `Method #${idx + 1}`}
+                                          </span>
+                                          {!isOpen && (
+                                            <span style={{
+                                              fontSize: '11px',
+                                              color: 'var(--color-text-muted)',
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              whiteSpace: 'nowrap',
+                                              opacity: 0.7,
+                                              paddingLeft: 4
+                                            }}>
+                                              {m.minimum != null ? `min $${m.minimum}` : ''}
+                                              {m.guidance ? ` · ${m.guidance.slice(0, 40)}${m.guidance.length > 40 ? '…' : ''}` : ''}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                          <span className="pm-card-badge">#{idx + 1}</span>
+                                          <button
+                                            type="button"
+                                            className="pm-card-remove"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              const updated = list.filter((_, i) => i !== idx)
+                                              setEdited(v => ({ ...v, [s.key]: updated }))
+                                              setExpandedPayments(p => {
+                                                const next = {}
+                                                Object.entries(p).forEach(([k, v]) => {
+                                                  const ki = parseInt(k)
+                                                  if (ki < idx) next[ki] = v
+                                                  else if (ki > idx) next[ki - 1] = v
+                                                })
+                                                return next
+                                              })
+                                            }}
+                                          >
+                                            <Trash2 size={12} />
+                                            Remove
+                                          </button>
+                                        </div>
                                       </div>
-                                      <div>
-                                        <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Min Payout ($)</label>
-                                        <input
-                                          type="number"
-                                          className="form-input text-sm"
-                                          value={m.minimum ?? 0}
-                                          onChange={e => {
-                                            const updated = list.map((item, i) => i === idx ? { ...item, minimum: parseFloat(e.target.value) || 0 } : item)
-                                            setEdited(v => ({ ...v, [s.key]: updated }))
-                                          }}
-                                        />
-                                      </div>
+
+                                      {/* Expanded Body */}
+                                      {isOpen && (
+                                        <div className="pm-card-body" onClick={e => e.stopPropagation()}>
+                                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+                                            <div>
+                                              <label className="pm-field-label">Payment Name</label>
+                                              <input
+                                                type="text"
+                                                className="form-input"
+                                                style={{ fontSize: 13 }}
+                                                placeholder="e.g. Bank Transfer, PayPal…"
+                                                value={m.name ?? ''}
+                                                onChange={e => {
+                                                  const updated = list.map((item, i) => i === idx ? { ...item, name: e.target.value } : item)
+                                                  setEdited(v => ({ ...v, [s.key]: updated }))
+                                                }}
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="pm-field-label">Min Payout ($)</label>
+                                              <input
+                                                type="number"
+                                                className="form-input"
+                                                style={{ fontSize: 13 }}
+                                                placeholder="e.g. 50"
+                                                value={m.minimum ?? 0}
+                                                onChange={e => {
+                                                  const updated = list.map((item, i) => i === idx ? { ...item, minimum: parseFloat(e.target.value) || 0 } : item)
+                                                  setEdited(v => ({ ...v, [s.key]: updated }))
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                          <div style={{ marginTop: 14 }}>
+                                            <label className="pm-field-label">Guidance Text</label>
+                                            <textarea
+                                              rows={3}
+                                              className="form-textarea"
+                                              style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
+                                              value={m.guidance ?? ''}
+                                              onChange={e => {
+                                                const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
+                                                setEdited(v => ({ ...v, [s.key]: updated }))
+                                              }}
+                                              placeholder="Instructions shown to the publisher when selecting this method…"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
-                                    <div>
-                                      <label className="text-xs text-muted" style={{ marginBottom: 4, display: 'block' }}>Guidance Text</label>
-                                      <textarea
-                                        rows={2}
-                                        className="form-textarea text-sm"
-                                        value={m.guidance ?? ''}
-                                        onChange={e => {
-                                          const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
-                                          setEdited(v => ({ ...v, [s.key]: updated }))
-                                        }}
-                                        placeholder="Instructions shown to the publisher..."
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
+                                  )
+                                })}
                                 <button
                                   type="button"
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                                  className="pm-add-btn"
                                   onClick={() => {
+                                    const newIdx = list.length
                                     const updated = [...list, { name: '', minimum: 0, guidance: '' }]
                                     setEdited(v => ({ ...v, [s.key]: updated }))
+                                    setExpandedPayments(p => ({ ...p, [newIdx]: true }))
                                   }}
                                 >
-                                  <Plus size={14} /> Add Payment Method
+                                  <Plus size={16} /> Add Payment Method
                                 </button>
                               </>
                             )
@@ -742,10 +852,15 @@ export default function SettingsPage() {
                                                 type="text"
                                                 placeholder="Add size (e.g. 300x250)..."
                                                 className="form-input gam-size-input"
+                                                value={newSizeInputs[type.key] || ''}
+                                                onChange={e => {
+                                                  const val = e.target.value
+                                                  setNewSizeInputs(prev => ({ ...prev, [type.key]: val }))
+                                                }}
                                                 onKeyDown={e => {
                                                   if (e.key === 'Enter') {
                                                     e.preventDefault()
-                                                    const val = e.currentTarget.value.trim()
+                                                    const val = (newSizeInputs[type.key] || '').trim()
                                                     if (val) {
                                                       const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
                                                       const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
@@ -755,7 +870,7 @@ export default function SettingsPage() {
                                                         const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
                                                         setEdited(v => ({ ...v, [s.key]: updatedObj }))
                                                       }
-                                                      e.currentTarget.value = ''
+                                                      setNewSizeInputs(prev => ({ ...prev, [type.key]: '' }))
                                                     }
                                                   }
                                                 }}
@@ -763,9 +878,8 @@ export default function SettingsPage() {
                                               <button
                                                 type="button"
                                                 className="btn btn-primary btn-xs gam-size-add-btn"
-                                                onClick={e => {
-                                                  const input = e.currentTarget.previousSibling
-                                                  const val = input.value.trim()
+                                                onClick={() => {
+                                                  const val = (newSizeInputs[type.key] || '').trim()
                                                   if (val) {
                                                     const newParts = val.split(',').map(p => p.trim()).filter(Boolean)
                                                     const normalizedParts = newParts.map(p => p.replace(/\u00d7/g, 'x'))
@@ -775,7 +889,7 @@ export default function SettingsPage() {
                                                       const updatedObj = { ...sizesObj, [type.key]: updatedSizes }
                                                       setEdited(v => ({ ...v, [s.key]: updatedObj }))
                                                     }
-                                                    input.value = ''
+                                                    setNewSizeInputs(prev => ({ ...prev, [type.key]: '' }))
                                                   }
                                                 }}
                                               >
@@ -892,18 +1006,20 @@ export default function SettingsPage() {
               </div>
 
               {/* One single Save Button for the entire Active Settings Group */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+              <div className="settings-save-bar">
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={() => handleSaveGroup(activeTab)}
                   disabled={savingGroup[activeTab] || !activeTabChanged}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 24px', fontSize: 14 }}
                 >
                   {savingGroup[activeTab] ? (
                     <><Clock size={16} className="spinner" /> Saving...</>
                   ) : (
-                    <><CheckCircle2 size={16} /> Save {groupLabels[activeTab] || activeTab} Settings</>
+                    <><CheckCircle2 size={16} /> Save {(() => {
+                      const lbl = groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+                      return lbl.toLowerCase().endsWith('settings') ? lbl : `${lbl} Settings`
+                    })()}</>
                   )}
                 </button>
               </div>

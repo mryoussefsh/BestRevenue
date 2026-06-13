@@ -21,9 +21,14 @@ class SettingController extends Controller
             ->orderBy('key')
             ->get()
             ->map(function ($setting) {
+                $value = $setting->value;
+                if ($setting->type === 'json' && $value) {
+                    $decoded = json_decode($value, true);
+                    $value = is_array($decoded) ? $decoded : $value;
+                }
                 return [
                     'key'   => $setting->key,
-                    'value' => $setting->value,
+                    'value' => $value,
                     'label' => $setting->label,
                     'type'  => $setting->type,
                     'group' => $setting->group,
@@ -103,6 +108,15 @@ class SettingController extends Controller
             $request->validate(['value' => 'required|array']);
         }
 
+        if ($key === 'payment_methods') {
+            $request->validate([
+                'value' => 'required|array',
+                'value.*.name' => 'required|string|max:100',
+                'value.*.minimum' => 'required|numeric|min:0',
+                'value.*.guidance' => 'nullable|string|max:1000',
+            ]);
+        }
+
         if ($key === 'mail_mailer') {
             $request->validate(['value' => 'required|in:smtp,log']);
         }
@@ -135,9 +149,9 @@ class SettingController extends Controller
             if (in_array($key, $relevantKeys)) {
                 if (filter_var(Setting::get('payout_auto_enabled', true), FILTER_VALIDATE_BOOLEAN)) {
                     try {
-                        \Illuminate\Support\Facades\Artisan::call('period:auto-close');
+                        \Illuminate\Support\Facades\Artisan::queue('period:auto-close');
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Auto-close execution failed on settings update: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('Auto-close queueing failed on settings update: ' . $e->getMessage());
                     }
                 }
             }

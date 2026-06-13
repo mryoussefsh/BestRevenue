@@ -110,6 +110,17 @@ class AdjustmentController extends Controller
             ], 400);
         }
 
+        // Prevent deletion if linked to an active (non-rejected) manual payout
+        if (str_starts_with($adjustment->notes, 'Deduction for standalone manual payment ')) {
+            $payoutId = str_replace('Deduction for standalone manual payment ', '', $adjustment->notes);
+            $payout = \App\Models\Payout::find($payoutId);
+            if ($payout && $payout->status !== 'rejected') {
+                return response()->json([
+                    'message' => 'This adjustment is linked to a manual payout that is currently ' . $payout->status . '. You cannot delete it directly.'
+                ], 400);
+            }
+        }
+
         $oldData = $adjustment->toArray();
         $adjustment->delete();
 

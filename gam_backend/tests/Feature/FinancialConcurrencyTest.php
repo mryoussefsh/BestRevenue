@@ -143,6 +143,14 @@ class FinancialConcurrencyTest extends TestCase
     {
         $admin     = $this->makeAdmin();
         $publisher = $this->makePublisher();
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 100.00,
+            'status'       => 'pending',
+            'notes'        => 'Seeded balance',
+            'created_at'   => now(),
+        ]);
         \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
 
         $key = 'idemp_key_12345';
@@ -167,7 +175,7 @@ class FinancialConcurrencyTest extends TestCase
 
         $this->assertEquals($payout1Id, $payout2Id);
         $this->assertDatabaseCount('payouts', 1);
-        $this->assertDatabaseCount('adjustments', 1); // One negative deduction adjustment only
+        $this->assertDatabaseCount('adjustments', 2); // Seeded adjustment + negative deduction adjustment
     }
 
     /**
@@ -239,7 +247,7 @@ class FinancialConcurrencyTest extends TestCase
         $otherAdj = Adjustment::forceCreate([
             'id'           => Str::uuid()->toString(),
             'publisher_id' => $publisher->id,
-            'amount'       => 20.00,
+            'amount'       => 100.00,
             'status'       => 'pending',
             'notes'        => 'Unrelated bonus',
         ]);
@@ -276,6 +284,14 @@ class FinancialConcurrencyTest extends TestCase
     {
         $admin     = $this->makeAdmin();
         $publisher = $this->makePublisher();
+        Adjustment::forceCreate([
+            'id'           => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'amount'       => 100.00,
+            'status'       => 'pending',
+            'notes'        => 'Seeded balance',
+            'created_at'   => now(),
+        ]);
         \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
 
         // Record a manual payout (creates Payout + deduction adjustment of -$60.00)
@@ -324,9 +340,9 @@ class FinancialConcurrencyTest extends TestCase
             'notes'        => 'Refund for rejected manual payment ' . $payoutId . ' (deduction was applied to closed period)',
         ]);
 
-        // Verify publisher pending balance adjustment is back to 60.00
+        // Verify publisher pending balance adjustment is back to 160.00 (100.00 seeded adjustment + 60.00 refund adjustment)
         $publisher->refresh();
-        $this->assertEquals(60.00, (float) $publisher->pending_balance_adjustment);
+        $this->assertEquals(160.00, (float) $publisher->pending_balance_adjustment);
     }
 
     /**
