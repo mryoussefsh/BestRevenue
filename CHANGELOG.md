@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.9.6] - 2026-06-13
+
+### Added
+- **Admin Management & RBAC CRUD Console**: Developed dynamic user management interfaces for administrators to view, create, edit, and delete administrators, and custom roles definition controls under a new dedicated `/admin/admins` page, with self-deletion protection and default system roles safeguards.
+- **Dynamic Role-Specific Dashboards**: Created specialized home dashboards designed with custom-tailored KPI widgets, logs, and action cards matching each of the 4 platform roles: Finance Manager (`/admin/finance`), Ad Ops Manager (`/admin/adops`), Support Agent (`/admin/support`), and Content Manager (`/admin/content`).
+- **Support Agent View-Only Publisher Access**: Restructured system APIs, frontend listing tables, and details profiles (`/admin/publishers/:id`) so that Support Agent users can search, filter, and view publisher profiles, but all modifying controls (Adjust Balance, Suspend, Edit, Impersonate, Delete, Website/AdUnit edits) are hidden from their UI and rejected by backend route constraints.
+- **Ad Ops Google API settings access**: Restricted settings retrieval and updating to only expose Google Client credentials settings to Ad Ops Manager users.
+- **Browser Title & Dynamic Layout Labels**: Configured tab browser title updates for the role-specific dashboards, and updated sidebar/footer layouts to dynamically display the active user's role name instead of hardcoded strings.
+
+### Fixed
+- **Support Dashboard Ticket Action Link**: Fixed the "Manage" ticket action button in the Support Queue dashboard card to point directly to the individual ticket details page `/admin/tickets/:id` instead of the general tickets list.
+- **View-Only Auxiliary Fetch Promises**: Handled 403 Forbidden responses inside secondary frontend profile promises (Websites, Ad Units, Payouts, Revenue, GAM Accounts) so they resolve gracefully to empty structures, allowing view-only profiles to load details without crashing.
+
 ## [1.9.5] - 2026-06-13
 
 ### Added

@@ -193,6 +193,17 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Programmed a centralized `PageTitleUpdater` component in `App.jsx` listening to route changes and setting browser tab titles dynamically based on paths (supporting custom dynamic title formats, site_name configurations, and dynamic page-load title updates).
 - [x] Standardized the Google Ad Manager synchronization backend engine (`gam:sync` CLI command) on the administrator-configured Platform Default Timezone (`platform_timezone` setting) instead of the legacy `gam_timezone` property, ensuring scheduling, date-boundary queries, and runtime log calculations are executed relative to the chosen settings. Addressed integration and feature testing to guarantee correctness.
 
+### Milestone 14: Admin Management, RBAC & Role-Specific Desks (Sprint 19)
+- [x] Integrated Spatie Laravel Permission with custom UUID polymorphic tables support.
+- [x] Seeded system roles (Super Admin, Finance, Ad Ops, Support Agent, Content Manager) and default capabilities.
+- [x] Programmed administrative user CRUD directory and custom system roles builder under `/admin/admins`.
+- [x] Built the dynamic redirection dashboard gateway automatically mapping logins to role-specific dashboard components.
+- [x] Designed custom dashboards for Finance, Ad Ops, Support Agent, and Content Manager roles.
+- [x] Restricted Settings controllers to expose and update Google API credentials exclusively for Ad Ops Manager.
+- [x] Restricted Support Agent role to view-only publisher profile access, gating editing widgets and rejecting modifying requests.
+- [x] Handled auxiliary profile data fetches (websites, payouts, ad units, etc.) for view-only sessions with graceful empty fallbacks.
+- [x] Updated Support queue dashboard links to redirect to specific ticket detail pages rather than general lists.
+- [x] Mapped dynamic browser page titles and user role label rendering on layout headers, sidebars, and footers.
 
 ---
 
