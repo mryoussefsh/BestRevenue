@@ -94,6 +94,7 @@ const EMPTY_FORM = {
   title: '',
   content: '',
   type: 'banner',
+  style: 'info',
   priority: 0,
   is_active: true,
   start_date: '',
@@ -108,6 +109,20 @@ const EMPTY_FORM = {
 
 const TYPE_COLORS = { banner: '#6366f1', modal: '#10b981' }
 const TYPE_LABELS = { banner: 'Fixed Banner', modal: 'Modal Popup' }
+
+const STYLE_COLORS = {
+  info: 'var(--br-primary)',
+  success: 'var(--br-accent)',
+  warning: 'var(--br-warning)',
+  danger: 'var(--br-danger)'
+}
+
+const STYLE_LABELS = {
+  info: 'Info (Blue)',
+  success: 'Success (Green)',
+  warning: 'Warning (Amber)',
+  danger: 'Alert (Red)'
+}
 
 export default function AdminAnnouncements() {
   const { formatDate, formatDateTimeLocal } = useSettings()
@@ -147,6 +162,7 @@ export default function AdminAnnouncements() {
       title: item.title || '',
       content: item.content || '',
       type: item.type || 'banner',
+      style: item.style || 'info',
       priority: item.priority ?? 0,
       is_active: item.is_active ?? true,
       start_date: item.start_date ? formatDateTimeLocal(item.start_date) : '',
@@ -382,14 +398,26 @@ export default function AdminAnnouncements() {
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
                   </td>
                   <td>
-                    <span style={{
-                      background: `${TYPE_COLORS[item.type]}22`,
-                      color: TYPE_COLORS[item.type],
-                      border: `1px solid ${TYPE_COLORS[item.type]}44`,
-                      borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600
-                    }}>
-                      {TYPE_LABELS[item.type]}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={{
+                        background: `${TYPE_COLORS[item.type]}22`,
+                        color: TYPE_COLORS[item.type],
+                        border: `1px solid ${TYPE_COLORS[item.type]}44`,
+                        borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+                        textAlign: 'center', display: 'inline-block'
+                      }}>
+                        {TYPE_LABELS[item.type]}
+                      </span>
+                      <span style={{
+                        background: `var(--br-${item.style || 'info'}-subtle)`,
+                        color: `var(--br-${item.style || 'info'})`,
+                        border: `1px solid var(--br-${item.style || 'info'})33`,
+                        borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+                        textAlign: 'center', display: 'inline-block'
+                      }}>
+                        {STYLE_LABELS[item.style || 'info']}
+                      </span>
+                    </div>
                   </td>
                   <td style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{item.target_type}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -466,6 +494,17 @@ export default function AdminAnnouncements() {
                   <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
                     <option value="banner">Fixed Banner</option>
                     <option value="modal">Modal Popup</option>
+                  </select>
+                </div>
+
+                {/* Style */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Design Style</label>
+                  <select className="form-input" value={form.style} onChange={e => setForm(f => ({ ...f, style: e.target.value }))}>
+                    <option value="info">Info (Blue)</option>
+                    <option value="success">Success (Green)</option>
+                    <option value="warning">Warning (Amber)</option>
+                    <option value="danger">Alert (Red)</option>
                   </select>
                 </div>
 

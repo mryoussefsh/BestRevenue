@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { publisherApi } from '../api/endpoints'
-import { Megaphone, X } from 'lucide-react'
+import { Megaphone, X, Info, CheckCircle, AlertTriangle, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
 
 // Renders active announcements fetched from the backend.
 // Banners are shown at the top of the page.
@@ -12,6 +12,19 @@ export default function AnnouncementsRenderer() {
   const [closedBanners, setClosedBanners] = useState(new Set())
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
+  const [collapsedBanners, setCollapsedBanners] = useState(new Set())
+
+  const toggleCollapse = useCallback((id) => {
+    setCollapsedBanners(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     load()
@@ -92,7 +105,8 @@ export default function AnnouncementsRenderer() {
             <BannerItem
               key={banner.id}
               banner={banner}
-              onClose={() => closeBanner(banner.id)}
+              isCollapsed={collapsedBanners.has(banner.id)}
+              onToggleCollapse={() => toggleCollapse(banner.id)}
               onButtonClick={(btn, idx) => handleButtonClick(banner, btn, idx)}
               onView={() => logInteraction(banner.id, 'view')}
             />
@@ -116,14 +130,59 @@ export default function AnnouncementsRenderer() {
 
 // ── Banner Component ────────────────────────────────────────────────────────
 
-function BannerItem({ banner, onClose, onButtonClick, onView }) {
-  useEffect(() => { onView() }, [])
+function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onView }) {
+  useEffect(() => {
+    if (!isCollapsed) onView()
+  }, [isCollapsed, onView])
+
+  const styleKey = banner.style || 'info'
+  const styleCfg = STYLE_CONFIG[styleKey] || STYLE_CONFIG.info
+  const IconComponent = styleCfg.icon
+
+  if (isCollapsed) {
+    return (
+      <div 
+        className={`glass-card announcement-banner-collapsed ${styleCfg.cssClass}`}
+        onClick={onToggleCollapse}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+          <div style={{
+            width: '26px',
+            height: '26px',
+            borderRadius: '6px',
+            background: styleCfg.bgSubtle,
+            color: styleCfg.color,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <IconComponent size={14} />
+          </div>
+          <span style={{ 
+            fontSize: '13.5px', 
+            fontWeight: 700, 
+            color: 'var(--br-text)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            {banner.title || 'Announcement'}
+          </span>
+        </div>
+        <div className="announcement-show-btn">
+          <span>Show</span>
+          <ChevronDown size={14} />
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="glass-card announcement-banner">
+    <div className={`glass-card announcement-banner ${styleCfg.cssClass}`}>
       <div className="announcement-banner-body">
         <div className="announcement-banner-icon">
-          <Megaphone size={18} />
+          <IconComponent size={18} />
         </div>
         <div className="announcement-banner-text">
           {banner.title && (
@@ -154,11 +213,12 @@ function BannerItem({ banner, onClose, onButtonClick, onView }) {
       )}
 
       <button
-        onClick={onClose}
-        title="Dismiss"
+        onClick={onToggleCollapse}
+        title="Collapse"
         className="announcement-banner-close"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <X size={18} />
+        <ChevronUp size={18} />
       </button>
     </div>
   )
@@ -167,6 +227,10 @@ function BannerItem({ banner, onClose, onButtonClick, onView }) {
 // ── Modal Component ──────────────────────────────────────────────────────────
 
 function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose, onButtonClick }) {
+  const styleKey = announcement.style || 'info'
+  const styleCfg = STYLE_CONFIG[styleKey] || STYLE_CONFIG.info
+  const IconComponent = styleCfg.icon
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
@@ -177,11 +241,11 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
       <div style={{
         background: 'var(--br-bg-2)',
         border: '1px solid var(--br-border)',
-        borderLeft: '4px solid var(--br-primary)',
+        borderLeft: `4px solid ${styleCfg.color}`,
         borderRadius: 'var(--br-radius-lg)',
         width: '100%',
         maxWidth: 500,
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1)',
+        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px ${styleCfg.shadowColor}`,
         overflow: 'hidden',
         animation: 'slideUp 0.3s ease'
       }}>
@@ -197,13 +261,13 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
               width: 30,
               height: 30,
               borderRadius: 6,
-              background: 'rgba(99, 102, 241, 0.15)',
-              color: 'var(--br-primary)',
+              background: styleCfg.bgSubtle,
+              color: styleCfg.color,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Megaphone size={15} />
+              <IconComponent size={15} />
             </div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--br-text)' }}>
               {announcement.title}
@@ -297,6 +361,37 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+const STYLE_CONFIG = {
+  info: {
+    color: 'var(--br-primary)',
+    bgSubtle: 'var(--br-primary-subtle)',
+    shadowColor: 'rgba(99, 102, 241, 0.15)',
+    icon: Info,
+    cssClass: 'announcement-info'
+  },
+  success: {
+    color: 'var(--br-accent)',
+    bgSubtle: 'var(--br-accent-subtle)',
+    shadowColor: 'rgba(16, 185, 129, 0.15)',
+    icon: CheckCircle,
+    cssClass: 'announcement-success'
+  },
+  warning: {
+    color: 'var(--br-warning)',
+    bgSubtle: 'var(--br-warning-subtle)',
+    shadowColor: 'rgba(245, 158, 11, 0.15)',
+    icon: AlertTriangle,
+    cssClass: 'announcement-warning'
+  },
+  danger: {
+    color: 'var(--br-danger)',
+    bgSubtle: 'var(--br-danger-subtle)',
+    shadowColor: 'rgba(244, 63, 94, 0.15)',
+    icon: AlertCircle,
+    cssClass: 'announcement-danger'
+  }
+}
 
 function getBannerColors() {
   return {

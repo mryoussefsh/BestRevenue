@@ -1422,6 +1422,180 @@ input, select, textarea { outline: none; }
   transform: translateY(-1px);
 }
 
+/* Severity styles overrides */
+.announcement-banner.announcement-info {
+  border-color: rgba(99, 102, 241, 0.25) !important;
+  border-left-color: var(--br-primary) !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner.announcement-info:hover {
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 6px 25px rgba(99, 102, 241, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+.announcement-banner.announcement-info .announcement-banner-icon {
+  background: var(--br-primary-subtle) !important;
+  color: var(--br-primary) !important;
+}
+
+.announcement-banner.announcement-success {
+  border-color: rgba(16, 185, 129, 0.25) !important;
+  border-left-color: var(--br-accent) !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner.announcement-success:hover {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+.announcement-banner.announcement-success .announcement-banner-icon {
+  background: var(--br-accent-subtle) !important;
+  color: var(--br-accent) !important;
+}
+
+.announcement-banner.announcement-warning {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  border-left-color: var(--br-warning) !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner.announcement-warning:hover {
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 6px 25px rgba(245, 158, 11, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+.announcement-banner.announcement-warning .announcement-banner-icon {
+  background: var(--br-warning-subtle) !important;
+  color: var(--br-warning) !important;
+}
+
+.announcement-banner.announcement-danger {
+  border-color: rgba(244, 63, 94, 0.25) !important;
+  border-left-color: var(--br-danger) !important;
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner.announcement-danger:hover {
+  border-color: rgba(244, 63, 94, 0.45) !important;
+  box-shadow: 0 6px 25px rgba(244, 63, 94, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+.announcement-banner.announcement-danger .announcement-banner-icon {
+  background: var(--br-danger-subtle) !important;
+  color: var(--br-danger) !important;
+}
+
+/* Collapsed Banner Styles */
+.announcement-banner-collapsed {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px !important;
+  margin-bottom: 16px;
+  border-radius: var(--br-radius-lg);
+  cursor: pointer;
+  animation: fadeIn 0.2s ease;
+  transition: var(--br-transition);
+  background: var(--br-surface) !important;
+}
+.announcement-banner-collapsed:hover {
+  transform: translateY(-1px);
+}
+
+.announcement-banner-collapsed.announcement-info {
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
+  border-left: 4px solid var(--br-primary) !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.06), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner-collapsed.announcement-info:hover {
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+
+.announcement-banner-collapsed.announcement-success {
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-left: 4px solid var(--br-accent) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.06), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner-collapsed.announcement-success:hover {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.12), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+
+.announcement-banner-collapsed.announcement-warning {
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  border-left: 4px solid var(--br-warning) !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.06), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner-collapsed.announcement-warning:hover {
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.12), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+
+.announcement-banner-collapsed.announcement-danger {
+  border: 1px solid rgba(244, 63, 94, 0.25) !important;
+  border-left: 4px solid var(--br-danger) !important;
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.06), inset 0 0 12px rgba(255, 255, 255, 0.01) !important;
+}
+.announcement-banner-collapsed.announcement-danger:hover {
+  border-color: rgba(244, 63, 94, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.12), inset 0 0 12px rgba(255, 255, 255, 0.02) !important;
+}
+
+/* "Show" button design inside collapsed banner */
+.announcement-banner-collapsed .announcement-show-btn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: var(--br-transition);
+}
+
+.announcement-banner-collapsed.announcement-info .announcement-show-btn {
+  background: var(--br-primary-subtle);
+  color: var(--br-primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.announcement-banner-collapsed.announcement-info:hover .announcement-show-btn {
+  background: var(--br-primary);
+  color: #fff;
+  border-color: var(--br-primary);
+}
+
+.announcement-banner-collapsed.announcement-success .announcement-show-btn {
+  background: var(--br-accent-subtle);
+  color: var(--br-accent);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.announcement-banner-collapsed.announcement-success:hover .announcement-show-btn {
+  background: var(--br-accent);
+  color: #fff;
+  border-color: var(--br-accent);
+}
+
+.announcement-banner-collapsed.announcement-warning .announcement-show-btn {
+  background: var(--br-warning-subtle);
+  color: var(--br-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.announcement-banner-collapsed.announcement-warning:hover .announcement-show-btn {
+  background: var(--br-warning);
+  color: #fff;
+  border-color: var(--br-warning);
+}
+
+.announcement-banner-collapsed.announcement-danger .announcement-show-btn {
+  background: var(--br-danger-subtle);
+  color: var(--br-danger);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.announcement-banner-collapsed.announcement-danger:hover .announcement-show-btn {
+  background: var(--br-danger);
+  color: #fff;
+  border-color: var(--br-danger);
+}
+
 .announcement-banner-body {
   display: flex;
   align-items: center;

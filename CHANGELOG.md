@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.9.5] - 2026-06-13
+
+### Added
+- **Announcement Severity Styles**: Implemented distinct severity styles (`info`, `success`, `warning`, `danger` / "Alert") for system announcements. Banners and modals automatically render with color themes, left-border accents, and custom Lucide icons (`Info`, `CheckCircle`, `AlertTriangle`, `AlertCircle`) corresponding to their configured style.
+- **Admin Design Style Selector**: Added a dropdown selector for the announcement design style in the admin creation/editing modal, and rendered styled layout/severity badges in the admin announcements table.
+- **Responsive Collapse & Expand for Banners**: Replaced the permanent dismiss button (`X` close trigger) on banner announcements with a collapse button (`ChevronUp`). Added a responsive, glassmorphic minimized banner state (collapsed view) showing a compact banner strip with a visible `Show` button pill and chevron (`ChevronDown`).
+- **Mobile Collapsed Layout Optimization**: Optimized the collapsed banner style in CSS (`.announcement-banner-collapsed`) to prevent column-stacking or vertical wrapping on mobile screen sizes, enforcing clean horizontal alignment and text-overflow ellipses.
+
 ## [1.9.4] - 2026-06-13
 
 ### Changed

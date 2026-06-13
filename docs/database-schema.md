@@ -256,3 +256,35 @@ Stores dynamic custom pages managed by administrators (e.g. Privacy Policy, Term
 - `is_active` (boolean, Default: true): Control publishing status.
 - `timestamps` (created_at, updated_at).
 
+---
+
+## 5. Announcements Tables Specification
+
+### O. `announcements`
+Holds platform-wide announcements created by administrators.
+- `id` (uuid, Primary Key): Unique announcement identifier.
+- `title` (varchar(255)): Title of the announcement.
+- `content` (text): Content of the announcement (supports HTML formatted tags).
+- `type` (enum('banner', 'modal'), Default: 'banner'): Layout delivery style.
+- `style` (enum('info', 'success', 'warning', 'danger'), Default: 'info'): Theme styling and severity type.
+- `priority` (integer, Default: 0): Sorting order.
+- `is_active` (boolean, Default: true): Whether the announcement is active.
+- `start_date` (timestamp, Nullable): Start date time scheduling.
+- `end_date` (timestamp, Nullable): End date time scheduling.
+- `allow_dismiss` (boolean, Default: true): Whether publishers can close/toggle it.
+- `buttons` (json, Nullable): Custom action buttons configuration.
+- `target_type` (enum('all', 'publishers', 'countries', 'roles'), Default: 'all'): Scoped target audience.
+- `target_publishers` (json, Nullable): Specific publisher IDs target list.
+- `target_countries` (json, Nullable): Specific country code target list.
+- `target_roles` (json, Nullable): Specific roles target list.
+- `timestamps` (created_at, updated_at).
+
+### P. `announcement_interactions`
+Logs publisher interaction stats (views, dismissals, button clicks).
+- `id` (bigint, Primary Key): Unique interaction log ID.
+- `announcement_id` (uuid, Foreign Key): References `announcements.id` (cascade on delete).
+- `user_id` (uuid, Foreign Key): References `users.id` (cascade on delete).
+- `action` (enum('view', 'dismiss', 'click')): Type of logged interaction.
+- `button_index` (integer, Nullable): Index of clicked button if action is 'click'.
+- `timestamps` (created_at, updated_at).
+

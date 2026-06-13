@@ -180,6 +180,17 @@ This document tracks the milestones, sprint tasks, and progress status of the Pu
 - [x] Implemented a strict deletion guard in `AdjustmentController` `destroy` method, blocking direct deletion of negative adjustments linked to pending/active manual payouts to prevent double-payout loops.
 - [x] Added unit tests verifying validation rules and adjustment deletion blocks.
 
+### Milestone 13: Announcement Severity Styles & Collapse Features (Sprint 18)
+- [x] Created database migration to add the `style` column (`enum('info', 'success', 'warning', 'danger')`, default `'info'`) to `announcements` table and updated model fillable attributes.
+- [x] Added style validation rules inside admin announcement CRUD endpoints (`store` and `update`).
+- [x] Integrated design style selector in the admin creation/edit announcement forms, and added layout and style badges in the announcements dashboard list table.
+- [x] Added custom severity-based styling, dynamic left-border colors, matching backgrounds, and interactive hover transitions for each announcement style in CSS.
+- [x] Configured announcements rendering to load dynamic Lucide icons (`Info`, `CheckCircle`, `AlertTriangle`, `AlertCircle`) and layouts dynamically for both banners and modals.
+- [x] Replaced the permanent dismiss button (`X`) on banner announcements with a toggle-collapse (`ChevronUp`) button.
+- [x] Developed a premium minimized banner state (collapsed strip) displaying the icon, title, and a visible expand `Show` button with a chevron (`ChevronDown`).
+- [x] Optimized the collapsed layout in CSS to prevent stacked list item wrapping on mobile screens, preserving unified horizontal alignments.
+- [x] Created a backend feature test suite (`AnnouncementTest.php`) verifying validation rules, style updates, and publisher-side API style retrievals.
+
 ---
 
 ## 📅 Remaining Roadmap Tasks
