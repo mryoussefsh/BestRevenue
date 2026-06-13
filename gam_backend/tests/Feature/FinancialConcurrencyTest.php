@@ -368,4 +368,95 @@ class FinancialConcurrencyTest extends TestCase
         $this->assertEquals('Asia/Dubai', date_default_timezone_get());
         $this->assertEquals('Asia/Dubai', config('app.timezone'));
     }
+
+    /**
+     * Verifies that the gam:sync command scheduler daily frequency check respects the platform_timezone setting.
+     */
+    public function test_gam_sync_respects_platform_timezone_for_daily_frequency(): void
+    {
+        // Set platform_timezone to Asia/Dubai (UTC+4)
+        Setting::updateOrCreate(
+            ['key' => 'platform_timezone'],
+            [
+                'value' => 'Asia/Dubai',
+                'group' => 'display',
+                'label' => 'Timezone',
+                'type'  => 'string'
+            ]
+        );
+        Setting::updateOrCreate(['key' => 'gam_sync_frequency'], ['value' => 'daily', 'group' => 'gam', 'label' => 'Freq', 'type' => 'string']);
+
+        // Create a previous log run at 2026-07-21 19:30:00 UTC
+        \App\Models\GamSyncLog::create([
+            'triggered_by' => 'scheduler',
+            'started_at'   => \Carbon\Carbon::parse('2026-07-21 19:30:00', 'UTC'),
+            'finished_at'  => \Carbon\Carbon::parse('2026-07-21 19:40:00', 'UTC'),
+            'status'       => 'success',
+        ]);
+
+        // Mock the fetchReport API call
+        $mock = $this->mock(\App\Services\GamApiService::class);
+        $mock->shouldReceive('fetchReport')->andReturn([]); // return empty to avoid creating rows but run successfully
+
+        // Set test now to 2026-07-21 21:30:00 UTC (same UTC day, but next day in Asia/Dubai)
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 21:30:00', 'UTC'));
+
+        // Run sync command (scheduled, not manual)
+        $exitCode = Artisan::call('gam:sync', [
+            '--manual' => false,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        // Verify that a log entry was created because sync was NOT skipped
+        $logs = \App\Models\GamSyncLog::where('triggered_by', 'scheduler')
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        $this->assertCount(2, $logs); // Pre-existing log + new run log
+        $this->assertEquals('success', $logs->first()->status);
+    }
+
+    /**
+     * Verifies that the gam:sync command scheduler daily frequency check SKIPS execution if the last run was on the same day in the configured timezone.
+     */
+    public function test_gam_sync_skips_when_same_day_in_timezone(): void
+    {
+        // Set platform_timezone to UTC
+        Setting::updateOrCreate(
+            ['key' => 'platform_timezone'],
+            [
+                'value' => 'UTC',
+                'group' => 'display',
+                'label' => 'Timezone',
+                'type'  => 'string'
+            ]
+        );
+        Setting::updateOrCreate(['key' => 'gam_sync_frequency'], ['value' => 'daily', 'group' => 'gam', 'label' => 'Freq', 'type' => 'string']);
+
+        // Create a previous log run at 2026-07-21 19:30:00 UTC
+        \App\Models\GamSyncLog::create([
+            'triggered_by' => 'scheduler',
+            'started_at'   => \Carbon\Carbon::parse('2026-07-21 19:30:00', 'UTC'),
+            'finished_at'  => \Carbon\Carbon::parse('2026-07-21 19:40:00', 'UTC'),
+            'status'       => 'success',
+        ]);
+
+        // Set test now to 2026-07-21 21:30:00 UTC (same day in UTC)
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 21:30:00', 'UTC'));
+
+        // Run sync command (scheduled, not manual)
+        $exitCode = Artisan::call('gam:sync', [
+            '--manual' => false,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        // Verify that no new log entry was created because the run was skipped
+        $logs = \App\Models\GamSyncLog::where('triggered_by', 'scheduler')
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        $this->assertCount(1, $logs); // Only the pre-existing log
+    }
 }

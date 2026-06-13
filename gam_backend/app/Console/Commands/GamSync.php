@@ -65,7 +65,7 @@ class GamSync extends Command
                 $shouldSync = false;
 
                 if ($frequency === 'daily') {
-                    $tz        = Setting::get('gam_timezone', 'UTC');
+                    $tz        = Setting::get('platform_timezone', 'UTC');
                     $lastRunTz = $lastRun->copy()->setTimezone($tz);
                     $nowTimeTz = $nowTime->copy()->setTimezone($tz);
 
@@ -94,7 +94,7 @@ class GamSync extends Command
         $dateTo          = $this->option('date-to');
         $filterPublisher = $this->option('publisher-id');
         $filterAccount   = $this->option('gam-account-id');
-        $timezone        = Setting::get('gam_timezone', 'UTC');
+        $timezone        = Setting::get('platform_timezone', 'UTC');
 
         // Resolve daysBack — prefer explicit date range, then --days, then setting
         if ($dateFrom) {
