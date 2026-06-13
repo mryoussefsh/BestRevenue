@@ -1,0 +1,110 @@
+{
+  "colors": {
+    "primary": {
+      "hex": "#4f46e5",
+      "hsl": "hsl(244, 75%, 59%)",
+      "description": "Indigo color used for active states, link interactions, tabs, and primary action buttons."
+    },
+    "primary_light": {
+      "hex": "#6366f1",
+      "hsl": "hsl(239, 84%, 67%)",
+      "description": "Light Indigo used for subheadings and hover state borders."
+    },
+    "secondary": {
+      "hex": "#3b82f6",
+      "hsl": "hsl(217, 91%, 60%)",
+      "description": "Vibrant Blue used for secondary buttons and info alerts."
+    },
+    "accent": {
+      "hex": "#10b981",
+      "hsl": "hsl(162, 76%, 41%)",
+      "description": "Emerald Green used for success, paid states, approved balances, and growth graphs."
+    },
+    "warning": {
+      "hex": "#f59e0b",
+      "hsl": "hsl(38, 92%, 50%)",
+      "description": "Amber color used for pending payouts, holding balances, and warning badges."
+    },
+    "danger": {
+      "hex": "#ef4444",
+      "hsl": "hsl(0, 84%, 60%)",
+      "description": "Crimson used for delete actions, rejections, suspensions, and error states."
+    },
+    "background": {
+      "hex": "#0b0f19",
+      "hsl": "hsl(225, 39%, 7%)",
+      "description": "Base dark background color of the platform viewport body."
+    },
+    "surface": {
+      "hex": "#111827",
+      "hsl": "hsl(224, 71%, 4%)",
+      "description": "Surface Card color, used for dashboard panels and settings sections."
+    },
+    "surface_nested": {
+      "hex": "#1f2937",
+      "hsl": "hsl(220, 13%, 18%)",
+      "description": "Surface level 2, used for inner modal overlays, nested lists, and table headers."
+    },
+    "border": {
+      "rgba": "rgba(255, 255, 255, 0.08)",
+      "description": "Standard border line styling for cards, grids, and divider rules."
+    }
+  },
+  "typography": {
+    "font_families": {
+      "display": "Outfit, sans-serif",
+      "body": "Inter, sans-serif",
+      "monospace": "SFMono-Regular, Consolas, Courier New, monospace"
+    },
+    "font_sizes": {
+      "xs": "11px",
+      "sm": "13px",
+      "base": "15px",
+      "lg": "16px",
+      "xl": "20px",
+      "xxl": "28px"
+    },
+    "font_weights": {
+      "regular": "400",
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700"
+    },
+    "line_heights": {
+      "compact": "1.2",
+      "standard": "1.4",
+      "relaxed": "1.6"
+    }
+  },
+  "spacing": {
+    "base": "8px",
+    "scale": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "20px",
+      "xl": "24px",
+      "xxl": "32px",
+      "xxxl": "48px"
+    }
+  },
+  "borders": {
+    "radius": {
+      "sm": "8px",
+      "md": "12px",
+      "circle": "50%"
+    }
+  },
+  "effects": {
+    "blur": {
+      "card": "12px"
+    },
+    "shadows": {
+      "glass": "0 8px 32px 0 rgba(0, 0, 0, 0.37)"
+    }
+  },
+  "transitions": {
+    "micro": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+    "container": "250ms cubic-bezier(0.4, 0, 0.2, 1)"
+  }
+}
