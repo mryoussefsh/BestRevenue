@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             TranslationsSeeder::class,
             AdminUserSeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
     }
 }

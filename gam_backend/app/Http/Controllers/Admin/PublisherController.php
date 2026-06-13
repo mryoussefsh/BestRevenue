@@ -33,6 +33,10 @@ class PublisherController extends Controller
      */
     public function index(Request $request)
     {
+        if (!$request->user()->can('manage_publishers') && !$request->user()->can('manage_websites') && !$request->user()->can('view_publishers')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
         $query = Publisher::withCount('websites')->with('user');
 
         if ($request->has('search')) {
@@ -111,8 +115,12 @@ class PublisherController extends Controller
     /**
      * GET /api/v1/admin/publishers/{id}
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
+        if (!$request->user()->can('manage_publishers') && !$request->user()->can('manage_websites') && !$request->user()->can('view_publishers')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
         $publisher = Publisher::with('user')->withCount('websites')->findOrFail($id);
         return new PublisherResource($publisher);
     }
@@ -285,8 +293,12 @@ class PublisherController extends Controller
      * FIX [PUB-3]: Replaced User::pluck('name', 'id')->toArray() which loaded ALL
      * users into memory. Now only loads users referenced in this publisher's ratio history.
      */
-     public function ratioHistory(string $id): JsonResponse
+     public function ratioHistory(Request $request, string $id): JsonResponse
     {
+        if (!$request->user()->can('manage_publishers') && !$request->user()->can('view_publishers')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
         $publisher = Publisher::findOrFail($id);
         $websiteIds = $publisher->websites()->pluck('id')->toArray();
 

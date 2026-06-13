@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasUuids, Notifiable;
+    use HasApiTokens, HasUuids, Notifiable, HasRoles;
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -21,6 +22,11 @@ class User extends Authenticatable
         'role',
         'publisher_id',
         'is_active',
+    ];
+
+    protected $appends = [
+        'roles_list',
+        'permissions_list',
     ];
 
     protected $hidden = [
@@ -54,5 +60,16 @@ class User extends Authenticatable
     public function isPublisher(): bool
     {
         return $this->role === 'publisher';
+    }
+
+    // Accessors for Spatie Roles and Permissions serialization
+    public function getRolesListAttribute(): array
+    {
+        return $this->getRoleNames()->toArray();
+    }
+
+    public function getPermissionsListAttribute(): array
+    {
+        return $this->getAllPermissions()->pluck('name')->toArray();
     }
 }

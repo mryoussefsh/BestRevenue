@@ -153,8 +153,18 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  const hasPermission = useCallback((permission) => {
+    if (!user) return false;
+    if (user.role === 'admin') {
+      // Super Admin bypasses all checks
+      if (user.roles_list?.includes('Super Admin')) return true;
+      return user.permissions_list?.includes(permission) || false;
+    }
+    return false;
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo, updateUser }}>
+    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo, updateUser, hasPermission }}>
       {children}
     </AuthContext.Provider>
   )

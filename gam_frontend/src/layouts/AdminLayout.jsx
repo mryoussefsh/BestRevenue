@@ -25,30 +25,32 @@ import {
   User,
   LogOut,
   Menu,
-  X
+  X,
+  ShieldCheck
 } from 'lucide-react'
 
 const navItems = [
   { to: '/admin',              icon: LayoutDashboard, label: 'Dashboard',      end: true },
-  { to: '/admin/publishers',   icon: Users, label: 'Publishers', countKey: 'pending_publishers' },
-  { to: '/admin/websites',     icon: Globe, label: 'Websites'    },
-  { to: '/admin/revenue',      icon: DollarSign, label: 'Revenue'     },
-  { to: '/admin/closings',     icon: Calendar, label: 'Period Closings' },
-  { to: '/admin/payouts',      icon: CreditCard, label: 'Payouts',    countKey: 'pending_payouts' },
-  { to: '/admin/adjustments',  icon: Scale, label: 'Adjustments' },
-  { to: '/admin/tickets',      icon: Ticket, label: 'Support Tickets', countKey: 'pending_tickets' },
-  { to: '/admin/announcements',icon: Megaphone, label: 'Announcements' },
-  { to: '/admin/pages',        icon: FileText, label: 'Pages'         },
-  { to: '/admin/audit-logs',   icon: History, label: 'Audit Logs'  },
-  { to: '/admin/gam-accounts', icon: Server, label: 'GAM Accounts'},
-  { to: '/admin/gam-sync',     icon: RefreshCw, label: 'Manual Sync' },
-  { to: '/admin/settings',     icon: Settings,  label: 'Settings'   },
-  { to: '/admin/email-templates', icon: Mail, label: 'Email Templates' },
-  { to: '/admin/translations', icon: Languages, label: 'Translations' },
+  { to: '/admin/publishers',   icon: Users, label: 'Publishers', countKey: 'pending_publishers', permission: ['manage_publishers', 'view_publishers'] },
+  { to: '/admin/websites',     icon: Globe, label: 'Websites', permission: 'manage_websites' },
+  { to: '/admin/revenue',      icon: DollarSign, label: 'Revenue', permission: 'manage_revenue' },
+  { to: '/admin/closings',     icon: Calendar, label: 'Period Closings', permission: 'manage_closings' },
+  { to: '/admin/payouts',      icon: CreditCard, label: 'Payouts', countKey: 'pending_payouts', permission: 'manage_payouts' },
+  { to: '/admin/adjustments',  icon: Scale, label: 'Adjustments', permission: 'manage_publishers' }, // adjustments are publishers-linked
+  { to: '/admin/tickets',      icon: Ticket, label: 'Support Tickets', countKey: 'pending_tickets', permission: 'manage_tickets' },
+  { to: '/admin/announcements',icon: Megaphone, label: 'Announcements', permission: 'manage_announcements' },
+  { to: '/admin/pages',        icon: FileText, label: 'Pages', permission: 'manage_pages' },
+  { to: '/admin/audit-logs',   icon: History, label: 'Audit Logs', permission: 'manage_admins' },
+  { to: '/admin/gam-accounts', icon: Server, label: 'GAM Accounts', permission: 'manage_gam_accounts' },
+  { to: '/admin/gam-sync',     icon: RefreshCw, label: 'Manual Sync', permission: 'manage_gam_accounts' },
+  { to: '/admin/settings',     icon: Settings,  label: 'Settings', permission: 'manage_settings' },
+  { to: '/admin/email-templates', icon: Mail, label: 'Email Templates', permission: 'manage_email_templates' },
+  { to: '/admin/translations', icon: Languages, label: 'Translations', permission: 'manage_translations' },
+  { to: '/admin/admins',       icon: ShieldCheck, label: 'Admins', permission: 'manage_admins' },
 ]
 
 export default function AdminLayout({ children }) {
-  const { user, logout } = useAuth()
+  const { user, logout, hasPermission } = useAuth()
   const { locale, switchLocale, t } = useI18n()
   const { settings } = useSettings()
   const navigate = useNavigate()
@@ -56,6 +58,22 @@ export default function AdminLayout({ children }) {
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [stats, setStats] = useState({ pending_publishers: 0, pending_payouts: 0, pending_tickets: 0 })
+
+  const getDashboardPath = () => {
+    const primaryRole = user?.roles_list?.[0] || 'Super Admin'
+    if (primaryRole === 'Finance Manager') return '/admin/finance'
+    if (primaryRole === 'Ad Ops Manager') return '/admin/adops'
+    if (primaryRole === 'Support Agent') return '/admin/support'
+    if (primaryRole === 'Content Manager') return '/admin/content'
+    return '/admin'
+  }
+
+  const updatedNavItems = navItems.map(item => {
+    if (item.to === '/admin') {
+      return { ...item, to: getDashboardPath() }
+    }
+    return item
+  })
 
   useEffect(() => {
     // Fetch stats initially and whenever location changes (cheap way to keep them somewhat updated)
@@ -100,7 +118,13 @@ export default function AdminLayout({ children }) {
 
         <nav className="sidebar-nav">
           <div className="nav-section-label">Main Menu</div>
-          {navItems.map(item => {
+          {updatedNavItems.filter(item => {
+            if (!item.permission) return true
+            if (Array.isArray(item.permission)) {
+              return item.permission.some(p => hasPermission(p))
+            }
+            return hasPermission(item.permission)
+          }).map(item => {
             const count = stats[item.countKey] || 0
             const displayCount = count > 9 ? '+9' : count
 
@@ -145,7 +169,7 @@ export default function AdminLayout({ children }) {
             <User className="nav-icon" size={18} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{user?.name || 'Admin'}</div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>Administrator</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-subtle)' }}>{user?.roles_list?.[0] || 'Administrator'}</div>
             </div>
           </NavLink>
           <button
@@ -220,7 +244,7 @@ export default function AdminLayout({ children }) {
         }}>
           <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. All rights reserved.</div>
           <div style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>
-            Administrator
+            {user?.roles_list?.[0] || 'Administrator'}
           </div>
         </footer>
       </div>

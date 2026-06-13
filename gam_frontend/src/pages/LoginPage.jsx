@@ -21,8 +21,16 @@ export default function LoginPage() {
     try {
       const user = await login(email, password)
       toast.success('Welcome back!')
-      if (user.role === 'admin') navigate('/admin')
-      else navigate('/publisher')
+      if (user.role === 'admin') {
+        const primaryRole = user.roles_list?.[0] || 'Super Admin'
+        if (primaryRole === 'Finance Manager') navigate('/admin/finance')
+        else if (primaryRole === 'Ad Ops Manager') navigate('/admin/adops')
+        else if (primaryRole === 'Support Agent') navigate('/admin/support')
+        else if (primaryRole === 'Content Manager') navigate('/admin/content')
+        else navigate('/admin')
+      } else {
+        navigate('/publisher')
+      }
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid credentials. Please try again.'
       setError(msg)

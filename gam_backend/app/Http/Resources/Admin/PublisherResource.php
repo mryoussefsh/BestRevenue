@@ -14,6 +14,21 @@ class PublisherResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $request->user();
+        $showSensitive = $user && $user->can('manage_publishers');
+
+        if (!$showSensitive) {
+            return [
+                'id'             => $this->id,
+                'name'           => $this->name,
+                'email'          => $this->email,
+                'status'         => $this->status,
+                'created_at'     => $this->created_at,
+                'updated_at'     => $this->updated_at,
+                'websites_count' => $this->whenCounted('websites'),
+            ];
+        }
+
         $publisherId = $this->id;
         $websiteId = $request->query('website_id');
         $dateFrom = $request->query('date_from');

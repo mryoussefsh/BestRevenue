@@ -385,10 +385,10 @@ export default function WebsitesPage() {
     setLoading(true)
     try {
       const [wRes, aRes, pRes, gRes] = await Promise.all([
-        adminApi.getWebsites(),
-        adminApi.getAdUnits(),
-        adminApi.getPublishers(),
-        gamAccountsApi.getAll()
+        adminApi.getWebsites().catch(() => ({ data: { data: [] } })),
+        adminApi.getAdUnits().catch(() => ({ data: { data: [] } })),
+        adminApi.getPublishers().catch(() => ({ data: { data: [] } })),
+        gamAccountsApi.getAll().catch(() => ({ data: [] }))
       ])
       setWebsites(wRes.data?.data || [])
       setAdUnits(aRes.data?.data || [])

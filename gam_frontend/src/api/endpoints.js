@@ -122,6 +122,21 @@ export const adminApi = {
   getAdminsList:       ()         => api.get('/admin/tickets/admins'),
   updateProfile:       (data)     => api.put('/admin/profile', data),
   changePassword:      (data)     => api.put('/admin/change-password', data),
+
+  // Admins CRUD
+  getAdmins:           ()         => api.get('/admin/admins'),
+  createAdmin:         (data)     => api.post('/admin/admins', data),
+  updateAdmin:         (id, data) => api.put(`/admin/admins/${id}`, data),
+  deleteAdmin:         (id)       => api.delete(`/admin/admins/${id}`),
+
+  // Roles CRUD
+  getRoles:            ()         => api.get('/admin/roles'),
+  createRole:          (data)     => api.post('/admin/roles', data),
+  updateRole:          (id, data) => api.put(`/admin/roles/${id}`, data),
+  deleteRole:          (id)       => api.delete(`/admin/roles/${id}`),
+
+  // Permissions List
+  getPermissions:      ()         => api.get('/admin/permissions'),
 }
 
 export const gamAccountsApi = {

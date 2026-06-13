@@ -16,8 +16,20 @@ class SettingController extends Controller
      */
     public function index(): JsonResponse
     {
-        $settings = Setting::whereNotIn('key', ['default_currency', 'gam_timezone', 'payout_day'])
-            ->orderBy('group')
+        $user = auth()->user();
+        if (!$user || (!$user->can('manage_settings') && !$user->can('manage_gam_accounts'))) {
+            abort(403, 'This action is unauthorized.');
+        }
+
+        $onlyGamCredentials = !$user->can('manage_settings') && $user->can('manage_gam_accounts');
+
+        $query = Setting::whereNotIn('key', ['default_currency', 'gam_timezone', 'payout_day']);
+
+        if ($onlyGamCredentials) {
+            $query->whereIn('key', ['google_client_id', 'google_client_secret']);
+        }
+
+        $settings = $query->orderBy('group')
             ->orderBy('key')
             ->get()
             ->map(function ($setting) {
@@ -35,14 +47,16 @@ class SettingController extends Controller
                 ];
             })->toArray();
 
-        // Restore project_path securely under system_info group for administrator setup instructions
-        $settings[] = [
-            'key'   => 'project_path',
-            'value' => base_path(),
-            'label' => 'Project Path',
-            'type'  => 'string',
-            'group' => 'system_info',
-        ];
+        if (!$onlyGamCredentials) {
+            // Restore project_path securely under system_info group for administrator setup instructions
+            $settings[] = [
+                'key'   => 'project_path',
+                'value' => base_path(),
+                'label' => 'Project Path',
+                'type'  => 'string',
+                'group' => 'system_info',
+            ];
+        }
 
         return response()->json($settings);
     }
@@ -53,6 +67,17 @@ class SettingController extends Controller
      */
     public function update(Request $request, string $key): JsonResponse
     {
+        $user = auth()->user();
+        if (!$user || (!$user->can('manage_settings') && !$user->can('manage_gam_accounts'))) {
+            abort(403, 'This action is unauthorized.');
+        }
+
+        if (!$user->can('manage_settings') && $user->can('manage_gam_accounts')) {
+            if (!in_array($key, ['google_client_id', 'google_client_secret'])) {
+                abort(403, 'This action is unauthorized.');
+            }
+        }
+
         $setting = Setting::findOrFail($key);
 
         // Allow certain settings to be cleared (nullable)

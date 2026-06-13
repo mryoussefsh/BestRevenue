@@ -372,4 +372,50 @@ class IndependentAuditFixTest extends TestCase
             'ads_txt' => "google.com, pub-100, DIRECT\ngoogle.com, pub-200, RESELLER",
         ]);
     }
+
+    /**
+     * Test that Support Agent can view publishers list and profile, but cannot edit.
+     */
+    public function test_support_agent_can_view_publishers_but_not_edit(): void
+    {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+
+        $support = User::create([
+            'id'        => Str::uuid()->toString(),
+            'name'      => 'Support User',
+            'email'     => 'support@test.com',
+            'password'  => bcrypt('password'),
+            'role'      => 'admin',
+            'is_active' => true,
+        ]);
+        $support->assignRole('Support Agent');
+
+        \Laravel\Sanctum\Sanctum::actingAs($support);
+
+        // 1. Can retrieve index list of publishers
+        $responseIndex = $this->getJson('/api/v1/admin/publishers');
+        $responseIndex->assertStatus(200);
+
+        // 2. Can retrieve individual publisher show profile
+        $responseShow = $this->getJson("/api/v1/admin/publishers/{$this->publisher->id}");
+        $responseShow->assertStatus(200);
+
+        // 3. CANNOT update a publisher (should get 403)
+        $responseUpdate = $this->putJson("/api/v1/admin/publishers/{$this->publisher->id}", [
+            'name' => 'Updated by Support'
+        ]);
+        $responseUpdate->assertStatus(403);
+
+        // 4. CANNOT delete a publisher (should get 403)
+        $responseDelete = $this->deleteJson("/api/v1/admin/publishers/{$this->publisher->id}");
+        $responseDelete->assertStatus(403);
+
+        // 5. CANNOT suspend a publisher
+        $responseSuspend = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/suspend");
+        $responseSuspend->assertStatus(403);
+
+        // 6. CANNOT impersonate a publisher
+        $responseImpersonate = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/impersonate");
+        $responseImpersonate->assertStatus(403);
+    }
 }

@@ -228,4 +228,94 @@ class SettingControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure(['ad_type_preselected_sizes']);
     }
+
+    public function test_ad_ops_manager_can_retrieve_google_settings_only(): void
+    {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+
+        $adOps = User::create([
+            'id'        => Str::uuid()->toString(),
+            'name'      => 'Ad Ops User',
+            'email'     => 'adops@test.com',
+            'password'  => bcrypt('password'),
+            'role'      => 'admin',
+            'is_active' => true,
+        ]);
+        $adOps->assignRole('Ad Ops Manager');
+
+        Sanctum::actingAs($adOps);
+
+        $response = $this->getJson('/api/v1/admin/settings');
+        
+        $response->assertStatus(200);
+        
+        $json = $response->json();
+        
+        // Assert google_client_id and google_client_secret are present
+        $keys = collect($json)->pluck('key')->toArray();
+        $this->assertContains('google_client_id', $keys);
+        $this->assertContains('google_client_secret', $keys);
+        
+        // Assert payout_threshold (which belongs to payout group) is not present
+        $this->assertNotContains('payout_threshold', $keys);
+        $this->assertNotContains('project_path', $keys);
+    }
+
+    public function test_ad_ops_manager_can_update_google_credentials(): void
+    {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+
+        $adOps = User::create([
+            'id'        => Str::uuid()->toString(),
+            'name'      => 'Ad Ops User',
+            'email'     => 'adops@test.com',
+            'password'  => bcrypt('password'),
+            'role'      => 'admin',
+            'is_active' => true,
+        ]);
+        $adOps->assignRole('Ad Ops Manager');
+
+        Sanctum::actingAs($adOps);
+
+        $response = $this->putJson('/api/v1/admin/settings/google_client_id', [
+            'value' => 'new-adops-client-id'
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'google_client_id',
+            'value' => 'new-adops-client-id'
+        ]);
+    }
+
+    public function test_ad_ops_manager_cannot_update_non_google_settings(): void
+    {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+
+        $adOps = User::create([
+            'id'        => Str::uuid()->toString(),
+            'name'      => 'Ad Ops User',
+            'email'     => 'adops@test.com',
+            'password'  => bcrypt('password'),
+            'role'      => 'admin',
+            'is_active' => true,
+        ]);
+        $adOps->assignRole('Ad Ops Manager');
+
+        Setting::create([
+            'key'   => 'payout_threshold',
+            'value' => '50.00',
+            'group' => 'payout',
+            'label' => 'Minimum Payout Threshold (USD)',
+            'type'  => 'string',
+        ]);
+
+        Sanctum::actingAs($adOps);
+
+        $response = $this->putJson('/api/v1/admin/settings/payout_threshold', [
+            'value' => '100.00'
+        ]);
+
+        $response->assertStatus(403);
+    }
 }

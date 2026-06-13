@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   DollarSign,
   Users,
@@ -182,6 +183,7 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
 // ── Main Dashboard ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const { settings } = useSettings()
+  const { hasPermission } = useAuth()
   const [stats, setStats]           = useState(null)
   const [revenueChart, setRevenueChart] = useState([])
   const [publishers, setPublishers] = useState([])
@@ -219,15 +221,25 @@ export default function AdminDashboard() {
 
   // Load publishers & websites once for dropdowns
   useEffect(() => {
-    Promise.all([adminApi.getPublishers(), adminApi.getWebsites()])
+    const pPromise = hasPermission('manage_publishers') ? adminApi.getPublishers() : Promise.resolve({ data: { data: [] } })
+    const wPromise = hasPermission('manage_websites') ? adminApi.getWebsites() : Promise.resolve({ data: { data: [] } })
+
+    Promise.all([pPromise, wPromise])
       .then(([pRes, wRes]) => {
         setPublishers(pRes.data?.data || [])
         setWebsites(wRes.data?.data || [])
       })
-  }, [])
+      .catch(err => {
+        console.error('Failed to load dropdown data:', err)
+      })
+  }, [hasPermission])
 
   // Load ad units dynamically when filters.publisher_id or filters.website_id changes
   useEffect(() => {
+    if (!hasPermission('manage_ad_units')) {
+      setAdUnits([])
+      return
+    }
     const params = { per_page: 'all' }
     if (filters.publisher_id) params.publisher_id = filters.publisher_id
     if (filters.website_id)   params.website_id   = filters.website_id
@@ -239,7 +251,7 @@ export default function AdminDashboard() {
       .catch(err => {
         console.error('Failed to load ad units:', err)
       })
-  }, [filters.publisher_id, filters.website_id])
+  }, [filters.publisher_id, filters.website_id, hasPermission])
 
   // Reload stats whenever filters change (debounced 300ms)
   useEffect(() => {
@@ -278,12 +290,32 @@ export default function AdminDashboard() {
       if (filters.date_to)      pubParams.date_to      = filters.date_to
       if (filters.website_id)   pubParams.website_id   = filters.website_id
 
+      const pubPromise = hasPermission('manage_publishers')
+        ? adminApi.getPublishers(pubParams)
+        : Promise.resolve({ data: { data: [] } })
+
+      const closingsPromise = hasPermission('manage_closings')
+        ? adminApi.getPeriodClosings()
+        : Promise.resolve({ data: { data: [] } })
+
+      const payoutsPromise = hasPermission('manage_payouts')
+        ? adminApi.getPayouts({ status: 'pending' })
+        : Promise.resolve({ data: { data: [] } })
+
+      const revenuePromise = hasPermission('manage_revenue')
+        ? adminApi.getRevenue(params)
+        : Promise.resolve({ data: { data: [] } })
+
+      const prevRevenuePromise = hasPermission('manage_revenue')
+        ? adminApi.getRevenue(prevParams)
+        : Promise.resolve({ data: { data: [] } })
+
       const [pubRes, closingsRes, payoutsRes, revenueRes, prevRevenueRes] = await Promise.all([
-        adminApi.getPublishers(pubParams),
-        adminApi.getPeriodClosings(),
-        adminApi.getPayouts({ status: 'pending' }),
-        adminApi.getRevenue(params),
-        adminApi.getRevenue(prevParams),
+        pubPromise,
+        closingsPromise,
+        payoutsPromise,
+        revenuePromise,
+        prevRevenuePromise,
       ])
 
       const allPublishers = pubRes.data?.data       || []
@@ -492,42 +524,50 @@ export default function AdminDashboard() {
             <span>Dashboard</span>
           </h1>
           <p className="page-subtitle" style={{ color: 'var(--color-text-muted)' }}>
-            {loading ? 'Loading…' : `${stats?.recordCount?.toLocaleString() || 0} revenue records · ${filters.date_from} → ${filters.date_to}`}
+            {loading ? 'Loading…' : (
+              hasPermission('manage_revenue')
+                ? `${stats?.recordCount?.toLocaleString() || 0} revenue records · ${filters.date_from} → ${filters.date_to}`
+                : 'Welcome to the BestRevenue administrator dashboard'
+            )}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-          >
-            <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
-            {activeFiltersCount > 0 && (
-              <span style={{
-                background: 'var(--br-primary)',
-                color: '#fff',
-                borderRadius: '50%',
-                width: 20,
-                height: 20,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 'bold'
-              }}>
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-          <button
-            className={`btn btn-primary ${syncing ? 'btn-loading' : ''}`}
-            onClick={handleSync} disabled={syncing} id="run-gam-sync-btn"
-          >
-            {syncing
-              ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
-              : <><RefreshCw size={14} /> Run GAM Sync</>}
-          </button>
+          {hasPermission('manage_revenue') && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
+              <Filter size={16} />
+              <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+              {activeFiltersCount > 0 && (
+                <span style={{
+                  background: 'var(--br-primary)',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: 20,
+                  height: 20,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 'bold'
+                }}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          )}
+          {hasPermission('manage_gam_accounts') && (
+            <button
+              className={`btn btn-primary ${syncing ? 'btn-loading' : ''}`}
+              onClick={handleSync} disabled={syncing} id="run-gam-sync-btn"
+            >
+              {syncing
+                ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
+                : <><RefreshCw size={14} /> Run GAM Sync</>}
+            </button>
+          )}
         </div>
       </div>
 
@@ -570,43 +610,51 @@ export default function AdminDashboard() {
           <div className="filter-divider" />
 
           {/* Publisher */}
-          <SearchDropdown
-            value={filters.publisher_id}
-            onChange={val => setFilters(f => ({ ...f, publisher_id: val, website_id: '', ad_unit_id: '' }))}
-            options={publisherOptions}
-            allLabel="All Publishers"
-            placeholder="All Publishers"
-          />
+          {hasPermission('manage_publishers') && (
+            <SearchDropdown
+              value={filters.publisher_id}
+              onChange={val => setFilters(f => ({ ...f, publisher_id: val, website_id: '', ad_unit_id: '' }))}
+              options={publisherOptions}
+              allLabel="All Publishers"
+              placeholder="All Publishers"
+            />
+          )}
 
           {/* Website */}
-          <SearchDropdown
-            value={filters.website_id}
-            onChange={val => setFilters(f => ({ ...f, website_id: val, ad_unit_id: '' }))}
-            options={websiteOptions}
-            allLabel="All Websites"
-            placeholder="All Websites"
-          />
+          {hasPermission('manage_websites') && (
+            <SearchDropdown
+              value={filters.website_id}
+              onChange={val => setFilters(f => ({ ...f, website_id: val, ad_unit_id: '' }))}
+              options={websiteOptions}
+              allLabel="All Websites"
+              placeholder="All Websites"
+            />
+          )}
 
           {/* Ad Unit */}
-          <SearchDropdown
-            value={filters.ad_unit_id}
-            onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
-            options={adUnitOptions}
-            allLabel="All Ad Units"
-            placeholder="All Ad Units"
-          />
+          {hasPermission('manage_ad_units') && (
+            <SearchDropdown
+              value={filters.ad_unit_id}
+              onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
+              options={adUnitOptions}
+              allLabel="All Ad Units"
+              placeholder="All Ad Units"
+            />
+          )}
 
           {/* Revenue Status */}
-          <div>
-            <select className="form-select" value={filters.status}
-              onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
-              style={{ height: 38, fontSize: 13, minWidth: 150, width: '100%' }}>
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="closed">Closed</option>
-            </select>
-          </div>
+          {hasPermission('manage_revenue') && (
+            <div>
+              <select className="form-select" value={filters.status}
+                onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+                style={{ height: 38, fontSize: 13, minWidth: 150, width: '100%' }}>
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+          )}
 
           {/* Reset */}
           {hasFilters && (
@@ -656,41 +704,73 @@ export default function AdminDashboard() {
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
           <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> Revenue Metrics
         </div>
-        <div className="stat-grid">
-          <div className="stat-card primary">
-            <div className="stat-icon"><DollarSign size={20} /></div>
-            <div className="stat-label">Total Gross Revenue</div>
-            <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
-            <div className="stat-change up">▲ Selected period</div>
-          </div>
-          <div className="stat-card accent">
-            <div className="stat-icon"><Users size={20} /></div>
-            <div className="stat-label">Total Pub. Earnings</div>
-            <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
-            <div className="stat-change up">▲ Ratio split</div>
-          </div>
-          <div className="stat-card accent">
-            <div className="stat-icon"><CheckCircle2 size={20} /></div>
-            <div className="stat-label">Approved Earnings</div>
-            <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
-            <div className="stat-change up">✓ Approved</div>
-          </div>
-          <div className="stat-card warning">
-            <div className="stat-icon"><Clock size={20} /></div>
-            <div className="stat-label">Pending Earnings</div>
-            <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
-            <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Clock size={12} />
-              <span>Holding period</span>
+        {hasPermission('manage_revenue') ? (
+          <div className="stat-grid">
+            <div className="stat-card primary">
+              <div className="stat-icon"><DollarSign size={20} /></div>
+              <div className="stat-label">Total Gross Revenue</div>
+              <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
+              <div className="stat-change up">▲ Selected period</div>
+            </div>
+            <div className="stat-card accent">
+              <div className="stat-icon"><Users size={20} /></div>
+              <div className="stat-label">Total Pub. Earnings</div>
+              <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
+              <div className="stat-change up">▲ Ratio split</div>
+            </div>
+            <div className="stat-card accent">
+              <div className="stat-icon"><CheckCircle2 size={20} /></div>
+              <div className="stat-label">Approved Earnings</div>
+              <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
+              <div className="stat-change up">✓ Approved</div>
+            </div>
+            <div className="stat-card warning">
+              <div className="stat-icon"><Clock size={20} /></div>
+              <div className="stat-label">Pending Earnings</div>
+              <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
+              <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Clock size={12} />
+                <span>Holding period</span>
+              </div>
+            </div>
+            <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
+              <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
+              <div className="stat-label">Ready for Payout</div>
+              <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
+              <div className="stat-change text-muted">Filtered wallet balance</div>
             </div>
           </div>
-          <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
-            <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
-            <div className="stat-label">Ready for Payout</div>
-            <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
-            <div className="stat-change text-muted">Filtered wallet balance</div>
+        ) : (
+          <div className="card" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px 20px',
+            textAlign: 'center',
+            background: 'var(--color-surface-2)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+            gap: 12
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'rgba(99,102,241,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--br-primary)'
+            }}>
+              <Lock size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>Revenue Metrics Restricted</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>You do not have the required permissions to view financial revenue data.</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── Performance Stats Grid ── */}
@@ -698,277 +778,323 @@ export default function AdminDashboard() {
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
           <BarChart2 size={14} style={{ color: 'var(--br-primary)' }} /> Performance Metrics
         </div>
-        <div className="stat-grid">
-          <div className="stat-card info">
-            <div className="stat-icon"><Eye size={20} /></div>
-            <div className="stat-label">Total Impressions</div>
-            <div className="stat-value">
-              {stats?.totalImpressions !== undefined ? <CompactAmount value={stats.totalImpressions} prefix="" decimals={0} /> : '—'}
-            </div>
-            <div className="stat-change up">▲ All ad units</div>
-          </div>
-          <div className="stat-card info">
-            <div className="stat-icon"><MousePointer size={20} /></div>
-            <div className="stat-label">Total Clicks</div>
-            <div className="stat-value">
-              {stats?.totalClicks !== undefined ? <CompactAmount value={stats.totalClicks} prefix="" decimals={0} /> : '—'}
-            </div>
-            <div className="stat-change up">▲ All ad units</div>
-          </div>
-          <div className="stat-card info">
-            <div className="stat-icon"><Ban size={20} /></div>
-            <div className="stat-label">Unfilled Impressions</div>
-            <div className="stat-value">
-              {stats?.totalUnfilled !== undefined ? <CompactAmount value={stats.totalUnfilled} prefix="" decimals={0} /> : '—'}
-            </div>
-            <div className="stat-change text-muted">Unserved inventory</div>
-          </div>
-          <div className="stat-card primary">
-            <div className="stat-icon"><TrendingUp size={20} /></div>
-            <div className="stat-label">Avg. Gross CPM</div>
-            <div className="stat-value money">${stats?.avgCPM ?? '—'}</div>
-            <div className="stat-change">Per 1000 impressions</div>
-          </div>
-          <div className="stat-card primary">
-            <div className="stat-icon"><Target size={20} /></div>
-            <div className="stat-label">Avg. CTR</div>
-            <div className="stat-value">{stats?.avgCTR ?? '—'}%</div>
-            <div className="stat-change">Click-through rate</div>
-          </div>
-          <div className="stat-card primary">
-            <div className="stat-icon"><Eye size={20} /></div>
-            <div className="stat-label">Viewability Rate</div>
-            <div className="stat-value">
-              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
-                ? `${parseFloat(stats.viewabilityRate).toFixed(1)}%`
-                : 'N/A'}
-            </div>
-            <div className="stat-change text-muted">
-              {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} showInfo={false} />
-                  <span>/</span>
-                  <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} showInfo={false} />
-                  <span>measurable</span>
-                </span>
-              ) : (
-                'No Active View data'
-              )}
-            </div>
-          </div>
-          <div className="stat-card accent">
-            <div className="stat-icon"><Percent size={20} /></div>
-            <div className="stat-label">Avg. Revenue Ratio</div>
-            <div className="stat-value">{stats?.avgRatio ?? '—'}%</div>
-            <div className="stat-change">Publisher share</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Platform Stats Grid ── */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Scale size={14} style={{ color: 'var(--br-primary)' }} /> Platform Overview
-        </div>
-        <div className="stat-grid">
-          <div className="stat-card warning">
-            <div className="stat-icon"><CreditCard size={20} /></div>
-            <div className="stat-label">Pending Payouts</div>
-            <div className="stat-value money" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <CompactAmount value={stats?.pendingPayoutsTotal} />
-              {stats?.pendingPayouts > 0 && (
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
-                  ({stats.pendingPayouts} req.)
-                </span>
-              )}
-            </div>
-            <div className="stat-change" style={{ color: stats?.pendingPayouts > 0 ? 'var(--color-warning)' : 'var(--color-accent)' }}>
-              {stats?.pendingPayouts > 0 ? '⚠ Needs attention' : '✓ All clear'}
-            </div>
-          </div>
-          <div className="stat-card accent">
-            <div className="stat-icon"><Users size={20} /></div>
-            <div className="stat-label">Active Publishers</div>
-            <div className="stat-value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {stats?.activePublishers ?? '—'}
-              {stats?.pendingPublishers > 0 && (
-                <span style={{
-                  fontSize: 12, color: '#f59e0b',
-                  background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)',
-                  padding: '2px 8px', borderRadius: 12, fontWeight: 600,
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                }}>
-                  <Clock size={12} /> {stats.pendingPublishers} pending
-                </span>
-              )}
-            </div>
-            <div className="stat-change">{stats?.publishers ?? '—'} total publishers</div>
-          </div>
-          <div className="stat-card primary">
-            <div className="stat-icon"><Lock size={20} /></div>
-            <div className="stat-label">Closed Periods</div>
-            <div className="stat-value">{stats?.closedPeriods ?? '—'}</div>
-            <div className="stat-change">Historical periods</div>
-          </div>
-
-          {/* Daily average with period comparison */}
-          <div className="stat-card" style={{
-            background: 'linear-gradient(135deg, rgba(99,102,241,.12) 0%, rgba(16,185,129,.08) 100%)',
-            border: '1px solid rgba(99,102,241,.25)',
-          }}>
-            <div className="stat-icon"><Calendar size={20} /></div>
-            <div className="stat-label">Daily Avg. Pub. Earnings</div>
-            <div className="stat-value money"><CompactAmount value={stats?.avgDailyEarnings} /></div>
-            {stats?.periodChangePct !== null && stats?.periodChangePct !== undefined ? (
-              <div className="stat-change" style={{
-                color: parseFloat(stats.periodChangePct) >= 0 ? '#10b981' : '#ef4444',
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}>
-                {parseFloat(stats.periodChangePct) >= 0 ? '▲' : '▼'}
-                {Math.abs(parseFloat(stats.periodChangePct)).toFixed(1)}% vs prev {stats.spanDays}d
+        {hasPermission('manage_revenue') ? (
+          <div className="stat-grid">
+            <div className="stat-card info">
+              <div className="stat-icon"><Eye size={20} /></div>
+              <div className="stat-label">Total Impressions</div>
+              <div className="stat-value">
+                {stats?.totalImpressions !== undefined ? <CompactAmount value={stats.totalImpressions} prefix="" decimals={0} /> : '—'}
               </div>
-            ) : (
-              <div className="stat-change">No prior period data</div>
-            )}
-          </div>
-
-          {/* Best day */}
-          <div className="stat-card" style={{
-            background: 'linear-gradient(135deg, rgba(245,158,11,.12) 0%, rgba(251,191,36,.06) 100%)',
-            border: '1px solid rgba(245,158,11,.25)',
-          }}>
-            <div className="stat-icon"><Award size={20} /></div>
-            <div className="stat-label">Best Day (Pub. Earnings)</div>
-            {stats?.bestDay ? (
-              <>
-                <div className="stat-value money" style={{ color: '#f59e0b' }}><CompactAmount value={stats.bestDay.earnings} /></div>
-                <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>{stats.bestDay.date}</span>
-                  <span style={{
-                    fontSize: 10, padding: '1px 6px', borderRadius: 8,
-                    background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 600,
-                  }}>Gross ${stats.bestDay.gross}</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="stat-value">—</div>
-                <div className="stat-change">No data in range</div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Revenue Chart ── */}
-      <div className="card">
-        <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <TrendingUp size={16} style={{ color: 'var(--br-primary)' }} /> Revenue Trend
+              <div className="stat-change up">▲ All ad units</div>
             </div>
-            <div className="card-subtitle">
-              {filters.date_from} → {filters.date_to}
-              {filters.publisher_id && ` · ${publishers.find(p => p.id === filters.publisher_id)?.name}`}
-              {filters.website_id   && ` · ${websites.find(w => w.id === filters.website_id)?.domain}`}
-              {filters.ad_unit_id   && ` · ${adUnits.find(a => a.id === filters.ad_unit_id)?.display_name}`}
+            <div className="stat-card info">
+              <div className="stat-icon"><MousePointer size={20} /></div>
+              <div className="stat-label">Total Clicks</div>
+              <div className="stat-value">
+                {stats?.totalClicks !== undefined ? <CompactAmount value={stats.totalClicks} prefix="" decimals={0} /> : '—'}
+              </div>
+              <div className="stat-change up">▲ All ad units</div>
+            </div>
+            <div className="stat-card info">
+              <div className="stat-icon"><Ban size={20} /></div>
+              <div className="stat-label">Unfilled Impressions</div>
+              <div className="stat-value">
+                {stats?.totalUnfilled !== undefined ? <CompactAmount value={stats.totalUnfilled} prefix="" decimals={0} /> : '—'}
+              </div>
+              <div className="stat-change text-muted">Unserved inventory</div>
+            </div>
+            <div className="stat-card primary">
+              <div className="stat-icon"><TrendingUp size={20} /></div>
+              <div className="stat-label">Avg. Gross CPM</div>
+              <div className="stat-value money">${stats?.avgCPM ?? '—'}</div>
+              <div className="stat-change">Per 1000 impressions</div>
+            </div>
+            <div className="stat-card primary">
+              <div className="stat-icon"><Target size={20} /></div>
+              <div className="stat-label">Avg. CTR</div>
+              <div className="stat-value">{stats?.avgCTR ?? '—'}%</div>
+              <div className="stat-change">Click-through rate</div>
+            </div>
+            <div className="stat-card primary">
+              <div className="stat-icon"><Eye size={20} /></div>
+              <div className="stat-label">Viewability Rate</div>
+              <div className="stat-value">
+                {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
+                  ? `${parseFloat(stats.viewabilityRate).toFixed(1)}%`
+                  : 'N/A'}
+              </div>
+              <div className="stat-change text-muted">
+                {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} showInfo={false} />
+                    <span>/</span>
+                    <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} showInfo={false} />
+                    <span>measurable</span>
+                  </span>
+                ) : (
+                  'No Active View data'
+                )}
+              </div>
+            </div>
+            <div className="stat-card accent">
+              <div className="stat-icon"><Percent size={20} /></div>
+              <div className="stat-label">Avg. Revenue Ratio</div>
+              <div className="stat-value">{stats?.avgRatio ?? '—'}%</div>
+              <div className="stat-change">Publisher share</div>
             </div>
           </div>
-          {/* Series toggles */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {[
-              { key: 'gross',    label: 'Gross Revenue', color: '#6366f1' },
-              { key: 'earnings', label: 'Pub. Earnings',  color: '#10b981' },
-              { key: 'approved', label: 'Approved',    color: '#22d3ee' },
-              { key: 'pending',  label: 'Pending',     color: '#f59e0b' },
-            ].map(s => (
-              <button
-                key={s.key}
-                onClick={() => toggleSeries(s.key)}
-                title={visibleSeries[s.key] ? `Hide ${s.label}` : `Show ${s.label}`}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600, transition: 'all .15s',
-                  border: `1.5px solid ${s.color}`,
-                  background: visibleSeries[s.key] ? s.color + '22' : 'transparent',
-                  color: visibleSeries[s.key] ? s.color : '#4a5568',
-                  opacity: visibleSeries[s.key] ? 1 : 0.5,
-                }}
-              >
-                <span style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: visibleSeries[s.key] ? s.color : 'transparent',
-                  border: `1.5px solid ${s.color}`,
-                  flexShrink: 0,
-                }} />
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {revenueChart.length > 0 ? (
-          <ResponsiveContainer width="100%" height={320}>
-            <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.30} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#10b981" stopOpacity={0.30} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#22d3ee" stopOpacity={0.30} />
-                  <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.30} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
-              <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }}
-                tickFormatter={d => d.slice(5)} />
-              <YAxis stroke="#64748b" tick={{ fontSize: 11 }}
-                tickFormatter={v => `$${v}`} />
-              <Tooltip
-                contentStyle={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 8 }}
-                labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
-                formatter={(v, n) => {
-                  const labels = {
-                    gross:    'Gross Revenue',
-                    earnings: 'Pub. Earnings',
-                    approved: 'Approved',
-                    pending:  'Pending',
-                  }
-                  return [`$${v}`, labels[n] || n]
-                }}
-              />
-              {visibleSeries.gross    && <Area type="monotone" dataKey="gross"    stroke="#6366f1" fill="url(#grossGrad)"    strokeWidth={2} dot={false} />}
-              {visibleSeries.earnings && <Area type="monotone" dataKey="earnings" stroke="#10b981" fill="url(#earningsGrad)" strokeWidth={2} dot={false} />}
-              {visibleSeries.approved && <Area type="monotone" dataKey="approved" stroke="#22d3ee" fill="url(#approvedGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />}
-              {visibleSeries.pending  && <Area type="monotone" dataKey="pending"  stroke="#f59e0b" fill="url(#pendingGrad)"  strokeWidth={2} dot={false} strokeDasharray="3 3" />}
-            </AreaChart>
-          </ResponsiveContainer>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon"><BarChart2 size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-            <div className="empty-state-text">No revenue data for this period</div>
-            <div className="empty-state-sub">Adjust your filters or run a GAM sync to populate records</div>
+          <div className="card" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px 20px',
+            textAlign: 'center',
+            background: 'var(--color-surface-2)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+            gap: 12
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'rgba(99,102,241,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--br-primary)'
+            }}>
+              <Lock size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>Performance Metrics Restricted</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>You do not have the required permissions to view traffic and ad performance statistics.</div>
+            </div>
           </div>
         )}
       </div>
 
+      {/* ── Platform Stats Grid ── */}
+      {(hasPermission('manage_payouts') || hasPermission('manage_publishers') || hasPermission('manage_closings') || hasPermission('manage_revenue')) && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Scale size={14} style={{ color: 'var(--br-primary)' }} /> Platform Overview
+          </div>
+          <div className="stat-grid">
+            {hasPermission('manage_payouts') && (
+              <div className="stat-card warning">
+                <div className="stat-icon"><CreditCard size={20} /></div>
+                <div className="stat-label">Pending Payouts</div>
+                <div className="stat-value money" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <CompactAmount value={stats?.pendingPayoutsTotal} />
+                  {stats?.pendingPayouts > 0 && (
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
+                      ({stats.pendingPayouts} req.)
+                    </span>
+                  )}
+                </div>
+                <div className="stat-change" style={{ color: stats?.pendingPayouts > 0 ? 'var(--color-warning)' : 'var(--color-accent)' }}>
+                  {stats?.pendingPayouts > 0 ? '⚠ Needs attention' : '✓ All clear'}
+                </div>
+              </div>
+            )}
+            {hasPermission('manage_publishers') && (
+              <div className="stat-card accent">
+                <div className="stat-icon"><Users size={20} /></div>
+                <div className="stat-label">Active Publishers</div>
+                <div className="stat-value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {stats?.activePublishers ?? '—'}
+                  {stats?.pendingPublishers > 0 && (
+                    <span style={{
+                      fontSize: 12, color: '#f59e0b',
+                      background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)',
+                      padding: '2px 8px', borderRadius: 12, fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                    }}>
+                      <Clock size={12} /> {stats.pendingPublishers} pending
+                    </span>
+                  )}
+                </div>
+                <div className="stat-change">{stats?.publishers ?? '—'} total publishers</div>
+              </div>
+            )}
+            {hasPermission('manage_closings') && (
+              <div className="stat-card primary">
+                <div className="stat-icon"><Lock size={20} /></div>
+                <div className="stat-label">Closed Periods</div>
+                <div className="stat-value">{stats?.closedPeriods ?? '—'}</div>
+                <div className="stat-change">Historical periods</div>
+              </div>
+            )}
+
+            {/* Daily average with period comparison */}
+            {hasPermission('manage_revenue') && (
+              <div className="stat-card" style={{
+                background: 'linear-gradient(135deg, rgba(99,102,241,.12) 0%, rgba(16,185,129,.08) 100%)',
+                border: '1px solid rgba(99,102,241,.25)',
+              }}>
+                <div className="stat-icon"><Calendar size={20} /></div>
+                <div className="stat-label">Daily Avg. Pub. Earnings</div>
+                <div className="stat-value money"><CompactAmount value={stats?.avgDailyEarnings} /></div>
+                {stats?.periodChangePct !== null && stats?.periodChangePct !== undefined ? (
+                  <div className="stat-change" style={{
+                    color: parseFloat(stats.periodChangePct) >= 0 ? '#10b981' : '#ef4444',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    {parseFloat(stats.periodChangePct) >= 0 ? '▲' : '▼'}
+                    {Math.abs(parseFloat(stats.periodChangePct)).toFixed(1)}% vs prev {stats.spanDays}d
+                  </div>
+                ) : (
+                  <div className="stat-change">No prior period data</div>
+                )}
+              </div>
+            )}
+
+            {/* Best day */}
+            {hasPermission('manage_revenue') && (
+              <div className="stat-card" style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,.12) 0%, rgba(251,191,36,.06) 100%)',
+                border: '1px solid rgba(245,158,11,.25)',
+              }}>
+                <div className="stat-icon"><Award size={20} /></div>
+                <div className="stat-label">Best Day (Pub. Earnings)</div>
+                {stats?.bestDay ? (
+                  <>
+                    <div className="stat-value money" style={{ color: '#f59e0b' }}><CompactAmount value={stats.bestDay.earnings} /></div>
+                    <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>{stats.bestDay.date}</span>
+                      <span style={{
+                        fontSize: 10, padding: '1px 6px', borderRadius: 8,
+                        background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 600,
+                      }}>Gross ${stats.bestDay.gross}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="stat-value">—</div>
+                    <div className="stat-change">No data in range</div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Revenue Chart ── */}
+      {hasPermission('manage_revenue') && (
+        <div className="card">
+          <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrendingUp size={16} style={{ color: 'var(--br-primary)' }} /> Revenue Trend
+              </div>
+              <div className="card-subtitle">
+                {filters.date_from} → {filters.date_to}
+                {filters.publisher_id && ` · ${publishers.find(p => p.id === filters.publisher_id)?.name}`}
+                {filters.website_id   && ` · ${websites.find(w => w.id === filters.website_id)?.domain}`}
+                {filters.ad_unit_id   && ` · ${adUnits.find(a => a.id === filters.ad_unit_id)?.display_name}`}
+              </div>
+            </div>
+            {/* Series toggles */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[
+                { key: 'gross',    label: 'Gross Revenue', color: '#6366f1' },
+                { key: 'earnings', label: 'Pub. Earnings',  color: '#10b981' },
+                { key: 'approved', label: 'Approved',    color: '#22d3ee' },
+                { key: 'pending',  label: 'Pending',     color: '#f59e0b' },
+              ].map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => toggleSeries(s.key)}
+                  title={visibleSeries[s.key] ? `Hide ${s.label}` : `Show ${s.label}`}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 600, transition: 'all .15s',
+                    border: `1.5px solid ${s.color}`,
+                    background: visibleSeries[s.key] ? s.color + '22' : 'transparent',
+                    color: visibleSeries[s.key] ? s.color : '#4a5568',
+                    opacity: visibleSeries[s.key] ? 1 : 0.5,
+                  }}
+                >
+                  <span style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: visibleSeries[s.key] ? s.color : 'transparent',
+                    border: `1.5px solid ${s.color}`,
+                    flexShrink: 0,
+                  }} />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {revenueChart.length > 0 ? (
+            <ResponsiveContainer width="100%" height={320}>
+              <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.30} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.30} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#22d3ee" stopOpacity={0.30} />
+                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.30} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
+                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }}
+                  tickFormatter={d => d.slice(5)} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 11 }}
+                  tickFormatter={v => `$${v}`} />
+                <Tooltip
+                  contentStyle={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 8 }}
+                  labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
+                  formatter={(v, n) => {
+                    const labels = {
+                      gross:    'Gross Revenue',
+                      earnings: 'Pub. Earnings',
+                      approved: 'Approved',
+                      pending:  'Pending',
+                    }
+                    return [`$${v}`, labels[n] || n]
+                  }}
+                />
+                {visibleSeries.gross    && <Area type="monotone" dataKey="gross"    stroke="#6366f1" fill="url(#grossGrad)"    strokeWidth={2} dot={false} />}
+                {visibleSeries.earnings && <Area type="monotone" dataKey="earnings" stroke="#10b981" fill="url(#earningsGrad)" strokeWidth={2} dot={false} />}
+                {visibleSeries.approved && <Area type="monotone" dataKey="approved" stroke="#22d3ee" fill="url(#approvedGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />}
+                {visibleSeries.pending  && <Area type="monotone" dataKey="pending"  stroke="#f59e0b" fill="url(#pendingGrad)"  strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon"><BarChart2 size={40} style={{ color: 'var(--br-text-2)' }} /></div>
+              <div className="empty-state-text">No revenue data for this period</div>
+              <div className="empty-state-sub">Adjust your filters or run a GAM sync to populate records</div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Daily Performance Table ── */}
-      {revenueChart.length > 0 && (
+      {hasPermission('manage_revenue') && revenueChart.length > 0 && (
         <DailyTable rows={revenueChart} bestDay={stats?.bestDay} />
       )}
 
       {/* ── Top 10 Publishers ── */}
-      {publisherStats.length > 0 && (
+      {hasPermission('manage_revenue') && publisherStats.length > 0 && (
         <Top10Publishers rows={publisherStats} />
       )}
     </div>

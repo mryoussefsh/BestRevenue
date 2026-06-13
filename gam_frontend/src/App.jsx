@@ -41,6 +41,11 @@ import AdminTickets     from './pages/admin/Tickets'
 import AdminTicketDetail from './pages/admin/TicketDetail'
 import AdminPages         from './pages/admin/Pages'
 import AdminProfile       from './pages/admin/Profile'
+import AdminAdmins        from './pages/admin/Admins'
+import FinanceDashboard   from './pages/admin/FinanceDashboard'
+import AdOpsDashboard     from './pages/admin/AdOpsDashboard'
+import SupportDashboard   from './pages/admin/SupportDashboard'
+import ContentDashboard   from './pages/admin/ContentDashboard'
 
 // Publisher pages
 import PubDashboard from './pages/publisher/Dashboard'
@@ -56,6 +61,19 @@ function RootRedirect() {
   if (!user) return <Navigate to="/login" replace />
   if (user.role === 'admin') return <Navigate to="/admin" replace />
   return <Navigate to="/publisher" replace />
+}
+
+function AdminDashboardGateway() {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+
+  const primaryRole = user.roles_list?.[0] || 'Super Admin'
+  if (primaryRole === 'Finance Manager') return <Navigate to="/admin/finance" replace />
+  if (primaryRole === 'Ad Ops Manager') return <Navigate to="/admin/adops" replace />
+  if (primaryRole === 'Support Agent') return <Navigate to="/admin/support" replace />
+  if (primaryRole === 'Content Manager') return <Navigate to="/admin/content" replace />
+
+  return <AdminDashboard />
 }
 
 function PageTitleUpdater() {
@@ -90,6 +108,14 @@ function PageTitleUpdater() {
     // Admin routes
     else if (path === '/admin') {
       title = `Dashboard - ${siteName}`
+    } else if (path === '/admin/finance') {
+      title = `Finance Dashboard - ${siteName}`
+    } else if (path === '/admin/adops') {
+      title = `Ad Ops Dashboard - ${siteName}`
+    } else if (path === '/admin/support') {
+      title = `Support Dashboard - ${siteName}`
+    } else if (path === '/admin/content') {
+      title = `Content Dashboard - ${siteName}`
     } else if (path === '/admin/publishers') {
       title = `Publishers - ${siteName}`
     } else if (path.startsWith('/admin/publishers/')) {
@@ -124,6 +150,8 @@ function PageTitleUpdater() {
       title = `Email Templates - ${siteName}`
     } else if (path === '/admin/tickets') {
       title = `Support Tickets - ${siteName}`
+    } else if (path === '/admin/admins') {
+      title = `Admins - ${siteName}`
     } else if (path.startsWith('/admin/tickets/')) {
       title = `Ticket Detail - ${siteName}`
     }
@@ -190,7 +218,27 @@ function App() {
             {/* Admin routes */}
             <Route path="/admin" element={
               <PrivateRoute role="admin">
-                <AdminLayout><AdminDashboard /></AdminLayout>
+                <AdminLayout><AdminDashboardGateway /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/finance" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><FinanceDashboard /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/adops" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdOpsDashboard /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/support" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><SupportDashboard /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/content" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><ContentDashboard /></AdminLayout>
               </PrivateRoute>
             } />
             <Route path="/admin/publishers" element={
@@ -281,6 +329,11 @@ function App() {
             <Route path="/admin/tickets/:id" element={
               <PrivateRoute role="admin">
                 <AdminLayout><AdminTicketDetail /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/admins" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminAdmins /></AdminLayout>
               </PrivateRoute>
             } />
 

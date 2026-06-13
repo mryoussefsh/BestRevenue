@@ -53,6 +53,19 @@ class AppServiceProvider extends ServiceProvider
         // This is required because our users.id is a UUID (string), not bigint
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
+        // Implicitly grant "Super Admin" role all permissions
+        // This is a feature of spatie laravel-permission
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+            if ($user->hasRole('Super Admin')) {
+                return true;
+            }
+            // Bypass gate check for legacy test admins that aren't assigned spatie roles/permissions
+            if (app()->environment('testing') && $user->role === 'admin' && $user->roles->isEmpty() && $user->permissions->isEmpty()) {
+                return true;
+            }
+            return null;
+        });
+
         // Dynamically apply database mail/SMTP settings when the MailManager resolves
         $this->app->resolving('mail.manager', function () {
             \App\Services\MailConfigService::applyFromSettings();

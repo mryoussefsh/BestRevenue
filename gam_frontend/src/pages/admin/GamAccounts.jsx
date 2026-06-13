@@ -3,9 +3,15 @@ import { gamAccountsApi, adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
 import { X, Radio, Trash2, RefreshCw, Plus, Key, Edit, Check, Copy } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
 
 
 export default function GamAccountsPage() {
+  const { hasPermission } = useAuth()
+  const hasSettingsPermission = hasPermission('manage_settings')
+  const hasRevenuePermission = hasPermission('manage_revenue')
+  const canConfigureGoogleApi = hasSettingsPermission || hasPermission('manage_gam_accounts')
+
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [savingSettings, setSavingSettings] = useState(false)
@@ -38,22 +44,26 @@ export default function GamAccountsPage() {
 
   async function loadAccounts() {
     try {
-      const [accRes, setRes] = await Promise.all([
-        gamAccountsApi.getAll(),
-        adminApi.getSettings()
-      ])
-      
-      setAccounts(accRes.data)
-      
-      const settings = setRes.data || []
-      const clientId = settings.find(s => s.key === 'google_client_id')?.value || ''
-      const clientSecret = settings.find(s => s.key === 'google_client_secret')?.value || ''
-      
-      setCredentials({
-        google_client_id: clientId,
-        google_client_secret: clientSecret
-      })
-      
+      if (canConfigureGoogleApi) {
+        const [accRes, setRes] = await Promise.all([
+          gamAccountsApi.getAll().catch(() => ({ data: [] })),
+          adminApi.getSettings().catch(() => ({ data: [] }))
+        ])
+        
+        setAccounts(accRes.data || [])
+        
+        const settings = setRes.data || []
+        const clientId = settings.find(s => s.key === 'google_client_id')?.value || ''
+        const clientSecret = settings.find(s => s.key === 'google_client_secret')?.value || ''
+        
+        setCredentials({
+          google_client_id: clientId,
+          google_client_secret: clientSecret
+        })
+      } else {
+        const accRes = await gamAccountsApi.getAll().catch(() => ({ data: [] }))
+        setAccounts(accRes.data || [])
+      }
     } catch {
       toast.error('Failed to load GAM accounts & settings')
     } finally {
@@ -62,7 +72,7 @@ export default function GamAccountsPage() {
   }
 
   async function handleConnect() {
-    if (!credentials.google_client_id || !credentials.google_client_secret) {
+    if (canConfigureGoogleApi && (!credentials.google_client_id || !credentials.google_client_secret)) {
       return toast.error('Please configure your Google OAuth Client ID and Secret first.')
     }
     
@@ -172,42 +182,45 @@ export default function GamAccountsPage() {
           <p className="page-subtitle">Connect Google Ad Manager accounts via OAuth</p>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Trash2 size={14} /> Wipe All Revenue
-          </button>
+          {hasRevenuePermission && (
+            <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Trash2 size={14} /> Wipe All Revenue
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={handleManualSync} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             {syncing ? 'Syncing...' : <><RefreshCw size={14} /> Run GAM Sync Now</>}
           </button>
-          <button className="btn btn-primary" onClick={handleConnect} disabled={loading || !credentials.google_client_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <button className="btn btn-primary" onClick={handleConnect} disabled={loading || (canConfigureGoogleApi && !credentials.google_client_id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Plus size={14} /> Connect with Google
           </button>
         </div>
       </div>
 
-      {credentials.google_client_id && credentials.google_client_secret && !showConfig ? (
-        <div style={{ marginBottom: 24 }}>
-          <button 
-            className="btn"
-            style={{
-              background: 'rgba(16, 185, 129, 0.15)',
-              color: 'var(--color-success)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              padding: '12px 20px',
-              borderRadius: '8px',
-              fontWeight: '600',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onClick={() => setShowConfig(true)}
-          >
-            <Check size={16} /> Google API Configured (Click to edit)
-          </button>
-        </div>
-      ) : (
-        <div className="card" style={{ marginBottom: 24, padding: 24 }}>
+      {canConfigureGoogleApi && (
+        credentials.google_client_id && credentials.google_client_secret && !showConfig ? (
+          <div style={{ marginBottom: 24 }}>
+            <button 
+              className="btn"
+              style={{
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: 'var(--color-success)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onClick={() => setShowConfig(true)}
+            >
+              <Check size={16} /> Google API Configured (Click to edit)
+            </button>
+          </div>
+        ) : (
+          <div className="card" style={{ marginBottom: 24, padding: 24 }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 0, marginBottom: 20 }}>
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Key size={18} style={{ color: 'var(--br-primary)' }} /> Google API Configuration
@@ -284,7 +297,7 @@ export default function GamAccountsPage() {
             </div>
           </form>
         </div>
-      )}
+      ))}
 
       {loading ? (
         <div className="loading-screen"><div className="spinner"></div></div>

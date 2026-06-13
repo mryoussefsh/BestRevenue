@@ -84,6 +84,8 @@ class AuthController extends Controller
                 'phone'        => $user->publisher ? $user->publisher->phone : null,
                 'telegram'     => $user->publisher ? $user->publisher->telegram : null,
                 'country'      => $user->publisher ? $user->publisher->country : null,
+                'roles_list'       => $user->roles_list,
+                'permissions_list' => $user->permissions_list,
             ],
         ]);
     }
@@ -117,6 +119,8 @@ class AuthController extends Controller
             'phone'        => $user->publisher ? $user->publisher->phone : null,
             'telegram'     => $user->publisher ? $user->publisher->telegram : null,
             'country'      => $user->publisher ? $user->publisher->country : null,
+            'roles_list'       => $user->roles_list,
+            'permissions_list' => $user->permissions_list,
         ]);
     }
 }

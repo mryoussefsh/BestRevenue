@@ -33,6 +33,8 @@ class AdminProfileController extends Controller
                 'role'         => $user->role,
                 'publisher_id' => $user->publisher_id,
                 'is_active'    => $user->is_active,
+                'roles_list'       => $user->roles_list,
+                'permissions_list' => $user->permissions_list,
             ]
         ]);
     }

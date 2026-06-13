@@ -192,8 +192,9 @@ export function PublisherModal({ publisher, onClose, onSaved }) {
 }
 
 export default function PublishersPage() {
-  const { impersonate } = useAuth()
+  const { impersonate, hasPermission } = useAuth()
   const { formatDate } = useSettings()
+  const canEdit = hasPermission('manage_publishers')
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null) // null | 'create' | publisher obj
@@ -331,13 +332,15 @@ export default function PublishersPage() {
               </span>
             )}
           </button>
-          <button id="add-publisher-btn" className="btn btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> Add Publisher
-          </button>
+          {canEdit && (
+            <button id="add-publisher-btn" className="btn btn-primary" onClick={() => setModal('create')}>
+              <Plus size={16} /> Add Publisher
+            </button>
+          )}
         </div>
       </div>
 
-      {publishers.filter(p => p.status === 'pending').length > 0 && (
+      {canEdit && publishers.filter(p => p.status === 'pending').length > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           <Clock size={20} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
           <div>
@@ -438,7 +441,7 @@ export default function PublishersPage() {
                         <Link id={`view-pub-${pub.id}`} to={`/admin/publishers/${pub.id}`} className="btn btn-secondary btn-xs" style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Eye size={12} /> View
                         </Link>
-                        {pub.status === 'pending' && (
+                        {canEdit && pub.status === 'pending' && (
                           <button
                             id={`activate-pub-${pub.id}`}
                             className="btn btn-success btn-xs"

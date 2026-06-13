@@ -19,8 +19,11 @@ import {
 export default function PublisherProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { impersonate } = useAuth()
+  const { impersonate, hasPermission } = useAuth()
   const { settings, formatDate, formatDateTime } = useSettings()
+  const canEdit = hasPermission('manage_publishers')
+  const canManageWebsites = hasPermission('manage_websites')
+  const canManageAdUnits = hasPermission('manage_ad_units')
 
   const [publisher, setPublisher] = useState(null)
   const [websites, setWebsites] = useState([])
@@ -74,16 +77,19 @@ export default function PublisherProfile() {
 
       const promises = [
         adminApi.getPublisher(id, params),
-        adminApi.getAdUnits({ publisher_id: id, website_id: selectedWebsite || undefined }),
-        adminApi.getPayouts({ publisher_id: id, date_from: dateFrom || undefined, date_to: dateTo || undefined }),
-        adminApi.getRevenue({ publisher_id: id, website_id: selectedWebsite || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined }),
+        adminApi.getAdUnits({ publisher_id: id, website_id: selectedWebsite || undefined })
+          .catch(() => ({ data: { data: [] } })),
+        adminApi.getPayouts({ publisher_id: id, date_from: dateFrom || undefined, date_to: dateTo || undefined })
+          .catch(() => ({ data: { data: [] } })),
+        adminApi.getRevenue({ publisher_id: id, website_id: selectedWebsite || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined })
+          .catch(() => ({ data: { data: [] } })),
       ]
 
       if (loadStatic || !publisher) {
         promises.push(
-          adminApi.getWebsites({ publisher_id: id }),
-          adminApi.getRatioHistory(id),
-          gamAccountsApi.getAll()
+          adminApi.getWebsites({ publisher_id: id }).catch(() => ({ data: { data: [] } })),
+          adminApi.getRatioHistory(id).catch(() => ({ data: [] })),
+          gamAccountsApi.getAll().catch(() => ({ data: [] }))
         )
       }
 
@@ -347,61 +353,75 @@ export default function PublisherProfile() {
 
           {/* Quick Actions Panel */}
           <div className="profile-actions-grid">
-            <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Edit2 size={14} /> Edit Profile
-            </button>
-            <button className="btn btn-secondary"
-              style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              onClick={() => setAdjustBalanceOpen(true)}>
-              <DollarSign size={14} /> Adjust Balance
-            </button>
-            <button className="btn btn-secondary"
-              style={{
-                background: 'rgba(59,130,246,0.12)',
-                color: '#60a5fa',
-                border: '1px solid rgba(59,130,246,0.3)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                opacity: (publisher.ready_for_payout_balance || 0) <= 0 ? 0.5 : 1,
-                cursor: (publisher.ready_for_payout_balance || 0) <= 0 ? 'not-allowed' : 'pointer'
-              }}
-              disabled={(publisher.ready_for_payout_balance || 0) <= 0}
-              title={(publisher.ready_for_payout_balance || 0) <= 0 ? 'Cannot record a manual payout because the publisher has no approved balance' : 'Manual Payout'}
-              onClick={() => setManualPayoutOpen(true)}>
-              <CreditCard size={14} /> Manual Payout
-            </button>
-            <button className="btn btn-secondary"
-              style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              onClick={() => setBulkAdModalOpen(true)}>
-              <Sparkles size={14} /> Generate Ad Units
-            </button>
-            <button className="btn btn-secondary"
-              style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              onClick={() => setImpersonateModalOpen(true)}>
-              <User size={14} /> Log In
-            </button>
-            <button className="btn"
-              style={{
-                background: publisher.status === 'active' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
-                color: publisher.status === 'active' ? 'var(--color-warning)' : 'var(--color-accent)',
-                border: publisher.status === 'active' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(16,185,129,0.3)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              onClick={handleToggleSuspend}>
-              {publisher.status === 'active' ? (
-                <><Pause size={14} /> Suspend</>
-              ) : publisher.status === 'pending' ? (
-                <><Check size={14} /> Approve</>
-              ) : (
-                <><Play size={14} /> Activate</>
-              )}
-            </button>
-            <button className="btn btn-danger" onClick={handleDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Trash2 size={14} /> Delete
-            </button>
+            {canEdit && (
+              <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Edit2 size={14} /> Edit Profile
+              </button>
+            )}
+            {canEdit && (
+              <button className="btn btn-secondary"
+                style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setAdjustBalanceOpen(true)}>
+                <DollarSign size={14} /> Adjust Balance
+              </button>
+            )}
+            {hasPermission('manage_payouts') && (
+              <button className="btn btn-secondary"
+                style={{
+                  background: 'rgba(59,130,246,0.12)',
+                  color: '#60a5fa',
+                  border: '1px solid rgba(59,130,246,0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: (publisher.ready_for_payout_balance || 0) <= 0 ? 0.5 : 1,
+                  cursor: (publisher.ready_for_payout_balance || 0) <= 0 ? 'not-allowed' : 'pointer'
+                }}
+                disabled={(publisher.ready_for_payout_balance || 0) <= 0}
+                title={(publisher.ready_for_payout_balance || 0) <= 0 ? 'Cannot record a manual payout because the publisher has no approved balance' : 'Manual Payout'}
+                onClick={() => setManualPayoutOpen(true)}>
+                <CreditCard size={14} /> Manual Payout
+              </button>
+            )}
+            {canManageAdUnits && (
+              <button className="btn btn-secondary"
+                style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setBulkAdModalOpen(true)}>
+                <Sparkles size={14} /> Generate Ad Units
+              </button>
+            )}
+            {canEdit && (
+              <button className="btn btn-secondary"
+                style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setImpersonateModalOpen(true)}>
+                <User size={14} /> Log In
+              </button>
+            )}
+            {canEdit && (
+              <button className="btn"
+                style={{
+                  background: publisher.status === 'active' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)',
+                  color: publisher.status === 'active' ? 'var(--color-warning)' : 'var(--color-accent)',
+                  border: publisher.status === 'active' ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(16,185,129,0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onClick={handleToggleSuspend}>
+                {publisher.status === 'active' ? (
+                  <><Pause size={14} /> Suspend</>
+                ) : publisher.status === 'pending' ? (
+                  <><Check size={14} /> Approve</>
+                ) : (
+                  <><Play size={14} /> Activate</>
+                )}
+              </button>
+            )}
+            {canEdit && (
+              <button className="btn btn-danger" onClick={handleDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Trash2 size={14} /> Delete
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -667,17 +687,21 @@ export default function PublisherProfile() {
                     <div className="empty-state-icon"><Globe size={40} /></div>
                     <div className="empty-state-text">No websites linked</div>
                     <div className="empty-state-sub" style={{ marginBottom: 12 }}>Add websites to this publisher</div>
-                    <button className="btn btn-primary" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <Plus size={14} /> Add Website
-                    </button>
+                    {canManageWebsites && (
+                      <button className="btn btn-primary" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={14} /> Add Website
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="btn btn-primary btn-sm" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <Plus size={14} /> Add Website
-                      </button>
-                    </div>
+                    {canManageWebsites && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <Plus size={14} /> Add Website
+                        </button>
+                      </div>
+                    )}
                     {websites.filter(w => !selectedWebsite || w.id === selectedWebsite).map(web => (
                       <div key={web.id} className="card" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
                         <div className="website-card-header" style={{ marginBottom: 12 }}>
@@ -703,24 +727,28 @@ export default function PublisherProfile() {
                                 Ratio Override: <strong>{(parseFloat(web.ratio_override) * 100).toFixed(0)}%</strong>
                               </div>
                             )}
-                            <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                              <Edit2 size={12} /> Edit
-                            </button>
-                            <button className="btn btn-danger btn-xs"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
-                              onClick={async () => {
-                                if (!confirm(`Are you sure you want to delete website "${web.domain}"? This will also delete all its mapped ad units.`)) return
-                                try {
-                                  await adminApi.deleteWebsite(web.id)
-                                  toast.success('Website deleted successfully')
-                                  loadAllData(true)
-                                } catch {
-                                  toast.error('Failed to delete website')
-                                }
-                              }}
-                            >
-                              <Trash2 size={12} /> Delete
-                            </button>
+                            {canManageWebsites && (
+                              <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                <Edit2 size={12} /> Edit
+                              </button>
+                            )}
+                            {canManageWebsites && (
+                              <button className="btn btn-danger btn-xs"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
+                                onClick={async () => {
+                                  if (!confirm(`Are you sure you want to delete website "${web.domain}"? This will also delete all its mapped ad units.`)) return
+                                  try {
+                                    await adminApi.deleteWebsite(web.id)
+                                    toast.success('Website deleted successfully')
+                                    loadAllData(true)
+                                  } catch {
+                                    toast.error('Failed to delete website')
+                                  }
+                                }}
+                              >
+                                <Trash2 size={12} /> Delete
+                              </button>
+                            )}
                           </div>
                         </div>
 
@@ -730,9 +758,11 @@ export default function PublisherProfile() {
                             <h4 style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: 0.5, margin: 0 }}>
                               Ad Units ({adUnitsByWebsite[web.id]?.length || 0})
                             </h4>
-                            <button className="btn btn-secondary btn-xs" style={{ padding: '3px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => setAdModal({ website_id: web.id })}>
-                              <Plus size={12} /> Add Existing Ad Unit
-                            </button>
+                            {canManageAdUnits && (
+                              <button className="btn btn-secondary btn-xs" style={{ padding: '3px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => setAdModal({ website_id: web.id })}>
+                                <Plus size={12} /> Add Existing Ad Unit
+                              </button>
+                            )}
                           </div>
                           {!adUnitsByWebsite[web.id] || adUnitsByWebsite[web.id].length === 0 ? (
                             <div style={{ color: 'var(--color-text-subtle)', fontSize: 13, fontStyle: 'italic', padding: 8 }}>
@@ -746,7 +776,7 @@ export default function PublisherProfile() {
                                     <th style={{ fontSize: 11, padding: '6px 8px' }}>Ad Unit Name (GAM)</th>
                                     <th style={{ fontSize: 11, padding: '6px 8px' }}>Display Name</th>
                                     <th style={{ fontSize: 11, padding: '6px 8px' }}>Ratio Split</th>
-                                    <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>Actions</th>
+                                    {canManageAdUnits && <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>Actions</th>}
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -762,36 +792,38 @@ export default function PublisherProfile() {
                                           ? `${(parseFloat(ad.ratio_override) * 100).toFixed(0)}% (Override)` 
                                           : 'Inherited'}
                                       </td>
-                                      <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
-                                        <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
-                                          <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
-                                          <button className="btn btn-xs"
-                                            style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
-                                            title="Delete from platform only (keep in GAM)"
-                                            onClick={async () => {
-                                              if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
-                                              try {
-                                                await adminApi.deleteAdUnit(ad.id, { archive: false })
-                                                toast.success('Ad unit deleted successfully')
-                                                loadAllData(true)
-                                              } catch {
-                                                toast.error('Failed to delete ad unit')
-                                              }
-                                            }}><Trash2 size={12} /></button>
-                                          <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
-                                            title="Delete from platform and archive in GAM"
-                                            onClick={async () => {
-                                              if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
-                                              try {
-                                                await adminApi.deleteAdUnit(ad.id, { archive: true })
-                                                toast.success('Ad unit deleted successfully')
-                                                loadAllData(true)
-                                              } catch {
-                                                toast.error('Failed to delete ad unit')
-                                              }
-                                            }}><Trash2 size={12} /></button>
-                                        </div>
-                                      </td>
+                                      {canManageAdUnits && (
+                                        <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
+                                          <div className="flex gap-2" style={{ justifyContent: 'flex-end' }}>
+                                            <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
+                                            <button className="btn btn-xs"
+                                              style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
+                                              title="Delete from platform only (keep in GAM)"
+                                              onClick={async () => {
+                                                if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
+                                                try {
+                                                  await adminApi.deleteAdUnit(ad.id, { archive: false })
+                                                  toast.success('Ad unit deleted successfully')
+                                                  loadAllData(true)
+                                                } catch {
+                                                  toast.error('Failed to delete ad unit')
+                                                }
+                                              }}><Trash2 size={12} /></button>
+                                            <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
+                                              title="Delete from platform and archive in GAM"
+                                              onClick={async () => {
+                                                if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                                try {
+                                                  await adminApi.deleteAdUnit(ad.id, { archive: true })
+                                                  toast.success('Ad unit deleted successfully')
+                                                  loadAllData(true)
+                                                } catch {
+                                                  toast.error('Failed to delete ad unit')
+                                                }
+                                              }}><Trash2 size={12} /></button>
+                                          </div>
+                                        </td>
+                                      )}
                                     </tr>
                                   ))}
                                 </tbody>

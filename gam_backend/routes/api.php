@@ -59,98 +59,130 @@ Route::prefix('v1')->group(function () {
     // ──────────────────────────────────────────────────────
     Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
 
-        // Settings
-        Route::get('settings', [SettingController::class, 'index']);
-        Route::put('settings/{key}', [SettingController::class, 'update']);
-        Route::post('settings/upload', [SettingController::class, 'uploadSettingFile']);
-        Route::post('settings/test-email', [SettingController::class, 'testEmail']);
-
-        // Email Templates
-        Route::get('email-templates', [EmailTemplateController::class, 'index']);
-        Route::put('email-templates/{key}', [EmailTemplateController::class, 'update']);
-        Route::post('email-templates/{key}/preview', [EmailTemplateController::class, 'sendPreview']);
-        Route::post('email-templates/{key}/reset', [EmailTemplateController::class, 'resetToDefault']);
-
-        // Translations (admin edit)
-        Route::get('translations', [TranslationController::class, 'index']);
-        Route::put('translations/{locale}/{key}', [TranslationController::class, 'update']);
-
-        // Sidebar Stats
+        // --- Open to all Admin Users ---
         Route::get('sidebar-stats', [\App\Http\Controllers\Admin\SidebarStatsController::class, 'index']);
-
-        // Publishers — Sprint 2
-        Route::post('publishers/{id}/set-ratio', [\App\Http\Controllers\Admin\PublisherController::class, 'setRatio']);
-        Route::get('publishers/{id}/ratio-history', [\App\Http\Controllers\Admin\PublisherController::class, 'ratioHistory']);
-        Route::post('publishers/{id}/suspend', [\App\Http\Controllers\Admin\PublisherController::class, 'suspend']);
-        Route::post('publishers/{id}/activate', [\App\Http\Controllers\Admin\PublisherController::class, 'activate']);
-        Route::post('publishers/{id}/adjust-balance', [\App\Http\Controllers\Admin\PublisherController::class, 'adjustBalance']);
-        Route::post('publishers/{id}/impersonate', [\App\Http\Controllers\Admin\PublisherController::class, 'impersonate']);
-        // REFACTOR [MPAY-1]: Hardened admin payout override (requires existing closed PeriodClosing)
-        Route::post('publishers/{id}/create-payout', [\App\Http\Controllers\Admin\PublisherController::class, 'createPayout']);
-        // REFACTOR [MPAY-1]: Standalone manual payment — no Period Closing involvement
-        Route::post('publishers/{id}/manual-payment', [\App\Http\Controllers\Admin\PublisherController::class, 'manualPayment']);
-        Route::apiResource('publishers', \App\Http\Controllers\Admin\PublisherController::class);
-        Route::post('adjustments/apply-ivt', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyIvt']);
-        Route::post('adjustments/apply-bonus', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyBonus']);
-        Route::apiResource('adjustments', \App\Http\Controllers\Admin\AdjustmentController::class);
-
-        // Websites & Ad Units — Sprint 3
-        Route::post('websites/ad-units/create-in-gam', [\App\Http\Controllers\Admin\AdUnitController::class, 'createInGam']);
-        Route::post('websites/ad-units/bulk-create',   [\App\Http\Controllers\Admin\AdUnitController::class, 'bulkCreate']);
-        Route::apiResource('websites', \App\Http\Controllers\Admin\WebsiteController::class);
-        Route::post('ad-units/bulk-delete', [\App\Http\Controllers\Admin\AdUnitController::class, 'bulkDelete']);
-        Route::apiResource('ad-units', \App\Http\Controllers\Admin\AdUnitController::class);
-
-        // Revenue
-        Route::delete('revenue/wipe', [\App\Http\Controllers\Admin\RevenueController::class, 'wipe']);
-        Route::get('revenue', [\App\Http\Controllers\Admin\RevenueController::class, 'index']);
-
-        // Period Closings — Sprint 5
-        Route::get('period-closings', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'index']);
-        Route::post('period-closings/close', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'close']);
-        // FIX [PC-2]: Recovery endpoints for stuck 'closing' state periods
-        Route::get('period-closings/stuck', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'listStuck']);
-        Route::post('period-closings/{id}/recover-abort',    [\App\Http\Controllers\Admin\PeriodClosingController::class, 'recoverAbort']);
-        Route::post('period-closings/{id}/recover-complete', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'recoverComplete']);
-        Route::get('period-closings/{id}', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'show']);
-        Route::delete('period-closings/{id}', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'destroy']);
-
-        // Payouts — Sprint 5
-        Route::get('payouts', [\App\Http\Controllers\Admin\PayoutController::class, 'index']);
-        Route::post('payouts/{id}/approve', [\App\Http\Controllers\Admin\PayoutController::class, 'approve']);
-        Route::post('payouts/{id}/reject', [\App\Http\Controllers\Admin\PayoutController::class, 'reject']);
-        Route::post('payouts/{id}/mark-paid', [\App\Http\Controllers\Admin\PayoutController::class, 'markPaid']);
-
-        // Audit Logs — Sprint 9
-        Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index']);
-
-        // GAM Accounts — Multi-account management
-        Route::get('gam-accounts',                   [GamAccountController::class, 'index']);
-        Route::post('gam-accounts/sync',             [GamAccountController::class, 'triggerSync']);
-        Route::get('gam-accounts/sync-logs',         [GamAccountController::class, 'syncLogs']);
-        Route::get('gam-accounts/sync-log',          [GamAccountController::class, 'syncLogs']);
-        Route::get('gam-accounts/oauth/url',         [GamAccountController::class, 'oauthUrl']);
-        Route::post('gam-accounts',                  [GamAccountController::class, 'store']);
-        Route::put('gam-accounts/{id}',              [GamAccountController::class, 'update']);
-        Route::delete('gam-accounts/{id}',           [GamAccountController::class, 'destroy']);
-        Route::post('gam-accounts/{id}/refresh-token', [GamAccountController::class, 'refreshToken']);
-
-        // Announcements
-        Route::apiResource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class);
-
-        // Pages CRUD
-        Route::apiResource('pages', \App\Http\Controllers\Admin\PageController::class);
-
-        // Tickets
-        Route::get('tickets/admins', [AdminTicketController::class, 'getAdmins']);
-        Route::get('tickets',        [AdminTicketController::class, 'index']);
-        Route::get('tickets/{id}',   [AdminTicketController::class, 'show']);
-        Route::put('tickets/{id}',   [AdminTicketController::class, 'update']);
-        Route::post('tickets/{id}/reply', [AdminTicketController::class, 'reply']);
-
-        // Admin Profile
         Route::put('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updateProfile']);
         Route::put('change-password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'changePassword']);
+
+        // --- Settings ---
+        Route::get('settings', [SettingController::class, 'index']);
+        Route::put('settings/{key}', [SettingController::class, 'update']);
+        Route::middleware('can:manage_settings')->group(function () {
+            Route::post('settings/upload', [SettingController::class, 'uploadSettingFile']);
+            Route::post('settings/test-email', [SettingController::class, 'testEmail']);
+        });
+
+        // --- Email Templates ---
+        Route::middleware('can:manage_email_templates')->group(function () {
+            Route::get('email-templates', [EmailTemplateController::class, 'index']);
+            Route::put('email-templates/{key}', [EmailTemplateController::class, 'update']);
+            Route::post('email-templates/{key}/preview', [EmailTemplateController::class, 'sendPreview']);
+            Route::post('email-templates/{key}/reset', [EmailTemplateController::class, 'resetToDefault']);
+        });
+
+        // --- Translations ---
+        Route::middleware('can:manage_translations')->group(function () {
+            Route::get('translations', [TranslationController::class, 'index']);
+            Route::put('translations/{locale}/{key}', [TranslationController::class, 'update']);
+        });
+
+        // --- Publishers List (Shared index/show access for website/adops/support management) ---
+        Route::get('publishers', [\App\Http\Controllers\Admin\PublisherController::class, 'index']);
+        Route::get('publishers/{id}', [\App\Http\Controllers\Admin\PublisherController::class, 'show']);
+        Route::get('publishers/{id}/ratio-history', [\App\Http\Controllers\Admin\PublisherController::class, 'ratioHistory']);
+
+        // --- Publishers & Adjustments ---
+        Route::middleware('can:manage_publishers')->group(function () {
+            Route::post('publishers/{id}/set-ratio', [\App\Http\Controllers\Admin\PublisherController::class, 'setRatio']);
+            Route::post('publishers/{id}/suspend', [\App\Http\Controllers\Admin\PublisherController::class, 'suspend']);
+            Route::post('publishers/{id}/activate', [\App\Http\Controllers\Admin\PublisherController::class, 'activate']);
+            Route::post('publishers/{id}/adjust-balance', [\App\Http\Controllers\Admin\PublisherController::class, 'adjustBalance']);
+            Route::post('publishers/{id}/impersonate', [\App\Http\Controllers\Admin\PublisherController::class, 'impersonate']);
+            Route::apiResource('publishers', \App\Http\Controllers\Admin\PublisherController::class)->except(['index', 'show']);
+            Route::post('adjustments/apply-ivt', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyIvt']);
+            Route::post('adjustments/apply-bonus', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyBonus']);
+            Route::apiResource('adjustments', \App\Http\Controllers\Admin\AdjustmentController::class);
+        });
+
+        // --- Websites ---
+        Route::middleware('can:manage_websites')->group(function () {
+            Route::apiResource('websites', \App\Http\Controllers\Admin\WebsiteController::class);
+        });
+
+        // --- Ad Units ---
+        Route::middleware('can:manage_ad_units')->group(function () {
+            Route::post('websites/ad-units/create-in-gam', [\App\Http\Controllers\Admin\AdUnitController::class, 'createInGam']);
+            Route::post('websites/ad-units/bulk-create',   [\App\Http\Controllers\Admin\AdUnitController::class, 'bulkCreate']);
+            Route::post('ad-units/bulk-delete', [\App\Http\Controllers\Admin\AdUnitController::class, 'bulkDelete']);
+            Route::apiResource('ad-units', \App\Http\Controllers\Admin\AdUnitController::class);
+        });
+
+        // --- Revenue ---
+        Route::middleware('can:manage_revenue')->group(function () {
+            Route::delete('revenue/wipe', [\App\Http\Controllers\Admin\RevenueController::class, 'wipe']);
+            Route::get('revenue', [\App\Http\Controllers\Admin\RevenueController::class, 'index']);
+        });
+
+        // --- Period Closings ---
+        Route::middleware('can:manage_closings')->group(function () {
+            Route::get('period-closings', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'index']);
+            Route::post('period-closings/close', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'close']);
+            Route::get('period-closings/stuck', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'listStuck']);
+            Route::post('period-closings/{id}/recover-abort',    [\App\Http\Controllers\Admin\PeriodClosingController::class, 'recoverAbort']);
+            Route::post('period-closings/{id}/recover-complete', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'recoverComplete']);
+            Route::get('period-closings/{id}', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'show']);
+            Route::delete('period-closings/{id}', [\App\Http\Controllers\Admin\PeriodClosingController::class, 'destroy']);
+        });
+
+        // --- Payouts (Period Closing & Standalone overrides) ---
+        Route::middleware('can:manage_payouts')->group(function () {
+            Route::post('publishers/{id}/create-payout', [\App\Http\Controllers\Admin\PublisherController::class, 'createPayout']);
+            Route::post('publishers/{id}/manual-payment', [\App\Http\Controllers\Admin\PublisherController::class, 'manualPayment']);
+            Route::get('payouts', [\App\Http\Controllers\Admin\PayoutController::class, 'index']);
+            Route::post('payouts/{id}/approve', [\App\Http\Controllers\Admin\PayoutController::class, 'approve']);
+            Route::post('payouts/{id}/reject', [\App\Http\Controllers\Admin\PayoutController::class, 'reject']);
+            Route::post('payouts/{id}/mark-paid', [\App\Http\Controllers\Admin\PayoutController::class, 'markPaid']);
+        });
+
+        // --- GAM Accounts ---
+        Route::middleware('can:manage_gam_accounts')->group(function () {
+            Route::get('gam-accounts',                   [GamAccountController::class, 'index']);
+            Route::post('gam-accounts/sync',             [GamAccountController::class, 'triggerSync']);
+            Route::get('gam-accounts/sync-logs',         [GamAccountController::class, 'syncLogs']);
+            Route::get('gam-accounts/sync-log',          [GamAccountController::class, 'syncLogs']);
+            Route::get('gam-accounts/oauth/url',         [GamAccountController::class, 'oauthUrl']);
+            Route::post('gam-accounts',                  [GamAccountController::class, 'store']);
+            Route::put('gam-accounts/{id}',              [GamAccountController::class, 'update']);
+            Route::delete('gam-accounts/{id}',           [GamAccountController::class, 'destroy']);
+            Route::post('gam-accounts/{id}/refresh-token', [GamAccountController::class, 'refreshToken']);
+        });
+
+        // --- Announcements ---
+        Route::middleware('can:manage_announcements')->group(function () {
+            Route::apiResource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class);
+        });
+
+        // --- Pages ---
+        Route::middleware('can:manage_pages')->group(function () {
+            Route::apiResource('pages', \App\Http\Controllers\Admin\PageController::class);
+        });
+
+        // --- Support Tickets ---
+        Route::middleware('can:manage_tickets')->group(function () {
+            Route::get('tickets/admins', [AdminTicketController::class, 'getAdmins']);
+            Route::get('tickets',        [AdminTicketController::class, 'index']);
+            Route::get('tickets/{id}',   [AdminTicketController::class, 'show']);
+            Route::put('tickets/{id}',   [AdminTicketController::class, 'update']);
+            Route::post('tickets/{id}/reply', [AdminTicketController::class, 'reply']);
+        });
+
+        // --- Admin Management (Super Admin only) ---
+        Route::middleware('can:manage_admins')->group(function () {
+            Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index']);
+            Route::get('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index']);
+            Route::apiResource('admins', \App\Http\Controllers\Admin\AdminManagementController::class);
+            Route::apiResource('roles', \App\Http\Controllers\Admin\RolesController::class);
+        });
 
     });
 
