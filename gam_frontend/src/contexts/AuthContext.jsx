@@ -33,6 +33,12 @@ export function AuthProvider({ children }) {
     }
 
     try {
+      const localToken = localStorage.getItem('token')
+      const localUser = localStorage.getItem('user')
+      if (localToken && !sessionStorage.getItem('token')) {
+        sessionStorage.setItem('token', localToken)
+        sessionStorage.setItem('user', localUser)
+      }
       return JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user'))
     } catch {
       return null
@@ -58,11 +64,16 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const login = useCallback(async (email, password) => {
-    const res = await authApi.login(email, password)
+  const login = useCallback(async (email, password, remember = false) => {
+    const res = await authApi.login(email, password, remember)
     const { access_token, user: userData } = res.data
-    localStorage.setItem('token', access_token)
-    localStorage.setItem('user', JSON.stringify(userData))
+    if (remember) {
+      localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(userData))
+    } else {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
     sessionStorage.setItem('token', access_token)
     sessionStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
@@ -132,9 +143,8 @@ export function AuthProvider({ children }) {
   const updatePaymentInfo = useCallback((newPaymentInfo) => {
     setUser(u => {
       const updated = { ...u, payment_info: newPaymentInfo }
-      if (sessionStorage.getItem('token')) {
-        sessionStorage.setItem('user', JSON.stringify(updated))
-      } else {
+      sessionStorage.setItem('user', JSON.stringify(updated))
+      if (localStorage.getItem('token')) {
         localStorage.setItem('user', JSON.stringify(updated))
       }
       return updated
@@ -144,9 +154,8 @@ export function AuthProvider({ children }) {
   const updateUser = useCallback((userData) => {
     setUser(u => {
       const updated = { ...u, ...userData }
-      if (sessionStorage.getItem('token')) {
-        sessionStorage.setItem('user', JSON.stringify(updated))
-      } else {
+      sessionStorage.setItem('user', JSON.stringify(updated))
+      if (localStorage.getItem('token')) {
         localStorage.setItem('user', JSON.stringify(updated))
       }
       return updated

@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import { 
-  TrendingUp, Plus, Filter, Check, Ban, Download, DollarSign, Users, 
-  CreditCard, Eye, Info, CheckCircle2, AlertTriangle, XCircle, Bell, 
-  LayoutDashboard, Globe, Settings, User, LayoutGrid, Sparkles, Clock
-} from 'lucide-react'
+import { TrendingUp, Plus, Filter, Check, Ban, Download, DollarSign, Users, CreditCard, Eye, Info, CheckCircle2, AlertTriangle, XCircle, Bell, LayoutDashboard, Globe, Settings, User, LayoutGrid, Sparkles, Clock } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const chartData = [

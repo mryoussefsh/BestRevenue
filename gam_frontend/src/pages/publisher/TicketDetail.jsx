@@ -3,10 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { publisherApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
-import { 
-  ArrowLeft, MessageSquare, Clock, Settings, CheckCircle, Lock, 
-  Shield, User, Send, AlertTriangle 
-} from 'lucide-react'
+import { ArrowLeft, MessageSquare, Clock, Settings, CheckCircle, Lock, Shield, User, Send, AlertTriangle } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 const renderMessageWithLinks = (text) => {
   if (!text) return '';
@@ -40,12 +38,13 @@ export default function PublisherTicketDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { formatDate } = useSettings()
+  const { t } = useI18n()
   
   const [ticket, setTicket] = useState(null)
   const [loading, setLoading] = useState(true)
   const [replyText, setReplyText] = useState('')
   const [sending, setSending] = useState(false)
-  const messagesEndRef = useRef(null)
+  const useRefScroll = useRef(null)
 
   const fetchTicketDetails = (shouldScroll = false) => {
     publisherApi.getTicket(id)
@@ -56,7 +55,7 @@ export default function PublisherTicketDetail() {
         }
       })
       .catch(() => {
-        toast.error('Failed to load ticket details')
+        toast.error(t('tickets.toast_detail_load_fail', 'Failed to load ticket details'))
         navigate('/publisher/tickets')
       })
       .finally(() => setLoading(false))
@@ -67,7 +66,7 @@ export default function PublisherTicketDetail() {
   }, [id])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    useRefScroll.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const handleSendReply = async (e) => {
@@ -78,24 +77,24 @@ export default function PublisherTicketDetail() {
     try {
       await publisherApi.replyTicket(id, { message: replyText })
       setReplyText('')
-      toast.success('Message sent successfully!')
+      toast.success(t('tickets.toast_reply_success', 'Message sent successfully!'))
       fetchTicketDetails(true)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send reply.')
+      toast.error(err.response?.data?.message || t('tickets.toast_reply_fail', 'Failed to send reply.'))
     } finally {
       setSending(false)
     }
   }
 
   const handleCloseTicket = async () => {
-    if (!window.confirm('Are you sure you want to close this ticket?')) return
+    if (!window.confirm(t('tickets.confirm_close', 'Are you sure you want to close this ticket?'))) return
 
     try {
       const res = await publisherApi.closeTicket(id)
-      toast.success(res.data?.message || 'Ticket marked as closed.')
+      toast.success(res.data?.message || t('tickets.toast_close_success', 'Ticket marked as closed.'))
       fetchTicketDetails()
     } catch (err) {
-      toast.error('Failed to close ticket.')
+      toast.error(t('tickets.toast_close_fail', 'Failed to close ticket.'))
     }
   }
 
@@ -104,25 +103,25 @@ export default function PublisherTicketDetail() {
       case 'open':
         return (
           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Clock size={12} /> Open
+            <Clock size={12} /> {t('tickets.status_open', 'Open')}
           </span>
         )
       case 'in_progress':
         return (
           <span className="badge badge-info" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Settings size={12} /> In Progress
+            <Settings size={12} /> {t('tickets.status_in_progress', 'In Progress')}
           </span>
         )
       case 'resolved':
         return (
           <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <CheckCircle size={12} /> Resolved
+            <CheckCircle size={12} /> {t('tickets.status_resolved', 'Resolved')}
           </span>
         )
       case 'closed':
         return (
           <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Lock size={12} /> Closed
+            <Lock size={12} /> {t('tickets.status_closed', 'Closed')}
           </span>
         )
       default:
@@ -135,25 +134,25 @@ export default function PublisherTicketDetail() {
       case 'low':
         return (
           <span style={{ color: 'var(--br-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-accent)' }} /> Low
+            <span className="dot" style={{ background: 'var(--br-accent)' }} /> {t('tickets.priority_low', 'Low')}
           </span>
         )
       case 'medium':
         return (
           <span style={{ color: 'var(--br-warning)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-warning)' }} /> Medium
+            <span className="dot" style={{ background: 'var(--br-warning)' }} /> {t('tickets.priority_medium', 'Medium')}
           </span>
         )
       case 'high':
         return (
           <span style={{ color: '#f97316', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: '#f97316' }} /> High
+            <span className="dot" style={{ background: '#f97316' }} /> {t('tickets.priority_high', 'High')}
           </span>
         )
       case 'urgent':
         return (
           <span style={{ color: 'var(--br-danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-danger)' }} /> Urgent
+            <span className="dot" style={{ background: 'var(--br-danger)' }} /> {t('tickets.priority_urgent', 'Urgent')}
           </span>
         )
       default:
@@ -164,14 +163,14 @@ export default function PublisherTicketDetail() {
   const getCategoryLabel = (cat) => {
     switch (cat) {
       case 'billing':
-        return 'Billing'
+        return t('tickets.category_billing', 'Billing')
       case 'technical':
-        return 'Technical'
+        return t('tickets.category_technical', 'Technical')
       case 'gam':
-        return 'GAM Sync'
+        return t('tickets.category_gam', 'GAM Sync')
       case 'other':
       default:
-        return 'Other'
+        return t('tickets.category_other', 'Other')
     }
   }
 
@@ -186,7 +185,7 @@ export default function PublisherTicketDetail() {
       {/* Back button */}
       <div style={{ marginBottom: 16 }}>
         <Link to="/publisher/tickets" className="btn btn-secondary btn-sm" style={{ gap: 6, display: 'inline-flex', alignItems: 'center' }}>
-          <ArrowLeft size={14} /> Back to Support Tickets
+          <ArrowLeft size={14} /> {t('tickets.back_btn', 'Back to Support Tickets')}
         </Link>
       </div>
 
@@ -198,13 +197,13 @@ export default function PublisherTicketDetail() {
               {ticket.subject}
             </h1>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-muted)' }}>
-              <span>Category: <strong>{getCategoryLabel(ticket.category)}</strong></span>
+              <span>{t('tickets.category_prefix', 'Category:')} <strong>{getCategoryLabel(ticket.category)}</strong></span>
               <span>•</span>
-              <span>Priority: {getPriorityBadge(ticket.priority)}</span>
+              <span>{t('tickets.priority_prefix', 'Priority:')} {getPriorityBadge(ticket.priority)}</span>
               <span>•</span>
-              <span>Status: {getStatusBadge(ticket.status)}</span>
+              <span>{t('tickets.status_prefix', 'Status:')} {getStatusBadge(ticket.status)}</span>
               <span>•</span>
-              <span>Opened by: <strong>{ticket.user?.name || 'You'}</strong></span>
+              <span>{t('tickets.opened_by_prefix', 'Opened by:')} <strong>{ticket.user?.name || t('tickets.you', 'You')}</strong></span>
             </div>
           </div>
           
@@ -219,20 +218,20 @@ export default function PublisherTicketDetail() {
               alignItems: 'center',
               gap: 8
             }}>
-              <span>Assigned Agent:</span>
+              <span>{t('tickets.assigned_agent_label', 'Assigned Agent:')}</span>
               <strong style={{ color: ticket.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 {ticket.assignee ? (
                   <>
                     <User size={12} style={{ color: 'var(--br-primary)' }} />
                     {ticket.assignee.name}
                   </>
-                ) : 'Unassigned'}
+                ) : t('tickets.unassigned', 'Unassigned')}
               </strong>
             </div>
 
             {ticket.status !== 'closed' && (
               <button className="btn btn-danger btn-sm" onClick={handleCloseTicket} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Lock size={14} /> Close Ticket
+                <Lock size={14} /> {t('tickets.close_ticket_btn', 'Close Ticket')}
               </button>
             )}
           </div>
@@ -266,7 +265,7 @@ export default function PublisherTicketDetail() {
                 >
                   <div className="ticket-bubble-header">
                     <span className="ticket-bubble-name" style={{ color: 'var(--color-primary-light)' }}>
-                      {isAdmin ? <><Shield size={12} style={{ color: 'var(--br-primary)' }} /> Support Expert</> : msg.user?.name || 'You'}
+                      {isAdmin ? <><Shield size={12} style={{ color: 'var(--br-primary)' }} /> {t('tickets.support_expert', 'Support Expert')}</> : msg.user?.name || t('tickets.you', 'You')}
                     </span>
                     <span className="ticket-bubble-date">
                       {formatDate(msg.created_at)}
@@ -280,7 +279,7 @@ export default function PublisherTicketDetail() {
               </div>
             )
           })}
-          <div ref={messagesEndRef} />
+          <div ref={useRefScroll} />
         </div>
 
         {/* Input response area */}
@@ -288,7 +287,7 @@ export default function PublisherTicketDetail() {
           {ticket.status === 'closed' ? (
             <div className="alert alert-warning" style={{ margin: 0, padding: '14px 18px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10, borderRadius: 'var(--radius-md)' }}>
               <Lock size={16} />
-              <span>This ticket is closed. Please open a new ticket if you need more help or have other problems.</span>
+              <span>{t('tickets.closed_message_warning', 'This ticket is closed. Please open a new ticket if you need more help or have other problems.')}</span>
             </div>
           ) : (
             <form onSubmit={handleSendReply} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
@@ -296,7 +295,7 @@ export default function PublisherTicketDetail() {
                 className="form-input"
                 rows={2}
                 style={{ flex: 1, resize: 'none', minHeight: 60, padding: '10px 14px' }}
-                placeholder="Type your response here..."
+                placeholder={t('tickets.reply_placeholder', 'Type your response here...')}
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 onKeyDown={e => {
@@ -313,7 +312,7 @@ export default function PublisherTicketDetail() {
                 style={{ height: 48, padding: '0 24px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 disabled={sending || !replyText.trim()}
               >
-                {sending ? 'Sending...' : <><Send size={16} /> Reply</>}
+                {sending ? t('tickets.sending', 'Sending...') : <><Send size={16} /> {t('tickets.reply_btn', 'Reply')}</>}
               </button>
             </form>
           )}

@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SetLocaleMiddleware::class);
+
         // Register 'role' as a route middleware alias
         $middleware->alias([
             'role' => RoleMiddleware::class,
@@ -22,5 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
+            $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
+            return response()->json([
+                'message' => __('auth.throttle', ['seconds' => $retryAfter]),
+            ], 429);
+        });
     })->create();

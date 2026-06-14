@@ -3,12 +3,10 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
-import { 
-  Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, 
-  Sparkles, X 
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, Sparkles, X } from 'lucide-react'
 
-function groupAdUnits(units) {
+function groupAdUnits(units, t) {
   const grouped = [];
   const rewardGroups = {};
 
@@ -55,7 +53,7 @@ function groupAdUnits(units) {
 
   Object.values(rewardGroups).forEach(group => {
     const count = group.children.length;
-    group.display_name = `${group.display_name} (${count} Ad${count > 1 ? 's' : ''})`;
+    group.display_name = `${group.display_name} (${count} ${t('websites.ad_count', count === 1 ? 'Ad' : 'Ads')})`;
     group.children.sort((a, b) => a.gam_ad_unit_name.localeCompare(b.gam_ad_unit_name, undefined, { numeric: true }));
     grouped.push(group);
   });
@@ -65,6 +63,7 @@ function groupAdUnits(units) {
 }
 
 export default function PublisherWebsites() {
+  const { t } = useI18n()
   const { settings } = useSettings()
   const siteName = settings?.site_name || 'BestRevenue'
   const platformUrl = window.location.origin
@@ -530,7 +529,7 @@ ${queueItems}
   useEffect(() => {
     publisherApi.getWebsites()
       .then(r => setWebsites(r.data?.data || []))
-      .catch(() => toast.error('Failed to load websites'))
+      .catch(() => toast.error(t('websites.toast_failed', 'Failed to load websites')))
       .finally(() => setLoading(false))
   }, [])
 
@@ -543,7 +542,7 @@ ${queueItems}
       try {
         const res = await publisherApi.getAdUnits(webId)
         setAdUnits(a => ({ ...a, [webId]: res.data?.data || [] }))
-      } catch { toast.error('Failed to load ad units') }
+      } catch { toast.error(t('websites.toast_adunits_failed', 'Failed to load ad units')) }
     }
   }
 
@@ -555,9 +554,9 @@ ${queueItems}
         <div>
           <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <Globe size={24} style={{ color: 'var(--br-primary)' }} />
-            My Websites
+            {t('websites.title', 'My Websites')}
           </h1>
-          <p className="page-subtitle">{websites.length} websites assigned to you</p>
+          <p className="page-subtitle">{t('websites.subtitle', '{count} websites assigned to you', { count: websites.length })}</p>
         </div>
       </div>
 
@@ -567,8 +566,8 @@ ${queueItems}
             <div className="empty-state-icon">
               <Globe size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
             </div>
-            <div className="empty-state-text">No websites assigned yet</div>
-            <div className="empty-state-sub">Contact your account manager to get started</div>
+            <div className="empty-state-text">{t('websites.no_websites', 'No websites assigned yet')}</div>
+            <div className="empty-state-sub">{t('websites.contact_manager', 'Contact your account manager to get started')}</div>
           </div>
         </div>
       ) : (
@@ -588,7 +587,7 @@ ${queueItems}
                   </div>
                   <div className="website-card-actions">
                     <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ flexShrink: 0 }}>
-                      {w.is_active ? 'Active' : 'Inactive'}
+                      {w.is_active ? t('common.status.active', 'Active') : t('common.status.inactive', 'Inactive')}
                     </span>
                     {w.ads_txt && (
                       <button
@@ -597,7 +596,7 @@ ${queueItems}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                       >
                         <FileText size={14} />
-                        Show ads.txt
+                        {t('websites.show_ads_txt', 'Show ads.txt')}
                       </button>
                     )}
                     <button
@@ -605,9 +604,9 @@ ${queueItems}
                       onClick={() => toggleAdUnits(w.id)}
                     >
                       {expanded === w.id ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronUp size={14} /> Hide</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronUp size={14} /> {t('common.hide', 'Hide')}</span>
                       ) : (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronDown size={14} /> Ad Units</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChevronDown size={14} /> {t('websites.ad_units', 'Ad Units')}</span>
                       )} ({w.ad_units_count ?? '?'})
                     </button>
                   </div>
@@ -618,20 +617,20 @@ ${queueItems}
                     {!adUnits[w.id] ? (
                       <div className="flex items-center gap-2">
                         <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
-                        Loading ad units…
+                        {t('websites.loading_ad_units', 'Loading ad units…')}
                       </div>
                     ) : adUnits[w.id].length === 0 ? (
-                      <div className="text-muted text-sm">No ad units yet</div>
+                      <div className="text-muted text-sm">{t('websites.no_ad_units', 'No ad units yet')}</div>
                     ) : (() => {
-                      const groupedUnits = groupAdUnits(adUnits[w.id]);
+                      const groupedUnits = groupAdUnits(adUnits[w.id], t);
                       return (
                         <div className="table-wrap">
                           <table className="table">
                             <thead>
                               <tr>
-                                <th>Ad Unit Name</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>{t('websites.table.name', 'Ad Unit Name')}</th>
+                                <th>{t('websites.table.status', 'Status')}</th>
+                                <th>{t('websites.table.actions', 'Actions')}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -640,7 +639,7 @@ ${queueItems}
                                   <td className="td-primary" style={{ fontWeight: 600 }}>{a.display_name}</td>
                                   <td>
                                     <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                                      {a.is_active ? 'Active' : 'Inactive'}
+                                      {a.is_active ? t('common.status.active', 'Active') : t('common.status.inactive', 'Inactive')}
                                     </span>
                                   </td>
                                   <td>
@@ -662,7 +661,7 @@ ${queueItems}
                                       style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                     >
                                       <Code size={12} />
-                                      Get Code
+                                      {t('websites.get_code', 'Get Code')}
                                     </button>
                                   </td>
                                 </tr>
@@ -693,7 +692,7 @@ ${queueItems}
               <h2>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <FileText size={20} style={{ color: 'var(--br-primary)' }} />
-                  Ads.txt for {selectedAdsTxt.domain}
+                  {t('websites.modal.ads_txt_title', 'Ads.txt for {domain}', { domain: selectedAdsTxt.domain })}
                 </span>
               </h2>
               <button
@@ -718,7 +717,7 @@ ${queueItems}
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p className="text-muted text-sm" style={{ margin: 0 }}>
-                Copy the entries below and append them to your site's root <code>ads.txt</code> file:
+                {t('websites.modal.ads_txt_desc', "Copy the entries below and append them to your site's root {code} file:", { code: 'ads.txt' })}
               </p>
               <textarea
                 className="form-input"
@@ -744,12 +743,12 @@ ${queueItems}
                   className="btn btn-primary"
                   onClick={() => {
                     navigator.clipboard.writeText(selectedAdsTxt.content)
-                    toast.success('Ads.txt copied to clipboard!')
+                    toast.success(t('websites.modal.toast_copied', 'Ads.txt copied to clipboard!'))
                   }}
                 >
-                  Copy Content
+                  {t('common.copy_content', 'Copy Content')}
                 </button>
-                <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdsTxt(null)}>Close</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdsTxt(null)}>{t('common.close', 'Close')}</button>
               </div>
             </div>
           </div>
@@ -766,7 +765,7 @@ ${queueItems}
                 <h2>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     <Code size={20} style={{ color: 'var(--br-primary)' }} />
-                    Ad Unit Code: {selectedAdUnitCode.displayName}
+                    {t('websites.modal.code_title', 'Ad Unit Code: {name}', { name: selectedAdUnitCode.displayName })}
                   </span>
                 </h2>
                 <button
@@ -791,13 +790,13 @@ ${queueItems}
               </div>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="text-sm text-muted" style={{ marginBottom: 4 }}>
-                  Ad Type: <span style={{ fontWeight: 600, color: 'var(--color-primary-light)', textTransform: 'capitalize' }}>{selectedAdUnitCode.adType.replace('_', ' ')}</span>
+                  {t('websites.modal.ad_type', 'Ad Type:')} <span style={{ fontWeight: 600, color: 'var(--color-primary-light)', textTransform: 'capitalize' }}>{selectedAdUnitCode.adType.replace('_', ' ')}</span>
                   {selectedAdUnitCode.adSubtype && <> ({selectedAdUnitCode.adSubtype})</>}
                 </div>
 
                 <div>
                   <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                    1. Header Code (Place inside the <code>&lt;head&gt;</code> section of your HTML page)
+                    {t('websites.modal.header_code_desc', '1. Header Code (Place inside the {tag} section of your HTML page)', { tag: '<head>' })}
                   </label>
                   <div style={{ position: 'relative' }}>
                     <textarea
@@ -825,10 +824,10 @@ ${queueItems}
                       style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
                       onClick={() => {
                         navigator.clipboard.writeText(scripts.head);
-                        toast.success('Header code copied!');
+                        toast.success(t('websites.modal.toast_header_copied', 'Header code copied!'));
                       }}
                     >
-                      Copy
+                      {t('websites.modal.copy_code', 'Copy')}
                     </button>
                   </div>
                 </div>
@@ -836,7 +835,7 @@ ${queueItems}
                 {scripts.body && (
                   <div>
                     <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                      2. Body Code (Place where the ad should render)
+                      {t('websites.modal.body_code_desc', '2. Body Code (Place where the ad should render)')}
                     </label>
                     <div style={{ position: 'relative' }}>
                       <textarea
@@ -864,10 +863,10 @@ ${queueItems}
                         style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
                         onClick={() => {
                           navigator.clipboard.writeText(scripts.body);
-                          toast.success('Body code copied!');
+                          toast.success(t('websites.modal.toast_body_copied', 'Body code copied!'));
                         }}
                       >
-                        Copy
+                        {t('websites.modal.copy_code', 'Copy')}
                       </button>
                     </div>
                   </div>
@@ -882,12 +881,12 @@ ${queueItems}
                         ? `<!-- Header Code -->\n${scripts.head}\n\n<!-- Body Code -->\n${scripts.body}`
                         : scripts.head;
                       navigator.clipboard.writeText(fullCode);
-                      toast.success('Code block copied!');
+                      toast.success(t('websites.modal.toast_block_copied', 'Code block copied!'));
                     }}
                   >
-                    {scripts.body ? 'Copy Full Block' : 'Copy Code'}
+                    {scripts.body ? t('websites.modal.copy_full', 'Copy Full Block') : t('websites.modal.copy_code', 'Copy Code')}
                   </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdUnitCode(null)}>Close</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setSelectedAdUnitCode(null)}>{t('common.close', 'Close')}</button>
                 </div>
               </div>
             </div>

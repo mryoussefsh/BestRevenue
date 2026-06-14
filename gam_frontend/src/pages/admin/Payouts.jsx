@@ -5,8 +5,10 @@ import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 import { CreditCard, Check, X, Copy, RefreshCw, Clock, DollarSign, Ban, Filter } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 function ApproveModal({ payout, onClose, onDone }) {
+  const { t } = useI18n()
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -16,9 +18,9 @@ function ApproveModal({ payout, onClose, onDone }) {
     setSaving(true)
     try {
       await adminApi.approvePayout(payout.id, { admin_note: note })
-      toast.success('Payout approved!')
+      toast.success(t('payouts.toast_approved', 'Payout approved!'))
       onDone()
-    } catch { toast.error('Failed to approve') }
+    } catch { toast.error(t('payouts.toast_approve_fail', 'Failed to approve')) }
     finally { setSaving(false) }
   }
 
@@ -28,7 +30,7 @@ function ApproveModal({ payout, onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Check size={18} style={{ color: 'var(--br-accent)' }} />
-            <span>Approve Payout</span>
+            <span>{t('payouts.approve_title', 'Approve Payout')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
@@ -37,14 +39,14 @@ function ApproveModal({ payout, onClose, onDone }) {
           Period: <strong>{payout.period_year}-{String(payout.period_month).padStart(2,'0')}</strong>
         </p>
         <div className="form-group">
-          <label className="form-label">Base Amount</label>
+          <label className="form-label">{t('payouts.base_amount', 'Base Amount')}</label>
           <div className="form-input" style={{ background: 'var(--color-surface-3)', cursor: 'default' }}>
             <CompactAmount value={payout.amount} />
           </div>
         </div>
         {parseFloat(payout.adjustment) !== 0 && (
           <div className="form-group">
-            <label className="form-label">Rolled-in Adjustment</label>
+            <label className="form-label">{t('payouts.rolled_adj', 'Rolled-in Adjustment')}</label>
             <div className="form-input" style={{
               background: 'var(--color-surface-3)', cursor: 'default',
               color: parseFloat(payout.adjustment) > 0 ? 'var(--color-accent)' : 'var(--color-danger)'
@@ -54,20 +56,20 @@ function ApproveModal({ payout, onClose, onDone }) {
           </div>
         )}
         <div className="form-group">
-          <label className="form-label">Final Amount</label>
+          <label className="form-label">{t('payouts.final_amount', 'Final Amount')}</label>
           <div className="form-input" style={{ background: 'var(--color-surface-3)', fontWeight: 700, fontSize: 18, color: 'var(--color-accent)' }}>
             <CompactAmount value={payout.final_amount} />
           </div>
         </div>
         <div className="form-group">
-          <label className="form-label">Admin Note (internal)</label>
+          <label className="form-label">{t('payouts.admin_note', 'Admin Note (internal)')}</label>
           <textarea className="form-textarea" rows={2} value={note}
-            onChange={e => setNote(e.target.value)} placeholder="Optional internal note…" />
+            onChange={e => setNote(e.target.value)} placeholder={t('payouts.admin_note_placeholder', 'Optional internal note…')} />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button id="confirm-approve-btn" className="btn btn-success" onClick={handleApprove} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {saving ? 'Approving…' : <><Check size={14} /> Approve <CompactAmount value={payout.final_amount} /></>}
+            {saving ? t('payouts.approving', 'Approving…') : <><Check size={14} /> {t('payouts.approve_btn', 'Approve')} <CompactAmount value={payout.final_amount} /></>}
           </button>
         </div>
       </div>
@@ -76,6 +78,7 @@ function ApproveModal({ payout, onClose, onDone }) {
 }
 
 function MarkPaidModal({ payout, onClose, onDone }) {
+  const { t } = useI18n()
   const [ref, setRef] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -83,9 +86,9 @@ function MarkPaidModal({ payout, onClose, onDone }) {
     setSaving(true)
     try {
       await adminApi.markPaid(payout.id, ref)
-      toast.success('Payout marked as paid!')
+      toast.success(t('payouts.toast_marked_paid', 'Payout marked as paid!'))
       onDone()
-    } catch { toast.error('Failed') }
+    } catch { toast.error(t('payouts.toast_mark_paid_fail', 'Failed')) }
     finally { setSaving(false) }
   }
 
@@ -95,7 +98,7 @@ function MarkPaidModal({ payout, onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Mark as Paid</span>
+            <span>{t('payouts.mark_paid_title', 'Mark as Paid')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
@@ -104,14 +107,14 @@ function MarkPaidModal({ payout, onClose, onDone }) {
           Amount: <strong className="money positive"> <CompactAmount value={payout.final_amount} /></strong>
         </p>
         <div className="form-group">
-          <label className="form-label">Payment Reference / Transaction ID *</label>
+          <label className="form-label">{t('payouts.payment_ref', 'Payment Reference / Transaction ID')} *</label>
           <input className="form-input" value={ref} onChange={e => setRef(e.target.value)}
-            placeholder="e.g. TXN-12345 or PayPal order ID" required />
+            placeholder={t('payouts.payment_ref_placeholder', 'e.g. TXN-12345 or PayPal order ID')} required />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button id="confirm-mark-paid-btn" className="btn btn-primary" onClick={handlePaid} disabled={saving || !ref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {saving ? 'Saving…' : <><CreditCard size={14} /> Confirm Payment</>}
+            {saving ? t('payouts.saving', 'Saving…') : <><CreditCard size={14} /> {t('payouts.confirm_payment', 'Confirm Payment')}</>}
           </button>
         </div>
       </div>
@@ -121,6 +124,7 @@ function MarkPaidModal({ payout, onClose, onDone }) {
 
 /* ── Searchable Publisher Select ─────────────────────────────────────────── */
 function PublisherSelect({ publishers, value, onChange }) {
+  const { t } = useI18n()
   const [search, setSearch]   = useState('')
   const [open, setOpen]       = useState(false)
   const containerRef          = useRef(null)
@@ -162,7 +166,7 @@ function PublisherSelect({ publishers, value, onChange }) {
         onClick={() => setOpen(o => !o)}
       >
         <span style={{ color: selected ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-          {selected ? selected.name : 'All Publishers'}
+          {selected ? selected.name : t('common.all_publishers', 'All Publishers')}
         </span>
         <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginLeft: 8 }}>{open ? '▲' : '▼'}</span>
       </div>
@@ -184,7 +188,7 @@ function PublisherSelect({ publishers, value, onChange }) {
               autoFocus
               className="form-input"
               style={{ padding: '5px 8px', fontSize: 12, width: '100%' }}
-              placeholder="Search publisher…"
+              placeholder={t('common.search_publisher', 'Search publisher…')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
@@ -202,10 +206,10 @@ function PublisherSelect({ publishers, value, onChange }) {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,.08)'}
               onMouseLeave={e => e.currentTarget.style.background = !value ? 'rgba(99,102,241,.1)' : 'transparent'}
             >
-              All Publishers
+              {t('common.all_publishers', 'All Publishers')}
             </div>
             {filtered.length === 0 && (
-              <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-muted)' }}>No results</div>
+              <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-muted)' }}>{t('common.no_results', 'No results')}</div>
             )}
             {filtered.map(pub => (
               <div
@@ -232,6 +236,7 @@ function PublisherSelect({ publishers, value, onChange }) {
 /* ── Main Page ───────────────────────────────────────────────────────────── */
 export default function PayoutsPage() {
   const { formatDate } = useSettings()
+  const { t } = useI18n()
   const [payouts,    setPayouts]    = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading,    setLoading]    = useState(true)
@@ -270,7 +275,7 @@ export default function PayoutsPage() {
       if (filterPublisher) params.publisher_id = filterPublisher
       const res = await adminApi.getPayouts(params)
       setPayouts(res.data?.data || [])
-    } catch { toast.error('Failed to load payouts') }
+    } catch { toast.error(t('payouts.toast_load_fail', 'Failed to load payouts')) }
     finally { setLoading(false) }
   }
 
@@ -318,14 +323,14 @@ export default function PayoutsPage() {
   }
 
   async function handleReject(p) {
-    const note = prompt(`Rejection reason for ${p.publisher?.name}:`)
+    const note = prompt(t('payouts.rejection_prompt', `Rejection reason for ${p.publisher?.name}:`))
     if (!note) return
     try {
       await adminApi.rejectPayout(p.id, note)
-      toast.success('Payout rejected')
+      toast.success(t('payouts.toast_rejected', 'Payout rejected'))
       load()
       loadPublishers()
-    } catch { toast.error('Failed to reject') }
+    } catch { toast.error(t('payouts.toast_reject_fail', 'Failed to reject')) }
   }
 
   const statusBadge = s => ({
@@ -339,7 +344,7 @@ export default function PayoutsPage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CreditCard size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Payouts</span>
+            <span>{t('payouts.title', 'Payouts')}</span>
           </h1>
           <p className="page-subtitle">
             {filteredPayouts.length === payouts.length
@@ -354,7 +359,7 @@ export default function PayoutsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('common.hide_filters', 'Hide Filters') : t('common.show_filters', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -381,24 +386,24 @@ export default function PayoutsPage() {
 
           {/* Status */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Status</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('common.status', 'Status')}</label>
             <select
               className="form-select"
               style={{ padding: '6px 10px', fontSize: 13, minWidth: 150 }}
               value={filterStatus}
               onChange={e => { setFilterStatus(e.target.value) }}
             >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="paid">Paid</option>
-              <option value="rejected">Rejected</option>
+              <option value="">{t('common.all_statuses', 'All Statuses')}</option>
+              <option value="pending">{t('common.status_pending', 'Pending')}</option>
+              <option value="approved">{t('common.status_approved', 'Approved')}</option>
+              <option value="paid">{t('payouts.status_paid', 'Paid')}</option>
+              <option value="rejected">{t('payouts.status_rejected', 'Rejected')}</option>
             </select>
           </div>
 
           {/* Publisher searchable */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Publisher</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('common.publisher', 'Publisher')}</label>
             <PublisherSelect
               publishers={publishers}
               value={filterPublisher}
@@ -408,40 +413,40 @@ export default function PayoutsPage() {
 
           {/* Year */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Year</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('common.year', 'Year')}</label>
             <select
               className="form-select"
               style={{ padding: '6px 10px', fontSize: 13, minWidth: 110 }}
               value={filterYear}
               onChange={e => { setFilterYear(e.target.value); setFilterMonth(''); setPage(1) }}
             >
-              <option value="">All Years</option>
+              <option value="">{t('payouts.all_years', 'All Years')}</option>
               {uniqueYears.map(y => <option key={y} value={String(y)}>{y}</option>)}
             </select>
           </div>
 
           {/* Month */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Month</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('common.month', 'Month')}</label>
             <select
               className="form-select"
               style={{ padding: '6px 10px', fontSize: 13, minWidth: 130 }}
               value={filterMonth}
               onChange={e => { setFilterMonth(e.target.value); setPage(1) }}
             >
-              <option value="">All Months</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
+              <option value="">{t('payouts.all_months', 'All Months')}</option>
+              <option value="1">{t('common.months.january', 'January')}</option>
+              <option value="2">{t('common.months.february', 'February')}</option>
+              <option value="3">{t('common.months.march', 'March')}</option>
+              <option value="4">{t('common.months.april', 'April')}</option>
+              <option value="5">{t('common.months.may', 'May')}</option>
+              <option value="6">{t('common.months.june', 'June')}</option>
+              <option value="7">{t('common.months.july', 'July')}</option>
+              <option value="8">{t('common.months.august', 'August')}</option>
+              <option value="9">{t('common.months.september', 'September')}</option>
+              <option value="10">{t('common.months.october', 'October')}</option>
+              <option value="11">{t('common.months.november', 'November')}</option>
+              <option value="12">{t('common.months.december', 'December')}</option>
             </select>
           </div>
 
@@ -458,14 +463,14 @@ export default function PayoutsPage() {
       {/* ── Summary Cards ──────────────────────────────────────────────── */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: 24 }}>
         <div className="stat-card accent">
-          <div className="stat-label">Total Paid Out</div>
+          <div className="stat-label">{t('payouts.stat_total_paid', 'Total Paid Out')}</div>
           <div className="stat-value money"><CompactAmount value={totalPaid} /></div>
           <div className="stat-sub">
-            {selectedPub ? `Paid to ${selectedPub.name}` : 'Across all publishers'}
+            {selectedPub ? t('payouts.paid_to', `Paid to ${selectedPub.name}`) : t('payouts.across_all', 'Across all publishers')}
           </div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid var(--color-success, #10b981)', background: 'linear-gradient(135deg, rgba(16,185,129,.08) 0%, var(--color-surface) 100%)' }}>
-          <div className="stat-label">Available Balance</div>
+          <div className="stat-label">{t('payouts.stat_available_balance', 'Available Balance')}</div>
           <div className="stat-value money" style={{ color: 'var(--color-success, #10b981)' }}>
             <CompactAmount value={availableBalance} />
           </div>
@@ -474,7 +479,7 @@ export default function PayoutsPage() {
           </div>
         </div>
         <div className="stat-card warning">
-          <div className="stat-label">Pending Payouts</div>
+          <div className="stat-label">{t('payouts.stat_pending_payouts', 'Pending Payouts')}</div>
           <div className="stat-value money" style={{ color: 'var(--color-warning)' }}>
             <CompactAmount value={pendingSum} />
           </div>
@@ -493,9 +498,9 @@ export default function PayoutsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Publisher</th><th>Period</th><th>Created</th><th>Base Amount</th>
-                  <th>Adjustment</th><th>Final Amount</th><th>Status</th>
-                  <th>Payment Method</th><th>Actions</th>
+                  <th>{t('common.publisher', 'Publisher')}</th><th>{t('payouts.col_period', 'Period')}</th><th>{t('common.created', 'Created')}</th><th>{t('payouts.col_base_amount', 'Base Amount')}</th>
+                  <th>{t('payouts.col_adjustment', 'Adjustment')}</th><th>{t('payouts.col_final_amount', 'Final Amount')}</th><th>{t('common.status', 'Status')}</th>
+                  <th>{t('payouts.col_payment_method', 'Payment Method')}</th><th>{t('common.actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -503,8 +508,8 @@ export default function PayoutsPage() {
                   <tr><td colSpan={9}>
                     <div className="empty-state">
                       <div className="empty-state-icon"><CreditCard size={40} /></div>
-                      <div className="empty-state-text">No payouts found</div>
-                      {hasFilter && <div className="empty-state-sub">Try adjusting your filters</div>}
+                      <div className="empty-state-text">{t('payouts.no_payouts', 'No payouts found')}</div>
+                      {hasFilter && <div className="empty-state-sub">{t('payouts.adjust_filters', 'Try adjusting your filters')}</div>}
                     </div>
                   </td></tr>
                 )}
@@ -560,17 +565,17 @@ export default function PayoutsPage() {
                             <button
                               className="btn btn-secondary btn-xs"
                               style={{ padding: '2px 8px', height: 22, fontSize: 10, borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                              onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(account); toast.success('Copied!') }}
-                              title="Copy account details"
+                              onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(account); toast.success(t('common.copied', 'Copied!')) }}
+                              title={t('payouts.copy_title', 'Copy account details')}
                             >
-                              <Copy size={10} /> Copy
+                              <Copy size={10} /> {t('common.copy', 'Copy')}
                             </button>
                           </div>
                         )
                       })()}
                       {p.payment_reference && (
                         <div style={{ fontFamily: 'monospace', fontSize: 11, marginTop: 4 }}>
-                          Ref: {p.payment_reference}
+                          {t('payouts.ref', 'Ref')}: {p.payment_reference}
                         </div>
                       )}
                     </td>
@@ -578,15 +583,15 @@ export default function PayoutsPage() {
                       <div className="flex gap-2">
                         {p.status === 'pending' && (
                           <>
-                            <button id={`approve-${p.id}`} className="btn btn-success btn-xs" onClick={() => setModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Approve</button>
-                            <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><X size={12} /> Reject</button>
+                            <button id={`approve-${p.id}`} className="btn btn-success btn-xs" onClick={() => setModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('payouts.approve_btn_sm', 'Approve')}</button>
+                            <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><X size={12} /> {t('payouts.reject_btn', 'Reject')}</button>
                           </>
                         )}
                         {p.status === 'approved' && (
-                          <button id={`mark-paid-${p.id}`} className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CreditCard size={12} /> Mark Paid</button>
+                          <button id={`mark-paid-${p.id}`} className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CreditCard size={12} /> {t('payouts.mark_paid_btn', 'Mark Paid')}</button>
                         )}
                         {p.status === 'paid' && (
-                          <span className="text-sm" style={{ color: 'var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Paid</span>
+                          <span className="text-sm" style={{ color: 'var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> {t('payouts.status_paid', 'Paid')}</span>
                         )}
                       </div>
                     </td>
@@ -596,7 +601,7 @@ export default function PayoutsPage() {
               {filteredPayouts.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={3}>Totals ({filteredPayouts.length})</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={3}>{t('period.totals', 'Totals')} ({filteredPayouts.length})</td>
                     <td className="money"><CompactAmount value={totalBase} /></td>
                     <td className={`money ${totalAdj >= 0 ? 'positive' : 'negative'}`}>
                       {totalAdj >= 0 ? '+' : ''}<CompactAmount value={totalAdj} />

@@ -3,6 +3,8 @@ import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
 import { RefreshCw, Play, Check, AlertTriangle, X, Cpu, Terminal, History, BarChart2, User } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import Pagination from '../../components/Pagination'
 
 
 
@@ -48,6 +50,7 @@ function TriggerBadge({ triggeredBy }) {
 }
 
 function PublisherSelect({ publishers, value, onChange }) {
+  const { t } = useI18n()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [hoveredId, setHoveredId] = useState(null)
@@ -66,7 +69,7 @@ function PublisherSelect({ publishers, value, onChange }) {
         onClick={() => setOpen(!open)}
         tabIndex={0}
       >
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : 'All Publishers'}</span>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : t('common.all_publishers', 'All Publishers')}</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
       </div>
       {open && (
@@ -88,7 +91,7 @@ function PublisherSelect({ publishers, value, onChange }) {
             <input 
               autoFocus
               className="form-input" 
-              placeholder="Search publisher..." 
+              placeholder={t('common.search_publisher', 'Search publisher...')} 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
               style={{ padding: '4px 8px', height: '30px' }}
@@ -106,7 +109,7 @@ function PublisherSelect({ publishers, value, onChange }) {
             onMouseEnter={() => setHoveredId('all')}
             onMouseLeave={() => setHoveredId(null)}
           >
-            All Publishers
+            {t('common.all_publishers', 'All Publishers')}
           </div>
           {filtered.map(p => {
             const isSelected = String(value) === String(p.id)
@@ -132,7 +135,7 @@ function PublisherSelect({ publishers, value, onChange }) {
             )
           })}
           {filtered.length === 0 && (
-            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No publishers found</div>
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>{t('common.no_publishers_found', 'No publishers found')}</div>
           )}
         </div>
       )}
@@ -141,6 +144,7 @@ function PublisherSelect({ publishers, value, onChange }) {
 }
 
 function GamAccountSelect({ gamAccounts, value, onChange }) {
+  const { t } = useI18n()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [hoveredId, setHoveredId] = useState(null)
@@ -159,7 +163,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
         onClick={() => setOpen(!open)}
         tabIndex={0}
       >
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? `${selected.name} (${selected.email})` : 'All GAM Accounts'}</span>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? `${selected.name} (${selected.email})` : t('common.all_gam_accounts', 'All GAM Accounts')}</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
       </div>
       {open && (
@@ -181,7 +185,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
             <input 
               autoFocus
               className="form-input" 
-              placeholder="Search account..." 
+              placeholder={t('common.search_account', 'Search account...')} 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
               style={{ padding: '4px 8px', height: '30px' }}
@@ -199,7 +203,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
             onMouseEnter={() => setHoveredId('all')}
             onMouseLeave={() => setHoveredId(null)}
           >
-            All GAM Accounts
+            {t('common.all_gam_accounts', 'All GAM Accounts')}
           </div>
           {filtered.map(a => {
             const isSelected = String(value) === String(a.id)
@@ -225,7 +229,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
             )
           })}
           {filtered.length === 0 && (
-            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No accounts found</div>
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>{t('common.no_accounts_found', 'No accounts found')}</div>
           )}
         </div>
       )}
@@ -235,6 +239,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
 
 export default function GamSyncPage() {
   const { settings, formatDateTime } = useSettings()
+  const { t } = useI18n()
   const fmt = (dt) => {
     if (!dt) return '—'
     return formatDateTime(dt, true)
@@ -275,6 +280,8 @@ export default function GamSyncPage() {
   const [gamAccounts, setGamAccounts] = useState([])
   const [output,    setOutput]    = useState('')
   const [showOutput, setShowOutput] = useState(false)
+  const [logsPage, setLogsPage] = useState(1)
+  const LOGS_PAGE_SIZE = 20
 
   const [filters, setFilters] = useState({
     date_from:      threeDaysAgo,
@@ -313,7 +320,7 @@ export default function GamSyncPage() {
       setLogs(res.data || [])
     } catch (err) {
       console.error('sync-logs error:', err)
-      if (showError) toast.error('Could not load sync history')
+      if (showError) toast.error(t('sync.toast_load_fail', 'Could not load sync history'))
     } finally {
       setLogsLoading(false)
     }
@@ -358,13 +365,13 @@ export default function GamSyncPage() {
       const res = await adminApi.runSync(payload)
       console.log('Sending sync payload:', payload)
       setOutput(res.data.output || 'Sync completed.')
-      toast.success('GAM Sync completed successfully!')
+      toast.success(t('sync.toast_success', 'GAM Sync completed successfully!'))
       // Reload only logs after sync — wait briefly so PHP server is fully free
       setTimeout(() => loadLogs(true), 800)
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Sync failed'
       setOutput(msg)
-      toast.error('Sync failed: ' + msg)
+      toast.error(t('sync.toast_fail', 'Sync failed') + ': ' + msg)
     } finally {
       setSyncing(false)
     }
@@ -380,10 +387,10 @@ export default function GamSyncPage() {
         <div>
           <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <RefreshCw size={26} style={{ color: 'var(--br-primary)' }} />
-            <span>Manual Sync Center</span>
+            <span>{t('sync.title', 'Manual Sync Center')}</span>
           </h1>
           <p style={{ margin: '4px 0 0', color: 'var(--color-text-subtle)', fontSize: 14 }}>
-            Trigger targeted GAM data synchronisation with custom filters
+            {t('sync.subtitle', 'Trigger targeted GAM data synchronisation with custom filters')}
           </p>
         </div>
       </div>
@@ -401,31 +408,31 @@ export default function GamSyncPage() {
           alignItems: 'center',
         }}>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Last Sync</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.last_sync', 'Last Sync')}</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' }}>{fmt(lastSync.started_at)}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Type</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.type', 'Type')}</div>
             <TriggerBadge triggeredBy={lastSync.triggered_by} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Status</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('common.status', 'Status')}</div>
             <StatusBadge status={lastSync.status} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Duration</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.duration', 'Duration')}</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' }}>{fmtDuration(lastSync.duration_sec)}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Rows Matched</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.rows_matched', 'Rows Matched')}</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#10b981' }}>{lastSync.rows_matched ?? 0}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Rows Skipped</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.rows_skipped', 'Rows Skipped')}</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#f59e0b' }}>{lastSync.rows_skipped ?? 0}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Locked</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.locked', 'Locked')}</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b' }}>{lastSync.rows_locked ?? 0}</div>
           </div>
         </div>
@@ -434,12 +441,12 @@ export default function GamSyncPage() {
       {/* Filter Panel */}
       <div className="card" style={{ padding: 24, position: 'relative', zIndex: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>
-          Sync Filters
+          {t('sync.filters', 'Sync Filters')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Date From</label>
+            <label className="form-label">{t('sync.date_from', 'Date From')}</label>
             <input
               id="sync-date-from"
               type="date"
@@ -451,7 +458,7 @@ export default function GamSyncPage() {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Date To</label>
+            <label className="form-label">{t('sync.date_to', 'Date To')}</label>
             <input
               id="sync-date-to"
               type="date"
@@ -464,7 +471,7 @@ export default function GamSyncPage() {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Publisher (optional)</label>
+            <label className="form-label">{t('sync.publisher_optional', 'Publisher (optional)')}</label>
             <PublisherSelect
               publishers={publishers}
               value={filters.publisher_id}
@@ -473,7 +480,7 @@ export default function GamSyncPage() {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">GAM Account (optional)</label>
+            <label className="form-label">{t('sync.gam_account_optional', 'GAM Account (optional)')}</label>
             <GamAccountSelect
               gamAccounts={gamAccounts}
               value={filters.gam_account_id}
@@ -507,7 +514,7 @@ export default function GamSyncPage() {
             style={{ color: '#ef4444' }}
             onClick={() => setFilters(f => ({ ...f, publisher_id: '', gam_account_id: '', date_from: threeDaysAgo, date_to: today }))}
           >
-            Reset Filters
+            {t('common.reset_filters', 'Reset Filters')}
           </button>
         </div>
 
@@ -520,9 +527,9 @@ export default function GamSyncPage() {
             style={{ fontSize: 15, padding: '10px 28px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
             {syncing ? (
-              <><RefreshCw size={14} className="spinner" /> Syncing…</>
+              <><RefreshCw size={14} className="spinner" /> {t('common.syncing', 'Syncing…')}</>
             ) : (
-              <><Play size={14} /> Run Sync Now</>
+              <><Play size={14} /> {t('sync.run_sync_btn', 'Run Sync Now')}</>
             )}
           </button>
         </div>
@@ -538,9 +545,9 @@ export default function GamSyncPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-subtle)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Terminal size={14} /> Sync Output
+              <Terminal size={14} /> {t('sync.output_title', 'Sync Output')}
             </span>
-            <button className="btn btn-secondary btn-xs" onClick={() => setShowOutput(false)}>✕ Hide</button>
+            <button className="btn btn-secondary btn-xs" onClick={() => setShowOutput(false)}>✕ {t('common.hide', 'Hide')}</button>
           </div>
           <pre
             ref={outputRef}
@@ -572,7 +579,7 @@ export default function GamSyncPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <History size={16} /> Sync History
+            <History size={16} /> {t('sync.history', 'Sync History')}
           </span>
           <button
             className="btn btn-secondary btn-xs"
@@ -580,15 +587,15 @@ export default function GamSyncPage() {
             disabled={logsLoading}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            {logsLoading ? '…' : <><RefreshCw size={12} /> Refresh</>}
+            {logsLoading ? '…' : <><RefreshCw size={12} /> {t('common.refresh', 'Refresh')}</>}
           </button>
         </div>
 
         {logsLoading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-subtle)' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-subtle)' }}>{t('common.loading', 'Loading…')}</div>
         ) : logs.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-subtle)' }}>
-            No sync history yet. Run your first sync above.
+            {t('sync.no_history', 'No sync history yet. Run your first sync above.')}
           </div>
         ) : (
           <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
@@ -596,19 +603,19 @@ export default function GamSyncPage() {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Started</th>
-                  <th>Duration</th>
-                  <th>Fetched</th>
-                  <th>Matched</th>
-                  <th>Skipped</th>
-                  <th>Locked</th>
-                  <th>Notes</th>
+                  <th>{t('sync.col_type', 'Type')}</th>
+                  <th>{t('common.status', 'Status')}</th>
+                  <th>{t('sync.col_started', 'Started')}</th>
+                  <th>{t('sync.duration', 'Duration')}</th>
+                  <th>{t('sync.col_fetched', 'Fetched')}</th>
+                  <th>{t('sync.rows_matched', 'Matched')}</th>
+                  <th>{t('sync.rows_skipped', 'Skipped')}</th>
+                  <th>{t('sync.locked', 'Locked')}</th>
+                  <th>{t('sync.col_notes', 'Notes')}</th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log, idx) => (
+                {logs.slice((logsPage - 1) * LOGS_PAGE_SIZE, logsPage * LOGS_PAGE_SIZE).map((log, idx) => (
                   <tr key={log.id} style={{ opacity: log.status === 'failed' ? 0.8 : 1 }}>
                     <td style={{ color: 'var(--color-text-subtle)', fontSize: 12 }}>
                       {logs.length - idx}
@@ -653,6 +660,12 @@ export default function GamSyncPage() {
             </table>
           </div>
         )}
+        <Pagination
+          currentPage={logsPage}
+          totalItems={logs.length}
+          pageSize={LOGS_PAGE_SIZE}
+          onPageChange={setLogsPage}
+        />
       </div>
 
       {/* Stats Overview Cards */}
@@ -660,37 +673,37 @@ export default function GamSyncPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
           {[
             {
-              label: 'Total Syncs',
+              label: t('sync.stat_total', 'Total Syncs'),
               value: logs.length,
               icon: <RefreshCw size={20} />,
               color: '#8b5cf6',
             },
             {
-              label: 'Manual Syncs',
+              label: t('sync.stat_manual', 'Manual Syncs'),
               value: logs.filter(l => l.triggered_by === 'manual').length,
               icon: <User size={20} />,
               color: '#a78bfa',
             },
             {
-              label: 'Auto Syncs',
+              label: t('sync.stat_auto', 'Auto Syncs'),
               value: logs.filter(l => l.triggered_by === 'scheduler').length,
               icon: <Cpu size={20} />,
               color: '#3b82f6',
             },
             {
-              label: 'Successful',
+              label: t('sync.stat_successful', 'Successful'),
               value: logs.filter(l => l.status === 'success').length,
               icon: <Check size={20} />,
               color: '#10b981',
             },
             {
-              label: 'Failed',
+              label: t('sync.stat_failed', 'Failed'),
               value: logs.filter(l => l.status === 'failed').length,
               icon: <X size={20} />,
               color: '#ef4444',
             },
             {
-              label: 'Total Rows Matched',
+              label: t('sync.stat_rows_matched', 'Total Rows Matched'),
               value: logs.reduce((s, l) => s + (l.rows_matched || 0), 0).toLocaleString(),
               icon: <BarChart2 size={20} />,
               color: '#f59e0b',

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { DollarSign, RefreshCw, Search, Lock, Clock, Check, X, Filter } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 function PublisherSelect({ publishers, value, onChange, style }) {
   const [search, setSearch] = useState('')
@@ -21,7 +22,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
         onClick={() => setOpen(!open)}
         tabIndex={0}
       >
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : 'All Publishers'}</span>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.name : t('common.all_publishers', 'All Publishers')}</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
       </div>
       {open && (
@@ -43,7 +44,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
             <input 
               autoFocus
               className="form-input" 
-              placeholder="Search publisher..." 
+              placeholder={t('common.search_publisher', 'Search publisher...')} 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
               style={{ padding: '4px 8px', height: '30px' }}
@@ -61,7 +62,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
             onMouseEnter={() => setHoveredId('all')}
             onMouseLeave={() => setHoveredId(null)}
           >
-            All Publishers
+            {t('common.all_publishers', 'All Publishers')}
           </div>
           {filtered.map(p => {
             const isSelected = value === p.id
@@ -87,7 +88,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
             )
           })}
           {filtered.length === 0 && (
-            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>No publishers found</div>
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>{t('common.no_publishers', 'No publishers found')}</div>
           )}
         </div>
       )}
@@ -96,6 +97,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
 }
 
 export default function RevenuePage() {
+  const { t } = useI18n()
   const [records, setRecords] = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -136,7 +138,7 @@ export default function RevenuePage() {
       const res = await adminApi.getRevenue(params)
       setRecords(res.data?.data || [])
       setPage(1)
-    } catch { toast.error('Failed to load revenue') }
+    } catch { toast.error(t('revenue.toast_load_fail', 'Failed to load revenue')) }
     finally { setLoading(false) }
   }
 
@@ -202,9 +204,9 @@ export default function RevenuePage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <DollarSign size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Revenue</span>
+            <span>{t('revenue.title', 'Revenue')}</span>
           </h1>
-          <p className="page-subtitle">{records.length} records · Full admin view</p>
+          <p className="page-subtitle">{records.length} {t('revenue.records_label', 'records')} · {t('revenue.full_admin_view', 'Full admin view')}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
@@ -213,7 +215,7 @@ export default function RevenuePage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('common.hide_filters', 'Hide Filters') : t('common.show_filters', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -232,7 +234,7 @@ export default function RevenuePage() {
             )}
           </button>
           <button id="apply-revenue-filters-btn" className="btn btn-secondary" onClick={loadData}>
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} /> {t('common.refresh', 'Refresh')}
           </button>
         </div>
       </div>
@@ -247,17 +249,17 @@ export default function RevenuePage() {
               gap: 12 
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date From</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('revenue.filter_date_from', 'Date From')}</label>
                 <input type="date" className="form-input" value={filters.date_from}
                   onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} style={{ height: 38 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date To</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('revenue.filter_date_to', 'Date To')}</label>
                 <input type="date" className="form-input" value={filters.date_to}
                   onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} style={{ height: 38 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('common.publisher', 'Publisher')}</label>
                 <PublisherSelect 
                   publishers={publishers} 
                   value={filters.publisher_id} 
@@ -265,19 +267,19 @@ export default function RevenuePage() {
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('common.status', 'Status')}</label>
                 <select className="form-select" value={filters.status}
                   onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} style={{ height: 38 }}>
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="closed">Closed</option>
+                  <option value="">{t('common.all_statuses', 'All Statuses')}</option>
+                  <option value="pending">{t('common.status_pending', 'Pending')}</option>
+                  <option value="approved">{t('common.status_approved', 'Approved')}</option>
+                  <option value="closed">{t('common.status_closed', 'Closed')}</option>
                 </select>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200 }} className="filter-search-field">
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('common.search', 'Search')}</label>
                 <div style={{ position: 'relative' }}>
-                  <input className="form-input" placeholder="Search publishers, domains, ad units…" style={{ height: 38, paddingLeft: 36 }}
+                  <input className="form-input" placeholder={t('revenue.search_placeholder', 'Search publishers, domains, ad units…')} style={{ height: 38, paddingLeft: 36 }}
                     value={filters.search}
                     onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
                   <Search size={14} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--color-text-muted)' }} />
@@ -288,7 +290,7 @@ export default function RevenuePage() {
             {(hasAppliedFilters || records.length !== sortedRecords.length) && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
                 <span className="text-muted text-sm">
-                  Showing {records.length} records
+                  {t('revenue.showing', 'Showing')} {records.length} {t('revenue.records_label', 'records')}
                 </span>
                 {hasAppliedFilters && (
                   <button className="btn btn-secondary btn-xs" onClick={resetFilters}
@@ -302,7 +304,7 @@ export default function RevenuePage() {
                       padding: '6px 12px',
                       fontWeight: 600,
                     }}>
-                    <X size={12} /> Clear Filters
+                    <X size={12} /> {t('common.clear_filters', 'Clear Filters')}
                   </button>
                 )}
               </div>
@@ -313,15 +315,15 @@ export default function RevenuePage() {
 
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: 24 }}>
         <div className="stat-card primary">
-          <div className="stat-label">Total Gross Revenue</div>
+          <div className="stat-label">{t('revenue.stat_total_gross', 'Total Gross Revenue')}</div>
           <div className="stat-value money"><CompactAmount value={totalGross} /></div>
         </div>
         <div className="stat-card accent">
-          <div className="stat-label">Publisher Earnings</div>
+          <div className="stat-label">{t('revenue.stat_pub_earnings', 'Publisher Earnings')}</div>
           <div className="stat-value money"><CompactAmount value={totalEarnings} /></div>
         </div>
         <div className="stat-card info">
-          <div className="stat-label">Total Impressions</div>
+          <div className="stat-label">{t('revenue.stat_impressions', 'Total Impressions')}</div>
           <div className="stat-value">
             <CompactAmount value={totalImpr} prefix="" decimals={0} />
           </div>
@@ -336,15 +338,15 @@ export default function RevenuePage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>Date {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>Ad Unit {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>Impressions {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>{t('revenue.col_date', 'Date')} {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>{t('revenue.col_ad_unit', 'Ad Unit')} {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>{t('revenue.col_impressions', 'Impressions')} {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
                   <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>CTR {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('cpm')} style={{cursor: 'pointer'}}>Gross CPM {sortField === 'cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th onClick={() => handleSort('gross_revenue')} style={{cursor: 'pointer'}}>Gross Revenue {sortField === 'gross_revenue' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th>Ratio</th>
-                  <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>Pub. Earnings {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                  <th>Status</th>
+                  <th onClick={() => handleSort('cpm')} style={{cursor: 'pointer'}}>{t('revenue.col_gross_cpm', 'Gross CPM')} {sortField === 'cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th onClick={() => handleSort('gross_revenue')} style={{cursor: 'pointer'}}>{t('revenue.col_gross_revenue', 'Gross Revenue')} {sortField === 'gross_revenue' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th>{t('revenue.col_ratio', 'Ratio')}</th>
+                  <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>{t('revenue.col_pub_earnings', 'Pub. Earnings')} {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                  <th>{t('common.status', 'Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,7 +354,7 @@ export default function RevenuePage() {
                   <tr><td colSpan={11}>
                     <div className="empty-state">
                       <div className="empty-state-icon"><DollarSign size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-                      <div className="empty-state-text">No revenue records for this period</div>
+                      <div className="empty-state-text">{t('revenue.no_records', 'No revenue records for this period')}</div>
                     </div>
                   </td></tr>
                 )}
@@ -381,17 +383,17 @@ export default function RevenuePage() {
                       {r.period_closing_id ? (
                         <span className="badge badge-closed">
                           <Lock size={12} />
-                          Closed
+                          {t('revenue.status_closed', 'Closed')}
                         </span>
                       ) : r.approval_status === 'pending' ? (
                         <span className="badge badge-pending">
                           <Clock size={12} />
-                          Pending
+                          {t('revenue.status_pending', 'Pending')}
                         </span>
                       ) : (
                         <span className="badge badge-approved">
                           <Check size={12} />
-                          Approved
+                          {t('revenue.status_approved', 'Approved')}
                         </span>
                       )}
                     </td>
@@ -401,7 +403,7 @@ export default function RevenuePage() {
               {records.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>{t('period.totals', 'Totals')}</td>
                     <td className="money">
                       <CompactAmount value={totalImpr} prefix="" decimals={0} />
                     </td>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { Mail, Send, RotateCcw, Save, Edit2, Eye, Paperclip } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 const VARIABLES = [
   { key: '{{ name }}',              desc: 'Publisher full name' },
@@ -18,6 +19,7 @@ const VARIABLES = [
 ]
 
 export default function EmailTemplatesPage() {
+  const { t } = useI18n()
   const [templates, setTemplates] = useState([])
   const [selectedKey, setSelectedKey] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ export default function EmailTemplatesPage() {
       if (res.data?.length > 0) {
         selectTemplate(res.data[0])
       }
-    } catch { toast.error('Failed to load email templates') }
+    } catch { toast.error(t('email_tpl.toast_load_fail', 'Failed to load email templates')) }
     finally { setLoading(false) }
   }
 
@@ -59,9 +61,9 @@ export default function EmailTemplatesPage() {
         ? { ...t, subject: form.subject, body: form.body, is_customized: true }
         : t
       ))
-      toast.success('Template saved!')
+      toast.success(t('email_tpl.toast_saved', 'Template saved!'))
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to save template.')
+      toast.error(e.response?.data?.message || t('email_tpl.toast_save_fail', 'Failed to save template.'))
     } finally { setSaving(false) }
   }
 
@@ -69,14 +71,14 @@ export default function EmailTemplatesPage() {
     setPreviewing(true)
     try {
       const res = await adminApi.previewEmailTemplate(selectedKey)
-      toast.success(res.data?.message || 'Preview sent!')
+      toast.success(res.data?.message || t('email_tpl.toast_preview_sent', 'Preview sent!'))
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to send preview.')
+      toast.error(e.response?.data?.message || t('email_tpl.toast_preview_fail', 'Failed to send preview.'))
     } finally { setPreviewing(false) }
   }
 
   async function handleReset() {
-    if (!confirm('Reset this template to the default? Your custom changes will be lost.')) return
+    if (!confirm(t('email_tpl.confirm_reset', 'Reset this template to the default? Your custom changes will be lost.'))) return
     setResetting(true)
     try {
       const res = await adminApi.resetEmailTemplate(selectedKey)
@@ -86,9 +88,9 @@ export default function EmailTemplatesPage() {
         ? { ...t, subject: default_subject, body: default_body, is_customized: false }
         : t
       ))
-      toast.success('Reset to default.')
+      toast.success(t('email_tpl.toast_reset', 'Reset to default.'))
     } catch (e) {
-      toast.error('Failed to reset template.')
+      toast.error(t('email_tpl.toast_reset_fail', 'Failed to reset template.'))
     } finally { setResetting(false) }
   }
 
@@ -116,9 +118,9 @@ export default function EmailTemplatesPage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Mail size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Email Templates</span>
+            <span>{t('email_tpl.title', 'Email Templates')}</span>
           </h1>
-          <p className="page-subtitle">Customize the subject and content of all system emails</p>
+          <p className="page-subtitle">{t('email_tpl.subtitle', 'Customize the subject and content of all system emails')}</p>
         </div>
       </div>
 
@@ -126,7 +128,7 @@ export default function EmailTemplatesPage() {
         {/* Left: Template list */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', fontWeight: 700, fontSize: 13, color: 'var(--color-text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Email Templates
+            {t('email_tpl.list_header', 'Email Templates')}
           </div>
           {templates.map(t => (
             <button
@@ -176,7 +178,7 @@ export default function EmailTemplatesPage() {
                     disabled={previewing}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {previewing ? 'Sending…' : <><Send size={14} /> Send Test Email</>}
+                    {previewing ? t('email_tpl.sending', 'Sending…') : <><Send size={14} /> {t('email_tpl.send_test', 'Send Test Email')}</>}
                   </button>
                   {selected.is_customized && (
                     <button
@@ -186,7 +188,7 @@ export default function EmailTemplatesPage() {
                       disabled={resetting}
                       style={{ color: 'var(--color-warning)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      {resetting ? 'Resetting…' : <><RotateCcw size={14} /> Reset Default</>}
+                      {resetting ? t('email_tpl.resetting', 'Resetting…') : <><RotateCcw size={14} /> {t('email_tpl.reset_default', 'Reset Default')}</>}
                     </button>
                   )}
                   <button
@@ -196,7 +198,7 @@ export default function EmailTemplatesPage() {
                     disabled={saving || !isDirty}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {saving ? 'Saving…' : <><Save size={14} /> Save Template</>}
+                    {saving ? t('common.saving', 'Saving…') : <><Save size={14} /> {t('email_tpl.save_template', 'Save Template')}</>}
                   </button>
                 </div>
               </div>
@@ -205,7 +207,7 @@ export default function EmailTemplatesPage() {
             {/* Subject */}
             <div className="card">
               <div className="card-header">
-                <div className="card-title">Subject Line</div>
+                <div className="card-title">{t('email_tpl.subject_line', 'Subject Line')}</div>
               </div>
               <input
                 id="template-subject"
@@ -222,10 +224,10 @@ export default function EmailTemplatesPage() {
             {/* Body editor */}
             <div className="card">
               <div className="card-header">
-                <div className="card-title">Email Body (HTML)</div>
+                <div className="card-title">{t('email_tpl.email_body', 'Email Body (HTML)')}</div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button className={`btn btn-xs ${previewTab==='edit' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('edit')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
-                  <button className={`btn btn-xs ${previewTab==='preview' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('preview')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={12} /> Preview</button>
+                  <button className={`btn btn-xs ${previewTab==='edit' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('edit')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> {t('common.edit', 'Edit')}</button>
+                  <button className={`btn btn-xs ${previewTab==='preview' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setPreviewTab('preview')} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={12} /> {t('email_tpl.preview', 'Preview')}</button>
                 </div>
               </div>
 
@@ -256,9 +258,9 @@ export default function EmailTemplatesPage() {
               <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Paperclip size={18} style={{ color: 'var(--br-primary)' }} />
-                  <span>Available Variables</span>
+                  <span>{t('email_tpl.available_variables', 'Available Variables')}</span>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Click to insert at cursor position</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('email_tpl.click_to_insert', 'Click to insert at cursor position')}</div>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {VARIABLES.map(v => (
@@ -285,7 +287,7 @@ export default function EmailTemplatesPage() {
           </div>
         ) : (
           <div className="card" style={{ padding: 60, textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            Select a template from the left to edit it.
+            {t('email_tpl.select_template', 'Select a template from the left to edit it.')}
           </div>
         )}
       </div>

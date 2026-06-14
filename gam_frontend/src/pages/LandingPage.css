@@ -12,6 +12,10 @@
   font-family: 'Inter', sans-serif;
 }
 
+[dir="rtl"] .landing-wrapper {
+  font-family: 'Tajawal', sans-serif;
+}
+
 /* Background Gradients & Glows */
 .landing-glow-1 {
   position: absolute;

@@ -4,14 +4,13 @@ import { publisherApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
-import { 
-  MessageSquare, Plus, Clock, HelpCircle, CheckCircle, Lock, AlertTriangle, 
-  User, Settings, Mail, X, Filter 
-} from 'lucide-react'
+import { MessageSquare, Plus, Clock, HelpCircle, CheckCircle, Lock, AlertTriangle, User, Settings, Mail, X, Filter } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 export default function PublisherTickets() {
   const { formatDate } = useSettings()
   const navigate = useNavigate()
+  const { t } = useI18n()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -39,7 +38,7 @@ export default function PublisherTickets() {
       })
       .catch(err => {
         console.error('PUBLISHER TICKETS FETCH ERROR:', err)
-        toast.error('Failed to load tickets')
+        toast.error(t('tickets.toast_load_fail', 'Failed to load tickets'))
       })
       .finally(() => setLoading(false))
   }
@@ -50,7 +49,7 @@ export default function PublisherTickets() {
 
   const handleOpenModal = () => {
     if (hasActiveTicket) {
-      toast.error('You already have an active support ticket. Please resolve or close it before opening a new one.')
+      toast.error(t('tickets.toast_already_active', 'You already have an active support ticket. Please resolve or close it before opening a new one.'))
       return
     }
     setSubject('')
@@ -63,7 +62,7 @@ export default function PublisherTickets() {
   const handleCreateTicket = async (e) => {
     e.preventDefault()
     if (!subject.trim() || !message.trim()) {
-      toast.error('Subject and message details are required.')
+      toast.error(t('tickets.toast_required_fields', 'Subject and message details are required.'))
       return
     }
 
@@ -75,12 +74,12 @@ export default function PublisherTickets() {
         priority,
         message
       })
-      toast.success(res.data?.message || 'Support ticket opened successfully!')
+      toast.success(res.data?.message || t('tickets.toast_success', 'Support ticket opened successfully!'))
       setIsModalOpen(false)
       setPage(1)
       fetchTickets()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to open ticket.')
+      toast.error(err.response?.data?.message || t('tickets.toast_create_fail', 'Failed to open ticket.'))
     } finally {
       setSubmitting(false)
     }
@@ -91,25 +90,25 @@ export default function PublisherTickets() {
       case 'open':
         return (
           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Clock size={12} /> Open
+            <Clock size={12} /> {t('tickets.status_open', 'Open')}
           </span>
         )
       case 'in_progress':
         return (
           <span className="badge badge-info" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Settings size={12} /> In Progress
+            <Settings size={12} /> {t('tickets.status_in_progress', 'In Progress')}
           </span>
         )
       case 'resolved':
         return (
           <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <CheckCircle size={12} /> Resolved
+            <CheckCircle size={12} /> {t('tickets.status_resolved', 'Resolved')}
           </span>
         )
       case 'closed':
         return (
           <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Lock size={12} /> Closed
+            <Lock size={12} /> {t('tickets.status_closed', 'Closed')}
           </span>
         )
       default:
@@ -122,25 +121,25 @@ export default function PublisherTickets() {
       case 'low':
         return (
           <span style={{ color: 'var(--br-accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-accent)' }} /> Low
+            <span className="dot" style={{ background: 'var(--br-accent)' }} /> {t('tickets.priority_low', 'Low')}
           </span>
         )
       case 'medium':
         return (
           <span style={{ color: 'var(--br-warning)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-warning)' }} /> Medium
+            <span className="dot" style={{ background: 'var(--br-warning)' }} /> {t('tickets.priority_medium', 'Medium')}
           </span>
         )
       case 'high':
         return (
           <span style={{ color: '#f97316', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: '#f97316' }} /> High
+            <span className="dot" style={{ background: '#f97316' }} /> {t('tickets.priority_high', 'High')}
           </span>
         )
       case 'urgent':
         return (
           <span style={{ color: 'var(--br-danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="dot" style={{ background: 'var(--br-danger)' }} /> Urgent
+            <span className="dot" style={{ background: 'var(--br-danger)' }} /> {t('tickets.priority_urgent', 'Urgent')}
           </span>
         )
       default:
@@ -151,14 +150,14 @@ export default function PublisherTickets() {
   const getCategoryLabel = (cat) => {
     switch (cat) {
       case 'billing':
-        return 'Billing'
+        return t('tickets.category_billing', 'Billing')
       case 'technical':
-        return 'Technical'
+        return t('tickets.category_technical', 'Technical')
       case 'gam':
-        return 'GAM Sync'
+        return t('tickets.category_gam', 'GAM Sync')
       case 'other':
       default:
-        return 'Other'
+        return t('tickets.category_other', 'Other')
     }
   }
 
@@ -174,14 +173,14 @@ export default function PublisherTickets() {
         <div>
           <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <MessageSquare size={24} style={{ color: 'var(--br-primary)' }} />
-            Support Tickets
+            {t('tickets.title', 'Support Tickets')}
           </h1>
           <p className="page-subtitle">
-            Need help? Open a ticket to reach our administration team directly.
+            {t('tickets.subtitle', 'Need help? Open a ticket to reach our administration team directly.')}
           </p>
           {hasActiveTicket && (
             <p style={{ color: 'var(--br-warning)', fontSize: 13, marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-              <AlertTriangle size={14} /> You have an active support ticket. You must close or resolve it before you can open a new one.
+              <AlertTriangle size={14} /> {t('tickets.active_warning', 'You have an active support ticket. You must close or resolve it before you can open a new one.')}
             </p>
           )}
         </div>
@@ -192,7 +191,7 @@ export default function PublisherTickets() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('tickets.hide_filters', 'Hide Filters') : t('tickets.show_filters', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -215,9 +214,9 @@ export default function PublisherTickets() {
             onClick={handleOpenModal}
             disabled={hasActiveTicket}
             style={hasActiveTicket ? { opacity: 0.6, cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 } : { display: 'inline-flex', alignItems: 'center', gap: 8 }}
-            title={hasActiveTicket ? "You already have an active ticket" : "Open a new ticket"}
+            title={hasActiveTicket ? t('tickets.already_active_title', 'You already have an active ticket') : t('tickets.open_ticket_title', 'Open a new ticket')}
           >
-            <Plus size={16} /> Open Support Ticket
+            <Plus size={16} /> {t('tickets.open_ticket_btn', 'Open Support Ticket')}
           </button>
         </div>
       </div>
@@ -226,22 +225,22 @@ export default function PublisherTickets() {
       {showFiltersPanel && (
         <div className="glass-card" style={{ marginBottom: 20, padding: '16px 20px', position: 'relative', zIndex: 10 }}>
           <div className="responsive-filters">
-          <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Filter Status</label>
-            <select
-              className="form-select"
-              value={filterStatus}
-              onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
-            >
-              <option value="">All Tickets</option>
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
+            <div>
+              <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('tickets.filter_status_label', 'Filter Status')}</label>
+              <select
+                className="form-select"
+                value={filterStatus}
+                onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
+              >
+                <option value="">{t('tickets.filter_all', 'All Tickets')}</option>
+                <option value="open">{t('tickets.status_open', 'Open')}</option>
+                <option value="in_progress">{t('tickets.status_in_progress', 'In Progress')}</option>
+                <option value="resolved">{t('tickets.status_resolved', 'Resolved')}</option>
+                <option value="closed">{t('tickets.status_closed', 'Closed')}</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Tickets List */}
@@ -252,45 +251,45 @@ export default function PublisherTickets() {
               <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                 <MessageSquare size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
               </div>
-              <div className="empty-state-text">No support tickets found</div>
-              <div className="empty-state-sub">If you have any questions, feel free to open a ticket above.</div>
+              <div className="empty-state-text">{t('tickets.empty_title', 'No support tickets found')}</div>
+              <div className="empty-state-sub">{t('tickets.empty_subtitle', 'If you have any questions, feel free to open a ticket above.')}</div>
             </div>
           ) : (
             <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Ticket Subject</th>
-                    <th>Category</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Assigned Agent</th>
-                    <th>Last Update</th>
+                    <th>{t('tickets.table_subject', 'Ticket Subject')}</th>
+                    <th>{t('tickets.table_category', 'Category')}</th>
+                    <th>{t('tickets.table_priority', 'Priority')}</th>
+                    <th>{t('tickets.table_status', 'Status')}</th>
+                    <th>{t('tickets.table_agent', 'Assigned Agent')}</th>
+                    <th>{t('tickets.table_updated', 'Last Update')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.map(t => (
+                  {tickets.map(tData => (
                     <tr
-                      key={t.id}
-                      onClick={() => navigate(`/publisher/tickets/${t.id}`)}
+                      key={tData.id}
+                      onClick={() => navigate(`/publisher/tickets/${tData.id}`)}
                       style={{ cursor: 'pointer' }}
                     >
                       <td style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-                        {t.subject}
+                        {tData.subject}
                       </td>
-                      <td>{getCategoryLabel(t.category)}</td>
-                      <td>{getPriorityBadge(t.priority)}</td>
-                      <td>{getStatusBadge(t.status)}</td>
-                      <td style={{ color: t.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)' }}>
-                        {t.assignee ? (
+                      <td>{getCategoryLabel(tData.category)}</td>
+                      <td>{getPriorityBadge(tData.priority)}</td>
+                      <td>{getStatusBadge(tData.status)}</td>
+                      <td style={{ color: tData.assignee ? 'var(--color-text)' : 'var(--color-text-subtle)' }}>
+                        {tData.assignee ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <User size={12} style={{ color: 'var(--br-primary)' }} />
-                            {t.assignee.name}
+                            {tData.assignee.name}
                           </span>
-                        ) : 'Unassigned'}
+                        ) : t('tickets.unassigned', 'Unassigned')}
                       </td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                        {formatDate(t.updated_at)}
+                        {formatDate(tData.updated_at)}
                       </td>
                     </tr>
                   ))}
@@ -316,7 +315,7 @@ export default function PublisherTickets() {
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Mail size={18} style={{ color: 'var(--br-primary)' }} />
-                Create Support Ticket
+                {t('tickets.modal_title', 'Create Support Ticket')}
               </h3>
               <button className="modal-close" onClick={() => setIsModalOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={16} />
@@ -324,11 +323,11 @@ export default function PublisherTickets() {
             </div>
             <form onSubmit={handleCreateTicket}>
               <div className="form-group">
-                <label className="form-label">Subject</label>
+                <label className="form-label">{t('tickets.subject_label', 'Subject')}</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Google Ad Manager sync failing, Payout issue"
+                  placeholder={t('tickets.subject_placeholder', 'e.g. Google Ad Manager sync failing, Payout issue')}
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
                   required
@@ -337,40 +336,40 @@ export default function PublisherTickets() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Category</label>
+                  <label className="form-label">{t('tickets.category_label', 'Category')}</label>
                   <select
                     className="form-select"
                     value={category}
                     onChange={e => setCategory(e.target.value)}
                   >
-                    <option value="billing">Billing Inquiry</option>
-                    <option value="technical">Technical Issue</option>
-                    <option value="gam">Google Ad Manager Sync</option>
-                    <option value="other">Other Question</option>
+                    <option value="billing">{t('tickets.category_billing_option', 'Billing Inquiry')}</option>
+                    <option value="technical">{t('tickets.category_technical_option', 'Technical Issue')}</option>
+                    <option value="gam">{t('tickets.category_gam_option', 'Google Ad Manager Sync')}</option>
+                    <option value="other">{t('tickets.category_other_option', 'Other Question')}</option>
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Priority</label>
+                  <label className="form-label">{t('tickets.priority_label', 'Priority')}</label>
                   <select
                     className="form-select"
                     value={priority}
                     onChange={e => setPriority(e.target.value)}
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">{t('tickets.priority_low_option', 'Low')}</option>
+                    <option value="medium">{t('tickets.priority_medium_option', 'Medium')}</option>
+                    <option value="high">{t('tickets.priority_high_option', 'High')}</option>
+                    <option value="urgent">{t('tickets.priority_urgent_option', 'Urgent')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Message Details</label>
+                <label className="form-label">{t('tickets.message_label', 'Message Details')}</label>
                 <textarea
                   className="form-textarea"
                   rows={6}
-                  placeholder="Please describe your problem or question in detail so we can assist you quickly..."
+                  placeholder={t('tickets.message_placeholder', 'Please describe your problem or question in detail so we can assist you quickly...')}
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   required
@@ -384,7 +383,7 @@ export default function PublisherTickets() {
                   disabled={submitting}
                   onClick={() => setIsModalOpen(false)}
                 >
-                  Cancel
+                  {t('tickets.cancel_btn', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -392,7 +391,7 @@ export default function PublisherTickets() {
                   disabled={submitting}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  {submitting ? 'Submitting...' : <><Mail size={16} /> Submit Ticket</>}
+                  {submitting ? t('tickets.submitting', 'Submitting...') : <><Mail size={16} /> {t('tickets.submit_btn', 'Submit Ticket')}</>}
                 </button>
               </div>
             </form>

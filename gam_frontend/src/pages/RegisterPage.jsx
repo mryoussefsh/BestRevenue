@@ -5,13 +5,12 @@ import toast from 'react-hot-toast'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import { useSettings } from '../contexts/SettingsContext'
-import { 
-  TrendingUp, Lock, ArrowRight, ArrowLeft, Phone, Send, Clock, 
-  AlertTriangle, Check, FileText 
-} from 'lucide-react'
+import { useI18n } from '../contexts/I18nContext'
+import { TrendingUp, Lock, ArrowRight, ArrowLeft, Phone, Send, Clock, AlertTriangle, Check, FileText, Icon } from 'lucide-react'
 
 export default function RegisterPage() {
   const { settings } = useSettings()
+  const { t } = useI18n()
 
   const [form, setForm] = useState({
     name: '',
@@ -37,7 +36,13 @@ export default function RegisterPage() {
   }
   const strength = calculatePasswordStrength(form.password)
   const strengthColors = ['var(--br-border)', 'var(--br-danger)', 'var(--br-warning)', 'var(--br-primary)', 'var(--br-accent)']
-  const strengthLabels = ['Too short', 'Weak', 'Fair', 'Good', 'Strong']
+  const strengthLabels = [
+    t('auth.strength.too_short', 'Too short'),
+    t('auth.strength.weak', 'Weak'),
+    t('auth.strength.fair', 'Fair'),
+    t('auth.strength.good', 'Good'),
+    t('auth.strength.strong', 'Strong')
+  ]
 
   const set = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -52,7 +57,7 @@ export default function RegisterPage() {
     setPendingMessage('')
 
     if (!hasAtLeastOneContact) {
-      setErrors({ contact: 'Please fill in at least one contact method (Phone or Telegram).' })
+      setErrors({ contact: t('auth.error.contact_required', 'Please fill in at least one contact method (Phone or Telegram).') })
       return
     }
 
@@ -73,12 +78,12 @@ export default function RegisterPage() {
         // Store token using same keys as AuthContext
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('user', JSON.stringify(data.user))
-        toast.success('Welcome to BestRevenue! 🎉')
+        toast.success(t('auth.toast.welcome_signup', 'Welcome to {site_name}! 🎉', { site_name: settings.site_name || 'Mindora X' }))
         // Use full page reload so AuthContext picks up the new token
         window.location.href = '/publisher'
       } else {
         // Pending
-        setPendingMessage(data.message || 'Your account is pending admin review.')
+        setPendingMessage(data.message || t('auth.error.pending_review', 'Your account is pending admin review.'))
       }
     } catch (err) {
       const resp = err.response?.data
@@ -89,7 +94,7 @@ export default function RegisterPage() {
         })
         setErrors(fieldErrors)
       } else {
-        setErrors({ general: resp?.message || 'Registration failed. Please try again.' })
+        setErrors({ general: resp?.message || t('auth.error.registration_failed', 'Registration failed. Please try again.') })
       }
     } finally {
       setLoading(false)
@@ -105,14 +110,14 @@ export default function RegisterPage() {
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <Clock size={40} style={{ color: 'var(--br-warning)', marginBottom: 12 }} />
-            <h1 className="auth-title" style={{ fontSize: 22 }}>Registration Received!</h1>
-            <p className="auth-subtitle">Your account is under review</p>
+            <h1 className="auth-title" style={{ fontSize: 22 }}>{t('auth.registration_received', 'Registration Received!')}</h1>
+            <p className="auth-subtitle">{t('auth.account_under_review', 'Your account is under review')}</p>
           </div>
 
           <div className="alert alert-info" style={{ marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <FileText size={18} style={{ color: 'var(--br-primary)', flexShrink: 0, marginTop: 2 }} />
             <div style={{ margin: 0, lineHeight: 1.6 }}>
-              {pendingMessage}
+              {settings.publisher_pending_message || pendingMessage}
             </div>
           </div>
 
@@ -126,12 +131,12 @@ export default function RegisterPage() {
             marginBottom: 24
           }}>
             <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--br-text)' }}>
-              What happens next?
+              {t('auth.what_happens_next', 'What happens next?')}
             </div>
             <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
-              <li>Our team will review your registration</li>
-              <li>Once approved, you'll be able to log in</li>
-              <li>You may be contacted via the contact info you provided</li>
+              <li>{t('auth.review_process_step1', 'Our team will review your registration')}</li>
+              <li>{t('auth.review_process_step2', "Once approved, you'll be able to log in")}</li>
+              <li>{t('auth.review_process_step3', 'You may be contacted via the contact info you provided')}</li>
             </ul>
           </div>
 
@@ -142,7 +147,7 @@ export default function RegisterPage() {
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <ArrowLeft size={16} />
-              Back to Login
+              {t('auth.back_to_login', 'Back to Login')}
             </span>
           </Link>
         </div>
@@ -158,8 +163,8 @@ export default function RegisterPage() {
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <Lock size={40} style={{ color: 'var(--br-danger)', marginBottom: 12 }} />
-            <h1 className="auth-title" style={{ fontSize: 22 }}>Registration Closed</h1>
-            <p className="auth-subtitle">We are not accepting new publisher registrations at this time.</p>
+            <h1 className="auth-title" style={{ fontSize: 22 }}>{t('auth.registration_closed', 'Registration Closed')}</h1>
+            <p className="auth-subtitle">{t('auth.registration_closed_desc', 'We are not accepting new publisher registrations at this time.')}</p>
           </div>
           <Link
             to="/login"
@@ -168,7 +173,7 @@ export default function RegisterPage() {
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <ArrowLeft size={16} />
-              Back to Login
+              {t('auth.back_to_login', 'Back to Login')}
             </span>
           </Link>
         </div>
@@ -195,8 +200,8 @@ export default function RegisterPage() {
               </div>
             </Link>
           )}
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join {settings.site_name || 'BestRevenue'} and start monetizing your traffic</p>
+          <h1 className="auth-title">{t('auth.create_account', 'Create Account')}</h1>
+          <p className="auth-subtitle">{t('auth.join_and_monetize', 'Join {site_name} and start monetizing your traffic', { site_name: settings.site_name || 'BestRevenue' })}</p>
         </div>
 
         {errors.general && (
@@ -209,12 +214,12 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} noValidate>
           {/* Name */}
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-name">Full Name *</label>
+            <label className="form-label" htmlFor="reg-name">{t('auth.full_name_label', 'Full Name *')}</label>
             <input
               id="reg-name"
               type="text"
               className={`form-input${errors.name ? ' is-invalid' : ''}`}
-              placeholder="Your full name"
+              placeholder={t('auth.full_name_placeholder', 'Your full name')}
               pattern="^[a-zA-Z\s]+$"
               title="Name must only contain English letters and spaces."
               value={form.name}
@@ -231,12 +236,12 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-email">Email Address *</label>
+            <label className="form-label" htmlFor="reg-email">{t('auth.email_label', 'Email Address *')}</label>
             <input
               id="reg-email"
               type="email"
               className={`form-input${errors.email ? ' is-invalid' : ''}`}
-              placeholder="you@example.com"
+              placeholder={t('auth.email_placeholder', 'you@example.com')}
               value={form.email}
               onChange={set('email')}
               required
@@ -250,12 +255,12 @@ export default function RegisterPage() {
 
           {/* Password */}
           <div className="form-group" style={{ marginBottom: 24 }}>
-            <label className="form-label" htmlFor="reg-password">Password *</label>
+            <label className="form-label" htmlFor="reg-password">{t('auth.password_label', 'Password *')}</label>
             <input
               id="reg-password"
               type="password"
               className={`form-input${errors.password ? ' is-invalid' : ''}`}
-              placeholder="Min 8 characters"
+              placeholder={t('auth.password_min_chars', 'Min 8 characters')}
               value={form.password}
               onChange={set('password')}
               required
@@ -287,12 +292,12 @@ export default function RegisterPage() {
 
           {/* Confirm Password */}
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-password-confirm">Confirm Password *</label>
+            <label className="form-label" htmlFor="reg-password-confirm">{t('auth.confirm_password_label', 'Confirm Password *')}</label>
             <input
               id="reg-password-confirm"
               type="password"
               className={`form-input${errors.password_confirmation ? ' is-invalid' : ''}`}
-              placeholder="Repeat your password"
+              placeholder={t('auth.confirm_password_placeholder', 'Repeat your password')}
               value={form.password_confirmation}
               onChange={set('password_confirmation')}
               required
@@ -313,10 +318,10 @@ export default function RegisterPage() {
             background: 'rgba(255,255,255,0.01)',
           }}>
             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--br-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Phone size={14} style={{ color: 'var(--br-primary)' }} /> Contact Information <span style={{ color: 'var(--br-danger)' }}>*</span>
+              <Phone size={14} style={{ color: 'var(--br-primary)' }} /> {t('auth.contact_info_label', 'Contact Information *')}
             </div>
             <div style={{ fontSize: 12, color: 'var(--br-text-3)', marginBottom: 12 }}>
-              At least one contact method is required
+              {t('auth.contact_info_desc', 'At least one contact method is required')}
             </div>
 
             {errors.contact && (
@@ -326,7 +331,7 @@ export default function RegisterPage() {
             )}
 
             <div className="form-group" style={{ marginBottom: 12 }}>
-              <label className="form-label" htmlFor="reg-phone" style={{ fontSize: 12 }}>Phone / WhatsApp</label>
+              <label className="form-label" htmlFor="reg-phone" style={{ fontSize: 12 }}>{t('auth.phone_label', 'Phone / WhatsApp')}</label>
               <div className="phone-input-wrapper">
                 {(() => {
                   const PhoneInputComp = PhoneInput.default || PhoneInput;
@@ -336,7 +341,7 @@ export default function RegisterPage() {
                       value={form.phone}
                       onChange={phone => setForm(f => ({ ...f, phone: phone ? (phone.startsWith('+') ? phone : '+' + phone) : '' }))}
                       enableSearch={true}
-                      searchPlaceholder="Search country..."
+                      searchPlaceholder={t('settings.search_country_placeholder', 'Search country...')}
                       inputClass="form-input"
                     />
                   );
@@ -345,12 +350,12 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="reg-telegram" style={{ fontSize: 12 }}>Telegram Username</label>
+              <label className="form-label" htmlFor="reg-telegram" style={{ fontSize: 12 }}>{t('auth.telegram_label', 'Telegram Username')}</label>
               <input
                 id="reg-telegram"
                 type="text"
                 className="form-input"
-                placeholder="@username"
+                placeholder={t('auth.telegram_placeholder', '@username')}
                 value={form.telegram}
                 onChange={set('telegram')}
               />
@@ -365,8 +370,8 @@ export default function RegisterPage() {
             fontSize: 12,
           }}>
             {[
-              { label: 'Phone', val: form.phone, Icon: Phone },
-              { label: 'Telegram', val: form.telegram, Icon: Send },
+              { label: t('auth.phone_pill', 'Phone'), val: form.phone, Icon: Phone },
+              { label: t('auth.telegram_pill', 'Telegram'), val: form.telegram, Icon: Send },
             ].map(({ label, val, Icon }) => (
               <div
                 key={label}
@@ -400,11 +405,11 @@ export default function RegisterPage() {
             {loading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
-                Creating Account…
+                {t('auth.creating_account', 'Creating Account…')}
               </span>
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                Create Publisher Account
+                {t('auth.create_publisher_account_btn', 'Create Publisher Account')}
                 <ArrowRight size={14} />
               </span>
             )}
@@ -412,9 +417,9 @@ export default function RegisterPage() {
         </form>
 
         <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
-          Already have an account?{' '}
+          {t('auth.already_have_account', 'Already have an account?')}{' '}
           <Link to="/login" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none' }}>
-            Sign in here
+            {t('auth.sign_in_here', 'Sign in here')}
           </Link>
         </div>
       </div>

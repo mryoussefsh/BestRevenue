@@ -145,6 +145,16 @@ class GamAccountController extends Controller
         \Illuminate\Support\Facades\Artisan::call('gam:sync', $artisanArgs);
         $output = \Illuminate\Support\Facades\Artisan::output();
 
+        // Read the sync log that was just created to determine actual sync outcome
+        $syncLog = \App\Models\GamSyncLog::where('triggered_by', 'manual')
+            ->orderBy('started_at', 'desc')
+            ->first();
+
+        $syncStatus      = $syncLog?->status ?? 'unknown';
+        $syncError       = $syncLog?->error_message;
+        $rowsFetched     = $syncLog?->rows_fetched ?? 0;
+        $rowsMatched     = $syncLog?->rows_matched ?? 0;
+
         // Log to audit log — wrapped so a logging failure never breaks the response
         try {
             AuditLogService::log(
@@ -153,6 +163,9 @@ class GamAccountController extends Controller
                 null,
                 null,
                 [
+                    'status'         => $syncStatus,
+                    'rows_fetched'   => $rowsFetched,
+                    'rows_matched'   => $rowsMatched,
                     'output'         => substr($output, 0, 2000),
                     'filters'        => $request->only(['date_from', 'date_to', 'publisher_id', 'gam_account_id', 'days']),
                 ]
@@ -161,10 +174,66 @@ class GamAccountController extends Controller
             \Illuminate\Support\Facades\Log::warning('Audit log failed after GAM sync: ' . $e->getMessage());
         }
 
+        // Return appropriate HTTP status based on actual sync result
+        if ($syncStatus === 'failed') {
+            $errText = $syncError ?: __('gam.unknown_error');
+            return response()->json([
+                'message' => __('gam.sync_failed', ['error' => $errText]),
+                'status'  => $syncStatus,
+                'output'  => $output,
+            ], 500);
+        }
+
+        if ($syncStatus === 'partial') {
+            // Extract a clean user-facing reason from the error message
+            $reason = $syncError ? $this->extractSyncErrorReason($syncError) : __('gam.accounts_failed_sync');
+            return response()->json([
+                'message'       => __('gam.sync_completed_errors', ['reason' => $reason]),
+                'status'        => $syncStatus,
+                'rows_fetched'  => $rowsFetched,
+                'rows_matched'  => $rowsMatched,
+                'output'        => $output,
+            ], 422);
+        }
+
         return response()->json([
-            'message' => 'GAM Sync executed successfully.',
-            'output'  => $output,
+            'message'      => __('gam.sync_completed_success'),
+            'status'       => $syncStatus,
+            'rows_fetched' => $rowsFetched,
+            'rows_matched' => $rowsMatched,
+            'output'       => $output,
         ]);
+    }
+
+    /**
+     * Extract a short, user-friendly reason from a raw sync error message.
+     * Avoids exposing raw HTTP responses or internal stack traces to the UI.
+     */
+    private function extractSyncErrorReason(string $errorMessage): string
+    {
+        // OAuth / credential issues
+        if (str_contains($errorMessage, 'invalid_request') || str_contains($errorMessage, 'client ID')) {
+            return __('gam.error_missing_credentials');
+        }
+        if (str_contains($errorMessage, 'invalid_client')) {
+            return __('gam.error_invalid_credentials');
+        }
+        if (str_contains($errorMessage, 'invalid_grant') || str_contains($errorMessage, 'Token has been expired')) {
+            return __('gam.error_token_expired');
+        }
+        if (str_contains($errorMessage, 'authentication failed') || str_contains($errorMessage, 'unauthorized')) {
+            return __('gam.error_auth_failed');
+        }
+        // Network issues
+        if (str_contains($errorMessage, 'cURL error') || str_contains($errorMessage, 'Connection refused')) {
+            return __('gam.error_network');
+        }
+        // Rate limit
+        if (str_contains($errorMessage, '429') || str_contains($errorMessage, 'Too Many Requests')) {
+            return __('gam.error_rate_limit');
+        }
+        // Generic fallback — return first 150 chars of the error, sanitized
+        return substr(strip_tags($errorMessage), 0, 150);
     }
 
     /**

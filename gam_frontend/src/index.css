@@ -3,7 +3,7 @@
    ============================================================ */
 
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 /* ============================================================
    CSS Variables (Light / RTL-aware)
@@ -93,10 +93,11 @@ body {
 /* Arabic body */
 body[dir="rtl"],
 [dir="rtl"] body {
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Tajawal', sans-serif;
 }
 
 a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; }
 button { cursor: pointer; border: none; background: none; }
 ul { list-style: none; }
 input, select, textarea { outline: none; }
@@ -680,6 +681,10 @@ input, select, textarea { outline: none; }
   font-family: 'Inter', sans-serif;
 }
 
+[dir="rtl"] .auth-wrapper {
+  font-family: 'Tajawal', sans-serif;
+}
+
 .auth-glow-1 {
   position: absolute;
   top: -10%;
@@ -1103,6 +1108,11 @@ input, select, textarea { outline: none; }
   font-family: 'Inter', sans-serif !important;
 }
 
+[dir="rtl"] .phone-input-wrapper .react-tel-input,
+[dir="rtl"] .react-tel-input {
+  font-family: 'Tajawal', sans-serif !important;
+}
+
 .phone-input-wrapper .react-tel-input .form-control,
 .react-tel-input .form-control {
   background: rgba(255, 255, 255, 0.03) !important;
@@ -1241,6 +1251,16 @@ input, select, textarea { outline: none; }
 .react-tel-input .country-list .country:hover .dial-code,
 .react-tel-input .country-list .country.highlight .dial-code {
   color: var(--br-primary) !important;
+}
+
+/* Ensure react-phone-input-2 behaves correctly in RTL mode by enforcing LTR layout for the input itself (since phone numbers are always typed and read LTR), but keep the dropdown country list in RTL for premium localized readability. */
+[dir="rtl"] .react-tel-input {
+  direction: ltr !important;
+}
+
+[dir="rtl"] .react-tel-input .country-list {
+  direction: rtl !important;
+  text-align: right !important;
 }
 
 /* ============================================================
@@ -1698,6 +1718,96 @@ input, select, textarea { outline: none; }
   }
 }
 
+/* Announcement Banner RTL Overrides */
+[dir="rtl"] .announcement-banner {
+  padding: 16px 20px 16px 48px !important;
+}
+
+[dir="rtl"] .announcement-banner-text {
+  text-align: right;
+}
+
+[dir="rtl"] .announcement-banner-close {
+  right: auto !important;
+  left: 16px !important;
+}
+
+[dir="rtl"] .announcement-banner.announcement-info {
+  border-left: 1px solid rgba(99, 102, 241, 0.25) !important;
+  border-right: 4px solid var(--br-primary) !important;
+}
+[dir="rtl"] .announcement-banner.announcement-info:hover {
+  border-left-color: rgba(99, 102, 241, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner.announcement-success {
+  border-left: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-right: 4px solid var(--br-accent) !important;
+}
+[dir="rtl"] .announcement-banner.announcement-success:hover {
+  border-left-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner.announcement-warning {
+  border-left: 1px solid rgba(245, 158, 11, 0.25) !important;
+  border-right: 4px solid var(--br-warning) !important;
+}
+[dir="rtl"] .announcement-banner.announcement-warning:hover {
+  border-left-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner.announcement-danger {
+  border-left: 1px solid rgba(244, 63, 94, 0.25) !important;
+  border-right: 4px solid var(--br-danger) !important;
+}
+[dir="rtl"] .announcement-banner.announcement-danger:hover {
+  border-left-color: rgba(244, 63, 94, 0.45) !important;
+}
+
+/* Collapsed Banner RTL Overrides */
+[dir="rtl"] .announcement-banner-collapsed.announcement-info {
+  border-left: 1px solid rgba(99, 102, 241, 0.25) !important;
+  border-right: 4px solid var(--br-primary) !important;
+}
+[dir="rtl"] .announcement-banner-collapsed.announcement-info:hover {
+  border-left-color: rgba(99, 102, 241, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner-collapsed.announcement-success {
+  border-left: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-right: 4px solid var(--br-accent) !important;
+}
+[dir="rtl"] .announcement-banner-collapsed.announcement-success:hover {
+  border-left-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner-collapsed.announcement-warning {
+  border-left: 1px solid rgba(245, 158, 11, 0.25) !important;
+  border-right: 4px solid var(--br-warning) !important;
+}
+[dir="rtl"] .announcement-banner-collapsed.announcement-warning:hover {
+  border-left-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+[dir="rtl"] .announcement-banner-collapsed.announcement-danger {
+  border-left: 1px solid rgba(244, 63, 94, 0.25) !important;
+  border-right: 4px solid var(--br-danger) !important;
+}
+[dir="rtl"] .announcement-banner-collapsed.announcement-danger:hover {
+  border-left-color: rgba(244, 63, 94, 0.45) !important;
+}
+
+@media (max-width: 768px) {
+  [dir="rtl"] .announcement-banner {
+    padding: 24px 16px 16px 16px !important;
+  }
+  [dir="rtl"] .announcement-banner-close {
+    right: auto !important;
+    left: 10px !important;
+  }
+}
+
+
 /* Websites Page Responsive Cards */
 .website-card-header {
   display: flex;
@@ -1970,6 +2080,15 @@ input, select, textarea { outline: none; }
 
 .settings-tab-btn.active svg {
   color: var(--color-primary, #6366f1);
+}
+
+[dir="rtl"] .settings-tab-btn {
+  text-align: right;
+}
+
+[dir="rtl"] .settings-tab-btn.active {
+  border-left: none;
+  border-right: 3px solid var(--color-primary, #6366f1);
 }
 
 .settings-tab-content {
@@ -2482,3 +2601,159 @@ input, select, textarea { outline: none; }
     border-radius: 10px;
   }
 }
+
+/* ============================================================
+   Forced Scrollbar Alignment to Right for both LTR and RTL
+   ============================================================ */
+
+/* Force browser window scrollbar to stay on the right side in RTL mode */
+html[dir="rtl"] {
+  direction: ltr !important;
+}
+
+html[dir="rtl"] body {
+  direction: ltr !important;
+}
+
+html[dir="rtl"] #root {
+  direction: rtl !important;
+}
+
+/* Force modal scrollbars to stay on the right side in RTL mode */
+[dir="rtl"] .modal {
+  direction: ltr !important;
+}
+[dir="rtl"] .modal > * {
+  direction: rtl !important;
+}
+
+/* ============================================================
+   Language Switcher Custom Dropdown
+   ============================================================ */
+.br-lang-selector {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+}
+
+.br-lang-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-border);
+  border-radius: 9999px; /* Pill-shaped trigger */
+  color: var(--br-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--br-transition);
+}
+
+.br-lang-trigger:hover {
+  background: var(--br-surface-hover);
+  border-color: var(--br-border-strong);
+}
+
+.br-lang-trigger .globe-icon {
+  color: var(--br-text-2);
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.br-lang-trigger:hover .globe-icon {
+  color: var(--br-primary-light);
+}
+
+.br-lang-trigger .chevron-icon {
+  color: var(--br-text-3);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.br-lang-trigger.open .chevron-icon {
+  transform: rotate(180deg);
+  color: var(--br-primary);
+}
+
+.br-lang-dropdown {
+  position: absolute;
+  top: 100%;
+  margin-top: 8px;
+  min-width: 180px;
+  background: var(--br-bg-2);
+  border: 1px solid var(--br-border-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg), 0 0 24px rgba(99, 102, 241, 0.1);
+  padding: 12px;
+  z-index: 1000;
+  animation: brDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  right: 0;
+}
+
+/* Position dropdown correctly depending on direction */
+[dir="rtl"] .br-lang-dropdown {
+  right: auto;
+  left: 0;
+}
+
+@keyframes brDropdownFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.br-lang-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--br-text-3);
+  padding: 4px 8px 8px;
+  border-bottom: 0.5px solid var(--br-border);
+  margin-bottom: 8px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.br-lang-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.br-lang-item {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--br-text-2);
+  cursor: pointer;
+  transition: all var(--br-transition);
+  background: transparent;
+  border: none;
+  display: block;
+}
+
+.br-lang-item:hover {
+  background: var(--br-surface);
+  color: var(--br-text);
+}
+
+.br-lang-item.active {
+  background: var(--br-primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.br-lang-item.active:hover {
+  background: var(--br-primary-hover);
+}
+
+
+

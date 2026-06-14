@@ -8,12 +8,8 @@ import CompactAmount from '../../components/CompactAmount'
 import { PublisherModal, AdjustBalanceModal } from './Publishers'
 import { BulkAdUnitGeneratorModal } from '../../components/BulkAdUnitGeneratorModal'
 import { WebsiteModal, AdUnitModal } from './Websites'
-import { 
-  Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, 
-  Trash2, Globe, Calendar, FileText, Clipboard, Link as LinkIcon, 
-  History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus,
-  Lock, Clock, Filter
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, Trash2, Globe, Calendar, FileText, Clipboard, Link as LinkIcon, History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus, Lock, Clock, Filter } from 'lucide-react'
 
 
 export default function PublisherProfile() {
@@ -21,6 +17,7 @@ export default function PublisherProfile() {
   const navigate = useNavigate()
   const { impersonate, hasPermission } = useAuth()
   const { settings, formatDate, formatDateTime } = useSettings()
+  const { t } = useI18n()
   const canEdit = hasPermission('manage_publishers')
   const canManageWebsites = hasPermission('manage_websites')
   const canManageAdUnits = hasPermission('manage_ad_units')
@@ -106,7 +103,7 @@ export default function PublisherProfile() {
         setGamAccounts(results[6].data || [])
       }
     } catch (e) {
-      toast.error('Failed to load publisher profile details')
+      toast.error(t('admin.publisher_profile.toast.load_failed', 'Failed to load publisher profile details'))
     } finally {
       setLoading(false)
     }
@@ -121,13 +118,13 @@ export default function PublisherProfile() {
   const totalRevPub = revenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
 
   async function handleDelete() {
-    if (!confirm(`Delete publisher "${publisher?.name}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.publisher_profile.confirm.delete', 'Delete publisher "{name}"? This cannot be undone.', { name: publisher?.name }))) return
     try {
       await adminApi.deletePublisher(publisher.id)
-      toast.success('Publisher deleted successfully')
+      toast.success(t('admin.publisher_profile.toast.deleted', 'Publisher deleted successfully'))
       navigate('/admin/publishers')
     } catch {
-      toast.error('Delete failed')
+      toast.error(t('admin.publisher_profile.toast.delete_failed', 'Delete failed'))
     }
   }
 
@@ -138,45 +135,45 @@ export default function PublisherProfile() {
 
     const action = isActive ? 'suspend' : 'activate'
     
-    if (!confirm(`Are you sure you want to ${action} publisher "${publisher?.name}"?`)) return
+    if (!confirm(t('admin.publisher_profile.confirm.toggle_status', 'Are you sure you want to {action} publisher "{name}"?', { action: t(`admin.publisher_profile.actions.${action}`, action), name: publisher?.name }))) return
     
     try {
       if (isActive) {
         await adminApi.suspendPublisher(publisher.id)
-        toast.success('Publisher suspended')
+        toast.success(t('admin.publisher_profile.toast.suspended', 'Publisher suspended'))
       } else if (isPending) {
         await adminApi.activatePublisher(publisher.id)
-        toast.success('Publisher activated')
+        toast.success(t('admin.publisher_profile.toast.activated', 'Publisher activated'))
       } else if (isSuspended) {
         await adminApi.updatePublisher(publisher.id, { status: 'active' }) // or you can use activatePublisher if backend supports it for suspended too.
-        toast.success('Publisher activated')
+        toast.success(t('admin.publisher_profile.toast.activated', 'Publisher activated'))
       }
       loadAllData(true)
     } catch {
-      toast.error(`Failed to ${action} publisher`)
+      toast.error(t('admin.publisher_profile.toast.toggle_status_failed', 'Failed to {action} publisher', { action: t(`admin.publisher_profile.actions.${action}`, action) }))
     }
   }
 
   async function handleImpersonate() {
-    if (!confirm(`Log in as publisher "${publisher?.name}"?`)) return
+    if (!confirm(t('admin.publisher_profile.confirm.impersonate', 'Log in as publisher "{name}"?', { name: publisher?.name }))) return
     try {
       const res = await adminApi.impersonatePublisher(publisher.id)
       const { access_token, user: publisherUser } = res.data
       impersonate(access_token, publisherUser)
-      toast.success(`Logged in as ${publisher?.name}`)
+      toast.success(t('admin.publisher_profile.toast.impersonate_success', 'Logged in as {name}', { name: publisher?.name }))
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to impersonate publisher')
+      toast.error(e.response?.data?.message || t('admin.publisher_profile.toast.impersonate_failed', 'Failed to impersonate publisher'))
     }
   }
 
   if (loading) return (
-    <div className="loading-screen"><div className="spinner"></div><span>Loading profile…</span></div>
+    <div className="loading-screen"><div className="spinner"></div><span>{t('admin.publisher_profile.loading', 'Loading profile…')}</span></div>
   )
 
   if (!publisher) return (
     <div className="card text-center" style={{ padding: 40 }}>
-      <h3>Publisher not found</h3>
-      <Link to="/admin/publishers" className="btn btn-primary" style={{ marginTop: 16 }}>Return to list</Link>
+      <h3>{t('admin.publisher_profile.not_found', 'Publisher not found')}</h3>
+      <Link to="/admin/publishers" className="btn btn-primary" style={{ marginTop: 16 }}>{t('admin.publisher_profile.return_to_list', 'Return to list')}</Link>
     </div>
   )
 
@@ -200,7 +197,7 @@ export default function PublisherProfile() {
       {/* Top back navigation and Filter */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <Link to="/admin/publishers" className="text-muted hover-link" style={{ fontSize: 14, fontWeight: 500 }}>
-          ← Back to Publishers List
+          {t('admin.publisher_profile.back_to_list', '← Back to Publishers List')}
         </Link>
         <button 
           className="btn btn-secondary"
@@ -208,7 +205,7 @@ export default function PublisherProfile() {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
           <Filter size={16} />
-          <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+          <span>{showFilters ? t('admin.publisher_profile.filters.hide', 'Hide Filters') : t('admin.publisher_profile.filters.show', 'Show Filters')}</span>
           {activeFiltersCount > 0 && (
             <span style={{
               background: 'var(--br-primary)',
@@ -240,7 +237,7 @@ export default function PublisherProfile() {
               {/* Website Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Globe size={12} /> Filter by Website
+                  <Globe size={12} /> {t('admin.publisher_profile.filters.by_website', 'Filter by Website')}
                 </label>
                 <select
                   className="form-select"
@@ -248,7 +245,7 @@ export default function PublisherProfile() {
                   value={selectedWebsite}
                   onChange={e => setSelectedWebsite(e.target.value)}
                 >
-                  <option value="">All Websites</option>
+                  <option value="">{t('admin.publisher_profile.filters.all_websites', 'All Websites')}</option>
                   {websites.map(w => (
                     <option key={w.id} value={w.id}>{w.domain}</option>
                   ))}
@@ -258,7 +255,7 @@ export default function PublisherProfile() {
               {/* Date From Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Calendar size={12} /> Date From
+                  <Calendar size={12} /> {t('admin.publisher_profile.filters.date_from', 'Date From')}
                 </label>
                 <input
                   type="date"
@@ -272,7 +269,7 @@ export default function PublisherProfile() {
               {/* Date To Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Calendar size={12} /> Date To
+                  <Calendar size={12} /> {t('admin.publisher_profile.filters.date_to', 'Date To')}
                 </label>
                 <input
                   type="date"
@@ -312,7 +309,7 @@ export default function PublisherProfile() {
                     e.currentTarget.style.color = '#ef4444'
                   }}
                 >
-                  <X size={12} /> Clear Filters
+                  <X size={12} /> {t('admin.publisher_profile.filters.clear', 'Clear Filters')}
                 </button>
               </div>
             )}
@@ -344,7 +341,7 @@ export default function PublisherProfile() {
                 <h1 className="profile-name">{publisher.name}</h1>
                 <span className={`badge ${publisher.status === 'active' ? 'badge-active' : publisher.status === 'pending' ? 'badge-pending' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                  {publisher.status}
+                  {t(`admin.publishers.status.${publisher.status}`, publisher.status)}
                 </span>
               </div>
               <div className="text-muted" style={{ fontSize: 14, marginTop: 4 }}>{publisher.email}</div>
@@ -355,14 +352,14 @@ export default function PublisherProfile() {
           <div className="profile-actions-grid">
             {canEdit && (
               <button className="btn btn-secondary" onClick={() => setEditModalOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <Edit2 size={14} /> Edit Profile
+                <Edit2 size={14} /> {t('admin.publisher_profile.actions.edit_profile', 'Edit Profile')}
               </button>
             )}
             {canEdit && (
               <button className="btn btn-secondary"
                 style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 onClick={() => setAdjustBalanceOpen(true)}>
-                <DollarSign size={14} /> Adjust Balance
+                <DollarSign size={14} /> {t('admin.publisher_profile.actions.adjust_balance', 'Adjust Balance')}
               </button>
             )}
             {hasPermission('manage_payouts') && (
@@ -378,23 +375,23 @@ export default function PublisherProfile() {
                   cursor: (publisher.ready_for_payout_balance || 0) <= 0 ? 'not-allowed' : 'pointer'
                 }}
                 disabled={(publisher.ready_for_payout_balance || 0) <= 0}
-                title={(publisher.ready_for_payout_balance || 0) <= 0 ? 'Cannot record a manual payout because the publisher has no approved balance' : 'Manual Payout'}
+                title={(publisher.ready_for_payout_balance || 0) <= 0 ? t('admin.publisher_profile.actions.manual_payout_disabled_tooltip', 'Cannot record a manual payout because the publisher has no approved balance') : t('admin.publisher_profile.actions.manual_payout', 'Manual Payout')}
                 onClick={() => setManualPayoutOpen(true)}>
-                <CreditCard size={14} /> Manual Payout
+                <CreditCard size={14} /> {t('admin.publisher_profile.actions.manual_payout', 'Manual Payout')}
               </button>
             )}
             {canManageAdUnits && (
               <button className="btn btn-secondary"
                 style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 onClick={() => setBulkAdModalOpen(true)}>
-                <Sparkles size={14} /> Generate Ad Units
+                <Sparkles size={14} /> {t('admin.publisher_profile.actions.generate_ad_units', 'Generate Ad Units')}
               </button>
             )}
             {canEdit && (
               <button className="btn btn-secondary"
                 style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(99,102,241,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 onClick={() => setImpersonateModalOpen(true)}>
-                <User size={14} /> Log In
+                <User size={14} /> {t('admin.publisher_profile.actions.login', 'Log In')}
               </button>
             )}
             {canEdit && (
@@ -409,17 +406,17 @@ export default function PublisherProfile() {
                 }}
                 onClick={handleToggleSuspend}>
                 {publisher.status === 'active' ? (
-                  <><Pause size={14} /> Suspend</>
+                  <><Pause size={14} /> {t('admin.publisher_profile.actions.suspend_btn', 'Suspend')}</>
                 ) : publisher.status === 'pending' ? (
-                  <><Check size={14} /> Approve</>
+                  <><Check size={14} /> {t('admin.publisher_profile.actions.approve_btn', 'Approve')}</>
                 ) : (
-                  <><Play size={14} /> Activate</>
+                  <><Play size={14} /> {t('admin.publisher_profile.actions.activate_btn', 'Activate')}</>
                 )}
               </button>
             )}
             {canEdit && (
               <button className="btn btn-danger" onClick={handleDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <Trash2 size={14} /> Delete
+                <Trash2 size={14} /> {t('admin.publisher_profile.actions.delete_btn', 'Delete')}
               </button>
             )}
           </div>
@@ -432,45 +429,45 @@ export default function PublisherProfile() {
       <div className="stat-grid" style={{ marginBottom: 24 }}>
         <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))' }}>
           <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><DollarSign size={20} /></div>
-          <div className="stat-label">Ready for Payout</div>
+          <div className="stat-label">{t('admin.publisher_profile.stats.ready_for_payout', 'Ready for Payout')}</div>
           <div className="stat-value money" style={{ color: 'var(--color-accent)' }}>
             <CompactAmount value={publisher.ready_for_payout_balance || 0} />
           </div>
-          <div className="stat-change text-muted">Total wallet balance</div>
+          <div className="stat-change text-muted">{t('admin.publisher_profile.stats.ready_for_payout_sub', 'Total wallet balance')}</div>
         </div>
         <div className="stat-card info">
           <div className="stat-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}><Check size={20} /></div>
-          <div className="stat-label">Approved Balance</div>
+          <div className="stat-label">{t('admin.publisher_profile.stats.approved_balance', 'Approved Balance')}</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.approved_balance || 0} />
           </div>
-          <div className="stat-change text-muted">Filtered for period</div>
+          <div className="stat-change text-muted">{t('admin.publisher_profile.stats.approved_balance_sub', 'Filtered for period')}</div>
         </div>
         <div className="stat-card warning">
           <div className="stat-icon" style={{ background: 'rgba(245,158,11,0.15)', color: 'var(--color-warning)' }}><Clock size={20} /></div>
-          <div className="stat-label">Pending Balance</div>
+          <div className="stat-label">{t('admin.publisher_profile.stats.pending_balance', 'Pending Balance')}</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.pending_balance || 0} />
           </div>
-          <div className="stat-change text-muted">Holding period</div>
+          <div className="stat-change text-muted">{t('admin.publisher_profile.stats.pending_balance_sub', 'Holding period')}</div>
         </div>
         <div className="stat-card primary">
           <div className="stat-icon" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}><Scale size={20} /></div>
-          <div className="stat-label">Upcoming Adjustment</div>
+          <div className="stat-label">{t('admin.publisher_profile.stats.upcoming_adjustment', 'Upcoming Adjustment')}</div>
           <div className="stat-value money" style={{
             color: publisher.pending_balance_adjustment > 0 ? 'var(--color-accent)' : publisher.pending_balance_adjustment < 0 ? 'var(--color-danger)' : 'inherit'
           }}>
             {publisher.pending_balance_adjustment > 0 ? '+' : ''}<CompactAmount value={publisher.pending_balance_adjustment} />
           </div>
-          <div className="stat-change text-muted">Pending balance adjust</div>
+          <div className="stat-change text-muted">{t('admin.publisher_profile.stats.upcoming_adjustment_sub', 'Pending balance adjust')}</div>
         </div>
         <div className="stat-card" style={{ borderLeft: '4px solid var(--color-text-subtle)' }}>
           <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)' }}><CreditCard size={20} /></div>
-          <div className="stat-label">Total Payouts Paid</div>
+          <div className="stat-label">{t('admin.publisher_profile.stats.total_payouts_paid', 'Total Payouts Paid')}</div>
           <div className="stat-value money">
             <CompactAmount value={publisher.total_payout || 0} />
           </div>
-          <div className="stat-change text-muted">Paid to date</div>
+          <div className="stat-change text-muted">{t('admin.publisher_profile.stats.total_payouts_paid_sub', 'Paid to date')}</div>
         </div>
       </div>
 
@@ -483,51 +480,51 @@ export default function PublisherProfile() {
             <div className="card-header" style={{ paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
               <div className="card-title" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FileText size={18} style={{ color: 'var(--br-primary)' }} />
-                <span>Contact & System Info</span>
+                <span>{t('admin.publisher_profile.info.title', 'Contact & System Info')}</span>
               </div>
             </div>
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Phone / WhatsApp</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.phone', 'Phone / WhatsApp')}</span>
                   {publisher.phone ? (
                     <a href={`https://wa.me/${publisher.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="hover-link" style={{ fontWeight: 500, color: 'var(--color-primary-light)' }}>
                       {publisher.phone}
                     </a>
-                  ) : <span>Not Set</span>}
+                  ) : <span>{t('admin.publisher_profile.info.not_set', 'Not Set')}</span>}
                 </div>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Telegram Username</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.telegram', 'Telegram Username')}</span>
                   {publisher.telegram ? (
                     <a href={`https://t.me/${publisher.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover-link" style={{ fontWeight: 500, color: 'var(--color-primary-light)' }}>
                       {publisher.telegram}
                     </a>
-                  ) : <span>Not Set</span>}
+                  ) : <span>{t('admin.publisher_profile.info.not_set', 'Not Set')}</span>}
                 </div>
                 <hr style={{ border: 0, borderTop: '1px solid var(--color-border)' }} />
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Revenue Ratio Split</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.revenue_ratio', 'Revenue Ratio Split')}</span>
                   <span style={{ fontWeight: 700, color: 'var(--color-accent)' }}>{(parseFloat(publisher.default_ratio) * 100).toFixed(0)}%</span>
                 </div>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Registration IP</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.registration_ip', 'Registration IP')}</span>
                   <code style={{ fontSize: 13, background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>{publisher.reg_ip || 'N/A'}</code>
                 </div>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Last Login IP</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.last_login_ip', 'Last Login IP')}</span>
                   <code style={{ fontSize: 13, background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>{publisher.last_ip || 'N/A'}</code>
                 </div>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Created Account</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.created_account', 'Created Account')}</span>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{formatDateTime(publisher.created_at, true)}</span>
                 </div>
                 <div>
-                  <span className="text-muted text-sm" style={{ display: 'block' }}>Country</span>
-                  <span style={{ fontWeight: 500 }}>{publisher.country || 'Not Set'}</span>
+                  <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.country', 'Country')}</span>
+                  <span style={{ fontWeight: 500 }}>{publisher.country || t('admin.publisher_profile.info.not_set', 'Not Set')}</span>
                 </div>
                 {(() => {
-                  let paymentMethod = 'Not Set';
-                  let paymentAccount = 'Not Set';
+                  let paymentMethod = t('admin.publisher_profile.info.not_set', 'Not Set');
+                  let paymentAccount = t('admin.publisher_profile.info.not_set', 'Not Set');
                   if (publisher.payment_info) {
                     let info = publisher.payment_info;
                     if (typeof info === 'string') {
@@ -538,20 +535,20 @@ export default function PublisherProfile() {
                       }
                     }
                     if (typeof info === 'object' && info !== null) {
-                      paymentMethod = info.method || 'Not Set';
-                      paymentAccount = info.account || 'Not Set';
+                      paymentMethod = info.method || t('admin.publisher_profile.info.not_set', 'Not Set');
+                      paymentAccount = info.account || t('admin.publisher_profile.info.not_set', 'Not Set');
                     }
                   }
                   return (
                     <>
                       <hr style={{ border: 0, borderTop: '1px solid var(--color-border)' }} />
                       <div>
-                        <span className="text-muted text-sm" style={{ display: 'block' }}>Payment Method</span>
+                        <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.payment_method', 'Payment Method')}</span>
                         <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{paymentMethod}</span>
                       </div>
                       <div>
-                        <span className="text-muted text-sm" style={{ display: 'block' }}>Payment Account</span>
-                        {paymentAccount !== 'Not Set' ? (
+                        <span className="text-muted text-sm" style={{ display: 'block' }}>{t('admin.publisher_profile.info.payment_account', 'Payment Account')}</span>
+                        {paymentAccount !== t('admin.publisher_profile.info.not_set', 'Not Set') ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                             <code style={{
                               background: 'rgba(255, 255, 255, 0.05)',
@@ -589,7 +586,7 @@ export default function PublisherProfile() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigator.clipboard.writeText(paymentAccount);
-                                toast.success('Copied to clipboard!');
+                                toast.success(t('admin.publisher_profile.toast.copied', 'Copied to clipboard!'));
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
@@ -599,13 +596,13 @@ export default function PublisherProfile() {
                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                                 e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
                               }}
-                              title="Copy account details"
+                              title={t('admin.publisher_profile.info.copy_tooltip', 'Copy account details')}
                             >
-                              <Clipboard size={10} /> Copy
+                              <Clipboard size={10} /> {t('admin.publisher_profile.info.copy_btn', 'Copy')}
                             </button>
                           </div>
                         ) : (
-                          <span style={{ fontWeight: 500 }}>Not Set</span>
+                          <span style={{ fontWeight: 500 }}>{t('admin.publisher_profile.info.not_set', 'Not Set')}</span>
                         )}
                       </div>
                     </>
@@ -617,7 +614,7 @@ export default function PublisherProfile() {
 
           <div className="card">
             <div className="card-header" style={{ paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
-              <div className="card-title" style={{ fontSize: 16 }}>📝 Internal Notes (Admin Only)</div>
+              <div className="card-title" style={{ fontSize: 16 }}>{t('admin.publisher_profile.notes.title', '📝 Internal Notes (Admin Only)')}</div>
             </div>
             <div style={{ padding: 16 }}>
               {publisher.notes ? (
@@ -635,7 +632,7 @@ export default function PublisherProfile() {
                   {publisher.notes}
                 </pre>
               ) : (
-                <span className="text-muted text-sm">No internal notes added.</span>
+                <span className="text-muted text-sm">{t('admin.publisher_profile.notes.empty', 'No internal notes added.')}</span>
               )}
             </div>
           </div>
@@ -652,10 +649,10 @@ export default function PublisherProfile() {
             borderTopRightRadius: 'var(--radius-md)',
           }}>
             {[
-              { id: 'websites', label: 'Websites & Ad Units', icon: <Globe size={16} /> },
-              { id: 'payouts', label: 'Payouts History', icon: <CreditCard size={16} /> },
-              { id: 'revenue', label: 'Revenue Logs', icon: <BarChart2 size={16} /> },
-              { id: 'history', label: 'Ratio Changes', icon: <History size={16} /> }
+              { id: 'websites', label: t('admin.publisher_profile.tabs.websites', 'Websites & Ad Units'), icon: <Globe size={16} /> },
+              { id: 'payouts', label: t('admin.publisher_profile.tabs.payouts', 'Payouts History'), icon: <CreditCard size={16} /> },
+              { id: 'revenue', label: t('admin.publisher_profile.tabs.revenue', 'Revenue Logs'), icon: <BarChart2 size={16} /> },
+              { id: 'history', label: t('admin.publisher_profile.tabs.ratio', 'Ratio Changes'), icon: <History size={16} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -685,11 +682,11 @@ export default function PublisherProfile() {
                 {websites.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon"><Globe size={40} /></div>
-                    <div className="empty-state-text">No websites linked</div>
-                    <div className="empty-state-sub" style={{ marginBottom: 12 }}>Add websites to this publisher</div>
+                    <div className="empty-state-text">{t('admin.publisher_profile.websites.empty', 'No websites linked')}</div>
+                    <div className="empty-state-sub" style={{ marginBottom: 12 }}>{t('admin.publisher_profile.websites.empty_sub', 'Add websites to this publisher')}</div>
                     {canManageWebsites && (
                       <button className="btn btn-primary" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <Plus size={14} /> Add Website
+                        <Plus size={14} /> {t('admin.publisher_profile.websites.add_btn', 'Add Website')}
                       </button>
                     )}
                   </div>
@@ -698,7 +695,7 @@ export default function PublisherProfile() {
                     {canManageWebsites && (
                       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button className="btn btn-primary btn-sm" onClick={() => setWebsiteModal('create')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <Plus size={14} /> Add Website
+                          <Plus size={14} /> {t('admin.publisher_profile.websites.add_btn', 'Add Website')}
                         </button>
                       </div>
                     )}
@@ -714,39 +711,39 @@ export default function PublisherProfile() {
                               </h3>
                               <span className={`badge ${web.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                                {web.is_active ? 'Active' : 'Inactive'}
+                                {web.is_active ? t('admin.publisher_profile.websites.active', 'Active') : t('admin.publisher_profile.websites.inactive', 'Inactive')}
                               </span>
                             </div>
                             <div className="text-muted text-sm" style={{ marginTop: 4, wordBreak: 'break-word' }}>
-                              GAM Account: <strong style={{ wordBreak: 'break-all' }}>{web.gam_account_email || 'Not Linked'}</strong> {web.gam_network_code && `(Network: ${web.gam_network_code})`}
+                              {t('admin.publisher_profile.websites.gam_account_label', 'GAM Account: {account}', { account: web.gam_account_email || t('admin.publisher_profile.websites.not_linked', 'Not Linked') })} {web.gam_network_code && t('admin.publisher_profile.websites.network_label', '(Network: {code})', { code: web.gam_network_code })}
                             </div>
                           </div>
                           <div className="website-card-actions">
                             {web.ratio_override && (
                               <div className="badge badge-active" style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', flexShrink: 0 }}>
-                                Ratio Override: <strong>{(parseFloat(web.ratio_override) * 100).toFixed(0)}%</strong>
+                                {t('admin.publisher_profile.websites.ratio_override', 'Ratio Override: {ratio}', { ratio: `${(parseFloat(web.ratio_override) * 100).toFixed(0)}%` })}
                               </div>
                             )}
                             {canManageWebsites && (
                               <button className="btn btn-secondary btn-xs" onClick={() => setWebsiteModal(web)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                <Edit2 size={12} /> Edit
+                                <Edit2 size={12} /> {t('admin.publisher_profile.websites.edit_btn', 'Edit')}
                               </button>
                             )}
                             {canManageWebsites && (
                               <button className="btn btn-danger btn-xs"
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
                                 onClick={async () => {
-                                  if (!confirm(`Are you sure you want to delete website "${web.domain}"? This will also delete all its mapped ad units.`)) return
+                                  if (!confirm(t('admin.publisher_profile.confirm.delete_website', 'Are you sure you want to delete website "{domain}"? This will also delete all its mapped ad units.', { domain: web.domain }))) return
                                   try {
                                     await adminApi.deleteWebsite(web.id)
-                                    toast.success('Website deleted successfully')
+                                    toast.success(t('admin.publisher_profile.toast.website_deleted', 'Website deleted successfully'))
                                     loadAllData(true)
                                   } catch {
-                                    toast.error('Failed to delete website')
+                                    toast.error(t('admin.publisher_profile.toast.website_delete_failed', 'Failed to delete website'))
                                   }
                                 }}
                               >
-                                <Trash2 size={12} /> Delete
+                                <Trash2 size={12} /> {t('admin.publisher_profile.websites.delete_btn', 'Delete')}
                               </button>
                             )}
                           </div>
@@ -756,41 +753,36 @@ export default function PublisherProfile() {
                         <div style={{ marginTop: 12, background: 'rgba(0,0,0,0.1)', borderRadius: 8, padding: '8px 12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <h4 style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: 0.5, margin: 0 }}>
-                              Ad Units ({adUnitsByWebsite[web.id]?.length || 0})
+                              {t('admin.publisher_profile.ad_units.title', 'Ad Units ({count})', { count: adUnitsByWebsite[web.id]?.length || 0 })}
                             </h4>
                             {canManageAdUnits && (
                               <button className="btn btn-secondary btn-xs" style={{ padding: '3px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => setAdModal({ website_id: web.id })}>
-                                <Plus size={12} /> Add Existing Ad Unit
+                                <Plus size={12} /> {t('admin.publisher_profile.ad_units.add_btn', 'Add Existing Ad Unit')}
                               </button>
                             )}
                           </div>
                           {!adUnitsByWebsite[web.id] || adUnitsByWebsite[web.id].length === 0 ? (
                             <div style={{ color: 'var(--color-text-subtle)', fontSize: 13, fontStyle: 'italic', padding: 8 }}>
-                              No ad units added to this website.
+                              {t('admin.publisher_profile.ad_units.empty', 'No ad units added to this website.')}
                             </div>
                           ) : (
                             <div className="table-wrap">
                               <table className="table" style={{ background: 'transparent' }}>
                                 <thead>
                                   <tr>
-                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Ad Unit Name (GAM)</th>
-                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Display Name</th>
-                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>Ratio Split</th>
-                                    {canManageAdUnits && <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>Actions</th>}
+                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>{t('admin.publisher_profile.ad_units.table.display_name', 'Display Name')}</th>
+                                    <th style={{ fontSize: 11, padding: '6px 8px' }}>{t('admin.publisher_profile.ad_units.table.ratio_split', 'Ratio Split')}</th>
+                                    {canManageAdUnits && <th style={{ fontSize: 11, padding: '6px 8px', textAlign: 'right' }}>{t('admin.publisher_profile.ad_units.table.actions', 'Actions')}</th>}
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {adUnitsByWebsite[web.id].map(ad => (
                                     <tr key={ad.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                                      <td style={{ padding: '6px 8px', fontSize: 13 }}>
-                                        <code>{ad.gam_ad_unit_name}</code>
-                                        {ad.gam_ad_unit_id && <div className="text-muted" style={{ fontSize: 10 }}>ID: {ad.gam_ad_unit_id}</div>}
-                                      </td>
                                       <td style={{ padding: '6px 8px', fontSize: 13 }}>{ad.display_name}</td>
                                       <td style={{ padding: '6px 8px', fontSize: 13, fontWeight: 600 }}>
                                         {ad.ratio_override 
-                                          ? `${(parseFloat(ad.ratio_override) * 100).toFixed(0)}% (Override)` 
-                                          : 'Inherited'}
+                                          ? t('admin.publisher_profile.ad_units.ratio_override_val', '{ratio} (Override)', { ratio: `${(parseFloat(ad.ratio_override) * 100).toFixed(0)}%` }) 
+                                          : t('admin.publisher_profile.ad_units.ratio_inherited', 'Inherited')}
                                       </td>
                                       {canManageAdUnits && (
                                         <td style={{ padding: '6px 8px', fontSize: 13, textAlign: 'right' }}>
@@ -798,27 +790,27 @@ export default function PublisherProfile() {
                                             <button className="btn btn-secondary btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }} onClick={() => setAdModal(ad)}><Edit2 size={12} /></button>
                                             <button className="btn btn-xs"
                                               style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center' }}
-                                              title="Delete from platform only (keep in GAM)"
+                                              title={t('admin.publisher_profile.ad_units.delete_platform_tooltip', 'Delete from platform only (keep in GAM)')}
                                               onClick={async () => {
-                                                if (!confirm(`Delete ad unit "${ad.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
+                                                if (!confirm(t('admin.publisher_profile.confirm.delete_ad_unit_platform', 'Delete ad unit "{name}" from platform only? It will NOT be archived in Google Ad Manager.', { name: ad.display_name }))) return
                                                 try {
                                                   await adminApi.deleteAdUnit(ad.id, { archive: false })
-                                                  toast.success('Ad unit deleted successfully')
+                                                  toast.success(t('admin.publisher_profile.toast.ad_unit_deleted', 'Ad unit deleted successfully'))
                                                   loadAllData(true)
                                                 } catch {
-                                                  toast.error('Failed to delete ad unit')
+                                                  toast.error(t('admin.publisher_profile.toast.ad_unit_delete_failed', 'Failed to delete ad unit'))
                                                 }
                                               }}><Trash2 size={12} /></button>
                                             <button className="btn btn-danger btn-xs" style={{ padding: '2px 6px', display: 'inline-flex', alignItems: 'center' }}
-                                              title="Delete from platform and archive in GAM"
+                                              title={t('admin.publisher_profile.ad_units.delete_archive_tooltip', 'Delete from platform and archive in GAM')}
                                               onClick={async () => {
-                                                if (!confirm(`Delete ad unit "${ad.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                                if (!confirm(t('admin.publisher_profile.confirm.delete_ad_unit_archive', 'Delete ad unit "{name}" from platform and archive it in Google Ad Manager?', { name: ad.display_name }))) return
                                                 try {
                                                   await adminApi.deleteAdUnit(ad.id, { archive: true })
-                                                  toast.success('Ad unit deleted successfully')
+                                                  toast.success(t('admin.publisher_profile.toast.ad_unit_deleted', 'Ad unit deleted successfully'))
                                                   loadAllData(true)
                                                 } catch {
-                                                  toast.error('Failed to delete ad unit')
+                                                  toast.error(t('admin.publisher_profile.toast.ad_unit_delete_failed', 'Failed to delete ad unit'))
                                                 }
                                               }}><Trash2 size={12} /></button>
                                           </div>
@@ -843,20 +835,20 @@ export default function PublisherProfile() {
                 {payouts.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon"><CreditCard size={40} /></div>
-                    <div className="empty-state-text">No payout records yet</div>
-                    <div className="empty-state-sub">Payouts are generated when closing a monthly period</div>
+                    <div className="empty-state-text">{t('admin.publisher_profile.payouts.empty', 'No payout records yet')}</div>
+                    <div className="empty-state-sub">{t('admin.publisher_profile.payouts.empty_sub', 'Payouts are generated when closing a monthly period')}</div>
                   </div>
                 ) : (
                   <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>
-                          <th>Period</th>
-                          <th>Base Amount</th>
-                          <th>Adjustment</th>
-                          <th>Final Amount</th>
-                          <th>Status</th>
-                          <th>Paid At</th>
+                          <th>{t('admin.publisher_profile.payouts.table.period', 'Period')}</th>
+                          <th>{t('admin.publisher_profile.payouts.table.base_amount', 'Base Amount')}</th>
+                          <th>{t('admin.publisher_profile.payouts.table.adjustment', 'Adjustment')}</th>
+                          <th>{t('admin.publisher_profile.payouts.table.final_amount', 'Final Amount')}</th>
+                          <th>{t('admin.publisher_profile.payouts.table.status', 'Status')}</th>
+                          <th>{t('admin.publisher_profile.payouts.table.paid_at', 'Paid At')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -873,7 +865,7 @@ export default function PublisherProfile() {
                             <td>
                               <span className={`badge badge-${p.status}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                                {p.status}
+                                {t(`admin.payouts.status.${p.status}`, p.status)}
                               </span>
                             </td>
                             <td className="text-muted text-sm">{p.paid_at ? formatDate(p.paid_at) : '—'}</td>
@@ -882,7 +874,7 @@ export default function PublisherProfile() {
                       </tbody>
                       <tfoot>
                         <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                          <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({payouts.length})</td>
+                          <td style={{ padding: '10px 16px', fontSize: 12 }}>{t('admin.publisher_profile.payouts.table.totals', 'Totals ({count})', { count: payouts.length })}</td>
                           <td><CompactAmount value={totalPayoutBase} /></td>
                           <td style={{
                             color: totalPayoutAdj > 0 ? 'var(--color-accent)' : totalPayoutAdj < 0 ? 'var(--color-danger)' : 'inherit'
@@ -904,20 +896,20 @@ export default function PublisherProfile() {
                 {revenue.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon"><BarChart2 size={40} /></div>
-                    <div className="empty-state-text">No revenue logs found</div>
-                    <div className="empty-state-sub">Revenue records will appear once synchronized from Google Ad Manager</div>
+                    <div className="empty-state-text">{t('admin.publisher_profile.revenue.empty', 'No revenue logs found')}</div>
+                    <div className="empty-state-sub">{t('admin.publisher_profile.revenue.empty_sub', 'Revenue records will appear once synchronized from Google Ad Manager')}</div>
                   </div>
                 ) : (
                   <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>
-                          <th style={{ width: 130 }}>Date</th>
-                          <th>Ad Unit / Website</th>
-                          <th style={{ textAlign: 'right', paddingRight: 24 }}>Impressions</th>
-                          <th style={{ textAlign: 'right', paddingRight: 24 }}>Gross Rev.</th>
-                          <th style={{ textAlign: 'right', paddingRight: 24 }}>Pub. Share</th>
-                          <th style={{ textAlign: 'center', width: 120 }}>Status</th>
+                          <th style={{ width: 130 }}>{t('admin.publisher_profile.revenue.table.date', 'Date')}</th>
+                          <th>{t('admin.publisher_profile.revenue.table.ad_unit_website', 'Ad Unit / Website')}</th>
+                          <th style={{ textAlign: 'right', paddingRight: 24 }}>{t('admin.publisher_profile.revenue.table.impressions', 'Impressions')}</th>
+                          <th style={{ textAlign: 'right', paddingRight: 24 }}>{t('admin.publisher_profile.revenue.table.gross_rev', 'Gross Rev.')}</th>
+                          <th style={{ textAlign: 'right', paddingRight: 24 }}>{t('admin.publisher_profile.revenue.table.pub_share', 'Pub. Share')}</th>
+                          <th style={{ textAlign: 'center', width: 120 }}>{t('admin.publisher_profile.revenue.table.status', 'Status')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -954,11 +946,11 @@ export default function PublisherProfile() {
                                       color: r.period_closing_id !== null ? 'var(--color-primary-light)' : r.is_approved ? 'var(--color-accent)' : 'var(--color-warning)',
                                     }}>
                                 {r.period_closing_id !== null ? (
-                                  <><Lock size={12} /> closed</>
+                                  <><Lock size={12} /> {t('admin.publisher_profile.revenue.status.closed', 'closed')}</>
                                 ) : r.is_approved ? (
-                                  <><Check size={12} /> approved</>
+                                  <><Check size={12} /> {t('admin.publisher_profile.revenue.status.approved', 'approved')}</>
                                 ) : (
-                                  <><Clock size={12} /> pending</>
+                                  <><Clock size={12} /> {t('admin.publisher_profile.revenue.status.pending', 'pending')}</>
                                 )}
                               </span>
                             </td>
@@ -968,7 +960,7 @@ export default function PublisherProfile() {
                       <tfoot>
                         <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
                           <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>
-                            Totals {revenue.length > 50 ? `(all ${revenue.length} logs)` : ''}
+                            {t('admin.publisher_profile.revenue.table.totals', 'Totals {all_logs}', { all_logs: revenue.length > 50 ? t('admin.publisher_profile.revenue.table.all_logs_count', '(all {count} logs)', { count: revenue.length }) : '' })}
                           </td>
                           <td style={{ textAlign: 'right', paddingRight: 24, fontFamily: 'monospace' }}>
                             <CompactAmount value={totalRevImpr} prefix="" decimals={0} />
@@ -985,7 +977,7 @@ export default function PublisherProfile() {
                     </table>
                     {revenue.length > 50 && (
                       <div className="text-muted text-center text-sm" style={{ padding: 12 }}>
-                        Showing latest 50 records. See all under the Revenue page.
+                        {t('admin.publisher_profile.revenue.table.showing_latest_50', 'Showing latest 50 records. See all under the Revenue page.')}
                       </div>
                     )}
                   </div>
@@ -998,26 +990,26 @@ export default function PublisherProfile() {
                 {ratioHistory.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon"><History size={40} /></div>
-                    <div className="empty-state-text">No ratio changes logged</div>
-                    <div className="empty-state-sub">Revenue ratio change logs will show up here</div>
+                    <div className="empty-state-text">{t('admin.publisher_profile.ratio.empty', 'No ratio changes logged')}</div>
+                    <div className="empty-state-sub">{t('admin.publisher_profile.ratio.empty_sub', 'Revenue ratio change logs will show up here')}</div>
                   </div>
                 ) : (
                   <div className="table-wrap">
                     <table className="table">
                       <thead>
                         <tr>
-                          <th>Date Changed</th>
-                          <th>Target</th>
-                          <th>Old Ratio</th>
-                          <th>New Ratio</th>
-                          <th>Changed By</th>
+                          <th>{t('admin.publisher_profile.ratio.table.date_changed', 'Date Changed')}</th>
+                          <th>{t('admin.publisher_profile.ratio.table.target', 'Target')}</th>
+                          <th>{t('admin.publisher_profile.ratio.table.old_ratio', 'Old Ratio')}</th>
+                          <th>{t('admin.publisher_profile.ratio.table.new_ratio', 'New Ratio')}</th>
+                          <th>{t('admin.publisher_profile.ratio.table.changed_by', 'Changed By')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ratioHistory.map(h => (
                           <tr key={h.id}>
                             <td>{formatDateTime(h.changed_at, false)}</td>
-                            <td style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>{h.target || 'General Profile'}</td>
+                            <td style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>{h.target || t('admin.publisher_profile.ratio.general_profile', 'General Profile')}</td>
                             <td style={{ fontWeight: 500 }}>
                               {h.old_ratio ? `${(parseFloat(h.old_ratio) * 100).toFixed(0)}%` : '—'}
                             </td>
@@ -1025,7 +1017,7 @@ export default function PublisherProfile() {
                               {(parseFloat(h.new_ratio) * 100).toFixed(0)}%
                             </td>
                             <td className="text-muted">
-                              {h.changed_by || 'Admin/System'}
+                              {h.changed_by || t('admin.publisher_profile.ratio.admin_system', 'Admin/System')}
                             </td>
                           </tr>
                         ))}
@@ -1101,6 +1093,7 @@ export default function PublisherProfile() {
 function ImpersonateModal({ publisher, onClose }) {
   const [loading, setLoading] = useState(false)
   const { impersonate } = useAuth()
+  const { t } = useI18n()
 
   async function handleImpersonate(newTab) {
     setLoading(true)
@@ -1112,13 +1105,13 @@ function ImpersonateModal({ publisher, onClose }) {
         // Open the publisher dashboard in a new tab, passing the token and user in URL parameters
         const url = `/publisher?impersonate_token=${access_token}&impersonate_user=${encodeURIComponent(JSON.stringify(publisherUser))}`
         window.open(url, '_blank')
-        toast.success(`Logged in as ${publisher.name} in a new tab`)
+        toast.success(t('admin.publisher_profile.toast.impersonate_new_tab', 'Logged in as {name} in a new tab', { name: publisher.name }))
         onClose()
       } else {
         impersonate(access_token, publisherUser)
       }
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to impersonate publisher')
+      toast.error(e.response?.data?.message || t('admin.publisher_profile.toast.impersonate_failed', 'Failed to impersonate publisher'))
     } finally {
       setLoading(false)
     }
@@ -1130,16 +1123,16 @@ function ImpersonateModal({ publisher, onClose }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <User size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Log In as Publisher</span>
+            <span>{t('admin.publisher_profile.impersonate_modal.title', 'Log In as Publisher')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div style={{ padding: '20px 0' }}>
           <p style={{ fontSize: 15 }}>
-            You are about to log in as publisher <strong>{publisher.name}</strong> ({publisher.email}).
+            {t('admin.publisher_profile.impersonate_modal.message', 'You are about to log in as publisher {name} ({email}).', { name: publisher.name, email: publisher.email })}
           </p>
           <p style={{ marginTop: 12, color: 'var(--color-text-muted)', fontSize: 13, lineHeight: '1.5' }}>
-            Choose whether to open the publisher dashboard in a new tab or redirect the current tab.
+            {t('admin.publisher_profile.impersonate_modal.sub_message', 'Choose whether to open the publisher dashboard in a new tab or redirect the current tab.')}
           </p>
         </div>
         <div className="modal-footer" style={{ justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
@@ -1156,7 +1149,7 @@ function ImpersonateModal({ publisher, onClose }) {
             onClick={onClose} 
             disabled={loading}
           >
-            Cancel
+            {t('admin.publisher_profile.impersonate_modal.cancel_btn', 'Cancel')}
           </button>
           
           <button 
@@ -1174,7 +1167,7 @@ function ImpersonateModal({ publisher, onClose }) {
             onClick={() => handleImpersonate(false)}
             disabled={loading}
           >
-            Open in Current Tab
+            {t('admin.publisher_profile.impersonate_modal.current_tab_btn', 'Open in Current Tab')}
           </button>
           
           <button 
@@ -1184,7 +1177,7 @@ function ImpersonateModal({ publisher, onClose }) {
             disabled={loading}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            {loading ? 'Logging in…' : <><ExternalLink size={14} /> Open in New Tab</>}
+            {loading ? t('admin.publisher_profile.impersonate_modal.logging_in', 'Logging in…') : <><ExternalLink size={14} /> {t('admin.publisher_profile.impersonate_modal.new_tab_btn', 'Open in New Tab')}</>}
           </button>
         </div>
       </div>
@@ -1198,6 +1191,7 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const walletBalance = publisher.ready_for_payout_balance || 0.0
+  const { t } = useI18n()
 
   useEffect(() => {
     setAmount(walletBalance.toFixed(2))
@@ -1206,11 +1200,11 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid payout amount')
+      toast.error(t('admin.publisher_profile.manual_payout_modal.toast.invalid_amount', 'Please enter a valid payout amount'))
       return
     }
     if (parseFloat(amount) > walletBalance) {
-      toast.error("Payout amount cannot exceed the publisher's approved wallet balance")
+      toast.error(t('admin.publisher_profile.manual_payout_modal.toast.exceeds_balance', "Payout amount cannot exceed the publisher's approved wallet balance"))
       return
     }
     setSaving(true)
@@ -1220,10 +1214,10 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
         reference: reference.trim() || undefined,
         notes: note.trim() || undefined,
       })
-      toast.success('Manual payment recorded successfully!')
+      toast.success(t('admin.publisher_profile.manual_payout_modal.toast.success', 'Manual payment recorded successfully!'))
       onSaved()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create manual payment')
+      toast.error(err.response?.data?.message || t('admin.publisher_profile.manual_payout_modal.toast.failed', 'Failed to create manual payment'))
     } finally {
       setSaving(false)
     }
@@ -1235,41 +1229,41 @@ function ManualPayoutModal({ publisher, onClose, onSaved }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Record Manual Payment</span>
+            <span>{t('admin.publisher_profile.manual_payout_modal.title', 'Record Manual Payment')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="alert alert-info" style={{ fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
             <Info size={16} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-info)' }} />
-            <span>This will record an out-of-cycle manual payout request for <strong>{publisher.name}</strong> without affecting monthly period closings or locking revenue records. The request will enter the queue as a <strong>Pending</strong> payout. Once approved by an admin, it can then be processed or marked as paid via the standard payout workflow (similar to auto payouts). The amount is deducted from their approved wallet balance immediately.</span>
+            <span>{t('admin.publisher_profile.manual_payout_modal.help_text', 'This will record an out-of-cycle manual payout request for {name} without affecting monthly period closings or locking revenue records. The request will enter the queue as a Pending payout. Once approved by an admin, it can then be processed or marked as paid via the standard payout workflow (similar to auto payouts). The amount is deducted from their approved wallet balance immediately.', { name: publisher.name })}</span>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Payout Amount ($) *</label>
+            <label className="form-label">{t('admin.publisher_profile.manual_payout_modal.amount_label', 'Payout Amount ($) *')}</label>
             <input className="form-input" type="number" step="0.01" min="0.01" value={amount}
               onChange={e => setAmount(e.target.value)} required />
             <span className="form-hint">
-              Current approved wallet balance: <strong><CompactAmount value={walletBalance} /></strong>
+              {t('admin.publisher_profile.manual_payout_modal.wallet_balance_label', 'Current approved wallet balance:')} <strong><CompactAmount value={walletBalance} /></strong>
             </span>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Reference ID (optional)</label>
+            <label className="form-label">{t('admin.publisher_profile.manual_payout_modal.reference_label', 'Reference ID (optional)')}</label>
             <input className="form-input" type="text" value={reference}
-              onChange={e => setReference(e.target.value)} placeholder="Transaction hash or ID" />
+              onChange={e => setReference(e.target.value)} placeholder={t('admin.publisher_profile.manual_payout_modal.reference_placeholder', 'Transaction hash or ID')} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Admin Note / Memo (internal)</label>
+            <label className="form-label">{t('admin.publisher_profile.manual_payout_modal.note_label', 'Admin Note / Memo (internal)')}</label>
             <textarea className="form-textarea" rows={2} value={note}
-              onChange={e => setNote(e.target.value)} placeholder="e.g. Special manual payout request override…" />
+              onChange={e => setNote(e.target.value)} placeholder={t('admin.publisher_profile.manual_payout_modal.note_placeholder', 'e.g. Special manual payout request override…')} />
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('admin.publisher_profile.manual_payout_modal.cancel_btn', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {saving ? 'Recording…' : <><CreditCard size={14} /> Record Payment</>}
+              {saving ? t('admin.publisher_profile.manual_payout_modal.recording', 'Recording…') : <><CreditCard size={14} /> {t('admin.publisher_profile.manual_payout_modal.record_btn', 'Record Payment')}</>}
             </button>
           </div>
         </form>

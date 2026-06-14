@@ -112,19 +112,25 @@ class SettingsSeeder extends Seeder
                 'key'   => 'payment_methods',
                 'value' => json_encode([
                     [
-                        'name'     => 'Bank Transfer',
-                        'minimum'  => 50.00,
-                        'guidance' => 'Please provide Bank Name, Account Name, IBAN/AccountNumber, and BIC/SWIFT code.',
+                        'name'        => 'Bank Transfer',
+                        'name_ar'     => 'تحويل بنكي',
+                        'minimum'     => 50.00,
+                        'guidance'    => 'Please provide Bank Name, Account Name, IBAN/AccountNumber, and BIC/SWIFT code.',
+                        'guidance_ar' => 'يرجى تقديم اسم البنك، واسم الحساب، ورقم الحساب/الآيبان (IBAN)، ورمز السويفت (BIC/SWIFT).',
                     ],
                     [
-                        'name'     => 'PayPal',
-                        'minimum'  => 20.00,
-                        'guidance' => 'Please provide your registered PayPal email address.',
+                        'name'        => 'PayPal',
+                        'name_ar'     => 'بايبال (PayPal)',
+                        'minimum'     => 20.00,
+                        'guidance'    => 'Please provide your registered PayPal email address.',
+                        'guidance_ar' => 'يرجى تقديم عنوان البريد الإلكتروني المسجل في بايبال.',
                     ],
                     [
-                        'name'     => 'Wise',
-                        'minimum'  => 30.00,
-                        'guidance' => 'Please provide your registered Wise email address or bank transfer details.',
+                        'name'        => 'Wise',
+                        'name_ar'     => 'وايز (Wise)',
+                        'minimum'     => 30.00,
+                        'guidance'    => 'Please provide your registered Wise email address or bank transfer details.',
+                        'guidance_ar' => 'يرجى تقديم عنوان البريد الإلكتروني المسجل في وايز أو تفاصيل التحويل البنكي.',
                     ],
                 ]),
                 'group' => 'payment',
@@ -142,9 +148,16 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key'   => 'site_name',
-                'value' => 'BestRevenue',
+                'value' => 'Mindora X',
                 'group' => 'display',
                 'label' => 'Platform Name',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'site_name_ar',
+                'value' => 'ميندورا إكس',
+                'group' => 'display',
+                'label' => 'Platform Name (Arabic)',
                 'type'  => 'string',
             ],
             [
@@ -152,6 +165,13 @@ class SettingsSeeder extends Seeder
                 'value' => 'Enterprise-grade multi-account Google Ad Manager revenue sharing and publisher portal.',
                 'group' => 'display',
                 'label' => 'Website Description',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'site_description_ar',
+                'value' => 'بوابة الناشرين ومشاركة إيرادات إعلانات جوجل مانيجر على مستوى المؤسسات.',
+                'group' => 'display',
+                'label' => 'Website Description (Arabic)',
                 'type'  => 'string',
             ],
             [
@@ -186,9 +206,16 @@ class SettingsSeeder extends Seeder
             // ── SEO ───────────────────────────────────────────
             [
                 'key'   => 'meta_title',
-                'value' => 'BestRevenue - Publisher Revenue Sharing Platform',
+                'value' => 'Mindora X - Publisher Revenue Sharing Platform',
                 'group' => 'seo',
                 'label' => 'SEO Meta Title',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'meta_title_ar',
+                'value' => 'Mindora X - منصة مشاركة أرباح الناشرين',
+                'group' => 'seo',
+                'label' => 'SEO Meta Title (Arabic)',
                 'type'  => 'string',
             ],
             [
@@ -199,10 +226,24 @@ class SettingsSeeder extends Seeder
                 'type'  => 'string',
             ],
             [
+                'key'   => 'meta_description_ar',
+                'value' => 'حقق أرباحاً من مواقعك الإلكترونية باستخدام إعلانات مميزة عبر Google Ad Manager وتتبع أرباحك بشفافية.',
+                'group' => 'seo',
+                'label' => 'SEO Meta Description (Arabic)',
+                'type'  => 'string',
+            ],
+            [
                 'key'   => 'meta_keywords',
                 'value' => 'revenue sharing, publisher, google ad manager, gam sync, impressions, ad units, monetization',
                 'group' => 'seo',
                 'label' => 'SEO Meta Keywords',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'meta_keywords_ar',
+                'value' => 'مشاركة الأرباح، الناشر، مدير إعلانات جوجل، مزامنة GAM، الانطباعات، الوحدات الإعلانية، تحقيق الأرباح',
+                'group' => 'seo',
+                'label' => 'SEO Meta Keywords (Arabic)',
                 'type'  => 'string',
             ],
 
@@ -226,6 +267,13 @@ class SettingsSeeder extends Seeder
                 'value' => 'Your registration has been received! Your account is pending admin review. You will be notified once it is approved.',
                 'group' => 'registration',
                 'label' => 'Pending Registration Message (shown after sign-up)',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'publisher_pending_message_ar',
+                'value' => 'تم استلام طلب التسجيل الخاص بك! حسابك تحت المراجعة حالياً، وسيتم إخطارك بمجرد الموافقة عليه.',
+                'group' => 'registration',
+                'label' => 'Pending Registration Message (Arabic)',
                 'type'  => 'string',
             ],
             [
@@ -260,10 +308,14 @@ class SettingsSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            Setting::updateOrCreate(
-                ['key' => $setting['key']],
-                $setting
-            );
+            $existing = Setting::find($setting['key']);
+            if ($existing) {
+                // Keep the existing database value so the seeder never resets admin configurations
+                unset($setting['value']);
+                $existing->update($setting);
+            } else {
+                Setting::create($setting);
+            }
         }
     }
 }

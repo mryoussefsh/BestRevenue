@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
-import { FileText, Edit2, Trash2, Save, Send } from 'lucide-react'
+import { FileText, Edit2, Trash2, Save, Send, Eye } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import Pagination from '../../components/Pagination'
 
 // Lightweight built-in rich text editor
 function RichEditor({ value, onChange }) {
@@ -89,8 +92,10 @@ function RichEditor({ value, onChange }) {
 
 const EMPTY_FORM = {
   title: '',
+  title_ar: '',
   slug: '',
   content: '',
+  content_ar: '',
   show_in_public_footer: false,
   show_in_publisher_footer: false,
   show_in_landing_menu: false,
@@ -111,6 +116,7 @@ const slugify = (text) => {
 
 export default function AdminPages() {
   const { reload } = useSettings()
+  const { t } = useI18n()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -118,6 +124,8 @@ export default function AdminPages() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 15
 
   const slugManualEdit = useRef(false)
 
@@ -131,7 +139,7 @@ export default function AdminPages() {
       const res = await adminApi.getPages()
       setItems(res.data?.data || [])
     } catch {
-      toast.error('Failed to load pages')
+      toast.error(t('pages.toast_load_fail', 'Failed to load pages'))
     } finally {
       setLoading(false)
     }
@@ -149,8 +157,10 @@ export default function AdminPages() {
     slugManualEdit.current = true
     setForm({
       title: item.title || '',
+      title_ar: item.title_ar || '',
       slug: item.slug || '',
       content: item.content || '',
+      content_ar: item.content_ar || '',
       show_in_public_footer: item.show_in_public_footer ?? false,
       show_in_publisher_footer: item.show_in_publisher_footer ?? false,
       show_in_landing_menu: item.show_in_landing_menu ?? false,
@@ -178,47 +188,47 @@ export default function AdminPages() {
 
   async function handleSave(e) {
     e.preventDefault()
-    if (!form.title.trim()) return toast.error('Title is required')
-    if (!form.slug.trim()) return toast.error('Slug is required')
-    if (!form.content.trim()) return toast.error('Content is required')
+    if (!form.title.trim()) return toast.error(t('pages.title_required', 'Title is required'))
+    if (!form.slug.trim()) return toast.error(t('pages.slug_required', 'Slug is required'))
+    if (!form.content.trim()) return toast.error(t('pages.content_required', 'Content is required'))
 
     setSaving(true)
     try {
       if (editing) {
         await adminApi.updatePage(editing, form)
-        toast.success('Page updated')
+        toast.success(t('pages.toast_updated', 'Page updated'))
       } else {
         await adminApi.createPage(form)
-        toast.success('Page created')
+        toast.success(t('pages.toast_created', 'Page created'))
       }
       setShowForm(false)
       loadData()
       // Reload settings context so footer and header navigation items refresh immediately
       reload()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save page')
+      toast.error(err.response?.data?.message || t('pages.toast_save_fail', 'Failed to save page'))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Are you sure you want to delete this page? This action cannot be undone.')) return
+    if (!confirm(t('pages.confirm_delete', 'Are you sure you want to delete this page? This action cannot be undone.'))) return
     setDeleting(id)
     try {
       await adminApi.deletePage(id)
-      toast.success('Page deleted successfully')
+      toast.success(t('pages.toast_deleted', 'Page deleted successfully'))
       loadData()
       reload()
     } catch {
-      toast.error('Failed to delete page')
+      toast.error(t('pages.toast_delete_fail', 'Failed to delete page'))
     } finally {
       setDeleting(null)
     }
   }
 
   if (loading) return (
-    <div className="loading-screen"><div className="spinner" /><span>Loading pages…</span></div>
+    <div className="loading-screen"><div className="spinner" /><span>{t('pages.loading', 'Loading pages…')}</span></div>
   )
 
   return (
@@ -227,12 +237,12 @@ export default function AdminPages() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileText size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Page Management</span>
+            <span>{t('pages.title', 'Page Management')}</span>
           </h1>
-          <p className="page-subtitle">Add and edit dynamic pages (Privacy Policy, Terms, etc.) and specify where they appear</p>
+          <p className="page-subtitle">{t('pages.subtitle', 'Add and edit dynamic pages (Privacy Policy, Terms, etc.) and specify where they appear')}</p>
         </div>
         <button className="btn btn-primary" id="create-page-btn" onClick={openCreate}>
-          + New Page
+          + {t('pages.new_page_btn', 'New Page')}
         </button>
       </div>
 
@@ -240,53 +250,76 @@ export default function AdminPages() {
       {items.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon"><FileText size={40} /></div>
-          <div className="empty-state-text">No custom pages created yet</div>
-          <div className="empty-state-sub">Click "New Page" to create one</div>
+          <div className="empty-state-text">{t('pages.no_pages', 'No custom pages created yet')}</div>
+          <div className="empty-state-sub">{t('pages.no_pages_hint', 'Click "New Page" to create one')}</div>
         </div>
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Slug</th>
-                <th>Display Locations</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{t('common.title', 'Title')}</th>
+                <th>{t('pages.col_slug', 'Slug')}</th>
+                <th>{t('pages.col_display_locations', 'Display Locations')}</th>
+                <th>{t('common.status', 'Status')}</th>
+                <th>{t('common.actions', 'Actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
+              {items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(item => (
                 <tr key={item.id}>
-                  <td style={{ fontWeight: 600 }}>{item.title}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: 13, color: 'var(--color-text-subtle)' }}>
-                    /page/{item.slug}
+                  <td style={{ fontWeight: 600 }}>
+                    <div>{item.title}</div>
+                    {item.title_ar && (
+                      <div style={{ fontSize: 12, color: 'var(--color-text-subtle)', fontStyle: 'italic', marginTop: 4 }}>
+                        {item.title_ar}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ fontFamily: 'monospace', fontSize: 13 }}>
+                    <Link
+                      to={`/page/${item.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'var(--color-primary-light)', textDecoration: 'underline' }}
+                    >
+                      /page/{item.slug}
+                    </Link>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {item.show_in_public_footer && (
-                        <span className="badge badge-info" style={{ fontSize: 11 }}>Public Footer</span>
+                        <span className="badge badge-info" style={{ fontSize: 11 }}>{t('pages.public_footer', 'Public Footer')}</span>
                       )}
                       {item.show_in_publisher_footer && (
-                        <span className="badge badge-primary" style={{ fontSize: 11 }}>Publisher Footer</span>
+                        <span className="badge badge-primary" style={{ fontSize: 11 }}>{t('pages.publisher_footer', 'Publisher Footer')}</span>
                       )}
                       {item.show_in_landing_menu && (
-                        <span className="badge badge-accent" style={{ fontSize: 11 }}>Landing Menu</span>
+                        <span className="badge badge-accent" style={{ fontSize: 11 }}>{t('pages.landing_menu', 'Landing Menu')}</span>
                       )}
                       {!item.show_in_public_footer && !item.show_in_publisher_footer && !item.show_in_landing_menu && (
-                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Hidden</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>{t('pages.hidden', 'Hidden')}</span>
                       )}
                     </div>
                   </td>
                   <td>
                     <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                      {item.is_active ? 'Active' : 'Inactive'}
+                      {item.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
+                      <Link
+                        to={`/page/${item.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-xs"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Eye size={12} /> {t('common.view', 'View')}
+                      </Link>
+                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> {t('common.edit', 'Edit')}</button>
                       <button
                         className="btn btn-danger btn-xs"
                         onClick={() => handleDelete(item.id)}
@@ -301,6 +334,12 @@ export default function AdminPages() {
               ))}
             </tbody>
           </table>
+          <Pagination
+            currentPage={page}
+            totalItems={items.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </div>
       )}
 
@@ -319,44 +358,65 @@ export default function AdminPages() {
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {editing ? <Edit2 size={18} style={{ color: 'var(--br-primary)' }} /> : <FileText size={18} style={{ color: 'var(--br-primary)' }} />}
-                <span>{editing ? 'Edit Page' : 'New Page'}</span>
+                <span>{editing ? t('pages.edit_page', 'Edit Page') : t('pages.new_page', 'New Page')}</span>
               </h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 22 }}>×</button>
             </div>
 
             <form onSubmit={handleSave} style={{ padding: 24 }}>
               <div className="form-row" style={{ marginBottom: 16 }}>
-                {/* Title */}
+                {/* Title (English) */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Page Title *</label>
+                  <label className="form-label">{t('pages.page_title_label', 'Page Title (English)')} *</label>
                   <input
                     className="form-input"
                     value={form.title}
                     onChange={handleTitleChange}
                     required
-                    placeholder="e.g. Privacy Policy"
+                    placeholder={t('pages.title_placeholder', 'e.g. Privacy Policy')}
+                  />
+                </div>
+
+                {/* Title (Arabic) */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">{t('pages.page_title_ar_label', 'Page Title (Arabic)')}</label>
+                  <input
+                    className="form-input"
+                    value={form.title_ar}
+                    onChange={e => setForm(f => ({ ...f, title_ar: e.target.value }))}
+                    placeholder={t('pages.title_ar_placeholder', 'e.g. سياسة الخصوصية')}
+                    dir="rtl"
                   />
                 </div>
 
                 {/* Slug */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Slug * (URL path identifier)</label>
+                <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
+                  <label className="form-label">{t('pages.slug_label', 'Slug')} * ({t('pages.url_path', 'URL path identifier')})</label>
                   <input
                     className="form-input"
                     value={form.slug}
                     onChange={handleSlugChange}
                     required
-                    placeholder="e.g. privacy-policy"
+                    placeholder={t('pages.slug_placeholder', 'e.g. privacy-policy')}
                   />
                 </div>
               </div>
 
-              {/* Content - WYSIWYG */}
+              {/* Content (English) - WYSIWYG */}
               <div className="form-group" style={{ marginBottom: 20 }}>
-                <label className="form-label">Page Content *</label>
+                <label className="form-label">{t('pages.content_label', 'Page Content (English)')} *</label>
                 <RichEditor
                   value={form.content}
                   onChange={val => setForm(f => ({ ...f, content: val }))}
+                />
+              </div>
+
+              {/* Content (Arabic) - WYSIWYG */}
+              <div className="form-group" style={{ marginBottom: 20 }} dir="rtl">
+                <label className="form-label" style={{ textAlign: 'right', display: 'block' }}>{t('pages.content_ar_label', 'Page Content (Arabic)')}</label>
+                <RichEditor
+                  value={form.content_ar}
+                  onChange={val => setForm(f => ({ ...f, content_ar: val }))}
                 />
               </div>
 
@@ -368,13 +428,13 @@ export default function AdminPages() {
                 padding: 16,
                 marginBottom: 20
               }}>
-                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600 }}>Placement & Visibility</h4>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600 }}>{t('pages.placement_visibility', 'Placement & Visibility')}</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
-                    { key: 'show_in_public_footer', label: 'Show in Public Footer (Landing & Support Pages)' },
-                    { key: 'show_in_publisher_footer', label: 'Show in Publisher Dashboard Footer' },
-                    { key: 'show_in_landing_menu', label: 'Show in Landing Page Navigation Menu' },
-                    { key: 'is_active', label: 'Page is Active and Published' },
+                    { key: 'show_in_public_footer', label: t('pages.show_in_public_footer', 'Show in Public Footer (Landing & Support Pages)') },
+                    { key: 'show_in_publisher_footer', label: t('pages.show_in_publisher_footer', 'Show in Publisher Dashboard Footer') },
+                    { key: 'show_in_landing_menu', label: t('pages.show_in_landing_menu', 'Show in Landing Page Navigation Menu') },
+                    { key: 'is_active', label: t('pages.is_active', 'Page is Active and Published') },
                   ].map(({ key, label }) => (
                     <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
                       <div style={{
@@ -395,14 +455,14 @@ export default function AdminPages() {
               </div>
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>{t('common.cancel', 'Cancel')}</button>
                 <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   {saving ? (
-                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</>
+                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> {t('common.saving', 'Saving…')}</>
                   ) : editing ? (
-                    <><Save size={14} /> Update Page</>
+                    <><Save size={14} /> {t('pages.update_page', 'Update Page')}</>
                   ) : (
-                    <><Send size={14} /> Create Page</>
+                    <><Send size={14} /> {t('pages.create_page', 'Create Page')}</>
                   )}
                 </button>
               </div>

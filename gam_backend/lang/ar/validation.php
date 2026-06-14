@@ -1,0 +1,63 @@
+<?php
+
+return [
+    'accepted' => 'يجب قبول :attribute.',
+    'active_url' => 'رابط :attribute ليس صالحاً.',
+    'after' => 'يجب أن يكون :attribute تاريخاً بعد :date.',
+    'alpha' => 'يجب أن يحتوي :attribute على أحرف فقط.',
+    'alpha_dash' => 'يجب أن يحتوي :attribute على أحرف وأرقام وشرطات فقط.',
+    'alpha_num' => 'يجب أن يحتوي :attribute على أحرف وأرقام فقط.',
+    'array' => 'يجب أن يكون :attribute مصفوفة.',
+    'before' => 'يجب أن يكون :attribute تاريخاً قبل :date.',
+    'boolean' => 'يجب أن تكون قيمة :attribute صحيحة أو خاطئة.',
+    'confirmed' => 'تأكيد :attribute غير متطابق.',
+    'date' => 'تاريخ :attribute غير صالح.',
+    'date_format' => 'لا يتوافق :attribute مع الشكل :format.',
+    'different' => 'يجب أن يكون :attribute و :other مختلفين.',
+    'digits' => 'يجب أن يحتوي :attribute على :digits أرقام.',
+    'email' => 'يجب أن يكون :attribute بريداً إلكترونياً صالحاً.',
+    'exists' => 'الحقل المحدد :attribute غير صالح.',
+    'filled' => 'الحقل :attribute مطلوب.',
+    'image' => 'يجب أن يكون :attribute صورة.',
+    'in' => 'الحقل المحدد :attribute غير صالح.',
+    'integer' => 'يجب أن يكون :attribute رقماً صحيحاً.',
+    'ip' => 'يجب أن يكون :attribute عنوان IP صالحاً.',
+    'max' => [
+        'numeric' => 'يجب ألا تكون قيمة :attribute أكبر من :max.',
+        'file' => 'يجب ألا يكون حجم الملف :attribute أكبر من :max كيلوبايت.',
+        'string' => 'يجب ألا يتجاوز طول النص :attribute :max حروف.',
+        'array' => 'يجب ألا يحتوي :attribute على أكثر من :max عناصر.',
+    ],
+    'mimes' => 'يجب أن يكون :attribute ملفاً من نوع: :values.',
+    'min' => [
+        'numeric' => 'يجب أن تكون قيمة :attribute على الأقل :min.',
+        'file' => 'يجب أن يكون حجم الملف :attribute على الأقل :min كيلوبايت.',
+        'string' => 'يجب أن يكون طول النص :attribute على الأقل :min حروف.',
+        'array' => 'يجب أن يحتوي :attribute على الأقل على :min عناصر.',
+    ],
+    'numeric' => 'يجب أن يكون :attribute رقماً.',
+    'regex' => 'صيغة :attribute غير صحيحة.',
+    'required' => 'الحقل :attribute مطلوب.',
+    'required_if' => 'الحقل :attribute مطلوب عندما يكون :other يساوي :value.',
+    'required_with' => 'الحقل :attribute مطلوب عندما يكون :values متوفراً.',
+    'required_without' => 'الحقل :attribute مطلوب عندما لا يكون :values متوفراً.',
+    'string' => 'يجب أن يكون :attribute نصاً.',
+    'timezone' => 'يجب أن يكون :attribute منطقة زمنية صالحة.',
+    'unique' => 'قيمة الحقل :attribute مستخدمة من قبل.',
+    'url' => 'شكل الرابط :attribute غير صالح.',
+
+    'custom' => [
+        'name' => [
+            'regex' => 'يجب أن يحتوي الاسم على أحرف مسافات إنجليزية فقط (لا يسمح بالأرقام أو الرموز الخاصة).',
+        ],
+    ],
+
+    'attributes' => [
+        'name' => 'الاسم',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'phone' => 'الهاتف',
+        'telegram' => 'تيليجرام',
+        'value' => 'القيمة',
+    ],
+];

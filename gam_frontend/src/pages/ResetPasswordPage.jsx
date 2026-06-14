@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { authApi } from '../api/endpoints'
 import { useSettings } from '../contexts/SettingsContext'
+import { useI18n } from '../contexts/I18nContext'
 import toast from 'react-hot-toast'
 import { Lock, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const { settings } = useSettings()
+  const { t } = useI18n()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const token = searchParams.get('token') || ''
@@ -28,7 +30,14 @@ export default function ResetPasswordPage() {
     return s
   })()
 
-  const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Excellent'][strength]
+  const strengthLabel = [
+    '', 
+    t('auth.strength.weak', 'Weak'), 
+    t('auth.strength.fair', 'Fair'), 
+    t('auth.strength.good', 'Good'), 
+    t('auth.strength.strong', 'Strong'), 
+    t('auth.strength.excellent', 'Excellent')
+  ][strength]
   const strengthColors = ['', 'var(--br-danger)', 'var(--br-warning)', 'var(--br-warning)', 'var(--br-accent)', 'var(--br-primary)']
   const strengthColor = strengthColors[strength]
 
@@ -37,21 +46,21 @@ export default function ResetPasswordPage() {
     setErrors({})
 
     if (form.password !== form.password_confirmation) {
-      setErrors({ password_confirmation: 'Passwords do not match.' })
+      setErrors({ password_confirmation: t('auth.error.passwords_do_not_match', 'Passwords do not match.') })
       return
     }
     if (form.password.length < 8) {
-      setErrors({ password: 'Password must be at least 8 characters.' })
+      setErrors({ password: t('auth.error.password_min_length', 'Password must be at least 8 characters.') })
       return
     }
 
     setLoading(true)
     try {
       await authApi.resetPassword({ token, email, ...form })
-      toast.success('Password updated! Please log in.')
+      toast.success(t('auth.toast.password_updated', 'Password updated! Please log in.'))
       navigate('/login')
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to reset password.'
+      const msg = err.response?.data?.message || t('auth.error.failed_reset_password', 'Failed to reset password.')
       const errs = err.response?.data?.errors || {}
       setErrors({ general: msg, ...errs })
     } finally {
@@ -69,12 +78,12 @@ export default function ResetPasswordPage() {
             <div className="auth-logo-icon">
               <AlertTriangle size={24} style={{ color: 'var(--br-danger)' }} />
             </div>
-            <h1 className="auth-title">Invalid Link</h1>
-            <p className="auth-subtitle">This reset link is missing required parameters.</p>
+            <h1 className="auth-title">{t('auth.invalid_link', 'Invalid Link')}</h1>
+            <p className="auth-subtitle">{t('auth.invalid_link_desc', 'This reset link is missing required parameters.')}</p>
           </div>
           <Link to="/forgot-password" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', display: 'flex', marginTop: 8 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              Request a New Link
+              {t('auth.request_new_link', 'Request a New Link')}
               <ArrowRight size={14} />
             </span>
           </Link>
@@ -101,8 +110,8 @@ export default function ResetPasswordPage() {
               </div>
             </Link>
           )}
-          <h1 className="auth-title">Reset Password</h1>
-          <p className="auth-subtitle">Choose a strong new password for {email}</p>
+          <h1 className="auth-title">{t('auth.reset_password', 'Reset Password')}</h1>
+          <p className="auth-subtitle">{t('auth.reset_password_desc', 'Choose a strong new password for {email}', { email })}</p>
         </div>
 
         {errors.general && (
@@ -113,7 +122,7 @@ export default function ResetPasswordPage() {
             </div>
             {errors.general.toLowerCase().includes('expired') && (
               <div style={{ marginTop: 4 }}>
-                <Link to="/forgot-password" style={{ color: 'inherit', fontWeight: 700, textDecoration: 'underline' }}>Request a new reset link &rarr;</Link>
+                <Link to="/forgot-password" style={{ color: 'inherit', fontWeight: 700, textDecoration: 'underline' }}>{t('auth.request_new_link_arrow', 'Request a new reset link \u2192')}</Link>
               </div>
             )}
           </div>
@@ -121,12 +130,12 @@ export default function ResetPasswordPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="reset-password">New Password</label>
+            <label className="form-label" htmlFor="reset-password">{t('auth.new_password_label', 'New Password')}</label>
             <input
               id="reset-password"
               type="password"
               className={`form-input${errors.password ? ' is-invalid' : ''}`}
-              placeholder="Minimum 8 characters"
+              placeholder={t('auth.password_min_8_chars', 'Minimum 8 characters')}
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               required
@@ -154,12 +163,12 @@ export default function ResetPasswordPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="reset-confirm">Confirm Password</label>
+            <label className="form-label" htmlFor="reset-confirm">{t('auth.confirm_password_label', 'Confirm Password')}</label>
             <input
               id="reset-confirm"
               type="password"
               className={`form-input${errors.password_confirmation ? ' is-invalid' : ''}`}
-              placeholder="Repeat your new password"
+              placeholder={t('auth.confirm_new_password_placeholder', 'Repeat your new password')}
               value={form.password_confirmation}
               onChange={e => setForm(f => ({ ...f, password_confirmation: e.target.value }))}
               required
@@ -181,11 +190,11 @@ export default function ResetPasswordPage() {
             {loading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                Updating…
+                {t('auth.updating', 'Updating…')}
               </span>
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                Update Password
+                {t('auth.update_password_btn', 'Update Password')}
                 <ArrowRight size={14} />
               </span>
             )}
@@ -193,7 +202,7 @@ export default function ResetPasswordPage() {
 
           <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
             <Link to="/login" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <ArrowLeft size={14} /> Back to Login
+              <ArrowLeft size={14} /> {t('auth.back_to_login', 'Back to Login')}
             </Link>
           </div>
         </form>

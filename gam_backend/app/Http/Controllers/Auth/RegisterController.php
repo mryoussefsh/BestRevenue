@@ -28,7 +28,7 @@ class RegisterController extends Controller
         $regStatus = Setting::get('registration_status', 'open');
         if ($regStatus === 'closed') {
             return response()->json([
-                'message' => 'Registration is currently closed.',
+                'message' => __('auth.registration_closed'),
             ], 422);
         }
 
@@ -40,15 +40,15 @@ class RegisterController extends Controller
             'phone'    => 'nullable|string|max:50',
             'telegram' => 'nullable|string|max:100',
         ], [
-            'name.regex' => 'Name must only contain English letters and spaces (no numbers or special characters).'
+            'name.regex' => __('validation.custom.name.regex')
         ]);
 
         // Ensure at least one contact field is provided
         if (empty($request->phone) && empty($request->telegram)) {
             return response()->json([
-                'message' => 'Please provide at least one contact method (phone or Telegram).',
+                'message' => __('auth.contact_message'),
                 'errors'  => [
-                    'contact' => ['At least one contact field is required (Phone or Telegram).']
+                    'contact' => [__('auth.contact_error')]
                 ],
             ], 422);
         }
@@ -143,8 +143,15 @@ class RegisterController extends Controller
             }
 
             // Pending → just confirm registration
-            $pendingMessage = Setting::where('key', 'publisher_pending_message')->value('value')
-                ?? 'Your registration has been received! Your account is pending admin review. You will be notified once it is approved.';
+            $lang = $request->header('X-Locale') ?? $request->header('Accept-Language') ?? 'en';
+            $isAr = str_starts_with(strtolower($lang), 'ar');
+            $messageKey = $isAr ? 'publisher_pending_message_ar' : 'publisher_pending_message';
+
+            $pendingMessage = Setting::where('key', $messageKey)->value('value')
+                ?? Setting::where('key', 'publisher_pending_message')->value('value')
+                ?? ($isAr 
+                    ? 'تم استلام طلب التسجيل الخاص بك! حسابك تحت المراجعة حالياً، وسيتم إخطارك بمجرد الموافقة عليه.'
+                    : 'Your registration has been received! Your account is pending admin review. You will be notified once it is approved.');
 
             try { Mail::to($publisher->email)->send(new RegistrationPendingMail($publisher)); } catch (\Exception $e) {}
 

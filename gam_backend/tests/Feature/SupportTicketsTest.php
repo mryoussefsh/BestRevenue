@@ -282,4 +282,149 @@ class SupportTicketsTest extends TestCase
             return $mail->hasTo('publisher@test.com');
         });
     }
+
+    public function test_unread_replies_badge_count_logic(): void
+    {
+        Mail::fake();
+
+        Sanctum::actingAs($this->publisherUser);
+
+        // 1. Initially count is 0
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 0);
+
+        // 2. Create ticket. Count should still be 0 since no admin replied.
+        $ticket = Ticket::create([
+            'id'           => (string) \Illuminate\Support\Str::uuid(),
+            'publisher_id' => $this->publisher->id,
+            'user_id'      => $this->publisherUser->id,
+            'subject'      => 'Test Badge Count',
+            'category'     => 'other',
+            'priority'     => 'low',
+            'status'       => 'open',
+            'last_viewed_by_publisher_at' => now(),
+        ]);
+
+        $ticket->messages()->create([
+            'user_id'        => $this->publisherUser->id,
+            'message'        => 'Initial publisher message',
+            'is_admin_reply' => false,
+        ]);
+
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 0);
+
+        // 3. Admin replies. Count should become 1.
+        // Sleep 1 second to ensure created_at is strictly greater than last_viewed_by_publisher_at
+        sleep(1);
+        
+        $ticket->messages()->create([
+            'user_id'        => $this->adminUser->id,
+            'message'        => 'Admin reply here',
+            'is_admin_reply' => true,
+        ]);
+
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 1);
+
+        // 4. Publisher views ticket. Count should reset to 0.
+        $response = $this->getJson("/api/v1/publisher/tickets/{$ticket->id}");
+        $response->assertStatus(200);
+
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 0);
+
+        // 5. Admin replies again. Count should become 1.
+        sleep(1);
+        $ticket->messages()->create([
+            'user_id'        => $this->adminUser->id,
+            'message'        => 'Admin reply 2',
+            'is_admin_reply' => true,
+        ]);
+
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 1);
+
+        // 6. Publisher replies back. Count should reset to 0.
+        sleep(1);
+        $response = $this->postJson("/api/v1/publisher/tickets/{$ticket->id}/reply", [
+            'message' => 'Publisher follow up reply',
+        ]);
+        $response->assertStatus(201);
+
+        $response = $this->getJson('/api/v1/publisher/tickets');
+        $response->assertStatus(200);
+        $response->assertJsonPath('unread_replies_count', 0);
+    }
+
+    public function test_admin_pending_tickets_badge_count_logic(): void
+    {
+        Mail::fake();
+
+        Sanctum::actingAs($this->adminUser);
+
+        // 1. Initially sidebar stats pending_tickets is 0
+        $response = $this->getJson('/api/v1/admin/sidebar-stats');
+        $response->assertStatus(200);
+        $response->assertJsonPath('pending_tickets', 0);
+
+        // 2. Publisher creates a ticket. pending_tickets should become 1.
+        $ticket = Ticket::create([
+            'id'           => (string) \Illuminate\Support\Str::uuid(),
+            'publisher_id' => $this->publisher->id,
+            'user_id'      => $this->publisherUser->id,
+            'subject'      => 'Admin Badge Count Test',
+            'category'     => 'other',
+            'priority'     => 'low',
+            'status'       => 'open',
+            'last_viewed_by_publisher_at' => now(),
+        ]);
+
+        $ticket->messages()->create([
+            'user_id'        => $this->publisherUser->id,
+            'message'        => 'Publisher creates a ticket',
+            'is_admin_reply' => false,
+        ]);
+
+        $response = $this->getJson('/api/v1/admin/sidebar-stats');
+        $response->assertStatus(200);
+        $response->assertJsonPath('pending_tickets', 1);
+
+        // 3. Admin views the ticket. pending_tickets should reset to 0.
+        $response = $this->getJson("/api/v1/admin/tickets/{$ticket->id}");
+        $response->assertStatus(200);
+
+        $response = $this->getJson('/api/v1/admin/sidebar-stats');
+        $response->assertStatus(200);
+        $response->assertJsonPath('pending_tickets', 0);
+
+        // 4. Admin replies to the ticket. pending_tickets should remain 0.
+        sleep(1);
+        $response = $this->postJson("/api/v1/admin/tickets/{$ticket->id}/reply", [
+            'message' => 'Admin reply',
+        ]);
+        $response->assertStatus(201);
+
+        $response = $this->getJson('/api/v1/admin/sidebar-stats');
+        $response->assertStatus(200);
+        $response->assertJsonPath('pending_tickets', 0);
+
+        // 5. Publisher replies back. pending_tickets should become 1.
+        Sanctum::actingAs($this->publisherUser);
+        sleep(1);
+        $response = $this->postJson("/api/v1/publisher/tickets/{$ticket->id}/reply", [
+            'message' => 'Publisher reply',
+        ]);
+        $response->assertStatus(201);
+
+        Sanctum::actingAs($this->adminUser);
+        $response = $this->getJson('/api/v1/admin/sidebar-stats');
+        $response->assertStatus(200);
+        $response->assertJsonPath('pending_tickets', 1);
+    }
 }

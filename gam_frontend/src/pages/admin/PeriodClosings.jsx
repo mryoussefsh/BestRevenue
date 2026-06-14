@@ -3,24 +3,26 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
+import { useI18n } from '../../contexts/I18nContext'
 import CompactAmount from '../../components/CompactAmount'
 import { Calendar, Lock, Eye, Trash2, RefreshCw, AlertTriangle } from 'lucide-react'
 
 function CloseModal({ onClose, onDone }) {
+  const { t } = useI18n()
   const now = new Date()
   const [year, setYear]   = useState(now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() === 0 ? 12 : now.getMonth())
   const [closing, setClosing] = useState(false)
 
   async function handleClose() {
-    if (!confirm(`Close period ${year}-${String(month).padStart(2,'0')}? This is irreversible.`)) return
+    if (!confirm(t('period.confirm_close', `Close period ${year}-${String(month).padStart(2,'0')}? This is irreversible.`))) return
     setClosing(true)
     try {
       await adminApi.closePeriod(year, month)
-      toast.success(`Period ${year}-${month} closed and payouts generated!`)
+      toast.success(t('period.toast_closed', `Period ${year}-${month} closed and payouts generated!`))
       onDone()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to close period')
+      toast.error(e.response?.data?.message || t('period.toast_close_fail', 'Failed to close period'))
     } finally { setClosing(false) }
   }
 
@@ -30,25 +32,24 @@ function CloseModal({ onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Calendar size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Close Financial Period</span>
+            <span>{t('period.close_modal_title', 'Close Financial Period')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <AlertTriangle size={20} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
           <div>
-            Closing a period <strong>locks</strong> all revenue records for that month and
-            auto-generates payout records for all publishers. This action cannot be undone.
+            {t('period.close_warning_1', 'Closing a period')} <strong>{t('period.locks', 'locks')}</strong> {t('period.close_warning_2', 'all revenue records for that month and auto-generates payout records for all publishers. This action cannot be undone.')}
           </div>
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Year</label>
+            <label className="form-label">{t('period.year', 'Year')}</label>
             <input className="form-input" type="number" value={year}
               onChange={e => setYear(parseInt(e.target.value))} />
           </div>
           <div className="form-group">
-            <label className="form-label">Month</label>
+            <label className="form-label">{t('period.month', 'Month')}</label>
             <select className="form-select" value={month}
               onChange={e => setMonth(parseInt(e.target.value))}>
               {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -60,16 +61,19 @@ function CloseModal({ onClose, onDone }) {
           </div>
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button id="confirm-close-period-btn" className="btn btn-danger" onClick={handleClose} disabled={closing} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <Lock size={14} />
-            <span>{closing ? 'Closing…' : 'Close Period & Generate Payouts'}</span>
+            <span>{closing ? t('period.closing', 'Closing…') : t('period.close_btn', 'Close Period & Generate Payouts')}</span>
           </button>
         </div>
       </div>
     </div>
   )
-}function BreakdownModal({ detail, onClose }) {
+}
+
+function BreakdownModal({ detail, onClose }) {
+  const { t } = useI18n()
   if (!detail) return null
 
   const monthLabel = (y, m) => `${new Date(y, m-1).toLocaleString('default', { month: 'long' })} ${y}`
@@ -80,21 +84,21 @@ function CloseModal({ onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Calendar size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>{monthLabel(detail.closing.period_year, detail.closing.period_month)} — Breakdown</span>
+            <span>{monthLabel(detail.closing.period_year, detail.closing.period_month)} — {t('period.breakdown', 'Breakdown')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', padding: 0 }}>
           {detail.payouts?.length === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 20px' }}>No payouts for this period</div>
+            <div className="empty-state" style={{ padding: '40px 20px' }}>{t('period.no_payouts', 'No payouts for this period')}</div>
           ) : (
             <div className="table-wrap" style={{ border: 'none', borderRadius: 0, margin: 0 }}>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Publisher</th>
-                    <th>Earnings</th>
-                    <th>Status</th>
+                    <th>{t('period.col_publisher', 'Publisher')}</th>
+                    <th>{t('period.col_earnings', 'Earnings')}</th>
+                    <th>{t('period.col_status', 'Status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,7 +121,7 @@ function CloseModal({ onClose, onDone }) {
                 </tbody>
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700 }}>
-                    <td style={{ padding: '12px 16px', fontSize: 12 }}>Totals ({detail.payouts.length})</td>
+                    <td style={{ padding: '12px 16px', fontSize: 12 }}>{t('period.totals', 'Totals')} ({detail.payouts.length})</td>
                     <td className="money positive" style={{ fontWeight: 700, padding: '12px 16px' }}>
                       <CompactAmount value={detail.payouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)} />
                     </td>
@@ -129,7 +133,7 @@ function CloseModal({ onClose, onDone }) {
           )}
         </div>
         <div className="modal-footer" style={{ padding: '12px 24px' }}>
-          <button className="btn btn-secondary" onClick={onClose} style={{ width: '100%' }}>Close</button>
+          <button className="btn btn-secondary" onClick={onClose} style={{ width: '100%' }}>{t('common.close', 'Close')}</button>
         </div>
       </div>
     </div>
@@ -138,6 +142,7 @@ function CloseModal({ onClose, onDone }) {
 
 export default function PeriodClosingsPage() {
   const { formatDate } = useSettings()
+  const { t } = useI18n()
   const [closings, setClosings] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -151,7 +156,7 @@ export default function PeriodClosingsPage() {
     try {
       const res = await adminApi.getPeriodClosings()
       setClosings(res.data?.data || [])
-    } catch { toast.error('Failed to load') }
+    } catch { toast.error(t('period.toast_load_fail', 'Failed to load')) }
     finally { setLoading(false) }
   }
 
@@ -161,20 +166,20 @@ export default function PeriodClosingsPage() {
     try {
       const res = await adminApi.getPeriodClosing(id)
       setDetail(res.data)
-    } catch { toast.error('Failed to load period detail') }
+    } catch { toast.error(t('period.toast_detail_fail', 'Failed to load period detail')) }
   }
 
   async function handleDelete(id, year, month) {
-    if (!confirm(`Are you sure you want to DELETE period ${year}-${String(month).padStart(2,'0')}?\n\nThis will permanently delete generated payouts, reset manual adjustments back to pending, and UNLOCK all revenue records for this month so they can be closed again.\n\nThis action cannot be undone.`)) return
+    if (!confirm(t('period.confirm_delete', `Are you sure you want to DELETE period ${year}-${String(month).padStart(2,'0')}?\n\nThis will permanently delete generated payouts, reset manual adjustments back to pending, and UNLOCK all revenue records for this month so they can be closed again.\n\nThis action cannot be undone.`))) return
     try {
       await adminApi.deletePeriodClosing(id)
-      toast.success(`Period ${year}-${month} deleted successfully!`)
+      toast.success(t('period.toast_deleted', `Period ${year}-${month} deleted successfully!`))
       if (detail?.closing?.id === id) {
         setDetail(null)
       }
       load()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to delete period closing')
+      toast.error(e.response?.data?.message || t('period.toast_delete_fail', 'Failed to delete period closing'))
     }
   }
 
@@ -186,12 +191,12 @@ export default function PeriodClosingsPage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Calendar size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Period Closings</span>
+            <span>{t('period.title', 'Period Closings')}</span>
           </h1>
-          <p className="page-subtitle">Financial month-end closing system</p>
+          <p className="page-subtitle">{t('period.subtitle', 'Financial month-end closing system')}</p>
         </div>
         <button id="open-close-period-btn" className="btn btn-danger" onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <Lock size={16} /> Close a Period
+          <Lock size={16} /> {t('period.close_btn_header', 'Close a Period')}
         </button>
       </div>
 
@@ -201,16 +206,16 @@ export default function PeriodClosingsPage() {
             {loading ? <div className="empty-state"><div className="spinner"></div></div> : (
               <table className="table">
                 <thead><tr>
-                  <th>Period</th><th>Status</th>
-                  <th>Total Gross</th><th>Pub. Earnings</th><th>Total Payouts</th><th>Impressions</th><th>Closed At</th><th></th>
+                  <th>{t('period.col_period', 'Period')}</th><th>{t('period.col_status', 'Status')}</th>
+                  <th>{t('period.col_total_gross', 'Total Gross')}</th><th>{t('period.col_pub_earnings', 'Pub. Earnings')}</th><th>{t('period.col_total_payouts', 'Total Payouts')}</th><th>{t('period.col_impressions', 'Impressions')}</th><th>{t('period.col_closed_at', 'Closed At')}</th><th></th>
                 </tr></thead>
                 <tbody>
                   {closings.length === 0 && (
                     <tr><td colSpan={8}>
                       <div className="empty-state">
                         <div className="empty-state-icon"><Calendar size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-                        <div className="empty-state-text">No closed periods yet</div>
-                        <div className="empty-state-sub">Use the button above to close a financial period</div>
+                        <div className="empty-state-text">{t('period.no_periods', 'No closed periods yet')}</div>
+                        <div className="empty-state-sub">{t('period.no_periods_hint', 'Use the button above to close a financial period')}</div>
                       </div>
                     </td></tr>
                   )}
@@ -222,7 +227,7 @@ export default function PeriodClosingsPage() {
                             {c.status === 'closed' ? (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                 <Lock size={12} />
-                                Closed
+                                {t('period.status_closed', 'Closed')}
                               </span>
                             ) : (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -244,10 +249,10 @@ export default function PeriodClosingsPage() {
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button className="btn btn-secondary btn-xs" onClick={() => loadDetail(c.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <Eye size={12} /> View
+                              <Eye size={12} /> {t('common.view', 'View')}
                             </button>
                             <button className="btn btn-danger btn-xs" onClick={() => handleDelete(c.id, c.period_year, c.period_month)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <Trash2 size={12} /> Delete
+                              <Trash2 size={12} /> {t('common.delete', 'Delete')}
                             </button>
                           </div>
                         </td>
@@ -257,7 +262,7 @@ export default function PeriodClosingsPage() {
                   {closings.length > 0 && (
                     <tfoot>
                       <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-                        <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>Totals ({closings.length})</td>
+                        <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>{t('period.totals', 'Totals')} ({closings.length})</td>
                         <td className="money positive">
                           <CompactAmount value={closings.reduce((s, c) => s + parseFloat(c.total_gross_revenue || 0), 0)} />
                         </td>

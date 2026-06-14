@@ -22,6 +22,7 @@ class AuthController extends Controller
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string',
+            'remember' => 'nullable|boolean',
         ]);
 
         // FIX [A-5 / FIX-28]: Per-email rate limiting — 10 attempts per 60 minutes.
@@ -31,7 +32,7 @@ class AuthController extends Controller
         if (RateLimiter::tooManyAttempts($rateLimitKey, 10)) {
             $seconds = RateLimiter::availableIn($rateLimitKey);
             return response()->json([
-                'message' => 'Too many login attempts for this account. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
+                'message' => __('auth.too_many_attempts_email', ['minutes' => ceil($seconds / 60)]),
             ], 429);
         }
 
@@ -54,8 +55,8 @@ class AuthController extends Controller
             // Check if publisher is pending (not yet approved) vs suspended
             $isPending = $user->publisher && $user->publisher->status === 'pending';
             $message = $isPending
-                ? 'Your account is pending admin review. You will be notified once it is approved.'
-                : 'Your account has been suspended. Please contact the administrator.';
+                ? __('auth.account_pending')
+                : __('auth.account_suspended');
 
             return response()->json(['message' => $message], 403);
         }
@@ -67,12 +68,14 @@ class AuthController extends Controller
             $user->publisher->update(['last_ip' => $request->ip()]);
         }
 
-        $token = $user->createToken('api-token', ['*'], now()->addMinutes(60))->plainTextToken;
+        $remember = (bool) $request->input('remember', false);
+        $expiration = $remember ? now()->addDays(7) : now()->addMinutes(60);
+        $token = $user->createToken('api-token', ['*'], $expiration)->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
             'token_type'   => 'Bearer',
-            'expires_in'   => 60 * 60, // seconds
+            'expires_in'   => $remember ? 7 * 24 * 60 * 60 : 60 * 60, // seconds
             'user'         => [
                 'id'           => $user->id,
                 'name'         => $user->name,
@@ -97,7 +100,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return response()->json(['message' => __('auth.logged_out')]);
     }
 
     /**

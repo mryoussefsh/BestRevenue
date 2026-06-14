@@ -30,7 +30,9 @@ class AnnouncementController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'content_ar' => 'nullable|string',
             'type' => 'required|in:banner,modal',
             'style' => 'required|in:info,success,warning,danger',
             'priority' => 'integer',
@@ -58,7 +60,9 @@ class AnnouncementController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'content_ar' => 'nullable|string',
             'type' => 'required|in:banner,modal',
             'style' => 'required|in:info,success,warning,danger',
             'priority' => 'integer',

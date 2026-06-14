@@ -20,6 +20,13 @@ class Ticket extends Model
         'category',
         'priority',
         'status',
+        'last_viewed_by_publisher_at',
+        'last_viewed_by_admin_at',
+    ];
+
+    protected $casts = [
+        'last_viewed_by_publisher_at' => 'datetime',
+        'last_viewed_by_admin_at' => 'datetime',
     ];
 
     public function publisher()

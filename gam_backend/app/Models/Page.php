@@ -14,8 +14,10 @@ class Page extends Model
 
     protected $fillable = [
         'title',
+        'title_ar',
         'slug',
         'content',
+        'content_ar',
         'show_in_public_footer',
         'show_in_publisher_footer',
         'show_in_landing_menu',

@@ -13,7 +13,7 @@ class Announcement extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'id', 'title', 'content', 'type', 'style', 'priority', 'is_active', 
+        'id', 'title', 'content', 'title_ar', 'content_ar', 'type', 'style', 'priority', 'is_active', 
         'start_date', 'end_date', 'allow_dismiss', 'buttons',
         'target_type', 'target_publishers', 'target_countries', 'target_roles'
     ];

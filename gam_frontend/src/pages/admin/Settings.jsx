@@ -2,28 +2,11 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
-import {
-  Settings,
-  CreditCard,
-  Server,
-  DollarSign,
-  Palette,
-  Globe,
-  UserPlus,
-  Mail,
-  Search,
-  MessageSquare,
-  Share2,
-  Trash2,
-  Plus,
-  Clock,
-  Info,
-  Send,
-  CheckCircle2,
-  FileText
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { Settings, CreditCard, Server, DollarSign, Palette, Globe, UserPlus, Mail, Search, MessageSquare, Share2, Trash2, Plus, Clock, Info, Send, CheckCircle2, FileText } from 'lucide-react'
 
 function TimezoneSelect({ value, onChange }) {
+  const { t } = useI18n()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [hoveredVal, setHoveredVal] = useState(null)
@@ -80,7 +63,7 @@ function TimezoneSelect({ value, onChange }) {
         tabIndex={0}
       >
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {selected ? selected.label : value || 'Select Timezone...'}
+          {selected ? selected.label : value || t('admin.settings.timezone.select_placeholder', 'Select Timezone...')}
         </span>
         <span style={{ 
           fontSize: 10, 
@@ -119,7 +102,7 @@ function TimezoneSelect({ value, onChange }) {
             <input 
               autoFocus
               className="form-input" 
-              placeholder="Search timezone..." 
+              placeholder={t('admin.settings.timezone.search_placeholder', 'Search timezone...')} 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
               onKeyDown={e => {
@@ -164,7 +147,7 @@ function TimezoneSelect({ value, onChange }) {
           })}
           {filtered.length === 0 && (
             <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>
-              No timezones found
+              {t('admin.settings.timezone.none_found', 'No timezones found')}
             </div>
           )}
         </div>
@@ -174,6 +157,7 @@ function TimezoneSelect({ value, onChange }) {
 }
 
 function CopyButton({ text }) {
+  const { t } = useI18n()
   const [copied, setCopied] = useState(false)
   const handleCopy = () => {
     if (!navigator.clipboard) {
@@ -187,21 +171,21 @@ function CopyButton({ text }) {
         document.execCommand('copy')
         document.body.removeChild(textarea)
         setCopied(true)
-        toast.success('Copied to clipboard!')
+        toast.success(t('admin.settings.copy.copied_success', 'Copied to clipboard!'))
         setTimeout(() => setCopied(false), 2000)
       } catch (err) {
-        toast.error('Failed to copy text')
+        toast.error(t('admin.settings.copy.copied_failed', 'Failed to copy text'))
       }
       return
     }
     navigator.clipboard.writeText(text)
       .then(() => {
         setCopied(true)
-        toast.success('Copied to clipboard!')
+        toast.success(t('admin.settings.copy.copied_success', 'Copied to clipboard!'))
         setTimeout(() => setCopied(false), 2000)
       })
       .catch(() => {
-        toast.error('Failed to copy text')
+        toast.error(t('admin.settings.copy.copied_failed', 'Failed to copy text'))
       })
   }
   return (
@@ -221,7 +205,7 @@ function CopyButton({ text }) {
         flexShrink: 0
       }}
     >
-      {copied ? 'Copied!' : 'Copy'}
+      {copied ? t('admin.settings.copy.copied', 'Copied!') : t('admin.settings.copy.copy', 'Copy')}
     </button>
   )
 }
@@ -238,18 +222,19 @@ export default function SettingsPage() {
   const [testEmailRecipient, setTestEmailRecipient] = useState('')
   const [sendingTestMail, setSendingTestMail] = useState(false)
   const { reload: reloadSettings } = useSettings()
+  const { t } = useI18n()
 
   async function handleFileUpload(key, file) {
     if (!file) return
-    const toastId = toast.loading('Uploading file...')
+    const toastId = toast.loading(t('admin.settings.toast.uploading', 'Uploading file...'))
     try {
       const res = await adminApi.uploadSettingFile(key, file)
-      toast.success('File uploaded successfully!', { id: toastId })
+      toast.success(t('admin.settings.toast.uploaded', 'File uploaded successfully!'), { id: toastId })
       setSettings(ss => ss.map(s => s.key === key ? { ...s, value: res.data.value } : s))
       setEdited(v => ({ ...v, [key]: res.data.value }))
       reloadSettings()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'File upload failed.', { id: toastId })
+      toast.error(e.response?.data?.message || t('admin.settings.toast.upload_failed', 'File upload failed.'), { id: toastId })
     }
   }
 
@@ -258,9 +243,9 @@ export default function SettingsPage() {
     setSendingTestMail(true)
     try {
       const res = await adminApi.testEmailSettings(testEmailRecipient)
-      toast.success(res.data?.message || 'Test email sent!')
+      toast.success(res.data?.message || t('admin.settings.toast.test_email_sent', 'Test email sent!'))
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to send test email.')
+      toast.error(e.response?.data?.message || t('admin.settings.toast.test_email_failed', 'Failed to send test email.'))
     } finally { setSendingTestMail(false) }
   }
 
@@ -274,12 +259,12 @@ export default function SettingsPage() {
       const vals = {}
       ;(res.data || []).forEach(s => { vals[s.key] = s.value })
       setEdited(vals)
-    } catch { toast.error('Failed to load settings') }
+    } catch { toast.error(t('admin.settings.toast.load_failed', 'Failed to load settings')) }
     finally { setLoading(false) }
   }
 
   const getUiGroup = (s) => {
-    if (['site_name', 'site_description', 'platform_timezone', 'default_currency'].includes(s.key)) {
+    if (['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency'].includes(s.key)) {
       return 'main_settings'
     }
     if (['site_logo', 'site_favicon', 'og_image'].includes(s.key)) {
@@ -290,7 +275,7 @@ export default function SettingsPage() {
 
   const getUiGroupKeysOrder = (group) => {
     if (group === 'main_settings') {
-      return ['site_name', 'site_description', 'platform_timezone', 'default_currency']
+      return ['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency']
     }
     if (group === 'branding') {
       return ['site_logo', 'site_favicon', 'og_image']
@@ -306,6 +291,25 @@ export default function SettingsPage() {
         'ad_type_preselected_sizes'
       ]
     }
+    if (group === 'seo') {
+      return [
+        'meta_title',
+        'meta_title_ar',
+        'meta_description',
+        'meta_description_ar',
+        'meta_keywords',
+        'meta_keywords_ar'
+      ]
+    }
+    if (group === 'registration') {
+      return [
+        'registration_status',
+        'publisher_registration_status',
+        'publisher_pending_message',
+        'publisher_pending_message_ar',
+        'publisher_default_ratio'
+      ]
+    }
     return null
   }
 
@@ -319,18 +323,20 @@ export default function SettingsPage() {
     })
 
     if (changedSettings.length === 0) {
-      toast.success('No changes to save.')
+      toast.success(t('admin.settings.toast.no_changes', 'No changes to save.'))
       return
     }
 
     setSavingGroup(prev => ({ ...prev, [group]: true }))
-    const toastId = toast.loading(`Saving ${groupLabels[group] || group} settings...`)
+    const currentLabel = groupLabels[group] || group
+    const translatedGroupLabel = t(`admin.settings.group.${group}`, currentLabel)
+    const toastId = toast.loading(t('admin.settings.toast.saving_group', 'Saving {group} settings...', { group: translatedGroupLabel }))
 
     try {
       await Promise.all(
         changedSettings.map(s => adminApi.updateSetting(s.key, edited[s.key]))
       )
-      toast.success('Settings saved successfully!', { id: toastId })
+      toast.success(t('admin.settings.toast.saved', 'Settings saved successfully!'), { id: toastId })
       
       setSettings(prev => prev.map(s => {
         if (getUiGroup(s) === group) {
@@ -340,7 +346,7 @@ export default function SettingsPage() {
       }))
       reloadSettings()
     } catch (err) {
-      toast.error('Failed to save settings.', { id: toastId })
+      toast.error(t('admin.settings.toast.save_failed', 'Failed to save settings.'), { id: toastId })
     } finally {
       setSavingGroup(prev => ({ ...prev, [group]: false }))
     }
@@ -416,9 +422,9 @@ export default function SettingsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Settings size={28} style={{ color: 'var(--color-primary)' }} /> Settings
+            <Settings size={28} style={{ color: 'var(--color-primary)' }} /> {t('admin.settings.title', 'Settings')}
           </h1>
-          <p className="page-subtitle">Global platform configuration</p>
+          <p className="page-subtitle">{t('admin.settings.subtitle', 'Global platform configuration')}</p>
         </div>
       </div>
 
@@ -439,7 +445,7 @@ export default function SettingsPage() {
                 <span style={{ display: 'flex', alignItems: 'center' }}>
                   {renderGroupIcon(g)}
                 </span>
-                <span style={{ flex: 1 }}>{groupLabels[g] || g.charAt(0).toUpperCase() + g.slice(1)}</span>
+                <span style={{ flex: 1 }}>{t(`admin.settings.group.${g}`, groupLabels[g] || g.charAt(0).toUpperCase() + g.slice(1))}</span>
                 {hasChanges && (
                   <span style={{
                     width: 6,
@@ -450,7 +456,7 @@ export default function SettingsPage() {
                     top: '50%',
                     right: 12,
                     transform: 'translateY(-50%)'
-                  }} title="Unsaved changes" />
+                  }} title={t('admin.settings.unsaved_changes', 'Unsaved changes')} />
                 )}
               </button>
             )
@@ -464,7 +470,7 @@ export default function SettingsPage() {
               <div className="card-header" style={{ padding: 0, paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
                 <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {renderGroupIcon(activeTab)}
-                  <span>{groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</span>
+                  <span>{t(`admin.settings.group.${activeTab}`, groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1))}</span>
                 </div>
               </div>
 
@@ -500,15 +506,15 @@ export default function SettingsPage() {
                       {s.key === 'payment_methods' ? (
                         <div style={{ marginBottom: 16 }}>
                           <div style={{ fontWeight: 600, fontSize: 14 }}>
-                            {(s.label || s.key).replace(/\s*\(JSON config\)/i, '')}
+                            {t(`admin.settings.keys.${s.key}`, (s.label || s.key).replace(/\s*\(JSON config\)/i, ''))}
                           </div>
                           <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                            Configure the payout methods publishers can choose from.
+                            {t('admin.settings.payment_methods.desc', 'Configure the payout methods publishers can choose from.')}
                           </div>
                         </div>
                       ) : (
                         <div style={s.key === 'ad_type_preselected_sizes' ? { width: '100%' } : { paddingRight: 16 }}>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label || s.key}</div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{t(`admin.settings.keys.${s.key}`, s.label || s.key)}</div>
                         </div>
                       )}
                       <div style={{ width: '100%' }}>
@@ -518,9 +524,9 @@ export default function SettingsPage() {
                           value={edited[s.key] ?? ''}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         >
-                          <option value="daily">Daily</option>
-                          <option value="hourly">Hourly</option>
-                          <option value="minutes">Every X Minutes</option>
+                          <option value="daily">{t('admin.settings.gam_sync_frequency.daily', 'Daily')}</option>
+                          <option value="hourly">{t('admin.settings.gam_sync_frequency.hourly', 'Hourly')}</option>
+                          <option value="minutes">{t('admin.settings.gam_sync_frequency.minutes', 'Every X Minutes')}</option>
                         </select>
                       ) : s.key === 'platform_timezone' ? (
                         <TimezoneSelect
@@ -558,7 +564,7 @@ export default function SettingsPage() {
                                 }}
                                 style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: 4 }}
                               >
-                                <Trash2 size={12} /> Clear
+                                <Trash2 size={12} /> {t('admin.settings.clear', 'Clear')}
                               </button>
                             </div>
                           )}
@@ -567,12 +573,12 @@ export default function SettingsPage() {
                               type="text"
                               className="form-input"
                               style={{ flex: 1, minWidth: 200 }}
-                              placeholder="Or paste asset URL here..."
+                              placeholder={t('admin.settings.asset_url_placeholder', 'Or paste asset URL here...')}
                               value={edited[s.key] ?? ''}
                               onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                             />
                             <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                              <FileText size={14} /> Upload File
+                              <FileText size={14} /> {t('admin.settings.upload_file', 'Upload File')}
                               <input
                                 type="file"
                                 accept="image/*"
@@ -628,7 +634,7 @@ export default function SettingsPage() {
                                             flexShrink: 0
                                           }}>▶</span>
                                           <span className="pm-card-title">
-                                            {hasName ? m.name : `Method #${idx + 1}`}
+                                            {hasName ? (m.name + (m.name_ar ? ` (${m.name_ar})` : '')) : t('admin.settings.payment_methods.method_number', 'Method #{number}', { number: idx + 1 })}
                                           </span>
                                           {!isOpen && (
                                             <span style={{
@@ -640,13 +646,13 @@ export default function SettingsPage() {
                                               opacity: 0.7,
                                               paddingLeft: 4
                                             }}>
-                                              {m.minimum != null ? `min $${m.minimum}` : ''}
+                                              {m.minimum != null ? t('admin.settings.payment_methods.min_amount', 'min ${amount}', { amount: m.minimum }) : ''}
                                               {m.guidance ? ` · ${m.guidance.slice(0, 40)}${m.guidance.length > 40 ? '…' : ''}` : ''}
                                             </span>
                                           )}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                                          <span className="pm-card-badge">#{idx + 1}</span>
+                                          <span className="pm-card-badge">{t('admin.settings.payment_methods.number_badge', '#{number}', { number: idx + 1 })}</span>
                                           <button
                                             type="button"
                                             className="pm-card-remove"
@@ -666,22 +672,22 @@ export default function SettingsPage() {
                                             }}
                                           >
                                             <Trash2 size={12} />
-                                            Remove
+                                            {t('admin.settings.payment_methods.remove', 'Remove')}
                                           </button>
                                         </div>
                                       </div>
-
+ 
                                       {/* Expanded Body */}
                                       {isOpen && (
                                         <div className="pm-card-body" onClick={e => e.stopPropagation()}>
                                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
                                             <div>
-                                              <label className="pm-field-label">Payment Name</label>
+                                              <label className="pm-field-label">{t('admin.settings.payment_methods.fields.name', 'Payment Name (English)')}</label>
                                               <input
                                                 type="text"
                                                 className="form-input"
                                                 style={{ fontSize: 13 }}
-                                                placeholder="e.g. Bank Transfer, PayPal…"
+                                                placeholder={t('admin.settings.payment_methods.fields.name_placeholder', 'e.g. Bank Transfer, PayPal…')}
                                                 value={m.name ?? ''}
                                                 onChange={e => {
                                                   const updated = list.map((item, i) => i === idx ? { ...item, name: e.target.value } : item)
@@ -690,12 +696,27 @@ export default function SettingsPage() {
                                               />
                                             </div>
                                             <div>
-                                              <label className="pm-field-label">Min Payout ($)</label>
+                                              <label className="pm-field-label">{t('admin.settings.payment_methods.fields.name_ar', 'Payment Name (Arabic)')}</label>
+                                              <input
+                                                type="text"
+                                                className="form-input"
+                                                style={{ fontSize: 13 }}
+                                                dir="rtl"
+                                                placeholder={t('admin.settings.payment_methods.fields.name_ar_placeholder', 'e.g. تحويل بنكي، بايبال…')}
+                                                value={m.name_ar ?? ''}
+                                                onChange={e => {
+                                                  const updated = list.map((item, i) => i === idx ? { ...item, name_ar: e.target.value } : item)
+                                                  setEdited(v => ({ ...v, [s.key]: updated }))
+                                                }}
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="pm-field-label">{t('admin.settings.payment_methods.fields.min_payout', 'Min Payout ($)')}</label>
                                               <input
                                                 type="number"
                                                 className="form-input"
                                                 style={{ fontSize: 13 }}
-                                                placeholder="e.g. 50"
+                                                placeholder={t('admin.settings.payment_methods.fields.min_payout_placeholder', 'e.g. 50')}
                                                 value={m.minimum ?? 0}
                                                 onChange={e => {
                                                   const updated = list.map((item, i) => i === idx ? { ...item, minimum: parseFloat(e.target.value) || 0 } : item)
@@ -704,19 +725,36 @@ export default function SettingsPage() {
                                               />
                                             </div>
                                           </div>
-                                          <div style={{ marginTop: 14 }}>
-                                            <label className="pm-field-label">Guidance Text</label>
-                                            <textarea
-                                              rows={3}
-                                              className="form-textarea"
-                                              style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
-                                              value={m.guidance ?? ''}
-                                              onChange={e => {
-                                                const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
-                                                setEdited(v => ({ ...v, [s.key]: updated }))
-                                              }}
-                                              placeholder="Instructions shown to the publisher when selecting this method…"
-                                            />
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
+                                            <div>
+                                              <label className="pm-field-label">{t('admin.settings.payment_methods.fields.guidance', 'Guidance Text (English)')}</label>
+                                              <textarea
+                                                rows={3}
+                                                className="form-textarea"
+                                                style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
+                                                value={m.guidance ?? ''}
+                                                onChange={e => {
+                                                  const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
+                                                  setEdited(v => ({ ...v, [s.key]: updated }))
+                                                }}
+                                                placeholder={t('admin.settings.payment_methods.fields.guidance_placeholder', 'Instructions shown to the publisher when selecting this method…')}
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="pm-field-label">{t('admin.settings.payment_methods.fields.guidance_ar', 'Guidance Text (Arabic)')}</label>
+                                              <textarea
+                                                rows={3}
+                                                className="form-textarea"
+                                                style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
+                                                dir="rtl"
+                                                value={m.guidance_ar ?? ''}
+                                                onChange={e => {
+                                                  const updated = list.map((item, i) => i === idx ? { ...item, guidance_ar: e.target.value } : item)
+                                                  setEdited(v => ({ ...v, [s.key]: updated }))
+                                                }}
+                                                placeholder={t('admin.settings.payment_methods.fields.guidance_ar_placeholder', 'Instructions shown in Arabic…')}
+                                              />
+                                            </div>
                                           </div>
                                         </div>
                                       )}
@@ -733,7 +771,7 @@ export default function SettingsPage() {
                                     setExpandedPayments(p => ({ ...p, [newIdx]: true }))
                                   }}
                                 >
-                                  <Plus size={16} /> Add Payment Method
+                                  <Plus size={16} /> {t('admin.settings.payment_methods.add_btn', 'Add Payment Method')}
                                 </button>
                               </>
                             )
@@ -792,7 +830,7 @@ export default function SettingsPage() {
                                             marginRight: 2,
                                             flexShrink: 0
                                           }}>▶</span>
-                                          <span className="gam-size-card-title" style={{ flexShrink: 0 }}>{type.label} Sizes</span>
+                                          <span className="gam-size-card-title" style={{ flexShrink: 0 }}>{t('admin.settings.gam_sizes.card_title', '{type} Sizes', { type: t(`admin.settings.gam_sizes.types.${type.key}`, type.label) })}</span>
                                           {!isExpanded && activeSizes.length > 0 && (
                                             <span 
                                               style={{ 
@@ -821,7 +859,7 @@ export default function SettingsPage() {
                                             <div className="gam-size-chips-container">
                                               {activeSizes.length === 0 ? (
                                                 <span className="gam-size-empty">
-                                                  No preselected sizes configured
+                                                  {t('admin.settings.gam_sizes.empty', 'No preselected sizes configured')}
                                                 </span>
                                               ) : (
                                                 activeSizes.map(sz => (
@@ -850,7 +888,7 @@ export default function SettingsPage() {
                                             <div className="gam-size-input-wrapper">
                                               <input
                                                 type="text"
-                                                placeholder="Add size (e.g. 300x250)..."
+                                                placeholder={t('admin.settings.gam_sizes.input_placeholder', 'Add size (e.g. 300x250)...')}
                                                 className="form-input gam-size-input"
                                                 value={newSizeInputs[type.key] || ''}
                                                 onChange={e => {
@@ -893,7 +931,7 @@ export default function SettingsPage() {
                                                   }
                                                 }}
                                               >
-                                                Add
+                                                {t('admin.settings.gam_sizes.add_btn', 'Add')}
                                               </button>
                                             </div>
                                           </div>
@@ -912,8 +950,8 @@ export default function SettingsPage() {
                           value={edited[s.key] ?? 'open'}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         >
-                          <option value="open">Open — Anyone can register</option>
-                          <option value="closed">Closed — Registrations are disabled</option>
+                          <option value="open">{t('admin.settings.registration_status.open', 'Open — Anyone can register')}</option>
+                          <option value="closed">{t('admin.settings.registration_status.closed', 'Closed — Registrations are disabled')}</option>
                         </select>
                       ) : s.key === 'publisher_registration_status' ? (
                         <div>
@@ -922,13 +960,13 @@ export default function SettingsPage() {
                             value={edited[s.key] ?? 'pending'}
                             onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                           >
-                            <option value="active">Active — Publisher can log in immediately</option>
-                            <option value="pending">Pending — Wait for admin approval</option>
+                            <option value="active">{t('admin.settings.publisher_registration_status.active', 'Active — Publisher can log in immediately')}</option>
+                            <option value="pending">{t('admin.settings.publisher_registration_status.pending', 'Pending — Wait for admin approval')}</option>
                           </select>
                           <div style={{ marginTop: 8, fontSize: 12, color: 'var(--color-text-muted)' }}>
                             {edited[s.key] === 'pending'
-                              ? 'New publishers will see a "pending review" message after registration and cannot log in until activated.'
-                              : 'New publishers will be automatically activated and can log in right after registering.'}
+                              ? t('admin.settings.publisher_registration_status.pending_help', 'New publishers will see a "pending review" message after registration and cannot log in until activated.')
+                              : t('admin.settings.publisher_registration_status.active_help', 'New publishers will be automatically activated and can log in right after registering.')}
                           </div>
                         </div>
                       ) : s.key === 'publisher_pending_message' ? (
@@ -939,10 +977,25 @@ export default function SettingsPage() {
                             style={{ resize: 'vertical', minHeight: 80 }}
                             value={edited[s.key] ?? ''}
                             onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
-                            placeholder="Message shown to publisher after registration when status is pending…"
+                            placeholder={t('admin.settings.publisher_pending_message.placeholder', 'Message shown to publisher after registration when status is pending…')}
                           />
                           <div style={{ marginTop: 6, fontSize: 12, color: 'var(--color-text-muted)' }}>
-                            This message is shown to the publisher on the registration confirmation screen when their account requires admin approval.
+                            {t('admin.settings.publisher_pending_message.help', 'This message is shown to the publisher on the registration confirmation screen when their account requires admin approval.')}
+                          </div>
+                        </div>
+                      ) : s.key === 'publisher_pending_message_ar' ? (
+                        <div>
+                          <textarea
+                            className="form-textarea"
+                            rows={4}
+                            dir="rtl"
+                            style={{ resize: 'vertical', minHeight: 80, textAlign: 'right' }}
+                            value={edited[s.key] ?? ''}
+                            onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
+                            placeholder={t('admin.settings.publisher_pending_message_ar.placeholder', 'الرسالة المعروضة للناشر بعد التسجيل عندما تكون الحالة معلقة (بالعربي)...')}
+                          />
+                          <div style={{ marginTop: 6, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                            {t('admin.settings.publisher_pending_message_ar.help', 'تظهر هذه الرسالة للناشر في شاشة تأكيد التسجيل عندما يتطلب حسابه موافقة المسؤول (النسخة العربية).')}
                           </div>
                         </div>
                       ) : s.key === 'mail_mailer' ? (
@@ -951,8 +1004,8 @@ export default function SettingsPage() {
                           value={edited[s.key] ?? 'log'}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         >
-                          <option value="smtp">SMTP</option>
-                          <option value="log">Log (Local File)</option>
+                          <option value="smtp">{t('admin.settings.mail_mailer.smtp', 'SMTP')}</option>
+                          <option value="log">{t('admin.settings.mail_mailer.log', 'Log (Local File)')}</option>
                         </select>
                       ) : s.key === 'mail_encryption' ? (
                         <select
@@ -962,7 +1015,7 @@ export default function SettingsPage() {
                         >
                           <option value="tls">TLS</option>
                           <option value="ssl">SSL</option>
-                          <option value="none">None</option>
+                          <option value="none">{t('admin.settings.mail_encryption.none', 'None')}</option>
                         </select>
                       ) : s.key === 'mail_password' ? (
                         <input
@@ -978,8 +1031,8 @@ export default function SettingsPage() {
                           value={edited[s.key]}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         >
-                          <option value="true">Enabled</option>
-                          <option value="false">Disabled</option>
+                          <option value="true">{t('admin.settings.status.enabled', 'Enabled')}</option>
+                          <option value="false">{t('admin.settings.status.disabled', 'Disabled')}</option>
                         </select>
                       ) : (
                         <input
@@ -989,10 +1042,10 @@ export default function SettingsPage() {
                           placeholder={
                             s.key === 'gam_sync_interval'
                               ? edited['gam_sync_frequency'] === 'hourly'
-                                ? 'Interval in hours (e.g. 1, 2, 6)'
+                                ? t('admin.settings.gam_sync_interval.hourly_placeholder', 'Interval in hours (e.g. 1, 2, 6)')
                                 : edited['gam_sync_frequency'] === 'minutes'
-                                  ? 'Interval in minutes (e.g. 10, 15, 30)'
-                                  : 'Not applicable for daily sync'
+                                  ? t('admin.settings.gam_sync_interval.minutes_placeholder', 'Interval in minutes (e.g. 10, 15, 30)')
+                                  : t('admin.settings.gam_sync_interval.daily_placeholder', 'Not applicable for daily sync')
                               : ''
                           }
                           value={edited[s.key] ?? ''}
@@ -1014,12 +1067,11 @@ export default function SettingsPage() {
                   disabled={savingGroup[activeTab] || !activeTabChanged}
                 >
                   {savingGroup[activeTab] ? (
-                    <><Clock size={16} className="spinner" /> Saving...</>
+                    <><Clock size={16} className="spinner" /> {t('admin.settings.saving', 'Saving...')}</>
                   ) : (
-                    <><CheckCircle2 size={16} /> Save {(() => {
-                      const lbl = groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
-                      return lbl.toLowerCase().endsWith('settings') ? lbl : `${lbl} Settings`
-                    })()}</>
+                    <><CheckCircle2 size={16} /> {t('admin.settings.save_group_btn', 'Save {group} Settings', {
+                      group: t(`admin.settings.group.${activeTab}`, groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1))
+                    })}</>
                   )}
                 </button>
               </div>
@@ -1041,21 +1093,21 @@ export default function SettingsPage() {
                       }}>
                         <Clock size={18} />
                       </div>
-                      <span style={{ fontWeight: 700, fontSize: '15px' }}>Production Task Scheduler (Cron Job) Setup</span>
+                      <span style={{ fontWeight: 700, fontSize: '15px' }}>{t('admin.settings.cron.title', 'Production Task Scheduler (Cron Job) Setup')}</span>
                     </div>
 
                     <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: 1.5 }}>
-                      Laravel's task scheduler requires a system-level trigger to execute the dynamic auto-sync settings configured above in production. Configure one of the following methods:
+                      {t('admin.settings.cron.desc', "Laravel's task scheduler requires a system-level trigger to execute the dynamic auto-sync settings configured above in production. Configure one of the following methods:")}
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                       {/* Linux Server Cron */}
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: 4 }}>
-                          1. Linux Server (Production Cron)
+                          {t('admin.settings.cron.linux_title', '1. Linux Server (Production Cron)')}
                         </div>
                         <p style={{ margin: '0 0 6px', fontSize: '12.5px', opacity: 0.8 }}>
-                          Add this entry to your server's crontab:
+                          {t('admin.settings.cron.linux_desc', "Add this entry to your server's crontab:")}
                         </p>
                         <div style={{ 
                           background: 'var(--color-bg)', 
@@ -1085,10 +1137,10 @@ export default function SettingsPage() {
                       {/* Shared Hosting Cron */}
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: 4 }}>
-                          2. Shared Hosting (Hostinger, cPanel, etc.)
+                          {t('admin.settings.cron.shared_title', '2. Shared Hosting (Hostinger, cPanel, etc.)')}
                         </div>
                         <p style={{ margin: '0 0 6px', fontSize: '12.5px', opacity: 0.8 }}>
-                          Go to the <strong>Cron Jobs</strong> section in your hosting control panel. Select the <strong>Custom</strong> option, set the frequency to <strong>every 1 minute (<code>* * * * *</code>)</strong>, and configure the command:
+                          {t('admin.settings.cron.shared_desc_1', 'Go to the')} <strong>{t('admin.settings.cron.shared_desc_2', 'Cron Jobs')}</strong> {t('admin.settings.cron.shared_desc_3', 'section in your hosting control panel. Select the')} <strong>{t('admin.settings.cron.shared_desc_4', 'Custom')}</strong> {t('admin.settings.cron.shared_desc_5', 'option, set the frequency to')} <strong>{t('admin.settings.cron.shared_desc_6', 'every 1 minute ( * * * * * )')}</strong>{t('admin.settings.cron.shared_desc_7', ', and configure the command:')}
                         </p>
                         <div style={{ 
                           background: 'var(--color-bg)', 
@@ -1115,7 +1167,7 @@ export default function SettingsPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }} className="text-xs text-muted">
                           <Info size={12} style={{ flexShrink: 0 }} /> 
-                          <em>Note: Replace <code>{projectPath}</code> with your actual absolute server directory path. If the default PHP binary doesn't work, try <code>/usr/local/bin/php</code>.</em>
+                          <em>{t('admin.settings.cron.note', 'Note: Replace {projectPath} with your actual absolute server directory path. If the default PHP binary doesn\'t work, try /usr/local/bin/php.', { projectPath })}</em>
                         </div>
                       </div>
                     </div>
@@ -1139,16 +1191,16 @@ export default function SettingsPage() {
                       }}>
                         <Mail size={18} />
                       </div>
-                      <span style={{ fontWeight: 700, fontSize: '15px' }}>Test SMTP Configuration</span>
+                      <span style={{ fontWeight: 700, fontSize: '15px' }}>{t('admin.settings.email_test.title', 'Test SMTP Configuration')}</span>
                     </div>
                     <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: 1.5 }}>
-                      Before using SMTP in production, send a test email to verify your mail server credentials.
+                      {t('admin.settings.email_test.desc', 'Before using SMTP in production, send a test email to verify your mail server credentials.')}
                     </p>
                     <div className="smtp-test-form" style={{ marginTop: 4 }}>
                       <input
                         type="email"
                         className="form-input"
-                        placeholder="Recipient email address…"
+                        placeholder={t('admin.settings.email_test.placeholder', 'Recipient email address…')}
                         value={testEmailRecipient}
                         onChange={e => setTestEmailRecipient(e.target.value)}
                       />
@@ -1159,7 +1211,7 @@ export default function SettingsPage() {
                         disabled={sendingTestMail || !testEmailRecipient}
                       >
                         {sendingTestMail ? <Clock size={14} className="spinner" /> : <Send size={14} />}
-                        <span>Send Test Email</span>
+                        <span>{t('admin.settings.email_test.send_btn', 'Send Test Email')}</span>
                       </button>
                     </div>
                   </div>

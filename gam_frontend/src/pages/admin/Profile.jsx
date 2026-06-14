@@ -3,9 +3,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { User, Lock, Save } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 export default function AdminProfilePage() {
   const { user, updateUser } = useAuth()
+  const { t } = useI18n()
 
   const [activeTab, setActiveTab] = useState('profile')
 
@@ -33,10 +35,10 @@ export default function AdminProfilePage() {
     setSavingProfile(true)
     try {
       const res = await adminApi.updateProfile({ name, email })
-      toast.success('Admin profile updated successfully!')
+      toast.success(t('admin_profile.toast_updated', 'Admin profile updated successfully!'))
       updateUser(res.data.user)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update admin profile.')
+      toast.error(err.response?.data?.message || t('admin_profile.toast_update_fail', 'Failed to update admin profile.'))
     } finally {
       setSavingProfile(false)
     }
@@ -45,7 +47,7 @@ export default function AdminProfilePage() {
   async function handleUpdatePassword(e) {
     e.preventDefault()
     if (newPassword !== newPasswordConfirmation) {
-      toast.error('New password and confirmation do not match.')
+      toast.error(t('admin_profile.toast_password_mismatch', 'New password and confirmation do not match.'))
       return
     }
     setSavingPassword(true)
@@ -55,12 +57,12 @@ export default function AdminProfilePage() {
         new_password: newPassword,
         new_password_confirmation: newPasswordConfirmation,
       })
-      toast.success('Password changed successfully!')
+      toast.success(t('admin_profile.toast_password_changed', 'Password changed successfully!'))
       setCurrentPassword('')
       setNewPassword('')
       setNewPasswordConfirmation('')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password.')
+      toast.error(err.response?.data?.message || t('admin_profile.toast_password_fail', 'Failed to change password.'))
     } finally {
       setSavingPassword(false)
     }
@@ -72,9 +74,9 @@ export default function AdminProfilePage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <User size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Admin Profile</span>
+            <span>{t('admin_profile.title', 'Admin Profile')}</span>
           </h1>
-          <p className="page-subtitle">Manage your administrator profile details and security preferences.</p>
+          <p className="page-subtitle">{t('admin_profile.subtitle', 'Manage your administrator profile details and security preferences.')}</p>
         </div>
       </div>
 
@@ -86,7 +88,7 @@ export default function AdminProfilePage() {
           style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <User size={14} />
-          Profile Details
+          {t('admin_profile.tab_profile', 'Profile Details')}
         </button>
         <button
           className={`btn ${activeTab === 'password' ? 'btn-primary' : 'btn-secondary'}`}
@@ -94,7 +96,7 @@ export default function AdminProfilePage() {
           style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <Lock size={14} />
-          Security & Password
+          {t('admin_profile.tab_security', 'Security & Password')}
         </button>
       </div>
 
@@ -102,38 +104,38 @@ export default function AdminProfilePage() {
       {activeTab === 'profile' && (
         <div className="card" style={{ maxWidth: 650 }}>
           <div className="card-header" style={{ marginBottom: 16 }}>
-            <h3 className="card-title">Personal Settings</h3>
+            <h3 className="card-title">{t('admin_profile.personal_settings', 'Personal Settings')}</h3>
           </div>
           <form onSubmit={handleUpdateProfile}>
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Full Name</label>
+              <label className="form-label">{t('admin_profile.full_name', 'Full Name')}</label>
               <input
                 type="text"
                 className="form-input"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 required
-                placeholder="Enter your name"
+                placeholder={t('admin_profile.name_placeholder', 'Enter your name')}
                 style={{ width: '100%' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: 24 }}>
-              <label className="form-label">Email Address</label>
+              <label className="form-label">{t('admin_profile.email_address', 'Email Address')}</label>
               <input
                 type="email"
                 className="form-input"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="Enter email address"
+                placeholder={t('admin_profile.email_placeholder', 'Enter email address')}
                 style={{ width: '100%' }}
               />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={savingProfile} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Save size={14} />
-              {savingProfile ? 'Saving Changes...' : 'Save Profile'}
+              {savingProfile ? t('admin_profile.saving', 'Saving Changes...') : t('admin_profile.save_profile', 'Save Profile')}
             </button>
           </form>
         </div>
@@ -143,11 +145,11 @@ export default function AdminProfilePage() {
       {activeTab === 'password' && (
         <div className="card" style={{ maxWidth: 650 }}>
           <div className="card-header" style={{ marginBottom: 16 }}>
-            <h3 className="card-title">Security Settings</h3>
+            <h3 className="card-title">{t('admin_profile.security_settings', 'Security Settings')}</h3>
           </div>
           <form onSubmit={handleUpdatePassword}>
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Current Password</label>
+              <label className="form-label">{t('admin_profile.current_password', 'Current Password')}</label>
               <input
                 type="password"
                 className="form-input"
@@ -160,20 +162,20 @@ export default function AdminProfilePage() {
             </div>
 
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">New Password</label>
+              <label className="form-label">{t('admin_profile.new_password', 'New Password')}</label>
               <input
                 type="password"
                 className="form-input"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 required
-                placeholder="•••••••• (Min. 8 characters)"
+                placeholder={t('admin_profile.new_password_placeholder', '•••••••• (Min. 8 characters)')}
                 style={{ width: '100%' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: 24 }}>
-              <label className="form-label">Confirm New Password</label>
+              <label className="form-label">{t('admin_profile.confirm_password', 'Confirm New Password')}</label>
               <input
                 type="password"
                 className="form-input"
@@ -187,7 +189,7 @@ export default function AdminProfilePage() {
 
             <button type="submit" className="btn btn-primary" disabled={savingPassword} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Lock size={14} />
-              {savingPassword ? 'Changing Password...' : 'Change Password'}
+              {savingPassword ? t('admin_profile.changing', 'Changing Password...') : t('admin_profile.change_password', 'Change Password')}
             </button>
           </form>
         </div>

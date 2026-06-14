@@ -25,8 +25,10 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
             'slug' => 'required|string|max:255|unique:pages,slug',
             'content' => 'required|string',
+            'content_ar' => 'nullable|string',
             'show_in_public_footer' => 'boolean',
             'show_in_publisher_footer' => 'boolean',
             'show_in_landing_menu' => 'boolean',
@@ -59,8 +61,10 @@ class PageController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_ar' => 'nullable|string|max:255',
             'slug' => 'required|string|max:255|unique:pages,slug,' . $page->id,
             'content' => 'required|string',
+            'content_ar' => 'nullable|string',
             'show_in_public_footer' => 'boolean',
             'show_in_publisher_footer' => 'boolean',
             'show_in_landing_menu' => 'boolean',

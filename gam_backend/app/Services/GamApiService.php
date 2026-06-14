@@ -299,13 +299,12 @@ class GamApiService
 
             do {
                 $page = $inventoryService->getAdUnitsByStatement($statementBuilder->toStatement());
-                if ($page && $page->getResults()) {
-                    foreach ($page->getResults() as $adUnit) {
-                        $names[] = $adUnit->getName();
-                    }
+                $results = $page ? (array) $page->getResults() : [];
+                foreach ($results as $adUnit) {
+                    $names[] = $adUnit->getName();
                 }
                 $statementBuilder->increaseOffsetBy(500);
-            } while ($page && count($page->getResults()) === 500);
+            } while (count($results) === 500);
 
             return $names;
         } catch (\Exception $e) {

@@ -41,8 +41,26 @@ class PublisherTicketController extends Controller
             ->whereIn('status', ['open', 'in_progress'])
             ->exists();
 
+        $unreadRepliesCount = Ticket::where('publisher_id', $publisherId)
+            ->where('status', '!=', 'closed')
+            ->where(function ($q) {
+                $q->whereNull('last_viewed_by_publisher_at')
+                  ->orWhereExists(function ($sub) {
+                      $sub->select(DB::raw(1))
+                          ->from('ticket_messages')
+                          ->whereColumn('ticket_messages.ticket_id', 'tickets.id')
+                          ->where('ticket_messages.is_admin_reply', true)
+                          ->whereColumn('ticket_messages.created_at', '>', 'tickets.last_viewed_by_publisher_at');
+                  });
+            })
+            ->whereHas('messages', function ($sub) {
+                $sub->where('is_admin_reply', true);
+            })
+            ->count();
+
         $responseArray = $tickets->toArray();
         $responseArray['has_active_ticket'] = $hasActiveTicket;
+        $responseArray['unread_replies_count'] = $unreadRepliesCount;
 
         return response()->json($responseArray);
     }
@@ -83,6 +101,7 @@ class PublisherTicketController extends Controller
                 'category'     => $request->category,
                 'priority'     => $request->priority,
                 'status'       => 'open',
+                'last_viewed_by_publisher_at' => now(),
             ]);
 
             $ticket->messages()->create([
@@ -123,6 +142,9 @@ class PublisherTicketController extends Controller
             ->with(['messages.user', 'assignee'])
             ->findOrFail($id);
 
+        $ticket->last_viewed_by_publisher_at = now();
+        $ticket->save();
+
         return response()->json($ticket);
     }
 
@@ -160,6 +182,7 @@ class PublisherTicketController extends Controller
             if ($ticket->status === 'resolved') {
                 $ticket->status = 'open';
             }
+            $ticket->last_viewed_by_publisher_at = now();
             $ticket->touch(); // Update updated_at
             $ticket->save();
 

@@ -125,6 +125,10 @@ class SettingController extends Controller
             $request->validate(['value' => 'required|string|max:1000']);
         }
 
+        if ($key === 'publisher_pending_message_ar') {
+            $request->validate(['value' => 'required|string|max:1000']);
+        }
+
         if ($key === 'publisher_default_ratio') {
             $request->validate(['value' => 'required|numeric|min:1|max:100']);
         }
@@ -137,8 +141,10 @@ class SettingController extends Controller
             $request->validate([
                 'value' => 'required|array',
                 'value.*.name' => 'required|string|max:100',
+                'value.*.name_ar' => 'nullable|string|max:100',
                 'value.*.minimum' => 'required|numeric|min:0',
                 'value.*.guidance' => 'nullable|string|max:1000',
+                'value.*.guidance_ar' => 'nullable|string|max:1000',
             ]);
         }
 
@@ -222,16 +228,22 @@ class SettingController extends Controller
     {
         $publicKeys = [
             'site_name',
+            'site_name_ar',
             'site_description',
+            'site_description_ar',
             'site_logo',
             'site_favicon',
             'og_image',
             'meta_title',
+            'meta_title_ar',
             'meta_description',
+            'meta_description_ar',
             'meta_keywords',
+            'meta_keywords_ar',
             'registration_status',
             'publisher_registration_status',
             'publisher_pending_message',
+            'publisher_pending_message_ar',
             'payment_methods',
             'platform_timezone',
             'ad_type_preselected_sizes',
@@ -305,7 +317,7 @@ class SettingController extends Controller
 
         // Dynamic active pages
         $map['pages'] = \App\Models\Page::where('is_active', true)
-            ->select(['id', 'title', 'slug', 'show_in_public_footer', 'show_in_publisher_footer', 'show_in_landing_menu'])
+            ->select(['id', 'title', 'title_ar', 'slug', 'show_in_public_footer', 'show_in_publisher_footer', 'show_in_landing_menu'])
             ->get();
 
         return response()->json($map);

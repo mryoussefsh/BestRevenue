@@ -1,7 +1,7 @@
 import api from './axios'
 
 export const authApi = {
-  login:         (email, password) => api.post('/auth/login', { email, password }),
+  login:         (email, password, remember) => api.post('/auth/login', { email, password, remember }),
   register:      (data)            => api.post('/auth/register', data),
   me:            ()                => api.get('/auth/me'),
   logout:        ()                => api.post('/auth/logout'),
@@ -13,6 +13,7 @@ export const publicApi = {
   getSettings:   ()                => api.get('/public/settings'),
   submitContact: (data)            => api.post('/public/contact', data),
   getPage:       (slug)            => api.get(`/public/pages/${slug}`),
+  getFaqs:       ()                => api.get('/public/faqs'),
 }
 
 export const adminApi = {
@@ -107,6 +108,12 @@ export const adminApi = {
   createPage:          (data)    => api.post('/admin/pages', data),
   updatePage:          (id, data)=> api.put(`/admin/pages/${id}`, data),
   deletePage:          (id)      => api.delete(`/admin/pages/${id}`),
+
+  // FAQs
+  getFaqs:            ()        => api.get('/admin/faqs'),
+  createFaq:          (data)    => api.post('/admin/faqs', data),
+  updateFaq:          (id, data)=> api.put(`/admin/faqs/${id}`, data),
+  deleteFaq:          (id)      => api.delete(`/admin/faqs/${id}`),
 
   // Email Templates
   getEmailTemplates:     ()           => api.get('/admin/email-templates'),

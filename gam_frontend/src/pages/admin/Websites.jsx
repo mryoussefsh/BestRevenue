@@ -4,8 +4,10 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { BulkAdUnitGeneratorModal, SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X, Filter } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSaved, hidePublisherSelect }) {
+  const { t } = useI18n()
   const isEdit = !!website?.id
   const [form, setForm] = useState({
     publisher_id: website?.publisher_id || '',
@@ -22,7 +24,7 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
   async function handleSubmit(e) {
     e.preventDefault()
     if (!form.publisher_id) {
-      toast.error('Publisher is required')
+      toast.error(t('admin.websites.toast.publisher_required', 'Publisher is required'))
       return
     }
     setSaving(true)
@@ -37,10 +39,10 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
       }
       if (isEdit) await adminApi.updateWebsite(website.id, payload)
       else         await adminApi.createWebsite(payload)
-      toast.success(isEdit ? 'Website updated!' : 'Website created!')
+      toast.success(isEdit ? t('admin.websites.toast.updated', 'Website updated!') : t('admin.websites.toast.created', 'Website created!'))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to save')
+      toast.error(e.response?.data?.message || t('admin.websites.toast.save_failed', 'Failed to save'))
     } finally { setSaving(false) }
   }
 
@@ -48,13 +50,13 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">{isEdit ? 'Edit Website' : 'Add Website'}</span>
+          <span className="modal-title">{isEdit ? t('admin.websites.modal.edit_title', 'Edit Website') : t('admin.websites.modal.create_title', 'Add Website')}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
           {!hidePublisherSelect && (
             <div className="form-group">
-              <label className="form-label">Publisher *</label>
+              <label className="form-label">{t('admin.websites.form.publisher_label', 'Publisher *')}</label>
               <SearchableSelect
                 value={form.publisher_id}
                 onChange={val => setForm(f => ({ ...f, publisher_id: val }))}
@@ -63,13 +65,13 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
                   label: p.name,
                   subLabel: p.email
                 }))}
-                placeholder="Select publisher..."
-                emptyMessage="No publishers found"
+                placeholder={t('admin.websites.form.publisher_placeholder', 'Select publisher...')}
+                emptyMessage={t('admin.websites.form.no_publishers', 'No publishers found')}
               />
             </div>
           )}
           <div className="form-group">
-            <label className="form-label">GAM Account <span className="text-muted text-xs">(optional)</span></label>
+            <label className="form-label">{t('admin.websites.form.gam_account_label', 'GAM Account')} <span className="text-muted text-xs">{t('admin.websites.form.optional', '(optional)')}</span></label>
             <SearchableSelect
               value={form.gam_account_id}
               onChange={val => {
@@ -85,28 +87,28 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
                 label: a.name,
                 subLabel: `${a.email} (${a.network_code || 'No network code'})`
               })) || []}
-              placeholder="No linked GAM account"
-              emptyMessage="No GAM accounts found"
+              placeholder={t('admin.websites.form.no_linked_gam', 'No linked GAM account')}
+              emptyMessage={t('admin.websites.form.no_gam_accounts', 'No GAM accounts found')}
               isOptional={true}
-              clearLabel="No linked GAM account"
+              clearLabel={t('admin.websites.form.no_linked_gam', 'No linked GAM account')}
             />
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Domain *</label>
+              <label className="form-label">{t('admin.websites.form.domain_label', 'Domain *')}</label>
               <input className="form-input" placeholder="example.com" value={form.domain}
                 onChange={e => setForm(f => ({ ...f, domain: e.target.value }))} required />
             </div>
             <div className="form-group">
-              <label className="form-label">GAM Network Code *</label>
+              <label className="form-label">{t('admin.websites.form.gam_network_code_label', 'GAM Network Code *')}</label>
               <input className="form-input" placeholder="123456789" value={form.gam_network_code}
                 onChange={e => setForm(f => ({ ...f, gam_network_code: e.target.value }))} required />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Ratio Override % <span className="text-muted text-xs">(optional)</span></label>
-              <input className="form-input" type="number" min="1" max="100" placeholder="Inherit from publisher"
+              <label className="form-label">{t('admin.websites.form.ratio_override_label', 'Ratio Override %')} <span className="text-muted text-xs">{t('admin.websites.form.optional', '(optional)')}</span></label>
+              <input className="form-input" type="number" min="1" max="100" placeholder={t('admin.websites.form.inherit_from_publisher', 'Inherit from publisher')}
                 value={form.ratio_override}
                 onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
             </div>
@@ -114,14 +116,14 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
               <label style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}>
                 <input type="checkbox" checked={form.is_active}
                   onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} />
-                <span className="form-label" style={{ marginBottom: 0 }}>Active</span>
+                <span className="form-label" style={{ marginBottom: 0 }}>{t('admin.websites.form.active_label', 'Active')}</span>
               </label>
             </div>
           </div>
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('admin.websites.btn.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving…' : 'Save Website'}
+              {saving ? t('admin.websites.btn.saving', 'Saving…') : t('admin.websites.btn.save_website', 'Save Website')}
             </button>
           </div>
         </form>
@@ -131,6 +133,7 @@ export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSave
 }
 
 export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
+  const { t } = useI18n()
   const isEdit = !!adUnit?.id
   const [form, setForm] = useState({
     website_id: adUnit?.website_id || '',
@@ -164,10 +167,10 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
       }
       if (isEdit) await adminApi.updateAdUnit(adUnit.id, payload)
       else         await adminApi.createAdUnit(payload)
-      toast.success(isEdit ? 'Ad Unit updated!' : 'Ad Unit created!')
+      toast.success(isEdit ? t('admin.websites.ad_unit.toast.updated', 'Ad Unit updated!') : t('admin.websites.ad_unit.toast.created', 'Ad Unit created!'))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to save')
+      toast.error(e.response?.data?.message || t('admin.websites.toast.save_failed', 'Failed to save'))
     } finally { setSaving(false) }
   }
 
@@ -175,43 +178,43 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <span className="modal-title">{isEdit ? 'Edit Ad Unit' : 'Add Ad Unit'}</span>
+          <span className="modal-title">{isEdit ? t('admin.websites.ad_unit.modal.edit_title', 'Edit Ad Unit') : t('admin.websites.ad_unit.modal.create_title', 'Add Ad Unit')}</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Website *</label>
+            <label className="form-label">{t('admin.websites.ad_unit.form.website_label', 'Website *')}</label>
             <select className="form-select" value={form.website_id}
               onChange={e => setForm(f => ({ ...f, website_id: e.target.value }))} required>
-              <option value="">Select website…</option>
+              <option value="">{t('admin.websites.ad_unit.form.website_placeholder', 'Select website…')}</option>
               {websites.map(w => (
                 <option key={w.id} value={w.id}>{w.domain}</option>
               ))}
             </select>
           </div>
           <div className="form-group">
-            <label className="form-label">GAM Ad Unit Name *</label>
+            <label className="form-label">{t('admin.websites.ad_unit.form.gam_name_label', 'GAM Ad Unit Name *')}</label>
             <input className="form-input" placeholder="/123456789/homepage_leaderboard"
               value={form.gam_ad_unit_name}
               onChange={e => setForm(f => ({ ...f, gam_ad_unit_name: e.target.value }))} required />
-            <span className="form-hint">Must exactly match the Ad Unit name in GAM (case-insensitive matching)</span>
+            <span className="form-hint">{t('admin.websites.ad_unit.form.gam_name_hint', 'Must exactly match the Ad Unit name in GAM (case-insensitive matching)')}</span>
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Display Name *</label>
+              <label className="form-label">{t('admin.websites.ad_unit.form.display_name_label', 'Display Name *')}</label>
               <input className="form-input" placeholder="Homepage Banner" value={form.display_name}
                 onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} required />
             </div>
             <div className="form-group">
-              <label className="form-label">Ratio Override % <span className="text-muted text-xs">(optional)</span></label>
-              <input className="form-input" type="number" min="1" max="100" placeholder="Inherit"
+              <label className="form-label">{t('admin.websites.ad_unit.form.ratio_override_label', 'Ratio Override %')} <span className="text-muted text-xs">{t('admin.websites.form.optional', '(optional)')}</span></label>
+              <input className="form-input" type="number" min="1" max="100" placeholder={t('admin.websites.ad_unit.form.inherit', 'Inherit')}
                 value={form.ratio_override}
                 onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Ad Type *</label>
+              <label className="form-label">{t('admin.websites.ad_unit.form.ad_type_label', 'Ad Type *')}</label>
               <select
                 className="form-select"
                 value={form.ad_type}
@@ -222,39 +225,39 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
                 }))}
                 required
               >
-                <option value="banner">Banner</option>
-                <option value="reward">Reward</option>
-                <option value="interstitial">Interstitial</option>
-                <option value="anchor">Anchor</option>
-                <option value="float_top">Float Top</option>
-                <option value="float_bottom">Float Bottom</option>
-                <option value="float_fullscreen">Float Full Screen</option>
+                <option value="banner">{t('admin.websites.ad_unit.type.banner', 'Banner')}</option>
+                <option value="reward">{t('admin.websites.ad_unit.type.reward', 'Reward')}</option>
+                <option value="interstitial">{t('admin.websites.ad_unit.type.interstitial', 'Interstitial')}</option>
+                <option value="anchor">{t('admin.websites.ad_unit.type.anchor', 'Anchor')}</option>
+                <option value="float_top">{t('admin.websites.ad_unit.type.float_top', 'Float Top')}</option>
+                <option value="float_bottom">{t('admin.websites.ad_unit.type.float_bottom', 'Float Bottom')}</option>
+                <option value="float_fullscreen">{t('admin.websites.ad_unit.type.float_fullscreen', 'Float Full Screen')}</option>
               </select>
             </div>
             {form.ad_type === 'reward' ? (
               <div className="form-group">
-                <label className="form-label">Reward Subtype *</label>
+                <label className="form-label">{t('admin.websites.ad_unit.form.reward_subtype_label', 'Reward Subtype *')}</label>
                 <select
                   className="form-select"
                   value={form.ad_subtype || 'normal'}
                   onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
                   required
                 >
-                  <option value="normal">Normal</option>
-                  <option value="repeated">Repeated</option>
+                  <option value="normal">{t('admin.websites.ad_unit.subtype.normal', 'Normal')}</option>
+                  <option value="repeated">{t('admin.websites.ad_unit.subtype.repeated', 'Repeated')}</option>
                 </select>
               </div>
             ) : form.ad_type === 'anchor' ? (
               <div className="form-group">
-                <label className="form-label">Anchor Position *</label>
+                <label className="form-label">{t('admin.websites.ad_unit.form.anchor_position_label', 'Anchor Position *')}</label>
                 <select
                   className="form-select"
                   value={form.ad_subtype || 'top'}
                   onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
                   required
                 >
-                  <option value="top">Top</option>
-                  <option value="bottom">Bottom</option>
+                  <option value="top">{t('admin.websites.ad_unit.position.top', 'Top')}</option>
+                  <option value="bottom">{t('admin.websites.ad_unit.position.bottom', 'Bottom')}</option>
                 </select>
               </div>
             ) : <div className="form-group" />}
@@ -264,7 +267,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
               {((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') && (
                 <div className="form-group">
                   <label className="form-label">
-                    {form.ad_type === 'reward' ? 'Repeat Count *' : 'Close Button Delay (Seconds) *'}
+                    {form.ad_type === 'reward' ? t('admin.websites.ad_unit.form.repeat_count_label', 'Repeat Count *') : t('admin.websites.ad_unit.form.close_delay_label', 'Close Button Delay (Seconds) *')}
                   </label>
                   <input
                     className="form-input"
@@ -279,7 +282,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
               )}
               <div className="form-group">
                 <label className="form-label">
-                  {form.ad_type === 'reward' ? 'Delay Between Ads (Seconds) *' : 'Delay Before Showing Ad (Seconds) *'}
+                  {form.ad_type === 'reward' ? t('admin.websites.ad_unit.form.delay_between_label', 'Delay Between Ads (Seconds) *') : t('admin.websites.ad_unit.form.delay_before_label', 'Delay Before Showing Ad (Seconds) *')}
                 </label>
                 <input
                   className="form-input"
@@ -295,9 +298,9 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
             </div>
           )}
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('admin.websites.btn.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving…' : 'Save Ad Unit'}
+              {saving ? t('admin.websites.btn.saving', 'Saving…') : t('admin.websites.ad_unit.btn.save', 'Save Ad Unit')}
             </button>
           </div>
         </form>
@@ -307,6 +310,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
 }
 
 export default function WebsitesPage() {
+  const { t } = useI18n()
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState([])
   const [publishers, setPublishers] = useState([])
@@ -394,7 +398,7 @@ export default function WebsitesPage() {
       setAdUnits(aRes.data?.data || [])
       setPublishers(pRes.data?.data || [])
       setGamAccounts(gRes.data || [])
-    } catch { toast.error('Failed to load data') }
+    } catch { toast.error(t('admin.websites.toast.load_failed', 'Failed to load data')) }
     finally { setLoading(false) }
   }
 
@@ -408,9 +412,9 @@ export default function WebsitesPage() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Globe size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Websites & Ad Units</span>
+            <span>{t('admin.websites.title', 'Websites & Ad Units')}</span>
           </h1>
-          <p className="page-subtitle">{websites.length} websites · {adUnits.length} ad units</p>
+          <p className="page-subtitle">{t('admin.websites.subtitle', '{count} websites · {adCount} ad units', { count: websites.length, adCount: adUnits.length })}</p>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
           <button 
@@ -419,7 +423,7 @@ export default function WebsitesPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('admin.websites.btn.hide_filters', 'Hide Filters') : t('admin.websites.btn.show_filters', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -438,35 +442,35 @@ export default function WebsitesPage() {
             )}
           </button>
           <button id="add-website-btn" className="btn btn-secondary" onClick={() => setModal('create')}>
-            <Plus size={16} /> Add Website
+            <Plus size={16} /> {t('admin.websites.btn.add_website', 'Add Website')}
           </button>
           <button className="btn btn-secondary" onClick={() => setAdModal('create')}>
-            <Plus size={16} /> Add Existing Ad Unit
+            <Plus size={16} /> {t('admin.websites.btn.add_ad_unit', 'Add Existing Ad Unit')}
           </button>
           <button className="btn btn-primary" onClick={() => setGamAdModal(true)}>
-            <Sparkles size={16} /> Generate Ad Units
+            <Sparkles size={16} /> {t('admin.websites.btn.generate_ad_units', 'Generate Ad Units')}
           </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 0, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
-        {['websites', 'adunits'].map(t => (
-          <button key={t} onClick={() => setTab(t)}
+        {['websites', 'adunits'].map(tabKey => (
+          <button key={tabKey} onClick={() => setTab(tabKey)}
             style={{
               padding: '10px 20px', fontWeight: 600, fontSize: 14,
-              borderBottom: tab === t ? '2px solid var(--color-primary)' : '2px solid transparent',
-              color: tab === t ? 'var(--color-primary-light)' : 'var(--color-text-muted)',
+              borderBottom: tab === tabKey ? '2px solid var(--color-primary)' : '2px solid transparent',
+              color: tab === tabKey ? 'var(--color-primary-light)' : 'var(--color-text-muted)',
               transition: 'all 0.2s'
             }}>
-            {t === 'websites' ? `Websites (${filteredWebsites.length})` : `Ad Units (${filteredAdUnits.length})`}
+            {tabKey === 'websites' ? t('admin.websites.tab.websites', 'Websites ({count})', { count: filteredWebsites.length }) : t('admin.websites.tab.ad_units', 'Ad Units ({count})', { count: filteredAdUnits.length })}
           </button>
         ))}
       </div>
 
       {/* ─── Filter Bar ──────────────────────────────────────────────────── */}
       {tab === 'websites' && showFiltersPanel && (
-        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 0, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ 
               display: 'grid', 
@@ -474,15 +478,15 @@ export default function WebsitesPage() {
               gap: 12 
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search Domain</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.domain_label', 'Search Domain')}</label>
                 <input
-                  className="form-input" placeholder="Search domain…"
+                  className="form-input" placeholder={t('admin.websites.filter.domain_placeholder', 'Search domain…')}
                   value={wSearch} onChange={e => setWSearch(e.target.value)}
                   style={{ width: '100%', height: 38 }}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.publisher_label', 'Publisher')}</label>
                 <SearchableSelect
                   value={wPublisher}
                   onChange={setWPublisher}
@@ -491,38 +495,38 @@ export default function WebsitesPage() {
                     label: p.name,
                     subLabel: p.email
                   }))}
-                  placeholder="All Publishers"
-                  emptyMessage="No publishers found"
+                  placeholder={t('admin.websites.filter.all_publishers', 'All Publishers')}
+                  emptyMessage={t('admin.websites.form.no_publishers', 'No publishers found')}
                   isOptional={true}
-                  clearLabel="All Publishers"
+                  clearLabel={t('admin.websites.filter.all_publishers', 'All Publishers')}
                   style={{ width: '100%' }}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>GAM Connection</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.gam_label', 'GAM Connection')}</label>
                 <select className="form-select" value={wGamLinked} onChange={e => setWGamLinked(e.target.value)}
                   style={{ width: '100%', height: 38 }}>
-                  <option value="">GAM Account: All</option>
-                  <option value="linked">Linked to GAM</option>
-                  <option value="unlinked">No GAM Account</option>
+                  <option value="">{t('admin.websites.filter.gam_all', 'GAM Account: All')}</option>
+                  <option value="linked">{t('admin.websites.filter.gam_linked', 'Linked to GAM')}</option>
+                  <option value="unlinked">{t('admin.websites.filter.gam_unlinked', 'No GAM Account')}</option>
                 </select>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.status_label', 'Status')}</label>
                 <select className="form-select" value={wStatus} onChange={e => setWStatus(e.target.value)}
                   style={{ width: '100%', height: 38 }}>
-                  <option value="">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="">{t('admin.websites.filter.status_all', 'All Statuses')}</option>
+                  <option value="active">{t('admin.websites.filter.status_active', 'Active')}</option>
+                  <option value="inactive">{t('admin.websites.filter.status_inactive', 'Inactive')}</option>
                 </select>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratio Config</label>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.ratio_label', 'Ratio Config')}</label>
                 <select className="form-select" value={wRatio} onChange={e => setWRatio(e.target.value)}
                   style={{ width: '100%', height: 38 }}>
-                  <option value="">Any Ratio</option>
-                  <option value="override">Has Ratio Override</option>
-                  <option value="inherited">Inherited Ratio</option>
+                  <option value="">{t('admin.websites.filter.ratio_all', 'Any Ratio')}</option>
+                  <option value="override">{t('admin.websites.filter.ratio_override', 'Has Ratio Override')}</option>
+                  <option value="inherited">{t('admin.websites.filter.ratio_inherited', 'Inherited Ratio')}</option>
                 </select>
               </div>
             </div>
@@ -530,7 +534,7 @@ export default function WebsitesPage() {
             {(hasWFilters || filteredWebsites.length !== websites.length) && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
                 <span className="text-muted text-sm">
-                  Showing {filteredWebsites.length} of {websites.length} websites
+                  {t('admin.websites.filter.count_websites', 'Showing {count} of {total} websites', { count: filteredWebsites.length, total: websites.length })}
                 </span>
                 {hasWFilters && (
                   <button className="btn btn-secondary btn-xs" onClick={clearWFilters}
@@ -542,7 +546,7 @@ export default function WebsitesPage() {
                       border: '1px solid rgba(239, 68, 68, 0.2)',
                       color: '#ef4444',
                     }}>
-                    <X size={12} /> Clear Filters
+                    <X size={12} /> {t('admin.websites.btn.clear_filters', 'Clear Filters')}
                   </button>
                 )}
               </div>
@@ -552,7 +556,7 @@ export default function WebsitesPage() {
       )}
 
       {tab !== 'websites' && (selectedAdUnits.length || showFiltersPanel) && (
-        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 20, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+        <div className="card" style={{ padding: '16px 20px', marginTop: 24, marginBottom: 0, background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
           {selectedAdUnits.length > 0 ? (
             <div style={{
               display: 'flex', gap: 12, alignItems: 'center',
@@ -562,51 +566,51 @@ export default function WebsitesPage() {
               flexWrap: 'wrap'
             }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>
-                {selectedAdUnits.length} ad unit(s) selected
+                {t('admin.websites.ad_unit.selected_count', '{count} ad unit(s) selected', { count: selectedAdUnits.length })}
               </span>
               <button
                 type="button"
                 className="btn btn-xs"
                 style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
-                title="Delete from platform only (keep in GAM)"
+                title={t('admin.websites.ad_unit.btn.delete_selected_local_title', 'Delete from platform only (keep in GAM)')}
                 onClick={async () => {
-                  if (!confirm(`Are you sure you want to delete the ${selectedAdUnits.length} selected ad units from the platform only? They will NOT be archived in Google Ad Manager.`)) return
+                  if (!confirm(t('admin.websites.ad_unit.confirm_bulk_delete_local', 'Are you sure you want to delete the {count} selected ad units from the platform only? They will NOT be archived in Google Ad Manager.', { count: selectedAdUnits.length }))) return
                   try {
                     await adminApi.bulkDeleteAdUnits({ ids: selectedAdUnits, archive: false })
-                    toast.success('Selected ad units deleted successfully')
+                    toast.success(t('admin.websites.ad_unit.toast.bulk_deleted', 'Selected ad units deleted successfully'))
                     setSelectedAdUnits([])
                     loadAll()
                   } catch (err) {
-                    toast.error(err.response?.data?.message || 'Failed to bulk delete ad units')
+                    toast.error(err.response?.data?.message || t('admin.websites.ad_unit.toast.bulk_delete_failed', 'Failed to bulk delete ad units'))
                   }
                 }}
               >
-                🗑 Delete Selected (Local)
+                🗑 {t('admin.websites.ad_unit.btn.delete_selected_local', 'Delete Selected (Local)')}
               </button>
               <button
                 type="button"
                 className="btn btn-danger btn-xs"
-                title="Delete from platform and archive in GAM"
+                title={t('admin.websites.ad_unit.btn.archive_selected_title', 'Delete from platform and archive in GAM')}
                 onClick={async () => {
-                  if (!confirm(`Are you sure you want to delete and archive the ${selectedAdUnits.length} selected ad units in Google Ad Manager?`)) return
+                  if (!confirm(t('admin.websites.ad_unit.confirm_bulk_archive', 'Are you sure you want to delete and archive the {count} selected ad units in Google Ad Manager?', { count: selectedAdUnits.length }))) return
                   try {
                     await adminApi.bulkDeleteAdUnits({ ids: selectedAdUnits, archive: true })
-                    toast.success('Selected ad units deleted successfully')
+                    toast.success(t('admin.websites.ad_unit.toast.bulk_deleted', 'Selected ad units deleted successfully'))
                     setSelectedAdUnits([])
                     loadAll()
                   } catch (err) {
-                    toast.error(err.response?.data?.message || 'Failed to bulk delete ad units')
+                    toast.error(err.response?.data?.message || t('admin.websites.ad_unit.toast.bulk_delete_failed', 'Failed to bulk delete ad units'))
                   }
                 }}
               >
-                🗑 Archive Selected
+                🗑 {t('admin.websites.ad_unit.btn.archive_selected', 'Archive Selected')}
               </button>
               <button
                 type="button"
                 className="btn btn-secondary btn-xs"
                 onClick={() => setSelectedAdUnits([])}
               >
-                Cancel
+                {t('admin.websites.btn.cancel', 'Cancel')}
               </button>
             </div>
           ) : (
@@ -617,15 +621,15 @@ export default function WebsitesPage() {
                 gap: 12 
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Search Name/Code</label>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.ad_unit.filter.name_label', 'Search Name/Code')}</label>
                   <input
-                    className="form-input" placeholder="Search name or GAM code…"
+                    className="form-input" placeholder={t('admin.websites.ad_unit.filter.name_placeholder', 'Search name or GAM code…')}
                     value={aSearch} onChange={e => setASearch(e.target.value)}
                     style={{ width: '100%', height: 38 }}
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Website</label>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.ad_unit.filter.website_label', 'Website')}</label>
                   <SearchableSelect
                     value={aWebsite}
                     onChange={setAWebsite}
@@ -633,15 +637,15 @@ export default function WebsitesPage() {
                       value: w.id,
                       label: w.domain,
                     }))}
-                    placeholder="All Websites"
-                    emptyMessage="No websites found"
+                    placeholder={t('admin.websites.ad_unit.filter.all_websites', 'All Websites')}
+                    emptyMessage={t('admin.websites.ad_unit.form.website_placeholder', 'Select website…')}
                     isOptional={true}
-                    clearLabel="All Websites"
+                    clearLabel={t('admin.websites.ad_unit.filter.all_websites', 'All Websites')}
                     style={{ width: '100%' }}
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Publisher</label>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.publisher_label', 'Publisher')}</label>
                   <SearchableSelect
                     value={aPublisher}
                     onChange={setAPublisher}
@@ -650,29 +654,29 @@ export default function WebsitesPage() {
                       label: p.name,
                       subLabel: p.email
                     }))}
-                    placeholder="All Publishers"
-                    emptyMessage="No publishers found"
+                    placeholder={t('admin.websites.filter.all_publishers', 'All Publishers')}
+                    emptyMessage={t('admin.websites.form.no_publishers', 'No publishers found')}
                     isOptional={true}
-                    clearLabel="All Publishers"
+                    clearLabel={t('admin.websites.filter.all_publishers', 'All Publishers')}
                     style={{ width: '100%' }}
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.status_label', 'Status')}</label>
                   <select className="form-select" value={aStatus} onChange={e => setAStatus(e.target.value)}
                     style={{ width: '100%', height: 38 }}>
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="">{t('admin.websites.filter.status_all', 'All Statuses')}</option>
+                    <option value="active">{t('admin.websites.filter.status_active', 'Active')}</option>
+                    <option value="inactive">{t('admin.websites.filter.status_inactive', 'Inactive')}</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratio Config</label>
+                  <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('admin.websites.filter.ratio_label', 'Ratio Config')}</label>
                   <select className="form-select" value={aRatio} onChange={e => setARatio(e.target.value)}
                     style={{ width: '100%', height: 38 }}>
-                    <option value="">Any Ratio</option>
-                    <option value="override">Has Ratio Override</option>
-                    <option value="inherited">Inherited Ratio</option>
+                    <option value="">{t('admin.websites.filter.ratio_all', 'Any Ratio')}</option>
+                    <option value="override">{t('admin.websites.filter.ratio_override', 'Has Ratio Override')}</option>
+                    <option value="inherited">{t('admin.websites.filter.ratio_inherited', 'Inherited Ratio')}</option>
                   </select>
                 </div>
               </div>
@@ -680,7 +684,7 @@ export default function WebsitesPage() {
               {(hasAFilters || filteredAdUnits.length !== adUnits.length) && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
                   <span className="text-muted text-sm">
-                    Showing {filteredAdUnits.length} of {adUnits.length} ad units
+                    {t('admin.websites.ad_unit.filter.count_ad_units', 'Showing {count} of {total} ad units', { count: filteredAdUnits.length, total: adUnits.length })}
                   </span>
                   {hasAFilters && (
                     <button className="btn btn-secondary btn-xs" onClick={clearAFilters}
@@ -692,7 +696,7 @@ export default function WebsitesPage() {
                         border: '1px solid rgba(239, 68, 68, 0.2)',
                         color: '#ef4444',
                       }}>
-                      <X size={12} /> Clear Filters
+                      <X size={12} /> {t('admin.websites.btn.clear_filters', 'Clear Filters')}
                     </button>
                   )}
                 </div>
@@ -702,7 +706,7 @@ export default function WebsitesPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0 }}>
+      <div className="card" style={{ padding: 0, marginTop: 24 }}>
         <div className="table-wrap">
           {loading
             ? <div className="empty-state"><div className="spinner"></div></div>
@@ -710,14 +714,18 @@ export default function WebsitesPage() {
               <>
                 <table className="table">
                   <thead><tr>
-                    <th>Domain</th><th>Publisher</th><th>GAM Code</th>
-                    <th>Ratio Override</th><th>Status</th><th>Actions</th>
+                    <th>{t('admin.websites.table.col_domain', 'Domain')}</th>
+                    <th>{t('admin.websites.table.col_publisher', 'Publisher')}</th>
+                    <th>{t('admin.websites.table.col_gam_code', 'GAM Code')}</th>
+                    <th>{t('admin.websites.table.col_ratio_override', 'Ratio Override')}</th>
+                    <th>{t('admin.websites.table.col_status', 'Status')}</th>
+                    <th>{t('admin.websites.table.col_actions', 'Actions')}</th>
                   </tr></thead>
                   <tbody>
                     {filteredWebsites.length === 0 && (
                       <tr><td colSpan={6}><div className="empty-state">
                         <div className="empty-state-icon"><Globe size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-                        <div className="empty-state-text">{hasWFilters ? 'No websites match your filters' : 'No websites yet'}</div>
+                        <div className="empty-state-text">{hasWFilters ? t('admin.websites.empty.filtered', 'No websites match your filters') : t('admin.websites.empty.none', 'No websites yet')}</div>
                       </div></td></tr>
                     )}
                     {paginatedWebsites.map(w => {
@@ -734,21 +742,21 @@ export default function WebsitesPage() {
                           </td>
                           <td>
                             {w.ratio_override
-                              ? <span className="badge badge-approved">{(w.ratio_override*100).toFixed(0)}% override</span>
-                              : <span className="text-muted text-xs">Inherited</span>}
+                              ? <span className="badge badge-approved">{t('admin.websites.table.override_value', '{ratio}% override', { ratio: (w.ratio_override*100).toFixed(0) })}</span>
+                              : <span className="text-muted text-xs">{t('admin.websites.table.inherited', 'Inherited')}</span>}
                           </td>
                           <td>
                             <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`}>
                               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                              {w.is_active ? 'Active' : 'Inactive'}
+                              {w.is_active ? t('admin.websites.badge.active', 'Active') : t('admin.websites.badge.inactive', 'Inactive')}
                             </span>
                           </td>
                           <td>
                             <div className="flex gap-2">
-                              <button className="btn btn-secondary btn-xs" onClick={() => setModal(w)}><Edit2 size={12} /> Edit</button>
+                              <button className="btn btn-secondary btn-xs" onClick={() => setModal(w)}><Edit2 size={12} /> {t('admin.websites.btn.edit', 'Edit')}</button>
                               <button className="btn btn-danger btn-xs"
                                 onClick={async () => {
-                                  if (!confirm(`Delete ${w.domain}?`)) return
+                                  if (!confirm(t('admin.websites.confirm_delete', 'Delete {domain}?', { domain: w.domain }))) return
                                   await adminApi.deleteWebsite(w.id)
                                   loadAll()
                                 }}><Trash2 size={12} /></button>
@@ -770,7 +778,7 @@ export default function WebsitesPage() {
               <>
                 <table className="table">
                   <thead><tr>
-                    <th style={{ width: 40, paddingRight: 0 }}>
+                    <th style={{ width: 40, paddingInlineStart: 16, paddingInlineEnd: 8 }}>
                       <input
                         type="checkbox"
                         checked={paginatedAdUnits.length > 0 && paginatedAdUnits.every(a => selectedAdUnits.includes(a.id))}
@@ -783,21 +791,24 @@ export default function WebsitesPage() {
                         }}
                       />
                     </th>
-                    <th>Ad Unit</th><th>Website</th><th>GAM Name</th>
-                    <th>Ratio Override</th><th>Status</th><th>Actions</th>
+                    <th>{t('admin.websites.ad_unit.table.col_ad_unit', 'Ad Unit')}</th>
+                    <th>{t('admin.websites.ad_unit.table.col_website', 'Website')}</th>
+                    <th>{t('admin.websites.table.col_ratio_override', 'Ratio Override')}</th>
+                    <th>{t('admin.websites.table.col_status', 'Status')}</th>
+                    <th>{t('admin.websites.table.col_actions', 'Actions')}</th>
                   </tr></thead>
                   <tbody>
                     {filteredAdUnits.length === 0 && (
-                      <tr><td colSpan={7}><div className="empty-state">
+                      <tr><td colSpan={6}><div className="empty-state">
                         <div className="empty-state-icon"><Layers size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-                        <div className="empty-state-text">{hasAFilters ? 'No ad units match your filters' : 'No ad units yet'}</div>
+                        <div className="empty-state-text">{hasAFilters ? t('admin.websites.ad_unit.empty.filtered', 'No ad units match your filters') : t('admin.websites.ad_unit.empty.none', 'No ad units yet')}</div>
                       </div></td></tr>
                     )}
                     {paginatedAdUnits.map(a => {
                       const web = websites.find(w => w.id === a.website_id)
                       return (
                         <tr key={a.id}>
-                          <td style={{ paddingRight: 0 }}>
+                          <td style={{ paddingInlineStart: 16, paddingInlineEnd: 8 }}>
                             <input
                               type="checkbox"
                               checked={selectedAdUnits.includes(a.id)}
@@ -812,35 +823,32 @@ export default function WebsitesPage() {
                           </td>
                           <td><strong>{a.display_name}</strong></td>
                           <td className="text-muted text-sm">{web?.domain || '—'}</td>
-                          <td style={{ maxWidth: 200 }}>
-                            <code style={{ fontSize: 11, wordBreak: 'break-all' }}>{a.gam_ad_unit_name}</code>
-                          </td>
                           <td>
                             {a.ratio_override
-                              ? <span className="badge badge-approved">{(a.ratio_override*100).toFixed(0)}% override</span>
-                              : <span className="text-muted text-xs">Inherited</span>}
+                              ? <span className="badge badge-approved">{t('admin.websites.table.override_value', '{ratio}% override', { ratio: (a.ratio_override*100).toFixed(0) })}</span>
+                              : <span className="text-muted text-xs">{t('admin.websites.table.inherited', 'Inherited')}</span>}
                           </td>
                           <td>
                             <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
                               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                              {a.is_active ? 'Active' : 'Inactive'}
+                              {a.is_active ? t('admin.websites.badge.active', 'Active') : t('admin.websites.badge.inactive', 'Inactive')}
                             </span>
                           </td>
                           <td>
                             <div className="flex gap-2">
-                              <button className="btn btn-secondary btn-xs" onClick={() => setAdModal(a)}><Edit2 size={12} /> Edit</button>
+                              <button className="btn btn-secondary btn-xs" onClick={() => setAdModal(a)}><Edit2 size={12} /> {t('admin.websites.btn.edit', 'Edit')}</button>
                               <button className="btn btn-xs"
                                 style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--color-warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
-                                title="Delete from platform only (keep in GAM)"
+                                title={t('admin.websites.ad_unit.btn.delete_selected_local_title', 'Delete from platform only (keep in GAM)')}
                                 onClick={async () => {
-                                  if (!confirm(`Delete ad unit "${a.display_name}" from platform only? It will NOT be archived in Google Ad Manager.`)) return
+                                  if (!confirm(t('admin.websites.ad_unit.confirm_delete_local', 'Delete ad unit "{name}" from platform only? It will NOT be archived in Google Ad Manager.', { name: a.display_name }))) return
                                   await adminApi.deleteAdUnit(a.id, { archive: false })
                                   loadAll()
                                 }}><Trash2 size={12} /></button>
                               <button className="btn btn-danger btn-xs"
-                                title="Delete from platform and archive in GAM"
+                                title={t('admin.websites.ad_unit.btn.archive_selected_title', 'Delete from platform and archive in GAM')}
                                 onClick={async () => {
-                                  if (!confirm(`Delete ad unit "${a.display_name}" from platform and archive it in Google Ad Manager?`)) return
+                                  if (!confirm(t('admin.websites.ad_unit.confirm_archive', 'Delete ad unit "{name}" from platform and archive it in Google Ad Manager?', { name: a.display_name }))) return
                                   await adminApi.deleteAdUnit(a.id, { archive: true })
                                   loadAll()
                                 }}><Trash2 size={12} /></button>

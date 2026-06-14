@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { publisherApi } from '../api/endpoints'
+import { useI18n } from '../contexts/I18nContext'
 import { Megaphone, X, Info, CheckCircle, AlertTriangle, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
 
 // Renders active announcements fetched from the backend.
@@ -131,6 +132,7 @@ export default function AnnouncementsRenderer() {
 // ── Banner Component ────────────────────────────────────────────────────────
 
 function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onView }) {
+  const { t, locale } = useI18n()
   useEffect(() => {
     if (!isCollapsed) onView()
   }, [isCollapsed, onView])
@@ -138,6 +140,9 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
   const styleKey = banner.style || 'info'
   const styleCfg = STYLE_CONFIG[styleKey] || STYLE_CONFIG.info
   const IconComponent = styleCfg.icon
+
+  const displayTitle = (locale === 'ar' && banner.title_ar) ? banner.title_ar : (banner.title || t('announcements.announcement', 'Announcement'))
+  const displayContent = (locale === 'ar' && banner.content_ar) ? banner.content_ar : banner.content
 
   if (isCollapsed) {
     return (
@@ -167,11 +172,11 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
           }}>
-            {banner.title || 'Announcement'}
+            {displayTitle}
           </span>
         </div>
         <div className="announcement-show-btn">
-          <span>Show</span>
+          <span>{t('common.show', 'Show')}</span>
           <ChevronDown size={14} />
         </div>
       </div>
@@ -185,15 +190,15 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
           <IconComponent size={18} />
         </div>
         <div className="announcement-banner-text">
-          {banner.title && (
+          {displayTitle && (
             <h4 className="announcement-banner-title">
-              {banner.title}
+              {displayTitle}
             </h4>
           )}
           <div
             className="announcement-content text-sm"
             style={{ color: 'var(--br-text-2)', lineHeight: 1.5 }}
-            dangerouslySetInnerHTML={{ __html: banner.content }}
+            dangerouslySetInnerHTML={{ __html: displayContent }}
           />
         </div>
       </div>
@@ -206,7 +211,7 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
               onClick={() => onButtonClick(btn, idx)}
               className="btn btn-primary btn-xs announcement-banner-btn"
             >
-              {btn.text}
+              {(locale === 'ar' && btn.text_ar) ? btn.text_ar : btn.text}
             </button>
           ))}
         </div>
@@ -214,7 +219,7 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
 
       <button
         onClick={onToggleCollapse}
-        title="Collapse"
+        title={t('common.collapse', 'Collapse')}
         className="announcement-banner-close"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
@@ -227,9 +232,14 @@ function BannerItem({ banner, isCollapsed, onToggleCollapse, onButtonClick, onVi
 // ── Modal Component ──────────────────────────────────────────────────────────
 
 function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose, onButtonClick }) {
+  const { t, locale } = useI18n()
+  const isRtl = locale === 'ar'
   const styleKey = announcement.style || 'info'
   const styleCfg = STYLE_CONFIG[styleKey] || STYLE_CONFIG.info
   const IconComponent = styleCfg.icon
+
+  const displayTitle = (locale === 'ar' && announcement.title_ar) ? announcement.title_ar : announcement.title
+  const displayContent = (locale === 'ar' && announcement.content_ar) ? announcement.content_ar : announcement.content
 
   return (
     <div style={{
@@ -241,7 +251,8 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
       <div style={{
         background: 'var(--br-bg-2)',
         border: '1px solid var(--br-border)',
-        borderLeft: `4px solid ${styleCfg.color}`,
+        borderLeft: isRtl ? 'none' : `4px solid ${styleCfg.color}`,
+        borderRight: isRtl ? `4px solid ${styleCfg.color}` : 'none',
         borderRadius: 'var(--br-radius-lg)',
         width: '100%',
         maxWidth: 500,
@@ -270,7 +281,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
               <IconComponent size={15} />
             </div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--br-text)' }}>
-              {announcement.title}
+              {displayTitle}
             </h3>
           </div>
           <button
@@ -302,7 +313,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
               fontSize: 14, lineHeight: 1.6, color: 'var(--br-text-2)',
               marginBottom: (announcement.buttons || []).length > 0 ? 24 : 0
             }}
-            dangerouslySetInnerHTML={{ __html: announcement.content }}
+            dangerouslySetInnerHTML={{ __html: displayContent }}
           />
 
           {/* Action Buttons */}
@@ -315,7 +326,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
                   className="btn btn-primary"
                   style={{ flex: '1 1 auto', justifyContent: 'center', padding: '10px 20px', borderRadius: 8 }}
                 >
-                  {btn.text}
+                  {(locale === 'ar' && btn.text_ar) ? btn.text_ar : btn.text}
                 </button>
               ))}
             </div>
@@ -342,7 +353,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
                   accentColor: 'var(--br-primary)'
                 }}
               />
-              Don't show this again
+              {t('announcements.dont_show_again', "Don't show this again")}
             </label>
           ) : (
             <span />
@@ -352,7 +363,7 @@ function ModalItem({ announcement, dontShowAgain, onDontShowAgainChange, onClose
             onClick={onClose}
             style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8 }}
           >
-            Close
+            {t('common.close', 'Close')}
           </button>
         </div>
       </div>

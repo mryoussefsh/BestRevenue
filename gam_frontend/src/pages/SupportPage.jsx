@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { publicApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
+import { useI18n } from '../contexts/I18nContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { 
   TrendingUp, Lock, LayoutDashboard, ArrowRight, X, Menu, Phone, Mail, 
   MessageSquare, Send, CheckCircle2, Globe
@@ -14,6 +16,7 @@ import './SupportPage.css'
 export default function SupportPage() {
   const { user } = useAuth()
   const { settings } = useSettings()
+  const { locale, t } = useI18n()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -33,7 +36,7 @@ export default function SupportPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!name || !email || !subject || !message) {
-      toast.error('Please fill in all fields.')
+      toast.error(t('support.toast.fill_all_fields', 'Please fill in all fields.'))
       return
     }
 
@@ -78,57 +81,63 @@ export default function SupportPage() {
           </Link>
 
           <nav className="landing-nav-links">
-            <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
-            <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
-            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
-            <Link to="/support" className="landing-nav-link active" onClick={() => setMenuOpen(false)}>Support</Link>
+            <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('common.home_page', 'Home')}</Link>
+            <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.features', 'Features')}</a>
+            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.calculator', 'Calculator')}</a>
+            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.payouts_proof', 'Payouts Proof')}</a>
+            <Link to="/support" className="landing-nav-link active" onClick={() => setMenuOpen(false)}>{t('landing.nav.support', 'Support Hub')}</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
-              <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>{p.title}</Link>
+              <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>
+                {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
+              </Link>
             ))}
             
             {/* Mobile CTAs placed at the end of the dropdown menu list */}
             <div className="mobile-menu-ctas">
               {user ? (
                 <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
-                  <LayoutDashboard size={14} /> Dashboard
+                  <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
                   {settings.registration_status !== 'closed' ? (
                     <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                      Get Started <ArrowRight size={14} />
+                      {t('common.get_started', 'Get Started')} <ArrowRight size={14} />
                     </Link>
                   ) : (
-                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>{t('common.registration_closed', 'Registration Closed')}</span>
                   )}
                   <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                    <Lock size={14} /> Sign In
+                    <Lock size={14} /> {t('common.sign_in', 'Sign In')}
                   </Link>
                 </div>
               )}
+              <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'center' }}>
+                <LanguageSwitcher />
+              </div>
             </div>
           </nav>
 
           <div className="landing-nav-ctas">
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
-                <LayoutDashboard size={14} /> Dashboard
+                <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
               </button>
             ) : (
               <>
                 <Link to="/login" className="btn btn-secondary btn-sm">
-                  <Lock size={12} /> Sign In
+                  <Lock size={12} /> {t('common.sign_in', 'Sign In')}
                 </Link>
                 {settings.registration_status !== 'closed' ? (
                   <Link to="/register" className="btn btn-primary btn-sm">
-                    Get Started <ArrowRight size={12} />
+                    {t('common.get_started', 'Get Started')} <ArrowRight size={12} />
                   </Link>
                 ) : (
-                  <span className="badge badge-neutral">Registration Closed</span>
+                  <span className="badge badge-neutral">{t('common.registration_closed', 'Registration Closed')}</span>
                 )}
               </>
             )}
+            <LanguageSwitcher style={{ marginInlineStart: '12px' }} />
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
@@ -139,9 +148,9 @@ export default function SupportPage() {
 
       {/* Hero Section */}
       <section className="support-hero">
-        <h1 className="support-hero-title">Support Hub</h1>
+        <h1 className="support-hero-title">{t('landing.nav.support', 'Support Hub')}</h1>
         <p className="support-hero-desc">
-          Have a question about Google Ad Manager setup, payment channels, or custom layouts? Send us a message or connect directly via Telegram or WhatsApp.
+          {t('support.hero_desc', 'Have a question about Google Ad Manager setup, payment channels, or custom layouts? Send us a message or connect directly via Telegram or WhatsApp.')}
         </p>
       </section>
 
@@ -151,7 +160,7 @@ export default function SupportPage() {
         <div className="support-info-col">
           <div className="support-info-card">
             <h3 className="support-card-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <MessageSquare size={20} style={{ color: 'var(--br-primary)' }} /> Live Channels
+              <MessageSquare size={20} style={{ color: 'var(--br-primary)' }} /> {t('support.live_channels', 'Live Channels')}
             </h3>
             
             <div className="support-channel-list">
@@ -161,9 +170,9 @@ export default function SupportPage() {
                   <Send size={20} />
                 </div>
                 <div className="support-channel-details">
-                  <span className="support-channel-label">Telegram Channel</span>
+                  <span className="support-channel-label">{t('support.telegram_channel', 'Telegram Channel')}</span>
                   <span className="support-channel-value">@BestRevenueSupport</span>
-                  <span className="support-channel-link">Open Telegram ↗</span>
+                  <span className="support-channel-link">{t('support.open_telegram', 'Open Telegram ↗')}</span>
                 </div>
               </a>
 
@@ -173,9 +182,9 @@ export default function SupportPage() {
                   <Phone size={20} />
                 </div>
                 <div className="support-channel-details">
-                  <span className="support-channel-label">WhatsApp Support</span>
-                  <span className="support-channel-value">Direct Chat Integration</span>
-                  <span className="support-channel-link">Start Chatting ↗</span>
+                  <span className="support-channel-label">{t('support.whatsapp_support', 'WhatsApp Support')}</span>
+                  <span className="support-channel-value">{t('support.whatsapp_value', 'Direct Chat Integration')}</span>
+                  <span className="support-channel-link">{t('support.start_chatting', 'Start Chatting ↗')}</span>
                 </div>
               </a>
 
@@ -185,9 +194,9 @@ export default function SupportPage() {
                   <Mail size={20} />
                 </div>
                 <div className="support-channel-details">
-                  <span className="support-channel-label">Official Email</span>
+                  <span className="support-channel-label">{t('support.official_email', 'Official Email')}</span>
                   <span className="support-channel-value">{supportEmail}</span>
-                  <span className="support-channel-link">Send Mail ↗</span>
+                  <span className="support-channel-link">{t('support.send_mail', 'Send Mail ↗')}</span>
                 </div>
               </a>
             </div>
@@ -198,32 +207,32 @@ export default function SupportPage() {
         <div className="support-form-col">
           <div className="support-form-card">
             <h3 className="support-card-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Mail size={20} style={{ color: 'var(--br-primary)' }} /> Send Message
+              <Mail size={20} style={{ color: 'var(--br-primary)' }} /> {t('support.send_message', 'Send Message')}
             </h3>
             
             {submitted ? (
               <div className="alert alert-success" style={{ margin: '16px 0', padding: 24, borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                 <CheckCircle2 size={32} style={{ color: 'var(--br-accent)', display: 'block', margin: '0 auto 12px' }} />
-                <h4 style={{ fontWeight: 700, marginBottom: 8 }}>Thank You!</h4>
+                <h4 style={{ fontWeight: 700, marginBottom: 8 }}>{t('support.thank_you', 'Thank You!')}</h4>
                 <p style={{ fontSize: 13, color: '#047857', lineHeight: 1.5 }}>
-                  Your message has been sent successfully. Our support desk will reach out to you at the email provided shortly.
+                  {t('support.success_desc', 'Your message has been sent successfully. Our support desk will reach out to you at the email provided shortly.')}
                 </p>
                 <button onClick={() => setSubmitted(false)} className="btn btn-secondary btn-sm" style={{ marginTop: 20 }}>
-                  Send Another Message
+                  {t('support.send_another', 'Send Another Message')}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <p className="support-form-desc">
-                  Fill in the details below to open a ticket. Your request will be routed directly to our administration team.
+                  {t('support.form_desc', 'Fill in the details below to open a ticket. Your request will be routed directly to our administration team.')}
                 </p>
                 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Full Name</label>
+                  <label className="form-label">{t('support.full_name', 'Full Name')}</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Enter your name"
+                    placeholder={t('support.name_placeholder', 'Enter your name')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -231,11 +240,11 @@ export default function SupportPage() {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Email Address</label>
+                  <label className="form-label">{t('auth.email', 'Email Address')}</label>
                   <input
                     type="email"
                     className="form-input"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.email_placeholder', 'you@example.com')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -243,11 +252,11 @@ export default function SupportPage() {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Subject</label>
+                  <label className="form-label">{t('support.subject', 'Subject')}</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Ad unit generation, Payments delay, etc."
+                    placeholder={t('support.subject_placeholder', 'Ad unit generation, Payments delay, etc.')}
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     required
@@ -255,11 +264,11 @@ export default function SupportPage() {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Message Details</label>
+                  <label className="form-label">{t('support.message_details', 'Message Details')}</label>
                   <textarea
                     rows={5}
                     className="form-textarea"
-                    placeholder="Describe your issue or question in details..."
+                    placeholder={t('support.message_placeholder', 'Describe your issue or question in details...')}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     required
@@ -273,8 +282,8 @@ export default function SupportPage() {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div> Dispatching message…</>
-                  ) : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Mail size={16} /> Submit Ticket</span>}
+                    <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div> {t('support.dispatching', 'Dispatching message…')}</>
+                  ) : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Mail size={16} /> {t('support.submit_ticket', 'Submit Ticket')}</span>}
                 </button>
               </form>
             )}
@@ -297,7 +306,7 @@ export default function SupportPage() {
               )}
             </Link>
             <p className="footer-desc">
-              A premium, automated ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.
+              {t('landing.footer.desc', 'A premium, ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.')}
             </p>
             {(settings.social_facebook || settings.social_instagram || settings.social_x || settings.social_telegram) && (
               <div className="footer-socials" style={{ display: 'flex', gap: 14, marginTop: 18 }}>
@@ -344,28 +353,30 @@ export default function SupportPage() {
 
           <div className="footer-links-grid">
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Platform</h5>
+              <h5 className="footer-link-title">{t('landing.footer.platform', 'Platform')}</h5>
               <div className="footer-links-list">
-                <Link to="/" className="footer-link">Home Page</Link>
-                <a href="/#features" className="footer-link">Features</a>
-                <a href="/#calculator" className="footer-link">Calculator</a>
-                <a href="/#proofs" className="footer-link">Payments Proof</a>
+                <Link to="/" className="footer-link">{t('common.home_page', 'Home Page')}</Link>
+                <a href="/#features" className="footer-link">{t('landing.nav.features', 'Features')}</a>
+                <a href="/#calculator" className="footer-link">{t('landing.nav.calculator', 'Calculator')}</a>
+                <a href="/#proofs" className="footer-link">{t('landing.nav.payouts_proof', 'Payments Proof')}</a>
               </div>
             </div>
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Help Desk</h5>
+              <h5 className="footer-link-title">{t('landing.footer.access', 'Access')}</h5>
               <div className="footer-links-list">
-                <Link to="/support" className="footer-link">Support Hub</Link>
-                <Link to="/login" className="footer-link">Sign In</Link>
-                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">Google Ad Manager Help</a>
+                <Link to="/support" className="footer-link">{t('landing.nav.support', 'Support Hub')}</Link>
+                <Link to="/login" className="footer-link">{t('common.sign_in', 'Sign In')}</Link>
+                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">{t('common.gam_help', 'Google Ad Manager Help')}</a>
               </div>
             </div>
             {settings.pages && settings.pages.some(p => p.show_in_public_footer) && (
               <div className="footer-link-group">
-                <h5 className="footer-link-title">Information</h5>
+                <h5 className="footer-link-title">{t('landing.footer.info', 'Information')}</h5>
                 <div className="footer-links-list">
                   {settings.pages.filter(p => p.show_in_public_footer).map(p => (
-                    <Link key={p.slug} to={`/page/${p.slug}`} className="footer-link">{p.title}</Link>
+                    <Link key={p.slug} to={`/page/${p.slug}`} className="footer-link">
+                      {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -374,8 +385,8 @@ export default function SupportPage() {
         </div>
 
         <div className="footer-bottom">
-          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. All rights reserved.</div>
-          <div>Empowering publishers through transparent ad metrics.</div>
+          <div>{t('common.all_rights_reserved', '© {year} {site_name}. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'BestRevenue' })}</div>
+          <div>{t('landing.footer.subtext', 'Empowering publishers through transparent ad metrics.')}</div>
         </div>
       </footer>
     </div>

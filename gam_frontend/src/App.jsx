@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { I18nProvider } from './contexts/I18nContext'
+import { I18nProvider, useI18n } from './contexts/I18nContext'
 import { SettingsProvider, useSettings } from './contexts/SettingsContext'
 
 import PrivateRoute from './components/PrivateRoute'
@@ -40,6 +40,7 @@ import EmailTemplates   from './pages/admin/EmailTemplates'
 import AdminTickets     from './pages/admin/Tickets'
 import AdminTicketDetail from './pages/admin/TicketDetail'
 import AdminPages         from './pages/admin/Pages'
+import AdminFaqs          from './pages/admin/Faqs'
 import AdminProfile       from './pages/admin/Profile'
 import AdminAdmins        from './pages/admin/Admins'
 import FinanceDashboard   from './pages/admin/FinanceDashboard'
@@ -79,6 +80,7 @@ function AdminDashboardGateway() {
 function PageTitleUpdater() {
   const location = useLocation()
   const { settings } = useSettings()
+  const { t } = useI18n()
 
   useEffect(() => {
     const siteName = settings.site_name || 'BestRevenue'
@@ -87,19 +89,19 @@ function PageTitleUpdater() {
     let title = ''
 
     if (path === '/') {
-      title = `Maximize your revenue with ${siteName}`
+      title = t('title.home', 'Maximize your revenue with {siteName}', { siteName })
     } else if (path === '/login') {
-      title = `Login - ${siteName}`
+      title = `${t('title.login', 'Login')} - ${siteName}`
     } else if (path === '/register') {
-      title = `Register - ${siteName}`
+      title = `${t('title.register', 'Register')} - ${siteName}`
     } else if (path === '/forgot-password') {
-      title = `Forgot Password - ${siteName}`
+      title = `${t('title.forgot_password', 'Forgot Password')} - ${siteName}`
     } else if (path === '/reset-password') {
-      title = `Reset Password - ${siteName}`
+      title = `${t('title.reset_password', 'Reset Password')} - ${siteName}`
     } else if (path === '/support') {
-      title = `Support - ${siteName}`
+      title = `${t('title.support', 'Support')} - ${siteName}`
     } else if (path === '/design-system') {
-      title = `Design System - ${siteName}`
+      title = `${t('title.design_system', 'Design System')} - ${siteName}`
     } else if (path.startsWith('/page/')) {
       const slug = path.split('/page/')[1] || ''
       const pageTitle = slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
@@ -107,75 +109,77 @@ function PageTitleUpdater() {
     }
     // Admin routes
     else if (path === '/admin') {
-      title = `Dashboard - ${siteName}`
+      title = `${t('title.admin_dashboard', 'Dashboard')} - ${siteName}`
     } else if (path === '/admin/finance') {
-      title = `Finance Dashboard - ${siteName}`
+      title = `${t('title.admin_finance', 'Finance Dashboard')} - ${siteName}`
     } else if (path === '/admin/adops') {
-      title = `Ad Ops Dashboard - ${siteName}`
+      title = `${t('title.admin_adops', 'Ad Ops Dashboard')} - ${siteName}`
     } else if (path === '/admin/support') {
-      title = `Support Dashboard - ${siteName}`
+      title = `${t('title.admin_support', 'Support Dashboard')} - ${siteName}`
     } else if (path === '/admin/content') {
-      title = `Content Dashboard - ${siteName}`
+      title = `${t('title.admin_content', 'Content Dashboard')} - ${siteName}`
     } else if (path === '/admin/publishers') {
-      title = `Publishers - ${siteName}`
+      title = `${t('title.admin_publishers', 'Publishers')} - ${siteName}`
     } else if (path.startsWith('/admin/publishers/')) {
-      title = `Publisher Profile - ${siteName}`
+      title = `${t('title.admin_publisher_profile', 'Publisher Profile')} - ${siteName}`
     } else if (path === '/admin/websites') {
-      title = `Websites - ${siteName}`
+      title = `${t('title.admin_websites', 'Websites')} - ${siteName}`
     } else if (path === '/admin/revenue') {
-      title = `Revenue - ${siteName}`
+      title = `${t('title.admin_revenue', 'Revenue')} - ${siteName}`
     } else if (path === '/admin/closings') {
-      title = `Period Closings - ${siteName}`
+      title = `${t('title.admin_closings', 'Period Closings')} - ${siteName}`
     } else if (path === '/admin/payouts') {
-      title = `Payouts - ${siteName}`
+      title = `${t('title.admin_payouts', 'Payouts')} - ${siteName}`
     } else if (path === '/admin/adjustments') {
-      title = `Adjustments - ${siteName}`
+      title = `${t('title.admin_adjustments', 'Adjustments')} - ${siteName}`
     } else if (path === '/admin/settings') {
-      title = `Settings - ${siteName}`
+      title = `${t('title.admin_settings', 'Settings')} - ${siteName}`
     } else if (path === '/admin/profile') {
-      title = `Profile - ${siteName}`
+      title = `${t('title.admin_profile', 'Profile')} - ${siteName}`
     } else if (path === '/admin/translations') {
-      title = `Translations - ${siteName}`
+      title = `${t('title.admin_translations', 'Translations')} - ${siteName}`
     } else if (path === '/admin/audit-logs') {
-      title = `Audit Logs - ${siteName}`
+      title = `${t('title.admin_audit_logs', 'Audit Logs')} - ${siteName}`
     } else if (path === '/admin/gam-accounts') {
-      title = `GAM Accounts - ${siteName}`
+      title = `${t('title.admin_gam_accounts', 'GAM Accounts')} - ${siteName}`
     } else if (path === '/admin/gam-sync') {
-      title = `GAM Sync - ${siteName}`
+      title = `${t('title.admin_gam_sync', 'GAM Sync')} - ${siteName}`
     } else if (path === '/admin/announcements') {
-      title = `Announcements - ${siteName}`
+      title = `${t('title.admin_announcements', 'Announcements')} - ${siteName}`
     } else if (path === '/admin/pages') {
-      title = `Pages - ${siteName}`
+      title = `${t('title.admin_pages', 'Pages')} - ${siteName}`
+    } else if (path === '/admin/faqs') {
+      title = `${t('title.admin_faqs', 'FAQ Management')} - ${siteName}`
     } else if (path === '/admin/email-templates') {
-      title = `Email Templates - ${siteName}`
+      title = `${t('title.admin_email_templates', 'Email Templates')} - ${siteName}`
     } else if (path === '/admin/tickets') {
-      title = `Support Tickets - ${siteName}`
+      title = `${t('title.admin_tickets', 'Support Tickets')} - ${siteName}`
     } else if (path === '/admin/admins') {
-      title = `Admins - ${siteName}`
+      title = `${t('title.admin_admins', 'Admins')} - ${siteName}`
     } else if (path.startsWith('/admin/tickets/')) {
-      title = `Ticket Detail - ${siteName}`
+      title = `${t('title.admin_ticket_detail', 'Ticket Detail')} - ${siteName}`
     }
     // Publisher routes
     else if (path === '/publisher') {
-      title = `Dashboard - ${siteName}`
+      title = `${t('title.publisher_dashboard', 'Dashboard')} - ${siteName}`
     } else if (path === '/publisher/websites') {
-      title = `Websites - ${siteName}`
+      title = `${t('title.publisher_websites', 'Websites')} - ${siteName}`
     } else if (path === '/publisher/revenue') {
-      title = `Revenue - ${siteName}`
+      title = `${t('title.publisher_revenue', 'Revenue')} - ${siteName}`
     } else if (path === '/publisher/payouts') {
-      title = `Payouts - ${siteName}`
+      title = `${t('title.publisher_payouts', 'Payouts')} - ${siteName}`
     } else if (path === '/publisher/settings') {
-      title = `Settings - ${siteName}`
+      title = `${t('title.publisher_settings', 'Settings')} - ${siteName}`
     } else if (path === '/publisher/tickets') {
-      title = `Support Tickets - ${siteName}`
+      title = `${t('title.publisher_tickets', 'Support Tickets')} - ${siteName}`
     } else if (path.startsWith('/publisher/tickets/')) {
-      title = `Ticket Detail - ${siteName}`
+      title = `${t('title.publisher_ticket_detail', 'Ticket Detail')} - ${siteName}`
     } else {
       title = settings.meta_title || siteName
     }
 
     document.title = title
-  }, [location.pathname, settings])
+  }, [location.pathname, settings, t])
 
   return null
 }
@@ -314,6 +318,11 @@ function App() {
             <Route path="/admin/pages" element={
               <PrivateRoute role="admin">
                 <AdminLayout><AdminPages /></AdminLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/admin/faqs" element={
+              <PrivateRoute role="admin">
+                <AdminLayout><AdminFaqs /></AdminLayout>
               </PrivateRoute>
             } />
             <Route path="/admin/email-templates" element={

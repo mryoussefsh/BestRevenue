@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
-import {
-  DollarSign, Users, CheckCircle2, Clock, CreditCard, Lock, Calendar, Award, Check, X, Copy
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { DollarSign, Users, CheckCircle2, Clock, CreditCard, Lock, Award, Check, X } from 'lucide-react'
 
 // Payout Approval Modal
 function ApproveModal({ payout, onClose, onDone }) {
+  const { t } = useI18n()
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -16,9 +16,9 @@ function ApproveModal({ payout, onClose, onDone }) {
     setSaving(true)
     try {
       await adminApi.approvePayout(payout.id, { admin_note: note })
-      toast.success('Payout approved!')
+      toast.success(t('finance.toast_approved', 'Payout approved!'))
       onDone()
-    } catch { toast.error('Failed to approve') }
+    } catch { toast.error(t('finance.toast_approve_fail', 'Failed to approve')) }
     finally { setSaving(false) }
   }
 
@@ -28,29 +28,29 @@ function ApproveModal({ payout, onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Check size={18} style={{ color: 'var(--br-accent)' }} />
-            <span>Approve Payout</span>
+            <span>{t('finance.approve_payout', 'Approve Payout')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <p style={{ marginBottom: 20, color: 'var(--color-text-muted)', fontSize: 14 }}>
-          Publisher: <strong>{payout.publisher?.name}</strong> ·{' '}
-          Period: <strong>{payout.period_year}-{String(payout.period_month).padStart(2,'0')}</strong>
+          {t('finance.publisher_label', 'Publisher')}: <strong>{payout.publisher?.name}</strong> ·{' '}
+          {t('finance.period_label', 'Period')}: <strong>{payout.period_year}-{String(payout.period_month).padStart(2,'0')}</strong>
         </p>
         <div className="form-group">
-          <label className="form-label">Final Amount</label>
+          <label className="form-label">{t('finance.final_amount', 'Final Amount')}</label>
           <div className="form-input" style={{ background: 'var(--color-surface-3)', fontWeight: 700, fontSize: 18, color: 'var(--color-accent)' }}>
             <CompactAmount value={payout.final_amount} />
           </div>
         </div>
         <div className="form-group">
-          <label className="form-label">Admin Note (internal)</label>
+          <label className="form-label">{t('finance.admin_note', 'Admin Note (internal)')}</label>
           <textarea className="form-textarea" rows={2} value={note}
-            onChange={e => setNote(e.target.value)} placeholder="Optional internal note…" />
+            onChange={e => setNote(e.target.value)} placeholder={t('finance.note_placeholder', 'Optional internal note…')} />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button className="btn btn-success" onClick={handleApprove} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {saving ? 'Approving…' : <><Check size={14} /> Approve <CompactAmount value={payout.final_amount} /></>}
+            {saving ? t('finance.approving', 'Approving…') : <><Check size={14} /> {t('finance.approve_btn', 'Approve')} <CompactAmount value={payout.final_amount} /></>}
           </button>
         </div>
       </div>
@@ -60,6 +60,7 @@ function ApproveModal({ payout, onClose, onDone }) {
 
 // Mark Paid Modal
 function MarkPaidModal({ payout, onClose, onDone }) {
+  const { t } = useI18n()
   const [ref, setRef] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -67,9 +68,9 @@ function MarkPaidModal({ payout, onClose, onDone }) {
     setSaving(true)
     try {
       await adminApi.markPaid(payout.id, ref)
-      toast.success('Payout marked as paid!')
+      toast.success(t('finance.toast_paid', 'Payout marked as paid!'))
       onDone()
-    } catch { toast.error('Failed') }
+    } catch { toast.error(t('finance.toast_paid_fail', 'Failed')) }
     finally { setSaving(false) }
   }
 
@@ -79,23 +80,23 @@ function MarkPaidModal({ payout, onClose, onDone }) {
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CreditCard size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Mark as Paid</span>
+            <span>{t('finance.mark_paid', 'Mark as Paid')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <p style={{ marginBottom: 20, color: 'var(--color-text-muted)', fontSize: 14 }}>
-          Publisher: <strong>{payout.publisher?.name}</strong> ·
-          Amount: <strong className="money positive"> <CompactAmount value={payout.final_amount} /></strong>
+          {t('finance.publisher_label', 'Publisher')}: <strong>{payout.publisher?.name}</strong> ·
+          {t('finance.amount_label', 'Amount')}: <strong className="money positive"> <CompactAmount value={payout.final_amount} /></strong>
         </p>
         <div className="form-group">
-          <label className="form-label">Payment Reference / Transaction ID *</label>
+          <label className="form-label">{t('finance.payment_reference', 'Payment Reference / Transaction ID')} *</label>
           <input className="form-input" value={ref} onChange={e => setRef(e.target.value)}
-            placeholder="e.g. TXN-12345 or PayPal order ID" required />
+            placeholder={t('finance.reference_placeholder', 'e.g. TXN-12345 or PayPal order ID')} required />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button className="btn btn-primary" onClick={handlePaid} disabled={saving || !ref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {saving ? 'Saving…' : <><CreditCard size={14} /> Confirm Payment</>}
+            {saving ? t('finance.saving', 'Saving…') : <><CreditCard size={14} /> {t('finance.confirm_payment', 'Confirm Payment')}</>}
           </button>
         </div>
       </div>
@@ -105,6 +106,7 @@ function MarkPaidModal({ payout, onClose, onDone }) {
 
 export default function FinanceDashboard() {
   const { formatDate } = useSettings()
+  const { t } = useI18n()
   const [stats, setStats] = useState(null)
   const [publishers, setPublishers] = useState([])
   const [closings, setClosings] = useState([])
@@ -133,7 +135,6 @@ export default function FinanceDashboard() {
       const payoutsList = payoutsRes.data?.data || []
       const revenueRecords = revenueRes.data?.data || []
 
-      // Financial stats aggregation
       const totalGross = revenueRecords.reduce((s, r) => s + parseFloat(r.gross_revenue || 0), 0)
       const totalEarnings = revenueRecords.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
       const totalApproved = allPubs.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
@@ -160,7 +161,6 @@ export default function FinanceDashboard() {
       setClosings(closingsList.slice(0, 5))
       setPayouts(payoutsList.filter(p => p.status === 'pending' || p.status === 'approved').slice(0, 6))
 
-      // Top publishers by earnings from revenue records
       const byPub = {}
       revenueRecords.forEach(r => {
         const pub = r.ad_unit?.website?.publisher
@@ -179,20 +179,20 @@ export default function FinanceDashboard() {
 
     } catch (err) {
       console.error(err)
-      toast.error('Failed to load finance dashboard')
+      toast.error(t('finance.toast_load_fail', 'Failed to load finance dashboard'))
     } finally {
       setLoading(false)
     }
   }
 
   async function handleReject(p) {
-    const note = prompt(`Rejection reason for ${p.publisher?.name}:`)
+    const note = prompt(t('finance.reject_prompt', `Rejection reason for ${p.publisher?.name}:`))
     if (!note) return
     try {
       await adminApi.rejectPayout(p.id, note)
-      toast.success('Payout rejected')
+      toast.success(t('finance.toast_rejected', 'Payout rejected'))
       loadData()
-    } catch { toast.error('Failed to reject') }
+    } catch { toast.error(t('finance.toast_reject_fail', 'Failed to reject')) }
   }
 
   if (loading) {
@@ -206,10 +206,10 @@ export default function FinanceDashboard() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <DollarSign size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Finance Control Center</span>
+            <span>{t('finance.title', 'Finance Control Center')}</span>
           </h1>
           <p className="page-subtitle" style={{ color: 'var(--color-text-muted)' }}>
-            Workspace for payouts, period closings, and financial analytics
+            {t('finance.subtitle', 'Workspace for payouts, period closings, and financial analytics')}
           </p>
         </div>
       </div>
@@ -217,38 +217,38 @@ export default function FinanceDashboard() {
       {/* Revenue Stats Grid */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> Finance Metrics
+          <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> {t('finance.metrics_label', 'Finance Metrics')}
         </div>
         <div className="stat-grid">
           <div className="stat-card primary">
             <div className="stat-icon"><DollarSign size={20} /></div>
-            <div className="stat-label">Total Gross Revenue</div>
+            <div className="stat-label">{t('finance.total_gross', 'Total Gross Revenue')}</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
-            <div className="stat-change up">▲ Platform-wide</div>
+            <div className="stat-change up">▲ {t('finance.platform_wide', 'Platform-wide')}</div>
           </div>
           <div className="stat-card accent">
             <div className="stat-icon"><Users size={20} /></div>
-            <div className="stat-label">Publisher Shares</div>
+            <div className="stat-label">{t('finance.publisher_shares', 'Publisher Shares')}</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
-            <div className="stat-change up">▲ Shared split</div>
+            <div className="stat-change up">▲ {t('finance.shared_split', 'Shared split')}</div>
           </div>
           <div className="stat-card accent">
             <div className="stat-icon"><CheckCircle2 size={20} /></div>
-            <div className="stat-label">Approved Balances</div>
+            <div className="stat-label">{t('finance.approved_balances', 'Approved Balances')}</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
-            <div className="stat-change up">✓ Wallet totals</div>
+            <div className="stat-change up">✓ {t('finance.wallet_totals', 'Wallet totals')}</div>
           </div>
           <div className="stat-card warning">
             <div className="stat-icon"><Clock size={20} /></div>
-            <div className="stat-label">Pending Earnings</div>
+            <div className="stat-label">{t('finance.pending_earnings', 'Pending Earnings')}</div>
             <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
-            <div className="stat-change">Awaiting cycle close</div>
+            <div className="stat-change">{t('finance.awaiting_cycle', 'Awaiting cycle close')}</div>
           </div>
           <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
             <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
-            <div className="stat-label">Ready for Payout</div>
+            <div className="stat-label">{t('finance.ready_for_payout', 'Ready for Payout')}</div>
             <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
-            <div className="stat-change text-muted">Awaiting publisher request</div>
+            <div className="stat-change text-muted">{t('finance.awaiting_request', 'Awaiting publisher request')}</div>
           </div>
         </div>
       </div>
@@ -261,19 +261,19 @@ export default function FinanceDashboard() {
           <div className="card-header" style={{ padding: '16px 20px' }}>
             <div>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <CreditCard size={16} style={{ color: 'var(--br-primary)' }} /> Actionable Payouts
+                <CreditCard size={16} style={{ color: 'var(--br-primary)' }} /> {t('finance.actionable_payouts', 'Actionable Payouts')}
               </div>
-              <div className="card-subtitle">Pending approval or waiting to be marked paid</div>
+              <div className="card-subtitle">{t('finance.pending_approval_desc', 'Pending approval or waiting to be marked paid')}</div>
             </div>
           </div>
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Publisher</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>{t('finance.col_publisher', 'Publisher')}</th>
+                  <th>{t('finance.col_amount', 'Amount')}</th>
+                  <th>{t('finance.col_status', 'Status')}</th>
+                  <th>{t('finance.col_actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -281,7 +281,7 @@ export default function FinanceDashboard() {
                   <tr>
                     <td colSpan={4}>
                       <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--color-text-muted)', fontSize: 13 }}>
-                        No pending or approved payouts needing action
+                        {t('finance.no_payouts_action', 'No pending or approved payouts needing action')}
                       </div>
                     </td>
                   </tr>
@@ -300,12 +300,12 @@ export default function FinanceDashboard() {
                         <div style={{ display: 'flex', gap: 6 }}>
                           {p.status === 'pending' && (
                             <>
-                              <button className="btn btn-success btn-xs" onClick={() => setModal(p)} style={{ padding: '3px 8px', fontSize: 11 }}><Check size={11} /> Approve</button>
-                              <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)} style={{ padding: '3px 8px', fontSize: 11 }}><X size={11} /> Reject</button>
+                              <button className="btn btn-success btn-xs" onClick={() => setModal(p)} style={{ padding: '3px 8px', fontSize: 11 }}><Check size={11} /> {t('finance.approve_btn', 'Approve')}</button>
+                              <button className="btn btn-danger btn-xs" onClick={() => handleReject(p)} style={{ padding: '3px 8px', fontSize: 11 }}><X size={11} /> {t('finance.reject_btn', 'Reject')}</button>
                             </>
                           )}
                           {p.status === 'approved' && (
-                            <button className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)} style={{ padding: '3px 8px', fontSize: 11 }}><CreditCard size={11} /> Mark Paid</button>
+                            <button className="btn btn-primary btn-xs" onClick={() => setPaidModal(p)} style={{ padding: '3px 8px', fontSize: 11 }}><CreditCard size={11} /> {t('finance.mark_paid_btn', 'Mark Paid')}</button>
                           )}
                         </div>
                       </td>
@@ -322,18 +322,18 @@ export default function FinanceDashboard() {
           <div className="card-header" style={{ padding: '16px 20px' }}>
             <div>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Award size={16} style={{ color: 'var(--br-primary)' }} /> Top Publishers
+                <Award size={16} style={{ color: 'var(--br-primary)' }} /> {t('finance.top_publishers', 'Top Publishers')}
               </div>
-              <div className="card-subtitle">Highest gross share earnings inside the system</div>
+              <div className="card-subtitle">{t('finance.top_publishers_desc', 'Highest gross share earnings inside the system')}</div>
             </div>
           </div>
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Publisher</th>
-                  <th style={{ textAlign: 'right' }}>Period Earnings</th>
-                  <th style={{ textAlign: 'right' }}>Approved Wallet</th>
+                  <th>{t('finance.col_publisher', 'Publisher')}</th>
+                  <th style={{ textAlign: 'right' }}>{t('finance.col_period_earnings', 'Period Earnings')}</th>
+                  <th style={{ textAlign: 'right' }}>{t('finance.col_approved_wallet', 'Approved Wallet')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,12 +341,12 @@ export default function FinanceDashboard() {
                   <tr>
                     <td colSpan={3}>
                       <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--color-text-muted)' }}>
-                        No publisher data available
+                        {t('finance.no_publisher_data', 'No publisher data available')}
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  topPublishers.map((p, idx) => (
+                  topPublishers.map((p) => (
                     <tr key={p.email}>
                       <td>
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
@@ -368,19 +368,19 @@ export default function FinanceDashboard() {
         <div className="card-header" style={{ padding: '16px 20px' }}>
           <div>
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Lock size={16} style={{ color: 'var(--br-primary)' }} /> Recent Period Closings
+              <Lock size={16} style={{ color: 'var(--br-primary)' }} /> {t('finance.recent_closings', 'Recent Period Closings')}
             </div>
-            <div className="card-subtitle">History of finalized monthly financial statements</div>
+            <div className="card-subtitle">{t('finance.closings_desc', 'History of finalized monthly financial statements')}</div>
           </div>
         </div>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Closing Period</th>
-                <th>Finalized On</th>
-                <th>Total Payouts</th>
-                <th>Status</th>
+                <th>{t('finance.col_closing_period', 'Closing Period')}</th>
+                <th>{t('finance.col_finalized_on', 'Finalized On')}</th>
+                <th>{t('finance.col_total_payouts', 'Total Payouts')}</th>
+                <th>{t('finance.col_status', 'Status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -388,14 +388,14 @@ export default function FinanceDashboard() {
                 <tr>
                   <td colSpan={4}>
                     <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--color-text-muted)' }}>
-                      No period closings found
+                      {t('finance.no_closings', 'No period closings found')}
                     </div>
                   </td>
                 </tr>
               ) : (
                 closings.map(c => (
                   <tr key={c.id}>
-                    <td style={{ fontWeight: 600 }}>{c.year}-{String(c.month).padStart(2, '0')}</td>
+                    <td style={{ fontWeight: 600 }}>{c.year}-{String(c.month).padStart(2, '00')}</td>
                     <td style={{ color: 'var(--color-text-muted)' }}>{formatDate(c.created_at)}</td>
                     <td className="money"><CompactAmount value={c.total_payouts_sum || 0} /></td>
                     <td>

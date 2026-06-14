@@ -192,9 +192,17 @@ class FinancialConcurrencyTest extends TestCase
         ]);
 
         $publisher = $this->makePublisher();
+        $gamAccount = \App\Models\GamAccount::create([
+            'id'            => Str::uuid()->toString(),
+            'name'          => 'Test GAM Account',
+            'email'         => 'gam-test@test.com',
+            'network_code'  => '1234',
+            'refresh_token' => 'some-token',
+        ]);
         $website = Website::create([
             'id'               => Str::uuid()->toString(),
             'publisher_id'     => $publisher->id,
+            'gam_account_id'   => $gamAccount->id,
             'domain'           => 'site-1.com',
             'gam_network_code' => '1234',
             'is_active'        => true,
@@ -459,4 +467,96 @@ class FinancialConcurrencyTest extends TestCase
 
         $this->assertCount(1, $logs); // Only the pre-existing log
     }
+
+    /**
+     * Verifies that GAM sync updates financial metrics on subsequent runs
+     */
+    public function test_gam_sync_updates_financial_metrics_on_subsequent_runs(): void
+    {
+        $publisher = $this->makePublisher();
+        $gamAccount = \App\Models\GamAccount::create([
+            'id'            => Str::uuid()->toString(),
+            'name'          => 'Test GAM Account',
+            'email'         => 'gam-test@test.com',
+            'network_code'  => '1234',
+            'refresh_token' => 'some-token',
+        ]);
+        $website = Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $publisher->id,
+            'gam_account_id'   => $gamAccount->id,
+            'domain'           => 'site-1.com',
+            'gam_network_code' => '1234',
+            'is_active'        => true,
+        ]);
+        $adUnit = AdUnit::create([
+            'id'               => Str::uuid()->toString(),
+            'website_id'       => $website->id,
+            'gam_ad_unit_name' => 'banner_1',
+            'display_name'     => 'Banner',
+            'is_active'        => true,
+        ]);
+
+        // 1. Mock first sync report data (e.g. gross_revenue = 2.0)
+        $mock = $this->mock(\App\Services\GamApiService::class);
+        $mock->shouldReceive('fetchReport')->once()->andReturn([
+            [
+                'date'                 => '2026-06-15',
+                'ad_unit_name'         => 'banner_1',
+                'impressions'          => 1000,
+                'unfilled_impressions' => 0,
+                'clicks'               => 10,
+                'cpm'                  => 2.0,
+                'gross_revenue'        => 2.0,
+            ]
+        ]);
+
+        $exitCode1 = Artisan::call('gam:sync', [
+            '--manual'    => true,
+            '--date-from' => '2026-06-15',
+            '--date-to'   => '2026-06-15',
+        ]);
+        $this->assertEquals(0, $exitCode1);
+
+        // Assert first record inserted correctly
+        $this->assertDatabaseHas('revenue_records', [
+            'ad_unit_id'         => $adUnit->id,
+            'date'               => '2026-06-15',
+            'gross_revenue'      => 2.0,
+            'ratio_applied'      => 0.80, // Default publisher ratio
+            'publisher_earnings' => 1.6,  // 2.0 * 0.80
+        ]);
+
+        // 2. Mock second sync report data (e.g. gross_revenue = 3.0, clicks = 15, impressions = 1000)
+        $mock2 = $this->mock(\App\Services\GamApiService::class);
+        $mock2->shouldReceive('fetchReport')->once()->andReturn([
+            [
+                'date'                 => '2026-06-15',
+                'ad_unit_name'         => 'banner_1',
+                'impressions'          => 1000,
+                'unfilled_impressions' => 0,
+                'clicks'               => 15,
+                'cpm'                  => 3.0,
+                'gross_revenue'        => 3.0,
+            ]
+        ]);
+
+        $exitCode2 = Artisan::call('gam:sync', [
+            '--manual'    => true,
+            '--date-from' => '2026-06-15',
+            '--date-to'   => '2026-06-15',
+        ]);
+        $this->assertEquals(0, $exitCode2);
+
+        // Assert record is updated with new gross revenue and calculated publisher earnings
+        $this->assertDatabaseHas('revenue_records', [
+            'ad_unit_id'         => $adUnit->id,
+            'date'               => '2026-06-15',
+            'clicks'             => 15,
+            'gross_revenue'      => 3.0,
+            'ratio_applied'      => 0.80, // preserved ratio
+            'publisher_earnings' => 2.4,  // 3.0 * 0.80
+        ]);
+    }
 }
+

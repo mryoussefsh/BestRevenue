@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { authApi } from '../api/endpoints'
 import { useSettings } from '../contexts/SettingsContext'
+import { useI18n } from '../contexts/I18nContext'
 import toast from 'react-hot-toast'
 import { Lock, Mail, ArrowLeft, ArrowRight } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
   const { settings } = useSettings()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -17,9 +19,9 @@ export default function ForgotPasswordPage() {
     try {
       await authApi.forgotPassword(email)
       setSent(true)
-      toast.success('Reset link sent!')
+      toast.success(t('auth.toast.reset_link_sent', 'Reset link sent!'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send reset email.')
+      toast.error(err.response?.data?.message || t('auth.error.failed_send_reset_email', 'Failed to send reset email.'))
     } finally {
       setLoading(false)
     }
@@ -43,8 +45,8 @@ export default function ForgotPasswordPage() {
               </div>
             </Link>
           )}
-          <h1 className="auth-title">Forgot Password</h1>
-          <p className="auth-subtitle">Enter your email to receive a reset link</p>
+          <h1 className="auth-title">{t('auth.forgot_password', 'Forgot Password')}</h1>
+          <p className="auth-subtitle">{t('auth.forgot_password_desc', 'Enter your email to receive a reset link')}</p>
         </div>
 
         {sent ? (
@@ -52,9 +54,9 @@ export default function ForgotPasswordPage() {
             <div className="alert alert-info" style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 10, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <Mail size={18} style={{ color: 'var(--br-primary)', flexShrink: 0, marginTop: 2 }} />
               <div style={{ fontSize: 13 }}>
-                <strong>Check your inbox</strong>
+                <strong>{t('auth.check_inbox', 'Check your inbox')}</strong>
                 <div style={{ marginTop: 4, color: 'var(--br-text-2)', lineHeight: 1.5 }}>
-                  If an account with <strong>{email}</strong> exists, a password reset link has been sent. Please check your email (and spam folder).
+                  {t('auth.forgot_password_sent_msg', 'If an account with {email} exists, a password reset link has been sent. Please check your email (and spam folder).', { email })}
                 </div>
               </div>
             </div>
@@ -65,19 +67,19 @@ export default function ForgotPasswordPage() {
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <ArrowLeft size={16} />
-                Back to Login
+                {t('auth.back_to_login', 'Back to Login')}
               </span>
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" htmlFor="forgot-email">Email Address</label>
+              <label className="form-label" htmlFor="forgot-email">{t('auth.email', 'Email Address')}</label>
               <input
                 id="forgot-email"
                 type="email"
                 className="form-input"
-                placeholder="you@example.com"
+                placeholder={t('auth.email_placeholder', 'you@example.com')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
@@ -95,11 +97,11 @@ export default function ForgotPasswordPage() {
               {loading ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                  Sending…
+                  {t('auth.sending', 'Sending…')}
                 </span>
               ) : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  Send Reset Link
+                  {t('auth.send_reset_link_btn', 'Send Reset Link')}
                   <ArrowRight size={14} />
                 </span>
               )}
@@ -107,7 +109,7 @@ export default function ForgotPasswordPage() {
 
             <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
               <Link to="/login" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <ArrowLeft size={14} /> Back to Login
+                <ArrowLeft size={14} /> {t('auth.back_to_login', 'Back to Login')}
               </Link>
             </div>
           </form>

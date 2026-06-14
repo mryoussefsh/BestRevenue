@@ -5,13 +5,13 @@ import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
-import { 
-  Settings, User, CreditCard, Lock, Info, AlertTriangle, Save, Key 
-} from 'lucide-react'
+import { Settings, User, CreditCard, Lock, Info, AlertTriangle, Save, Key } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 export default function SettingsPage() {
   const { user, updateUser, updatePaymentInfo } = useAuth()
   const { settings } = useSettings()
+  const { locale, t } = useI18n()
 
   const [activeTab, setActiveTab] = useState('profile')
 
@@ -59,10 +59,10 @@ export default function SettingsPage() {
         telegram,
         country,
       })
-      toast.success('Contact information updated successfully!')
+      toast.success(t('settings.contact_success', 'Contact information updated successfully!'))
       updateUser(res.data.user)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update contact info.')
+      toast.error(err.response?.data?.message || t('settings.contact_fail', 'Failed to update contact info.'))
     } finally {
       setSavingProfile(false)
     }
@@ -71,16 +71,16 @@ export default function SettingsPage() {
   async function handleUpdatePayment(e) {
     e.preventDefault()
     if (!method || !account) {
-      toast.error('Both payment method and account details are required.')
+      toast.error(t('settings.payment_required', 'Both payment method and account details are required.'))
       return
     }
     setSavingPayment(true)
     try {
       const res = await publisherApi.updatePaymentInfo({ method, account })
-      toast.success('Payment method settings updated!')
+      toast.success(t('settings.payment_success', 'Payment method settings updated!'))
       updatePaymentInfo(res.data.payment_info)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update payment settings.')
+      toast.error(err.response?.data?.message || t('settings.payment_fail', 'Failed to update payment settings.'))
     } finally {
       setSavingPayment(false)
     }
@@ -89,7 +89,7 @@ export default function SettingsPage() {
   async function handleUpdatePassword(e) {
     e.preventDefault()
     if (newPassword !== newPasswordConfirmation) {
-      toast.error('New password and confirmation do not match.')
+      toast.error(t('settings.password_match_fail', 'New password and confirmation do not match.'))
       return
     }
     setSavingPassword(true)
@@ -99,12 +99,12 @@ export default function SettingsPage() {
         new_password: newPassword,
         new_password_confirmation: newPasswordConfirmation,
       })
-      toast.success('Password changed successfully!')
+      toast.success(t('settings.password_success', 'Password changed successfully!'))
       setCurrentPassword('')
       setNewPassword('')
       setNewPasswordConfirmation('')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password.')
+      toast.error(err.response?.data?.message || t('settings.password_fail', 'Failed to change password.'))
     } finally {
       setSavingPassword(false)
     }
@@ -128,9 +128,9 @@ export default function SettingsPage() {
         <div>
           <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <Settings size={24} style={{ color: 'var(--br-primary)' }} />
-            Settings
+            {t('settings.title', 'Settings')}
           </h1>
-          <p className="page-subtitle">Manage your profile contact details, payment information, and security preferences.</p>
+          <p className="page-subtitle">{t('settings.subtitle', 'Manage your profile contact details, payment information, and security preferences.')}</p>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ export default function SettingsPage() {
           style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <User size={14} />
-          Profile Info
+          {t('settings.profile_info_tab', 'Profile Info')}
         </button>
         <button
           className={`btn ${activeTab === 'payment' ? 'btn-primary' : 'btn-secondary'}`}
@@ -150,7 +150,7 @@ export default function SettingsPage() {
           style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <CreditCard size={14} />
-          Payment Method
+          {t('settings.payment_method_tab', 'Payment Method')}
         </button>
         <button
           className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-secondary'}`}
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <Lock size={14} />
-          Security
+          {t('settings.security_tab', 'Security')}
         </button>
       </div>
 
@@ -168,11 +168,11 @@ export default function SettingsPage() {
           {/* Left Card: Profile & Contact Details */}
           <div className="glass-card" style={{ flex: '1 1 450px', maxWidth: 650 }}>
             <div className="card-header" style={{ marginBottom: 16 }}>
-              <h3 className="card-title">Profile &amp; Contact Details</h3>
+              <h3 className="card-title">{t('settings.profile_card_title', 'Profile & Contact Details')}</h3>
             </div>
             <form onSubmit={handleUpdateProfile}>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Email Address (Read-only)</label>
+                <label className="form-label">{t('settings.email_label', 'Email Address (Read-only)')}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
                     type="email"
@@ -187,53 +187,53 @@ export default function SettingsPage() {
                       width: '100%',
                     }}
                   />
-                  <span title="Email address cannot be changed" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <span title={t('settings.email_lock_title', 'Email address cannot be changed')} style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Lock size={14} style={{ color: 'var(--br-text-3)' }} />
                   </span>
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Full Name / Company Name</label>
+                <label className="form-label">{t('settings.fullname_label', 'Full Name / Company Name')}</label>
                 <input
                   type="text"
                   className="form-input"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   required
-                  placeholder="Enter your name"
+                  placeholder={t('settings.fullname_placeholder', 'Enter your name')}
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Phone / WhatsApp</label>
+                <label className="form-label">{t('settings.phone_label', 'Phone / WhatsApp')}</label>
                 <div className="phone-input-wrapper">
                   <PhoneInputComp
                     country={'us'}
                     value={phone}
                     onChange={phoneVal => setPhone(phoneVal ? (phoneVal.startsWith('+') ? phoneVal : '+' + phoneVal) : '')}
                     enableSearch={true}
-                    searchPlaceholder="Search country..."
+                    searchPlaceholder={t('settings.search_country_placeholder', 'Search country...')}
                     inputClass="form-input"
                   />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Telegram Handle</label>
+                <label className="form-label">{t('settings.telegram_label', 'Telegram Handle')}</label>
                 <input
                   type="text"
                   className="form-input"
                   value={telegram}
                   onChange={e => setTelegram(e.target.value)}
-                  placeholder="e.g. @myhandle"
+                  placeholder={t('settings.telegram_placeholder', 'e.g. @myhandle')}
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 24 }}>
-                <label className="form-label">Country (Read-only)</label>
+                <label className="form-label">{t('settings.country_label', 'Country (Read-only)')}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
                     type="text"
@@ -248,14 +248,14 @@ export default function SettingsPage() {
                       width: '100%',
                     }}
                   />
-                  <span title="Country cannot be changed" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <span title={t('settings.country_lock_title', 'Country cannot be changed')} style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Lock size={14} style={{ color: 'var(--br-text-3)' }} />
                   </span>
                 </div>
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={savingProfile} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                {savingProfile ? 'Saving Changes...' : <><Save size={16} /> Save Profile</>}
+                {savingProfile ? t('settings.saving_profile', 'Saving Changes...') : <><Save size={16} /> {t('settings.save_profile_btn', 'Save Profile')}</>}
               </button>
             </form>
           </div>
@@ -267,11 +267,11 @@ export default function SettingsPage() {
           {/* Right Card: Security & Password Preferences */}
           <div className="glass-card" style={{ flex: '1 1 350px', maxWidth: 450 }}>
             <div className="card-header" style={{ marginBottom: 16 }}>
-              <h3 className="card-title">Security &amp; Password Preferences</h3>
+              <h3 className="card-title">{t('settings.security_card_title', 'Security & Password Preferences')}</h3>
             </div>
             <form onSubmit={handleUpdatePassword}>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Current Password</label>
+                <label className="form-label">{t('settings.current_password_label', 'Current Password')}</label>
                 <input
                   type="password"
                   className="form-input"
@@ -284,20 +284,20 @@ export default function SettingsPage() {
               </div>
 
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">New Password</label>
+                <label className="form-label">{t('settings.new_password_label', 'New Password')}</label>
                 <input
                   type="password"
                   className="form-input"
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   required
-                  placeholder="•••••••• (Min. 8 characters)"
+                  placeholder={t('settings.new_password_placeholder', '•••••••• (Min. 8 characters)')}
                   style={{ width: '100%' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 24 }}>
-                <label className="form-label">Confirm New Password</label>
+                <label className="form-label">{t('settings.confirm_password_label', 'Confirm New Password')}</label>
                 <input
                   type="password"
                   className="form-input"
@@ -310,7 +310,7 @@ export default function SettingsPage() {
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={savingPassword} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                {savingPassword ? 'Changing Password...' : <><Key size={16} /> Change Password</>}
+                {savingPassword ? t('settings.changing_password', 'Changing Password...') : <><Key size={16} /> {t('settings.change_password_btn', 'Change Password')}</>}
               </button>
             </form>
           </div>
@@ -322,11 +322,11 @@ export default function SettingsPage() {
           {/* Left Card: Form */}
           <div className="glass-card" style={{ flex: '1 1 450px', maxWidth: 650 }}>
             <div className="card-header" style={{ marginBottom: 16 }}>
-              <h3 className="card-title">Payment Account Information</h3>
+              <h3 className="card-title">{t('settings.payment_card_title', 'Payment Account Information')}</h3>
             </div>
             <form onSubmit={handleUpdatePayment}>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Preferred Payout Method</label>
+                <label className="form-label">{t('settings.payment_method_label', 'Preferred Payout Method')}</label>
                 <select
                   className="form-select"
                   value={method}
@@ -334,12 +334,13 @@ export default function SettingsPage() {
                   required
                   style={{ width: '100%' }}
                 >
-                  <option value="">Select a payment method...</option>
+                  <option value="">{t('settings.select_method_placeholder', 'Select a payment method...')}</option>
                   {paymentMethods.map((m, idx) => {
                     const nameVal = typeof m === 'object' && m !== null ? m.name : m
+                    const displayName = (locale === 'ar' && typeof m === 'object' && m !== null && m.name_ar) ? m.name_ar : nameVal
                     return (
                       <option key={idx} value={nameVal}>
-                        {nameVal}
+                        {displayName}
                       </option>
                     )
                   })}
@@ -360,34 +361,34 @@ export default function SettingsPage() {
                 >
                   <div style={{ fontWeight: 700, marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Settings size={12} style={{ color: 'var(--br-primary)' }} />
-                    Minimum Threshold:{' '}
+                    {t('settings.min_threshold', 'Minimum Threshold:')}{' '}
                     <span style={{ color: 'var(--color-accent)' }}>
                       ${selectedMethodObj.minimum || 0}
                     </span>
                   </div>
-                  {selectedMethodObj.guidance && (
+                  {((locale === 'ar' && selectedMethodObj.guidance_ar) ? selectedMethodObj.guidance_ar : selectedMethodObj.guidance) && (
                     <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                      {selectedMethodObj.guidance}
+                      {(locale === 'ar' && selectedMethodObj.guidance_ar) ? selectedMethodObj.guidance_ar : selectedMethodObj.guidance}
                     </div>
                   )}
                 </div>
               )}
 
               <div className="form-group" style={{ marginBottom: 24 }}>
-                <label className="form-label">Payment Destination Account details</label>
+                <label className="form-label">{t('settings.payment_destination_label', 'Payment Destination Account details')}</label>
                 <textarea
                   className="form-textarea"
                   rows={4}
                   value={account}
                   onChange={e => setAccount(e.target.value)}
                   required
-                  placeholder="Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions."
+                  placeholder={t('settings.payment_destination_placeholder', 'Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions.')}
                   style={{ width: '100%' }}
                 />
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={savingPayment} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                {savingPayment ? 'Saving Settings...' : <><CreditCard size={16} /> Update Payment Info</>}
+                {savingPayment ? t('settings.saving_payment', 'Saving Settings...') : <><CreditCard size={16} /> {t('settings.update_payment_btn', 'Update Payment Info')}</>}
               </button>
             </form>
           </div>
@@ -395,7 +396,7 @@ export default function SettingsPage() {
           {/* Right Card: Active Settings Display */}
           <div className="glass-card" style={{ flex: '1 1 300px', maxWidth: 400 }}>
             <div className="card-header" style={{ marginBottom: 16 }}>
-              <h3 className="card-title">Active Payout Setup</h3>
+              <h3 className="card-title">{t('settings.active_payout_title', 'Active Payout Setup')}</h3>
             </div>
             
             {!savedMethodName ? (
@@ -403,8 +404,8 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                   <AlertTriangle size={32} style={{ color: 'var(--br-warning)' }} />
                 </div>
-                <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>No Payment Method Configured</div>
-                <p style={{ fontSize: 13, margin: 0 }}>Please configure your payment details on the left to receive payouts.</p>
+                <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{t('settings.no_payment_configured', 'No Payment Method Configured')}</div>
+                <p style={{ fontSize: 13, margin: 0 }}>{t('settings.no_payment_configured_desc', 'Please configure your payment details on the left to receive payouts.')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -416,17 +417,17 @@ export default function SettingsPage() {
                   border: '0.5px solid var(--br-border)',
                 }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
-                    Payout Method
+                    {t('settings.payout_method_title', 'Payout Method')}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <CreditCard size={20} style={{ color: 'var(--br-primary)' }} />
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text)' }}>
-                        {savedMethodName}
+                        {(locale === 'ar' && savedMethodObj?.name_ar) ? savedMethodObj.name_ar : savedMethodName}
                       </div>
                       {savedMethodObj?.minimum !== undefined && (
                         <div style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 2 }}>
-                          Min. Threshold: <strong>${savedMethodObj.minimum}</strong>
+                          {t('settings.min_threshold_label', 'Min. Threshold:')} <strong>${savedMethodObj.minimum}</strong>
                         </div>
                       )}
                     </div>
@@ -436,7 +437,7 @@ export default function SettingsPage() {
                 {/* Account details */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>
-                    Destination Details
+                    {t('settings.destination_details_title', 'Destination Details')}
                   </div>
                   <div style={{
                     background: 'var(--br-bg-2)',
@@ -466,7 +467,7 @@ export default function SettingsPage() {
                 }}>
                   <Info size={16} style={{ color: 'var(--br-primary)', flexShrink: 0, marginTop: 2 }} />
                   <span>
-                    Payouts are processed automatically according to our schedule once your available balance meets the minimum threshold.
+                    {t('settings.payouts_info_tip', 'Payouts are processed automatically according to our schedule once your available balance meets the minimum threshold.')}
                   </span>
                 </div>
               </div>

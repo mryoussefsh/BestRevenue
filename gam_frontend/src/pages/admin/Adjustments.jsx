@@ -6,12 +6,12 @@ import Pagination from '../../components/Pagination'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import { useSettings } from '../../contexts/SettingsContext'
 import CompactAmount from '../../components/CompactAmount'
-import { 
-  Scale, Gift, Zap, Plus, Lock, Clock, Trash2, BarChart2, Info, Globe, Filter
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { Scale, Gift, Zap, Plus, Lock, Clock, Trash2, BarChart2, Info, Globe, Filter } from 'lucide-react'
 
 
 export default function AdjustmentsPage() {
+  const { t } = useI18n()
   const { formatDate } = useSettings()
   const [adjustments, setAdjustments] = useState([])
   const [publishers, setPublishers] = useState([])
@@ -36,7 +36,7 @@ export default function AdjustmentsPage() {
     adminApi.getPublishers().then(res => {
       setPublishers(res.data?.data || [])
     }).catch(() => {
-      toast.error('Failed to load publishers for dropdown')
+      toast.error(t('adjustments.toast_load_pubs_fail', 'Failed to load publishers for dropdown'))
     })
   }, [])
 
@@ -52,20 +52,20 @@ export default function AdjustmentsPage() {
       setAdjustments(res.data?.data || [])
       setTotalItems(res.data?.meta?.total || res.data?.total || 0)
     } catch {
-      toast.error('Failed to load adjustments')
+      toast.error(t('adjustments.toast_load_fail', 'Failed to load adjustments'))
     } finally {
       setLoading(false)
     }
   }
 
   async function handleDelete(adj) {
-    if (!confirm(`Delete adjustment of $${Math.abs(adj.amount).toFixed(2)} for "${adj.publisher?.name}"?`)) return
+    if (!confirm(t('adjustments.confirm_delete', 'Delete adjustment of ${amount} for "{name}"?', { amount: `$${Math.abs(adj.amount).toFixed(2)}`, name: adj.publisher?.name }))) return
     try {
       await adminApi.deleteAdjustment(adj.id)
-      toast.success('Adjustment deleted successfully!')
+      toast.success(t('adjustments.toast_delete_success', 'Adjustment deleted successfully!'))
       loadAdjustments()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to delete adjustment')
+      toast.error(e.response?.data?.message || t('adjustments.toast_delete_fail', 'Failed to delete adjustment'))
     }
   }
 
@@ -80,9 +80,9 @@ export default function AdjustmentsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Scale size={24} style={{ color: 'var(--color-primary)' }} /> Adjustments
+            <Scale size={24} style={{ color: 'var(--color-primary)' }} /> {t('nav.adjustments', 'Adjustments')}
           </h1>
-          <p className="page-subtitle">{totalItems} total adjustments</p>
+          <p className="page-subtitle">{t('adjustments.total_count', '{count} total adjustments', { count: totalItems })}</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button 
@@ -91,7 +91,7 @@ export default function AdjustmentsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('dashboard.filters.hide', 'Hide Filters') : t('dashboard.filters.show', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -110,13 +110,13 @@ export default function AdjustmentsPage() {
             )}
           </button>
           <button className="btn btn-secondary" onClick={() => setShowBonusModal(true)} style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Gift size={14} /> Apply Bonus
+            <Gift size={14} /> {t('adjustments.apply_bonus', 'Apply Bonus')}
           </button>
           <button className="btn btn-secondary" onClick={() => setShowIvtModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Zap size={14} /> Apply IVT Deduction
+            <Zap size={14} /> {t('adjustments.apply_ivt', 'Apply IVT Deduction')}
           </button>
           <button className="btn btn-primary" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Plus size={14} /> Create Adjustment
+            <Plus size={14} /> {t('adjustments.create_adjustment', 'Create Adjustment')}
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function AdjustmentsPage() {
           <input
             className="form-input"
             style={{ flex: 1, minWidth: 200 }}
-            placeholder="Search publisher name, email, or notes…"
+            placeholder={t('adjustments.search_placeholder', 'Search publisher name, email, or notes…')}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -136,9 +136,9 @@ export default function AdjustmentsPage() {
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
           >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="applied">Applied (Processed)</option>
+            <option value="">{t('dashboard.filters.all_statuses', 'All Statuses')}</option>
+            <option value="pending">{t('dashboard.status.pending', 'Pending')}</option>
+            <option value="applied">{t('adjustments.status.applied', 'Applied (Processed)')}</option>
           </select>
         </div>
       )}
@@ -151,13 +151,13 @@ export default function AdjustmentsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Publisher</th>
-                  <th>Amount</th>
-                  <th>Reason / Notes</th>
-                  <th>Created By</th>
-                  <th>Created</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>{t('adjustments.table.publisher', 'Publisher')}</th>
+                  <th>{t('adjustments.table.amount', 'Amount')}</th>
+                  <th>{t('adjustments.table.notes', 'Reason / Notes')}</th>
+                  <th>{t('adjustments.table.created_by', 'Created By')}</th>
+                  <th>{t('adjustments.table.created_at', 'Created')}</th>
+                  <th>{t('adjustments.table.status', 'Status')}</th>
+                  <th>{t('adjustments.table.actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,8 +166,8 @@ export default function AdjustmentsPage() {
                     <td colSpan={7}>
                       <div className="empty-state">
                         <div className="empty-state-icon"><Scale size={40} /></div>
-                        <div className="empty-state-text">No adjustments found</div>
-                        <div className="empty-state-sub">Click "Create Adjustment" to add a new one</div>
+                        <div className="empty-state-text">{t('adjustments.empty_state', 'No adjustments found')}</div>
+                        <div className="empty-state-sub">{t('adjustments.empty_state_sub', 'Click "Create Adjustment" to add a new one')}</div>
                       </div>
                     </td>
                   </tr>
@@ -195,7 +195,7 @@ export default function AdjustmentsPage() {
                         {adj.notes}
                       </div>
                     </td>
-                    <td className="text-muted">{adj.creator?.name || 'System / Admin'}</td>
+                    <td className="text-muted">{adj.creator?.name || t('adjustments.system_admin', 'System / Admin')}</td>
                     <td className="text-muted text-sm">{formatDate(adj.created_at)}</td>
                     <td>
                       <span className={`badge ${adj.status === 'applied' ? 'badge-active' : 'badge-pending'}`}
@@ -204,16 +204,16 @@ export default function AdjustmentsPage() {
                               color: adj.status === 'applied' ? 'var(--color-primary-light)' : 'var(--color-warning)'
                             }}>
                         {adj.status === 'applied' ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Lock size={12} /> Applied</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Lock size={12} /> {t('adjustments.status_applied', 'Applied')}</span>
                         ) : (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> Pending</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {t('adjustments.status_pending', 'Pending')}</span>
                         )}
                       </span>
                     </td>
                     <td>
                       {adj.status === 'pending' ? (
                         <button className="btn btn-danger btn-xs" onClick={() => handleDelete(adj)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Trash2 size={12} /> Delete
+                          <Trash2 size={12} /> {t('common.delete', 'Delete')}
                         </button>
                       ) : (
                         <span className="text-muted text-sm">—</span>
@@ -227,7 +227,7 @@ export default function AdjustmentsPage() {
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
                     <td style={{ padding: '10px 16px', fontSize: 12 }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <BarChart2 size={14} /> Totals (Page)
+                        <BarChart2 size={14} /> {t('adjustments.table.totals_page', 'Totals (Page)')}
                       </span>
                     </td>
                     <td>
@@ -290,6 +290,7 @@ export default function AdjustmentsPage() {
 }
 
 function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
+  const { t } = useI18n()
   const [publisherId, setPublisherId] = useState('')
   const [amount, setAmount] = useState('')
   const [notes, setNotes] = useState('')
@@ -298,12 +299,12 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!publisherId) {
-      toast.error('Please select a publisher')
+      toast.error(t('adjustments.toast_select_pub', 'Please select a publisher'))
       return
     }
     const val = parseFloat(amount)
     if (isNaN(val) || val === 0) {
-      toast.error('Please enter a non-zero valid amount')
+      toast.error(t('adjustments.toast_invalid_amount', 'Please enter a non-zero valid amount'))
       return
     }
 
@@ -314,10 +315,10 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
         amount: val,
         notes
       })
-      toast.success('Adjustment created successfully!')
+      toast.success(t('adjustments.toast_create_success', 'Adjustment created successfully!'))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to create adjustment')
+      toast.error(e.response?.data?.message || t('adjustments.toast_create_fail', 'Failed to create adjustment'))
     } finally {
       setLoading(false)
     }
@@ -328,19 +329,19 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Plus size={18} style={{ color: 'var(--br-primary)' }} /> Create Adjustment
+            <Plus size={18} style={{ color: 'var(--br-primary)' }} /> {t('adjustments.create_adjustment', 'Create Adjustment')}
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <div className="alert alert-warning" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-warning)' }} />
-          <span>Adjustments created here will accumulate and automatically apply when the current monthly period is closed. Use positive values for bonuses, and negative values for deductions.</span>
+          <span>{t('adjustments.create_desc', 'Adjustments created here will accumulate and automatically apply when the current monthly period is closed. Use positive values for bonuses, and negative values for deductions.')}</span>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">Publisher *</label>
+            <label className="form-label">{t('adjustments.publisher_label', 'Publisher *')}</label>
             <SearchableSelect
               value={publisherId}
               onChange={setPublisherId}
@@ -349,13 +350,13 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
                 label: p.name,
                 subLabel: p.email
               }))}
-              placeholder="Select Publisher"
-              emptyMessage="No publishers found"
+              placeholder={t('adjustments.select_publisher', 'Select Publisher')}
+              emptyMessage={t('adjustments.no_publishers_found', 'No publishers found')}
             />
           </div>
 
           <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">Adjustment Amount ($) *</label>
+            <label className="form-label">{t('adjustments.amount_label', 'Adjustment Amount ($) *')}</label>
             <input
               type="number"
               step="0.01"
@@ -365,15 +366,15 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
               onChange={e => setAmount(e.target.value)}
               required
             />
-            <span className="form-hint">Use positive for bonus/credit, negative for deductions/debits.</span>
+            <span className="form-hint">{t('adjustments.amount_hint', 'Use positive for bonus/credit, negative for deductions/debits.')}</span>
           </div>
 
           <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label">Reason / Notes *</label>
+            <label className="form-label">{t('adjustments.notes_label', 'Reason / Notes *')}</label>
             <textarea
               className="form-textarea"
               rows={3}
-              placeholder="Reason for adjustment (will be visible in audit logs, monthly payout, and publisher logs)"
+              placeholder={t('adjustments.notes_placeholder', 'Reason for adjustment (will be visible in audit logs, monthly payout, and publisher logs)')}
               value={notes}
               onChange={e => setNotes(e.target.value)}
               required
@@ -381,9 +382,9 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {loading ? 'Creating…' : <><Plus size={14} /> Create Adjustment</>}
+              {loading ? t('adjustments.creating', 'Creating…') : <><Plus size={14} /> {t('adjustments.create_adjustment', 'Create Adjustment')}</>}
             </button>
           </div>
         </form>
@@ -393,6 +394,7 @@ function CreateAdjustmentModal({ publishers, onClose, onSaved }) {
 }
 
 function ApplyIvtModal({ onClose, onSaved }) {
+  const { t } = useI18n()
   // Helper to compute last month start and end dates in YYYY-MM-DD
   const getLastMonthDates = () => {
     const now = new Date()
@@ -433,7 +435,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
         setGamAccounts(res.data || [])
       })
       .catch(() => {
-        toast.error('Failed to load GAM accounts')
+        toast.error(t('adjustments.toast_load_gam_fail', 'Failed to load GAM accounts'))
       })
       .finally(() => {
         setLoadingGamAccounts(false)
@@ -454,7 +456,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
         setSelectedWebsiteIds(list.map(w => w.id))
       })
       .catch(() => {
-        toast.error('Failed to load websites')
+        toast.error(t('adjustments.toast_load_websites_fail', 'Failed to load websites'))
       })
       .finally(() => {
         setLoadingWebsites(false)
@@ -466,20 +468,20 @@ function ApplyIvtModal({ onClose, onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!selectedGamAccountId) {
-      toast.error('Please select a GAM Account')
+      toast.error(t('adjustments.toast_select_gam', 'Please select a GAM Account'))
       return
     }
     if (selectedWebsiteIds.length === 0) {
-      toast.error('Please select at least one website')
+      toast.error(t('adjustments.toast_select_website', 'Please select at least one website'))
       return
     }
     if (!dateFrom || !dateTo) {
-      toast.error('Please select a date range')
+      toast.error(t('adjustments.toast_select_dates', 'Please select a date range'))
       return
     }
     const percent = parseFloat(ivtPercent)
     if (isNaN(percent) || percent < 0 || percent > 100) {
-      toast.error('Please enter a valid percentage between 0 and 100')
+      toast.error(t('adjustments.toast_invalid_percent', 'Please enter a valid percentage between 0 and 100'))
       return
     }
 
@@ -493,10 +495,10 @@ function ApplyIvtModal({ onClose, onSaved }) {
         ivt_percent: percent
       })
       const count = res.data?.applied_adjustments?.length || 0
-      toast.success(`Successfully applied IVT. Created ${count} adjustment(s).`)
+      toast.success(t('adjustments.toast_ivt_success', 'Successfully applied IVT. Created {count} adjustment(s).', { count }))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to apply IVT deductions')
+      toast.error(e.response?.data?.message || t('adjustments.toast_ivt_fail', 'Failed to apply IVT deductions'))
     } finally {
       setSubmitting(false)
     }
@@ -507,21 +509,21 @@ function ApplyIvtModal({ onClose, onSaved }) {
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Zap size={18} style={{ color: 'var(--br-primary)' }} /> Apply IVT Deduction
+            <Zap size={18} style={{ color: 'var(--br-primary)' }} /> {t('adjustments.apply_ivt', 'Apply IVT Deduction')}
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
-          <span>This tool automatically creates negative pending adjustments for the selected websites based on their total publisher earnings in the selected period.</span>
+          <span>{t('adjustments.ivt_desc', 'This tool automatically creates negative pending adjustments for the selected websites based on their total publisher earnings in the selected period.')}</span>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">GAM Account *</label>
+            <label className="form-label">{t('adjustments.gam_account_label', 'GAM Account *')}</label>
             {loadingGamAccounts ? (
-              <div className="text-muted">Loading accounts...</div>
+              <div className="text-muted">{t('adjustments.loading_accounts', 'Loading accounts...')}</div>
             ) : (
               <select
                 className="form-select"
@@ -529,7 +531,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
                 onChange={e => setSelectedGamAccountId(e.target.value)}
                 required
               >
-                <option value="">-- Select GAM Account --</option>
+                <option value="">{t('adjustments.select_gam_account', '-- Select GAM Account --')}</option>
                 {gamAccounts.map(acc => (
                   <option key={acc.id} value={acc.id}>
                     {acc.name} ({acc.network_code})
@@ -541,7 +543,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
 
           {selectedGamAccountId && (
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ marginBottom: 8 }}>Websites *</label>
+              <label className="form-label" style={{ marginBottom: 8 }}>{t('adjustments.websites_label', 'Websites *')}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button
                   type="button"
@@ -550,15 +552,15 @@ function ApplyIvtModal({ onClose, onSaved }) {
                   disabled={loadingWebsites || websites.length === 0}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <Globe size={14} /> Select Websites...
+                  <Globe size={14} /> {t('adjustments.select_websites_btn', 'Select Websites...')}
                 </button>
                 <span style={{ fontSize: '13px', fontWeight: 500 }}>
                   {loadingWebsites ? (
-                    <span className="text-muted">Loading websites...</span>
+                    <span className="text-muted">{t('adjustments.loading_websites', 'Loading websites...')}</span>
                   ) : websites.length === 0 ? (
-                    <span className="text-danger">No websites linked to this account</span>
+                    <span className="text-danger">{t('adjustments.no_websites_linked', 'No websites linked to this account')}</span>
                   ) : (
-                    <span>{selectedWebsiteIds.length} of {websites.length} selected</span>
+                    <span>{t('adjustments.selected_count', '{selected} of {total} selected', { selected: selectedWebsiteIds.length, total: websites.length })}</span>
                   )}
                 </span>
               </div>
@@ -567,7 +569,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
 
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Start Date *</label>
+              <label className="form-label">{t('dashboard.filters.start_date', 'Start Date *')}</label>
               <input
                 type="date"
                 className="form-input"
@@ -577,7 +579,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
               />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">End Date *</label>
+              <label className="form-label">{t('dashboard.filters.end_date', 'End Date *')}</label>
               <input
                 type="date"
                 className="form-input"
@@ -589,7 +591,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label">IVT Percentage (%) *</label>
+            <label className="form-label">{t('adjustments.ivt_percent_label', 'IVT Percentage (%) *')}</label>
             <input
               type="number"
               step="0.01"
@@ -604,9 +606,9 @@ function ApplyIvtModal({ onClose, onSaved }) {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {submitting ? 'Applying…' : <><Zap size={14} /> Apply IVT Deduction</>}
+              {submitting ? t('adjustments.applying', 'Applying…') : <><Zap size={14} /> {t('adjustments.apply_ivt', 'Apply IVT Deduction')}</>}
             </button>
           </div>
         </form>
@@ -628,6 +630,7 @@ function ApplyIvtModal({ onClose, onSaved }) {
 }
 
 function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfirm, type = 'ivt' }) {
+  const { t } = useI18n()
   const [tempSelectedIds, setTempSelectedIds] = useState(selectedWebsiteIds)
   const [search, setSearch] = useState('')
 
@@ -650,9 +653,9 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
     const visibleIds = displayedWebsites.map(w => w.id)
     const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => tempSelectedIds.includes(id))
     if (allVisibleSelected) {
-      return search ? 'Deselect Filtered' : 'Deselect All'
+      return search ? t('adjustments.deselect_filtered', 'Deselect Filtered') : t('adjustments.deselect_all', 'Deselect All')
     } else {
-      return search ? 'Select Filtered' : 'Select All'
+      return search ? t('adjustments.select_filtered', 'Select Filtered') : t('adjustments.select_all', 'Select All')
     }
   }
 
@@ -667,7 +670,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
       <div className="modal" style={{ maxWidth: 700, zIndex: 1101 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Globe size={18} style={{ color: 'var(--br-primary)' }} /> Select Websites
+            <Globe size={18} style={{ color: 'var(--br-primary)' }} /> {t('adjustments.select_websites', 'Select Websites')}
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
@@ -676,15 +679,15 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
           <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
           <span>
             {type === 'bonus'
-              ? 'Select websites to apply the bonus. Use search to filter if needed.'
-              : 'Select websites to apply the IVT deduction. Use search to filter if needed.'}
+              ? t('adjustments.select_bonus_desc', 'Select websites to apply the bonus. Use search to filter if needed.')
+              : t('adjustments.select_ivt_desc', 'Select websites to apply the IVT deduction. Use search to filter if needed.')}
           </span>
         </div>
 
         <div className="form-group" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <span style={{ fontSize: '13px', fontWeight: 600 }}>
-              {tempSelectedIds.length} of {websites.length} selected
+              {t('adjustments.selected_count', '{selected} of {total} selected', { selected: tempSelectedIds.length, total: websites.length })}
             </span>
             <button
               type="button"
@@ -699,7 +702,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
           <input
             type="text"
             className="form-input"
-            placeholder="Search websites by domain or publisher name..."
+            placeholder={t('adjustments.search_websites_placeholder', 'Search websites by domain or publisher name...')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ marginBottom: 12, height: 36, fontSize: '13px' }}
@@ -707,7 +710,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
 
           {displayedWebsites.length === 0 ? (
             <div className="text-muted" style={{ padding: 24, textAlign: 'center', background: 'var(--color-surface-2)', borderRadius: 4 }}>
-              No websites match your search query.
+              {t('adjustments.no_websites_match', 'No websites match your search query.')}
             </div>
           ) : (
             <div className="card" style={{ padding: 12, maxHeight: 300, overflowY: 'auto', background: 'var(--color-surface-2)' }}>
@@ -741,7 +744,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
                         {web.domain}
                       </span>
                       <span className="text-muted" style={{ fontSize: '11px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={web.publisher?.name}>
-                        Pub: {web.publisher?.name || 'N/A'}
+                        {t('adjustments.pub_prefix', 'Pub: ')}{web.publisher?.name || 'N/A'}
                       </span>
                     </div>
                   </label>
@@ -752,9 +755,9 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
         </div>
 
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
           <button type="button" className="btn btn-primary" onClick={() => onConfirm(tempSelectedIds)}>
-            Confirm Selection
+            {t('adjustments.confirm_selection', 'Confirm Selection')}
           </button>
         </div>
       </div>
@@ -763,6 +766,7 @@ function WebsiteSelectionModal({ websites, selectedWebsiteIds, onClose, onConfir
 }
 
 function ApplyBonusModal({ onClose, onSaved }) {
+  const { t } = useI18n()
   const getLastMonthDates = () => {
     const now = new Date()
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -802,7 +806,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
         setGamAccounts(res.data || [])
       })
       .catch(() => {
-        toast.error('Failed to load GAM accounts')
+        toast.error(t('adjustments.toast_load_gam_fail', 'Failed to load GAM accounts'))
       })
       .finally(() => {
         setLoadingGamAccounts(false)
@@ -823,7 +827,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
         setSelectedWebsiteIds(list.map(w => w.id))
       })
       .catch(() => {
-        toast.error('Failed to load websites')
+        toast.error(t('adjustments.toast_load_websites_fail', 'Failed to load websites'))
       })
       .finally(() => {
         setLoadingWebsites(false)
@@ -833,20 +837,20 @@ function ApplyBonusModal({ onClose, onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!selectedGamAccountId) {
-      toast.error('Please select a GAM Account')
+      toast.error(t('adjustments.toast_select_gam', 'Please select a GAM Account'))
       return
     }
     if (selectedWebsiteIds.length === 0) {
-      toast.error('Please select at least one website')
+      toast.error(t('adjustments.toast_select_website', 'Please select at least one website'))
       return
     }
     if (!dateFrom || !dateTo) {
-      toast.error('Please select a date range')
+      toast.error(t('adjustments.toast_select_dates', 'Please select a date range'))
       return
     }
     const percent = parseFloat(bonusPercent)
     if (isNaN(percent) || percent < 0 || percent > 100) {
-      toast.error('Please enter a valid percentage between 0 and 100')
+      toast.error(t('adjustments.toast_invalid_percent', 'Please enter a valid percentage between 0 and 100'))
       return
     }
 
@@ -860,10 +864,10 @@ function ApplyBonusModal({ onClose, onSaved }) {
         bonus_percent: percent
       })
       const count = res.data?.applied_adjustments?.length || 0
-      toast.success(`Successfully applied bonuses. Created ${count} adjustment(s).`)
+      toast.success(t('adjustments.toast_bonus_success', 'Successfully applied bonuses. Created {count} adjustment(s).', { count }))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to apply bonuses')
+      toast.error(e.response?.data?.message || t('adjustments.toast_bonus_fail', 'Failed to apply bonuses'))
     } finally {
       setSubmitting(false)
     }
@@ -874,21 +878,21 @@ function ApplyBonusModal({ onClose, onSaved }) {
       <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Gift size={18} style={{ color: 'var(--br-primary)' }} /> Apply Bonus Adjustment
+            <Gift size={18} style={{ color: 'var(--br-primary)' }} /> {t('adjustments.apply_bonus', 'Apply Bonus')}
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <div className="alert alert-info" style={{ color: 'var(--color-text)', border: '1px solid var(--color-border)', margin: '12px 0 20px 0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Info size={16} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-info)' }} />
-          <span>This tool automatically creates positive pending adjustments (bonuses) for the selected websites based on their total publisher earnings in the selected period.</span>
+          <span>{t('adjustments.bonus_desc', 'This tool automatically creates positive pending adjustments (bonuses) for the selected websites based on their total publisher earnings in the selected period.')}</span>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">GAM Account *</label>
+            <label className="form-label">{t('adjustments.gam_account_label', 'GAM Account *')}</label>
             {loadingGamAccounts ? (
-              <div className="text-muted">Loading accounts...</div>
+              <div className="text-muted">{t('adjustments.loading_accounts', 'Loading accounts...')}</div>
             ) : (
               <select
                 className="form-select"
@@ -896,7 +900,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
                 onChange={e => setSelectedGamAccountId(e.target.value)}
                 required
               >
-                <option value="">-- Select GAM Account --</option>
+                <option value="">{t('adjustments.select_gam_account', '-- Select GAM Account --')}</option>
                 {gamAccounts.map(acc => (
                   <option key={acc.id} value={acc.id}>
                     {acc.name} ({acc.network_code})
@@ -908,7 +912,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
 
           {selectedGamAccountId && (
             <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label" style={{ marginBottom: 8 }}>Websites *</label>
+              <label className="form-label" style={{ marginBottom: 8 }}>{t('adjustments.websites_label', 'Websites *')}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button
                   type="button"
@@ -917,15 +921,15 @@ function ApplyBonusModal({ onClose, onSaved }) {
                   disabled={loadingWebsites || websites.length === 0}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <Globe size={14} /> Select Websites...
+                  <Globe size={14} /> {t('adjustments.select_websites_btn', 'Select Websites...')}
                 </button>
                 <span style={{ fontSize: '13px', fontWeight: 500 }}>
                   {loadingWebsites ? (
-                    <span className="text-muted">Loading websites...</span>
+                    <span className="text-muted">{t('adjustments.loading_websites', 'Loading websites...')}</span>
                   ) : websites.length === 0 ? (
-                    <span className="text-danger">No websites linked to this account</span>
+                    <span className="text-danger">{t('adjustments.no_websites_linked', 'No websites linked to this account')}</span>
                   ) : (
-                    <span>{selectedWebsiteIds.length} of {websites.length} selected</span>
+                    <span>{t('adjustments.selected_count', '{selected} of {total} selected', { selected: selectedWebsiteIds.length, total: websites.length })}</span>
                   )}
                 </span>
               </div>
@@ -934,7 +938,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
 
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Start Date *</label>
+              <label className="form-label">{t('dashboard.filters.start_date', 'Start Date *')}</label>
               <input
                 type="date"
                 className="form-input"
@@ -944,7 +948,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
               />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">End Date *</label>
+              <label className="form-label">{t('dashboard.filters.end_date', 'End Date *')}</label>
               <input
                 type="date"
                 className="form-input"
@@ -956,7 +960,7 @@ function ApplyBonusModal({ onClose, onSaved }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label">Bonus Percentage (%) *</label>
+            <label className="form-label">{t('adjustments.bonus_percent_label', 'Bonus Percentage (%) *')}</label>
             <input
               type="number"
               step="0.01"
@@ -971,9 +975,9 @@ function ApplyBonusModal({ onClose, onSaved }) {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={submitting || loadingWebsites || (selectedGamAccountId && websites.length === 0)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {submitting ? 'Applying…' : <><Gift size={14} /> Apply Bonus</>}
+              {submitting ? t('adjustments.applying', 'Applying…') : <><Gift size={14} /> {t('adjustments.apply_bonus', 'Apply Bonus')}</>}
             </button>
           </div>
         </form>

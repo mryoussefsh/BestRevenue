@@ -140,3 +140,17 @@
     padding: 24px;
   }
 }
+
+/* RTL Support */
+[dir="rtl"] .page-detail-content ul,
+[dir="rtl"] .page-detail-content ol {
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+[dir="rtl"] .page-detail-content blockquote {
+  border-left: none;
+  border-right: 4px solid var(--color-primary);
+  padding-left: 0;
+  padding-right: 16px;
+}

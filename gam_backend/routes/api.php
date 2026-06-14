@@ -48,6 +48,7 @@ Route::prefix('v1')->group(function () {
     Route::get('public/settings', [SettingController::class, 'getPublicSettings']);
     Route::post('public/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:5,1');
     Route::get('public/pages/{slug}', [\App\Http\Controllers\PublicPageController::class, 'show']);
+    Route::get('public/faqs', [\App\Http\Controllers\PublicFaqController::class, 'index']);
 
     // ──────────────────────────────────────────────────────
     // Google OAuth callback (public — Google redirects here)
@@ -165,6 +166,7 @@ Route::prefix('v1')->group(function () {
         // --- Pages ---
         Route::middleware('can:manage_pages')->group(function () {
             Route::apiResource('pages', \App\Http\Controllers\Admin\PageController::class);
+            Route::apiResource('faqs', \App\Http\Controllers\Admin\FaqController::class);
         });
 
         // --- Support Tickets ---

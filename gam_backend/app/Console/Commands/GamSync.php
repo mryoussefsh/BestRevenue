@@ -120,7 +120,7 @@ class GamSync extends Command
         $this->info("Starting GAM Sync ({$rangeDesc}, Timezone: {$timezone})");
 
         try {
-            $gamApiService = new \App\Services\GamApiService();
+            $gamApiService = app(\App\Services\GamApiService::class);
 
             // If a specific GAM account is requested, only process that one
             $gamAccountsQuery = \App\Models\GamAccount::query();
@@ -336,19 +336,29 @@ class GamSync extends Command
     }
 
     /**
-     * FIX [GS-1, RAT-1]: Two-step batch flush that protects locked and historically-priced records.
+     * FIX [GS-1, RAT-1, GS-7]: Three-step batch flush that protects locked and historically-priced records.
      *
-     * Step 1 — INSERT new rows (with full financial data) and update TRAFFIC-ONLY columns on
-     *           existing rows. This is safe because traffic data (impressions, clicks, ctr, cpm)
-     *           can always be refreshed from GAM without affecting financial integrity.
+     * Step 1 — INSERT new rows (with full financial data) and update TRAFFIC + RAW REVENUE columns on
+     *           existing rows. gross_revenue is raw GAM data and is always safe to refresh.
+     *           ratio_applied and publisher_earnings are NOT in the upsert update list here.
      *
      * Step 2 — For rows that are genuinely NEW (period_closing_id IS NULL AND ratio_applied = 0),
-     *           also update the financial columns (gross_revenue, ratio_applied, publisher_earnings,
-     *           publisher_cpm). This handles the case where GAM corrects revenue for a past date
-     *           that has not yet been financially processed.
+     *           also update ratio_applied, publisher_earnings, and publisher_cpm.
+     *           These are the first-time financial calculations for un-priced records.
+     *
+     * Step 3 (GS-5) — For rows with ratio_applied > 0, recalculate publisher_earnings and
+     *           publisher_cpm using the updated gross_revenue (from Step 1) and the preserved
+     *           historical ratio_applied from the DB. gross_revenue is already updated in Step 1
+     *           so only earnings recalculation is needed here.
      *
      * Rows with period_closing_id IS NOT NULL are never touched (they are locked).
      * Rows with ratio_applied > 0 keep their original ratio (historical ratio preserved).
+     *
+     * FIX [GS-7]: Root cause of re-sync not updating revenue: gross_revenue was NOT included in
+     * the Step 1 upsert update columns. On 2nd+ sync of the same day, Step 2 was skipped (because
+     * ratio_applied > 0 already) and Step 3 (GS-5) was the only path to update gross_revenue via
+     * raw SQL. If GS-5 failed silently (caught as a per-account error), revenue stayed stale.
+     * Fix: always update gross_revenue in Step 1 — it is raw GAM data and safe to overwrite.
      *
      * @param array $batch Rows to upsert — must already be filtered (no closed-period rows)
      */
@@ -358,15 +368,17 @@ class GamSync extends Command
             return;
         }
 
-        // Step 1: Upsert — always update traffic metrics.
-        // On conflict (ad_unit_id, date, hour), only update traffic columns.
-        // Financial columns are NOT in the update list here.
+        // Step 1: Upsert — always update traffic metrics AND gross_revenue from GAM.
+        // On conflict (ad_unit_id, date, hour), update traffic columns + gross_revenue.
+        // gross_revenue is raw GAM data and is always safe to refresh.
+        // ratio_applied and publisher_earnings are NOT updated here — handled in Step 2 & GS-5.
         RevenueRecord::upsert(
             $batch,
             ['ad_unit_id', 'date', 'hour'], // unique key
-            // FIX [GS-1]: Traffic-only update columns — safe to overwrite always.
-            // Financial columns intentionally excluded to prevent overwriting historical ratios.
-            ['impressions', 'unfilled_impressions', 'active_view_eligible_impressions', 'active_view_viewable_impressions', 'clicks', 'ctr', 'cpm', 'synced_at']
+            // FIX [GS-7]: Added gross_revenue to the upsert update list so that re-syncing on the
+            // same day always refreshes the raw GAM revenue figure. Steps 2 & GS-5 then recalculate
+            // publisher_earnings from the already-updated gross_revenue and preserved ratio_applied.
+            ['impressions', 'unfilled_impressions', 'active_view_eligible_impressions', 'active_view_viewable_impressions', 'clicks', 'ctr', 'cpm', 'gross_revenue', 'synced_at']
         );
 
         // Step 2: For records that are OPEN (period_closing_id IS NULL) and have
@@ -375,7 +387,6 @@ class GamSync extends Command
         // FIX [RAT-1]: Records with ratio_applied > 0 are SKIPPED — historical ratio preserved.
         // We build per-row CASE WHEN expressions with inlined values (VALUES() is invalid outside
         // INSERT...ON DUPLICATE KEY UPDATE context).
-        $grossCases    = '';
         $ratioCases    = '';
         $earningsCases = '';
         $cpmCases      = '';
@@ -385,13 +396,11 @@ class GamSync extends Command
             $auId  = addslashes($r['ad_unit_id']);
             $date  = addslashes($r['date']);
             $hour  = (int)   $r['hour'];
-            $gross = (float) $r['gross_revenue'];
             $ratio = (float) $r['ratio_applied'];
             $earn  = (float) $r['publisher_earnings'];
             $pcpm  = (float) $r['publisher_cpm'];
 
             $when = "WHEN ad_unit_id = '{$auId}' AND date = '{$date}' AND hour = {$hour} THEN";
-            $grossCases    .= " {$when} {$gross}";
             $ratioCases    .= " {$when} {$ratio}";
             $earningsCases .= " {$when} {$earn}";
             $cpmCases      .= " {$when} {$pcpm}";
@@ -404,15 +413,35 @@ class GamSync extends Command
 
         $inClause = implode(', ', $inPairs);
 
+        // Step 2: For NEW / un-priced rows (ratio_applied = 0), set ratio and recalculate earnings.
+        // gross_revenue was already updated in Step 1, so we read it from the DB here.
+        // FIX [GS-7]: Removed gross_revenue from this SET — it was already applied in Step 1 upsert.
         \Illuminate\Support\Facades\DB::statement("
             UPDATE revenue_records
             SET
-                gross_revenue      = CASE {$grossCases}    ELSE gross_revenue      END,
                 ratio_applied      = CASE {$ratioCases}    ELSE ratio_applied      END,
                 publisher_earnings = CASE {$earningsCases} ELSE publisher_earnings END,
                 publisher_cpm      = CASE {$cpmCases}      ELSE publisher_cpm      END
             WHERE period_closing_id IS NULL
               AND (ratio_applied IS NULL OR ratio_applied = 0)
+              AND (ad_unit_id, date, hour) IN ({$inClause})
+        ");
+
+        // FIX [GS-5, GS-7]: For existing records with ratio_applied > 0, recalculate publisher_earnings
+        // and publisher_cpm using the fresh gross_revenue (already updated in Step 1) and the
+        // historical ratio_applied preserved in the DB.
+        // gross_revenue is intentionally read from the DB (not the CASE expression) because
+        // Step 1 already wrote the updated value — this is simpler and avoids nested CASE expressions.
+        \Illuminate\Support\Facades\DB::statement("
+            UPDATE revenue_records
+            SET
+                publisher_earnings = ROUND(gross_revenue * ratio_applied, 6),
+                publisher_cpm      = CASE 
+                                       WHEN impressions > 0 THEN ROUND((gross_revenue * ratio_applied) / impressions * 1000, 4) 
+                                       ELSE 0 
+                                     END
+            WHERE period_closing_id IS NULL
+              AND ratio_applied > 0
               AND (ad_unit_id, date, hour) IN ({$inClause})
         ");
     }

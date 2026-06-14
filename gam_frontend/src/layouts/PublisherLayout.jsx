@@ -1,12 +1,11 @@
-import { NavLink, useNavigate, Link } from 'react-router-dom'
+import { NavLink, useNavigate, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useI18n } from '../contexts/I18nContext'
 import { useSettings } from '../contexts/SettingsContext'
-import { 
-  LayoutDashboard, Globe, DollarSign, CreditCard, HelpCircle, 
-  Settings, LogOut, User, TrendingUp, Menu, X 
-} from 'lucide-react'
+import { publisherApi } from '../api/endpoints'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { LayoutDashboard, Globe, DollarSign, CreditCard, HelpCircle, Settings, LogOut, User, TrendingUp, Menu, X } from 'lucide-react'
 
 const navItems = [
   { to: '/publisher',          icon: <LayoutDashboard size={18} />, label: 'Dashboard',   end: true },
@@ -19,15 +18,26 @@ const navItems = [
 
 export default function PublisherLayout({ children }) {
   const { user, logout, stopImpersonating } = useAuth()
-  const { locale, switchLocale } = useI18n()
+  const { locale, switchLocale, t } = useI18n()
   const { settings } = useSettings()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [isImpersonating, setIsImpersonating] = useState(false)
+  const [unreadTicketsCount, setUnreadTicketsCount] = useState(0)
+
   useEffect(() => {
     setIsImpersonating(!!(sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')))
   }, [])
+
+  useEffect(() => {
+    publisherApi.getTickets()
+      .then(res => {
+        setUnreadTicketsCount(res.data.unread_replies_count || 0)
+      })
+      .catch(() => {})
+  }, [location.pathname])
 
   const handleLogout = async () => {
     await logout()
@@ -65,19 +75,55 @@ export default function PublisherLayout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          <div className="nav-section-label">Publisher Portal</div>
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              onClick={() => setMobileSidebarOpen(false)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
+          <div className="nav-section-label">{t('nav.publisher_portal', 'Publisher Portal')}</div>
+          {navItems.map(item => {
+            const translationKeys = {
+              'Dashboard': 'nav.dashboard',
+              'My Websites': 'nav.my_websites',
+              'Revenue': 'nav.my_earnings',
+              'Payouts': 'nav.my_payouts',
+              'Support Tickets': 'nav.support_tickets',
+              'Settings': 'nav.settings'
+            }
+            const key = translationKeys[item.label] || `nav.${item.label.toLowerCase().replace(/ /g, '_')}`
+            const count = item.to === '/publisher/tickets' ? unreadTicketsCount : 0
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                onClick={() => setMobileSidebarOpen(false)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span className="nav-icon">{item.icon}</span>
+                  <span>{t(key, item.label)}</span>
+                </div>
+                {count > 0 && (
+                  <span style={{
+                    background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    color: '#fff',
+                    fontSize: '10px',
+                    fontWeight: '800',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    lineHeight: 1.2,
+                    boxShadow: '0 0 10px rgba(245, 158, 11, 0.4)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '20px',
+                    height: '20px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </NavLink>
+            )
+          })}
         </nav>
 
         <div className="sidebar-footer" style={{ borderTop: '1px solid var(--br-border)', padding: '16px 12px' }}>
@@ -108,7 +154,7 @@ export default function PublisherLayout({ children }) {
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'Publisher'}</div>
-              <div style={{ fontSize: 11, color: 'var(--br-text-3)' }}>Publisher Account</div>
+              <div style={{ fontSize: 11, color: 'var(--br-text-3)' }}>{t('nav.publisher_account', 'Publisher Account')}</div>
             </div>
           </Link>
           <button
@@ -117,7 +163,7 @@ export default function PublisherLayout({ children }) {
             onClick={handleLogout}
           >
             <LogOut size={16} />
-            Logout
+            {t('nav.logout', 'Logout')}
           </button>
         </div>
       </aside>
@@ -149,7 +195,7 @@ export default function PublisherLayout({ children }) {
               display: 'inline-block'
             }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>
-              Viewing as <strong style={{ color: '#e2e8f0' }}>{user?.name}</strong>
+              {t('common.viewing_as', 'Viewing as')} <strong style={{ color: '#e2e8f0' }}>{user?.name}</strong>
             </span>
             <button
               onClick={stopImpersonating}
@@ -170,7 +216,7 @@ export default function PublisherLayout({ children }) {
               onMouseEnter={(e) => e.target.style.background = '#dc2626'}
               onMouseLeave={(e) => e.target.style.background = '#ef4444'}
             >
-              <span style={{ fontSize: 13, fontWeight: 'bold' }}>✕</span> Exit
+              <span style={{ fontSize: 13, fontWeight: 'bold' }}>✕</span> {t('common.exit', 'Exit')}
             </button>
           </div>
         )}
@@ -185,33 +231,7 @@ export default function PublisherLayout({ children }) {
             </button>
           </div>
           <div className="topbar-right">
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              <select
-                className="form-select"
-                value={locale}
-                onChange={e => switchLocale(e.target.value)}
-                style={{ 
-                  padding: '6px 28px 6px 12px', 
-                  fontSize: 13, 
-                  background: 'var(--br-surface)', 
-                  border: '0.5px solid var(--br-border)', 
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--br-text)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  outline: 'none',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'calc(100% - 10px) center',
-                  minWidth: 70
-                }}
-              >
-                <option value="en" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>EN</option>
-                <option value="ar" style={{ background: 'var(--br-bg-2)', color: 'var(--br-text)' }}>AR</option>
-              </select>
-            </div>
+            <LanguageSwitcher />
           </div>
         </header>
         <main className="page-container">
@@ -229,12 +249,14 @@ export default function PublisherLayout({ children }) {
           fontSize: '12px',
           color: 'var(--color-text-subtle)',
         }}>
-          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'} Platform. All rights reserved.</div>
+          <div>{t('common.all_rights_reserved', '© {year} {site_name} Platform. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'BestRevenue' })}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Home Page</Link>
-            <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>Google Ad Manager Help</a>
+            <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{t('common.home_page', 'Home Page')}</Link>
+            <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{t('common.gam_help', 'Google Ad Manager Help')}</a>
             {settings.pages && settings.pages.filter(p => p.show_in_publisher_footer).map(p => (
-              <Link key={p.slug} to={`/page/${p.slug}`} style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{p.title}</Link>
+              <Link key={p.slug} to={`/page/${p.slug}`} style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>
+                {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
+              </Link>
             ))}
             {settings.social_facebook && (
               <a href={settings.social_facebook} target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}>

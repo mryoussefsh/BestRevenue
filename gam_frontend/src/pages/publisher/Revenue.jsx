@@ -4,9 +4,8 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
-import { 
-  DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye, Filter 
-} from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import { DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye, Filter } from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -17,6 +16,7 @@ const toLocalYYYYMMDD = (date) => {
 
 export default function PublisherRevenue() {
   const { settings } = useSettings()
+  const { t } = useI18n()
   const [records, setRecords] = useState([])
   const [pendingAdjustment, setPendingAdjustment] = useState(0)
   const [payoutsSum, setPayoutsSum] = useState(0)
@@ -160,7 +160,7 @@ export default function PublisherRevenue() {
       setPage(1)
       setLoading(false)
     }).catch(() => {
-      toast.error('Failed to load revenue')
+      toast.error(t('revenue.toast_failed', 'Failed to load revenue'))
       setLoading(false)
     })
   }, [])
@@ -183,7 +183,7 @@ export default function PublisherRevenue() {
       setPayoutsSum(res.data?.payouts_sum || 0)
       setAggregates(res.data?.aggregates || null)
       setPage(1)
-    } catch { toast.error('Failed to load revenue') }
+    } catch { toast.error(t('revenue.toast_failed', 'Failed to load revenue')) }
     finally { setLoading(false) }
   }
 
@@ -241,7 +241,7 @@ export default function PublisherRevenue() {
 
   const handleExportPDF = async () => {
     try {
-      const toastId = toast.loading('Generating PDF statement...')
+      const toastId = toast.loading(t('dashboard.toast_pdf_generating', 'Generating PDF statement...'))
       const res = await publisherApi.exportPdf(filters)
       
       const blob = new Blob([res.data], { type: 'application/pdf' })
@@ -255,10 +255,10 @@ export default function PublisherRevenue() {
       window.URL.revokeObjectURL(downloadUrl)
       
       toast.dismiss(toastId)
-      toast.success('PDF downloaded successfully')
+      toast.success(t('dashboard.toast_pdf_success', 'PDF downloaded successfully'))
     } catch (err) {
       console.error(err)
-      toast.error('Failed to export PDF statement')
+      toast.error(t('dashboard.toast_pdf_failed', 'Failed to export PDF statement'))
     }
   }
 
@@ -274,9 +274,9 @@ export default function PublisherRevenue() {
         <div>
           <h1 className="page-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <DollarSign size={24} style={{ color: 'var(--br-primary)' }} />
-            My Revenue
+            {t('revenue.title', 'My Revenue')}
           </h1>
-          <p className="page-subtitle">{records.length} records</p>
+          <p className="page-subtitle">{t('revenue.subtitle', '{count} records', { count: records.length })}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
@@ -285,7 +285,7 @@ export default function PublisherRevenue() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('dashboard.filters.hide', 'Hide Filters') : t('dashboard.filters.show', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -310,7 +310,7 @@ export default function PublisherRevenue() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <FileText size={16} />
-            Export PDF
+            {t('revenue.export_pdf', 'Export PDF')}
           </button>
         </div>
       </div>
@@ -322,25 +322,25 @@ export default function PublisherRevenue() {
           
           {/* Preset Selector */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Time Range</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.time_range', 'Time Range')}</label>
             <select
               className="form-select"
               value={filters.preset}
               onChange={e => handlePresetChange(e.target.value)}
             >
-              {!filters.preset && <option value="" disabled>Custom Range</option>}
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="this_month">This Month</option>
-              <option value="last_month">Last Month</option>
+              {!filters.preset && <option value="" disabled>{t('dashboard.filters.custom_range', 'Custom Range')}</option>}
+              <option value="today">{t('dashboard.presets.today', 'Today')}</option>
+              <option value="yesterday">{t('dashboard.presets.yesterday', 'Yesterday')}</option>
+              <option value="7d">{t('dashboard.presets.7d', 'Last 7 Days')}</option>
+              <option value="30d">{t('dashboard.presets.30d', 'Last 30 Days')}</option>
+              <option value="this_month">{t('dashboard.presets.this_month', 'This Month')}</option>
+              <option value="last_month">{t('dashboard.presets.last_month', 'Last Month')}</option>
             </select>
           </div>
 
           {/* Start Date */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Start Date</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.start_date', 'Start Date')}</label>
             <input
               type="date"
               className="form-input"
@@ -351,7 +351,7 @@ export default function PublisherRevenue() {
 
           {/* End Date */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>End Date</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.end_date', 'End Date')}</label>
             <input
               type="date"
               className="form-input"
@@ -362,16 +362,16 @@ export default function PublisherRevenue() {
 
           {/* Status Filter */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Status</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('revenue.filters.status', 'Status')}</label>
             <select
               className="form-select"
               value={filters.status}
               onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
             >
-              <option value="">All Statuses</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="closed">Closed</option>
+              <option value="">{t('revenue.status.all', 'All Statuses')}</option>
+              <option value="approved">{t('dashboard.status.approved', 'Approved')}</option>
+              <option value="pending">{t('dashboard.status.pending', 'Pending')}</option>
+              <option value="closed">{t('revenue.status.closed', 'Closed')}</option>
             </select>
           </div>
 
@@ -385,7 +385,7 @@ export default function PublisherRevenue() {
                 onClick={handleResetFilters}
               >
                 <Ban size={16} />
-                Reset
+                {t('common.reset', 'Reset')}
               </button>
             </div>
           )}
@@ -396,22 +396,22 @@ export default function PublisherRevenue() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 24 }}>
         <div className="stat-card primary">
           <div className="stat-icon"><TrendingUp size={20} /></div>
-          <div className="stat-label">Total Earnings</div>
+          <div className="stat-label">{t('revenue.stats.total_earnings', 'Total Earnings')}</div>
           <div className="stat-value money"><CompactAmount value={totalEarningsCard} /></div>
         </div>
         <div className="stat-card accent">
           <div className="stat-icon"><DollarSign size={20} /></div>
-          <div className="stat-label">Approved Earnings</div>
+          <div className="stat-label">{t('dashboard.stats.approved_earnings', 'Approved Earnings')}</div>
           <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
         </div>
         <div className="stat-card warning">
           <div className="stat-icon"><Clock size={20} /></div>
-          <div className="stat-label">Pending Earnings</div>
+          <div className="stat-label">{t('dashboard.stats.pending_earnings', 'Pending Earnings')}</div>
           <div className="stat-value money"><CompactAmount value={totalPendingEarnings} /></div>
         </div>
         <div className="stat-card info">
           <div className="stat-icon"><Eye size={20} /></div>
-          <div className="stat-label">Total Impressions</div>
+          <div className="stat-label">{t('dashboard.stats.total_impressions', 'Total Impressions')}</div>
           <div className="stat-value">
             <CompactAmount value={totalImpressions} prefix="" decimals={0} />
           </div>
@@ -427,13 +427,13 @@ export default function PublisherRevenue() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>Date {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>Ad Unit {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>Impressions {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>CTR {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('publisher_cpm')} style={{cursor: 'pointer'}}>My CPM {sortField === 'publisher_cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>My Earnings {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th>Status</th>
+                    <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>{t('revenue.table.date', 'Date')} {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>{t('revenue.table.ad_unit', 'Ad Unit')} {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>{t('revenue.table.impressions', 'Impressions')} {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>{t('revenue.table.ctr', 'CTR')} {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('publisher_cpm')} style={{cursor: 'pointer'}}>{t('revenue.table.cpm', 'My CPM')} {sortField === 'publisher_cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>{t('revenue.table.earnings', 'My Earnings')} {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th>{t('revenue.table.status', 'Status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -443,7 +443,7 @@ export default function PublisherRevenue() {
                         <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                           <DollarSign size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
                         </div>
-                        <div className="empty-state-text">No revenue for this period</div>
+                        <div className="empty-state-text">{t('revenue.table.no_data', 'No revenue for this period')}</div>
                       </div>
                     </td></tr>
                   )}
@@ -465,15 +465,15 @@ export default function PublisherRevenue() {
                       <td>
                         {r.is_closed ? (
                           <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Lock size={12} /> Closed
+                            <Lock size={12} /> {t('revenue.status.closed', 'Closed')}
                           </span>
                         ) : r.approval_status === 'pending' ? (
                           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Clock size={12} /> Pending
+                            <Clock size={12} /> {t('dashboard.status.pending', 'Pending')}
                           </span>
                         ) : (
                           <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <CheckCircle size={12} /> Approved
+                            <CheckCircle size={12} /> {t('dashboard.status.approved', 'Approved')}
                           </span>
                         )}
                       </td>
@@ -486,7 +486,7 @@ export default function PublisherRevenue() {
                       <td style={{ padding: '10px 16px', fontSize: 12 }} colSpan={2}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <TrendingUp size={14} style={{ color: 'var(--br-accent)' }} />
-                          <span>Totals</span>
+                          <span>{t('revenue.table.totals', 'Totals')}</span>
                         </div>
                       </td>
                       <td className="money">

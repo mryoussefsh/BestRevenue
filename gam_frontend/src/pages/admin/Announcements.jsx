@@ -3,6 +3,8 @@ import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../../contexts/SettingsContext'
 import { Megaphone, Check, X, Trash2, Edit2, Save, Send, Calendar, Users, Globe, Play, Plus } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
+import Pagination from '../../components/Pagination'
 
 // Lightweight built-in rich text editor (no external deps)
 function RichEditor({ value, onChange }) {
@@ -92,7 +94,9 @@ function RichEditor({ value, onChange }) {
 
 const EMPTY_FORM = {
   title: '',
+  title_ar: '',
   content: '',
+  content_ar: '',
   type: 'banner',
   style: 'info',
   priority: 0,
@@ -125,6 +129,7 @@ const STYLE_LABELS = {
 }
 
 export default function AdminAnnouncements() {
+  const { t } = useI18n()
   const { formatDate, formatDateTimeLocal } = useSettings()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -133,6 +138,8 @@ export default function AdminAnnouncements() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 15
 
   useEffect(() => {
     loadData()
@@ -144,7 +151,7 @@ export default function AdminAnnouncements() {
       const res = await adminApi.getAnnouncements()
       setItems(res.data?.data || [])
     } catch {
-      toast.error('Failed to load announcements')
+      toast.error(t('admin.announcements.toast.load_failed', 'Failed to load announcements'))
     } finally {
       setLoading(false)
     }
@@ -160,7 +167,9 @@ export default function AdminAnnouncements() {
     setEditing(item.id)
     setForm({
       title: item.title || '',
+      title_ar: item.title_ar || '',
       content: item.content || '',
+      content_ar: item.content_ar || '',
       type: item.type || 'banner',
       style: item.style || 'info',
       priority: item.priority ?? 0,
@@ -189,29 +198,29 @@ export default function AdminAnnouncements() {
       }
       if (editing) {
         await adminApi.updateAnnouncement(editing, payload)
-        toast.success('Announcement updated')
+        toast.success(t('admin.announcements.toast.updated', 'Announcement updated'))
       } else {
         await adminApi.createAnnouncement(payload)
-        toast.success('Announcement created')
+        toast.success(t('admin.announcements.toast.created', 'Announcement created'))
       }
       setShowForm(false)
       loadData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save')
+      toast.error(err.response?.data?.message || t('admin.announcements.toast.save_failed', 'Failed to save'))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Delete this announcement?')) return
+    if (!confirm(t('admin.announcements.confirm_delete', 'Delete this announcement?'))) return
     setDeleting(id)
     try {
       await adminApi.deleteAnnouncement(id)
-      toast.success('Deleted')
+      toast.success(t('admin.announcements.toast.deleted', 'Deleted'))
       loadData()
     } catch {
-      toast.error('Failed to delete')
+      toast.error(t('admin.announcements.toast.delete_failed', 'Failed to delete'))
     } finally {
       setDeleting(null)
     }
@@ -219,7 +228,7 @@ export default function AdminAnnouncements() {
 
   // Button management helpers
   function addButton() {
-    setForm(f => ({ ...f, buttons: [...f.buttons, { text: '', url: '', new_tab: true }] }))
+    setForm(f => ({ ...f, buttons: [...f.buttons, { text: '', text_ar: '', url: '', new_tab: true }] }))
   }
   function updateButton(idx, field, val) {
     setForm(f => ({
@@ -260,7 +269,7 @@ export default function AdminAnnouncements() {
                 borderRadius: 20, padding: '2px 10px', fontSize: 12,
                 display: 'flex', alignItems: 'center', gap: 4
               }}>
-                {pub ? `${pub.name} (${pub.email})` : 'Loading...'}
+                {pub ? `${pub.name} (${pub.email})` : t('admin.announcements.form.loading_publisher', 'Loading...')}
                 <button type="button" onClick={() => onChange(value.filter(t => t !== id))}
                   style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0, fontSize: 14 }}>×</button>
               </span>
@@ -274,7 +283,7 @@ export default function AdminAnnouncements() {
             onChange={e => setInput(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setTimeout(() => setFocused(false), 200)}
-            placeholder="Search publisher by name or email…"
+            placeholder={t('admin.announcements.form.search_publisher_placeholder', 'Search publisher by name or email…')}
             style={{ width: '100%', height: 36, fontSize: 13 }}
           />
           {focused && available.length > 0 && (
@@ -324,14 +333,14 @@ export default function AdminAnnouncements() {
             placeholder={placeholder}
             style={{ flex: 1, height: 36, fontSize: 13 }}
           />
-          <button type="button" className="btn btn-secondary" style={{ padding: '0 12px', height: 36, fontSize: 13 }} onClick={addTag}>Add</button>
+          <button type="button" className="btn btn-secondary" style={{ padding: '0 12px', height: 36, fontSize: 13 }} onClick={addTag}>{t('admin.announcements.btn.add', 'Add')}</button>
         </div>
       </div>
     )
   }
 
   if (loading) return (
-    <div className="loading-screen"><div className="spinner" /><span>Loading announcements…</span></div>
+    <div className="loading-screen"><div className="spinner" /><span>{t('admin.announcements.loading', 'Loading announcements…')}</span></div>
   )
 
   return (
@@ -340,12 +349,12 @@ export default function AdminAnnouncements() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Megaphone size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Announcements</span>
+            <span>{t('admin.announcements.title', 'Announcements')}</span>
           </h1>
-          <p className="page-subtitle">Manage banners and modal popups for publishers</p>
+          <p className="page-subtitle">{t('admin.announcements.subtitle', 'Manage banners and modal popups for publishers')}</p>
         </div>
         <button className="btn btn-primary" id="create-announcement-btn" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <Plus size={16} /> New Announcement
+          <Plus size={16} /> {t('admin.announcements.btn.new_announcement', 'New Announcement')}
         </button>
       </div>
 
@@ -362,7 +371,7 @@ export default function AdminAnnouncements() {
             borderRadius: 12, padding: '12px 20px', flex: '1 1 120px', minWidth: 100
           }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{s.label}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t(`admin.announcements.stats.${s.label.toLowerCase()}`, s.label)}</div>
           </div>
         ))}
       </div>
@@ -371,28 +380,28 @@ export default function AdminAnnouncements() {
       {items.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon"><Megaphone size={40} /></div>
-          <div className="empty-state-text">No announcements yet</div>
-          <div className="empty-state-sub">Click "New Announcement" to create one</div>
+          <div className="empty-state-text">{t('admin.announcements.empty.title', 'No announcements yet')}</div>
+          <div className="empty-state-sub">{t('admin.announcements.empty.sub', 'Click "New Announcement" to create one')}</div>
         </div>
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Target</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Schedule</th>
-                <th>Views</th>
-                <th>Clicks</th>
-                <th>Dismissals</th>
-                <th>Actions</th>
+                <th>{t('admin.announcements.table.col_title', 'Title')}</th>
+                <th>{t('admin.announcements.table.col_type', 'Type')}</th>
+                <th>{t('admin.announcements.table.col_target', 'Target')}</th>
+                <th>{t('admin.announcements.table.col_priority', 'Priority')}</th>
+                <th>{t('admin.announcements.table.col_status', 'Status')}</th>
+                <th>{t('admin.announcements.table.col_schedule', 'Schedule')}</th>
+                <th>{t('admin.announcements.table.col_views', 'Views')}</th>
+                <th>{t('admin.announcements.table.col_clicks', 'Clicks')}</th>
+                <th>{t('admin.announcements.table.col_dismissals', 'Dismissals')}</th>
+                <th>{t('admin.announcements.table.col_actions', 'Actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
+              {items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(item => (
                 <tr key={item.id}>
                   <td style={{ fontWeight: 600, maxWidth: 180 }}>
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
@@ -406,7 +415,7 @@ export default function AdminAnnouncements() {
                         borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600,
                         textAlign: 'center', display: 'inline-block'
                       }}>
-                        {TYPE_LABELS[item.type]}
+                        {t(`admin.announcements.type.${item.type}`, TYPE_LABELS[item.type])}
                       </span>
                       <span style={{
                         background: `var(--br-${item.style || 'info'}-subtle)`,
@@ -415,34 +424,34 @@ export default function AdminAnnouncements() {
                         borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600,
                         textAlign: 'center', display: 'inline-block'
                       }}>
-                        {STYLE_LABELS[item.style || 'info']}
+                        {t(`admin.announcements.style.${item.style || 'info'}`, STYLE_LABELS[item.style || 'info'])}
                       </span>
                     </div>
                   </td>
-                  <td style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{item.target_type}</td>
+                  <td style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t(`admin.announcements.target.${item.target_type}`, item.target_type)}</td>
                   <td style={{ textAlign: 'center' }}>
                     <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{item.priority}</span>
                   </td>
                   <td>
                     <span className={`badge badge-${item.is_active ? 'active' : 'suspended'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                      {item.is_active ? 'Active' : 'Inactive'}
+                      {item.is_active ? t('admin.announcements.badge.active', 'Active') : t('admin.announcements.badge.inactive', 'Inactive')}
                     </span>
                   </td>
                   <td style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
                     {item.start_date || item.end_date ? (
                       <div>
-                         {item.start_date && <div>From: {formatDate(item.start_date)}</div>}
-                         {item.end_date && <div>To: {formatDate(item.end_date)}</div>}
+                         {item.start_date && <div>{t('admin.announcements.schedule.from', 'From: {date}', { date: formatDate(item.start_date) })}</div>}
+                         {item.end_date && <div>{t('admin.announcements.schedule.to', 'To: {date}', { date: formatDate(item.end_date) })}</div>}
                       </div>
-                    ) : <span>Lifetime</span>}
+                    ) : <span>{t('admin.announcements.schedule.lifetime', 'Lifetime')}</span>}
                   </td>
                   <td style={{ textAlign: 'center', color: 'var(--color-primary)' }}>{item.views_count || 0}</td>
                   <td style={{ textAlign: 'center', color: 'var(--color-success)' }}>{item.clicks_count || 0}</td>
                   <td style={{ textAlign: 'center', color: 'var(--color-warning)' }}>{item.dismissals_count || 0}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> Edit</button>
+                      <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> {t('admin.announcements.btn.edit', 'Edit')}</button>
                       <button
                         className="btn btn-danger btn-xs"
                         onClick={() => handleDelete(item.id)}
@@ -457,6 +466,12 @@ export default function AdminAnnouncements() {
               ))}
             </tbody>
           </table>
+          <Pagination
+            currentPage={page}
+            totalItems={items.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </div>
       )}
 
@@ -475,63 +490,78 @@ export default function AdminAnnouncements() {
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {editing ? <Edit2 size={18} style={{ color: 'var(--br-primary)' }} /> : <Megaphone size={18} style={{ color: 'var(--br-primary)' }} />}
-                <span>{editing ? 'Edit Announcement' : 'New Announcement'}</span>
+                <span>{editing ? t('admin.announcements.modal.edit_title', 'Edit Announcement') : t('admin.announcements.modal.create_title', 'New Announcement')}</span>
               </h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 22 }}>×</button>
             </div>
 
             <form onSubmit={handleSave} style={{ padding: 24 }}>
               <div className="form-row" style={{ marginBottom: 16 }}>
-                {/* Title */}
+                {/* Title (English) */}
                 <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
-                  <label className="form-label">Title *</label>
-                  <input className="form-input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required placeholder="Announcement title" />
+                  <label className="form-label">{t('admin.announcements.form.title_label', 'Title (English) *')}</label>
+                  <input className="form-input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required placeholder={t('admin.announcements.form.title_placeholder', 'Announcement title')} />
+                </div>
+
+                {/* Title (Arabic) */}
+                <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
+                  <label className="form-label">{t('admin.announcements.form.title_ar_label', 'Title (Arabic)')}</label>
+                  <input className="form-input" value={form.title_ar} onChange={e => setForm(f => ({ ...f, title_ar: e.target.value }))} placeholder={t('admin.announcements.form.title_ar_placeholder', 'Arabic announcement title')} dir="rtl" />
                 </div>
 
                 {/* Type */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Type</label>
+                  <label className="form-label">{t('admin.announcements.form.type_label', 'Type')}</label>
                   <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                    <option value="banner">Fixed Banner</option>
-                    <option value="modal">Modal Popup</option>
+                    <option value="banner">{t('admin.announcements.type.banner', 'Fixed Banner')}</option>
+                    <option value="modal">{t('admin.announcements.type.modal', 'Modal Popup')}</option>
                   </select>
                 </div>
 
                 {/* Style */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Design Style</label>
+                  <label className="form-label">{t('admin.announcements.form.style_label', 'Design Style')}</label>
                   <select className="form-input" value={form.style} onChange={e => setForm(f => ({ ...f, style: e.target.value }))}>
-                    <option value="info">Info (Blue)</option>
-                    <option value="success">Success (Green)</option>
-                    <option value="warning">Warning (Amber)</option>
-                    <option value="danger">Alert (Red)</option>
+                    <option value="info">{t('admin.announcements.style.info', 'Info (Blue)')}</option>
+                    <option value="success">{t('admin.announcements.style.success', 'Success (Green)')}</option>
+                    <option value="warning">{t('admin.announcements.style.warning', 'Warning (Amber)')}</option>
+                    <option value="danger">{t('admin.announcements.style.danger', 'Alert (Red)')}</option>
                   </select>
                 </div>
 
                 {/* Priority */}
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Priority (higher = first)</label>
+                  <label className="form-label">{t('admin.announcements.form.priority_label', 'Priority (higher = first)')}</label>
                   <input type="number" className="form-input" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} min="0" />
                 </div>
               </div>
 
-              {/* Content - WYSIWYG */}
+              {/* Content (English) - WYSIWYG */}
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Content *</label>
+                <label className="form-label">{t('admin.announcements.form.content_label', 'Content (English) *')}</label>
                 <RichEditor
                   value={form.content}
                   onChange={val => setForm(f => ({ ...f, content: val }))}
                 />
               </div>
 
+              {/* Content (Arabic) - WYSIWYG */}
+              <div className="form-group" style={{ marginBottom: 16 }} dir="rtl">
+                <label className="form-label" style={{ textAlign: 'right', display: 'block' }}>{t('admin.announcements.form.content_ar_label', 'Content (Arabic)')}</label>
+                <RichEditor
+                  value={form.content_ar}
+                  onChange={val => setForm(f => ({ ...f, content_ar: val }))}
+                />
+              </div>
+
               {/* Dates */}
               <div className="form-row" style={{ marginBottom: 16 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Start Date (optional)</label>
+                  <label className="form-label">{t('admin.announcements.form.start_date_label', 'Start Date (optional)')}</label>
                   <input type="datetime-local" className="form-input" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">End Date (optional)</label>
+                  <label className="form-label">{t('admin.announcements.form.end_date_label', 'End Date (optional)')}</label>
                   <input type="datetime-local" className="form-input" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} />
                 </div>
               </div>
@@ -554,59 +584,60 @@ export default function AdminAnnouncements() {
                         background: '#fff', transition: 'left 0.2s'
                       }} />
                     </div>
-                    <span style={{ fontSize: 13 }}>{label}</span>
+                    <span style={{ fontSize: 13 }}>{t(`admin.announcements.form.${key}_toggle`, label)}</span>
                   </label>
                 ))}
               </div>
 
               {/* Targeting */}
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Target Audience</label>
+                <label className="form-label">{t('admin.announcements.form.target_audience', 'Target Audience')}</label>
                 <select className="form-input" value={form.target_type} onChange={e => setForm(f => ({ ...f, target_type: e.target.value }))}>
-                  <option value="all">All Publishers</option>
-                  <option value="publishers">Specific Publishers</option>
-                  <option value="countries">Specific Countries</option>
-                  <option value="roles">Specific Roles</option>
+                  <option value="all">{t('admin.announcements.target.all', 'All Publishers')}</option>
+                  <option value="publishers">{t('admin.announcements.target.publishers', 'Specific Publishers')}</option>
+                  <option value="countries">{t('admin.announcements.target.countries', 'Specific Countries')}</option>
+                  <option value="roles">{t('admin.announcements.target.roles', 'Specific Roles')}</option>
                 </select>
               </div>
 
               {form.target_type === 'publishers' && (
                 <div className="form-group" style={{ marginBottom: 16 }}>
-                  <label className="form-label">Select Publishers</label>
+                  <label className="form-label">{t('admin.announcements.form.select_publishers', 'Select Publishers')}</label>
                   <PublisherTagInput value={form.target_publishers} onChange={v => setForm(f => ({ ...f, target_publishers: v }))} />
                 </div>
               )}
               {form.target_type === 'countries' && (
                 <div className="form-group" style={{ marginBottom: 16 }}>
-                  <label className="form-label">Country Codes (e.g. US, EG, GB)</label>
-                  <TagInput value={form.target_countries} onChange={v => setForm(f => ({ ...f, target_countries: v }))} placeholder="Type country code and press Enter" />
+                  <label className="form-label">{t('admin.announcements.form.country_codes', 'Country Codes (e.g. US, EG, GB)')}</label>
+                  <TagInput value={form.target_countries} onChange={v => setForm(f => ({ ...f, target_countries: v }))} placeholder={t('admin.announcements.form.country_placeholder', 'Type country code and press Enter')} />
                 </div>
               )}
               {form.target_type === 'roles' && (
                 <div className="form-group" style={{ marginBottom: 16 }}>
-                  <label className="form-label">Roles</label>
-                  <TagInput value={form.target_roles} onChange={v => setForm(f => ({ ...f, target_roles: v }))} placeholder="Type role name and press Enter" />
+                  <label className="form-label">{t('admin.announcements.form.roles', 'Roles')}</label>
+                  <TagInput value={form.target_roles} onChange={v => setForm(f => ({ ...f, target_roles: v }))} placeholder={t('admin.announcements.form.role_placeholder', 'Type role name and press Enter')} />
                 </div>
               )}
 
               {/* Action Buttons */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <label className="form-label" style={{ margin: 0 }}>Action Buttons</label>
-                  <button type="button" className="btn btn-secondary btn-xs" onClick={addButton}>+ Add Button</button>
+                  <label className="form-label" style={{ margin: 0 }}>{t('admin.announcements.form.action_buttons', 'Action Buttons')}</label>
+                  <button type="button" className="btn btn-secondary btn-xs" onClick={addButton}>{t('admin.announcements.btn.add_button', '+ Add Button')}</button>
                 </div>
                 {form.buttons.length === 0 && (
                   <div style={{ color: 'var(--color-text-muted)', fontSize: 13, textAlign: 'center', padding: '12px', border: '1px dashed var(--color-border)', borderRadius: 8 }}>
-                    No buttons — announcement will show text only
+                    {t('admin.announcements.form.no_buttons', 'No buttons — announcement will show text only')}
                   </div>
                 )}
                 {form.buttons.map((btn, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                    <input className="form-input" placeholder="Button text" value={btn.text} onChange={e => updateButton(idx, 'text', e.target.value)} style={{ height: 38 }} />
-                    <input className="form-input" placeholder="https://..." value={btn.url} onChange={e => updateButton(idx, 'url', e.target.value)} style={{ height: 38 }} />
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <input className="form-input" placeholder={t('admin.announcements.form.btn_text_placeholder', 'Text (EN)')} value={btn.text} onChange={e => updateButton(idx, 'text', e.target.value)} style={{ height: 38 }} />
+                    <input className="form-input" placeholder={t('admin.announcements.form.btn_text_ar_placeholder', 'Text (AR)')} value={btn.text_ar || ''} onChange={e => updateButton(idx, 'text_ar', e.target.value)} style={{ height: 38 }} dir="rtl" />
+                    <input className="form-input" placeholder="URL (https://...)" value={btn.url} onChange={e => updateButton(idx, 'url', e.target.value)} style={{ height: 38 }} />
                     <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, whiteSpace: 'nowrap', cursor: 'pointer' }}>
                       <input type="checkbox" checked={btn.new_tab} onChange={e => updateButton(idx, 'new_tab', e.target.checked)} />
-                      New tab
+                      {t('admin.announcements.form.new_tab', 'New tab')}
                     </label>
                     <button type="button" onClick={() => removeButton(idx)} style={{ background: 'var(--color-danger)', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', padding: '6px 10px', fontSize: 13 }}>×</button>
                   </div>
@@ -614,14 +645,14 @@ export default function AdminAnnouncements() {
               </div>
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>{t('admin.announcements.btn.cancel', 'Cancel')}</button>
                 <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   {saving ? (
-                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving…</>
+                    <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> {t('admin.announcements.btn.saving', 'Saving…')}</>
                   ) : editing ? (
-                    <><Save size={14} /> Update</>
+                    <><Save size={14} /> {t('admin.announcements.btn.update', 'Update')}</>
                   ) : (
-                    <><Send size={14} /> Create</>
+                    <><Send size={14} /> {t('admin.announcements.btn.create', 'Create')}</>
                   )}
                 </button>
               </div>

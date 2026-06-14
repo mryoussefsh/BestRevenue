@@ -3,8 +3,10 @@ import { adminApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
 import { useSettings } from '../contexts/SettingsContext'
 import { Sparkles, Eye, Info, Settings } from 'lucide-react'
+import { useI18n } from '../contexts/I18nContext'
 
 export function SearchableSelect({ value, onChange, options, placeholder, emptyMessage, isOptional, clearLabel, style, disabled }) {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const containerRef = useRef(null)
@@ -77,7 +79,7 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
           <input
             type="text"
             className="form-input"
-            placeholder="Search..."
+            placeholder={t('common.search_placeholder', 'Search...')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             autoFocus
@@ -119,13 +121,13 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
                   e.currentTarget.style.background = 'transparent'
                 }}
               >
-                {clearLabel || 'None'}
+                {clearLabel || t('common.none', 'None')}
               </div>
             )}
 
             {filteredOptions.length === 0 ? (
               <div style={{ padding: '12px 10px', fontSize: '13px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                {emptyMessage || 'No options found'}
+                {emptyMessage || t('common.no_options_found', 'No options found')}
               </div>
             ) : (
               filteredOptions.map(opt => {
@@ -180,6 +182,7 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
 
 export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
   const { settings } = useSettings()
+  const { t } = useI18n()
 
   const preselectedSizes = settings?.ad_type_preselected_sizes || {
     banner: ['300x250', '300x600'],
@@ -304,7 +307,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (form.sizes.length === 0) { toast.error('Select at least one size.'); return }
+    if (form.sizes.length === 0) { toast.error(t('websites.select_at_least_one_size', 'Select at least one size.')); return }
     setSaving(true)
     try {
       const payload = {
@@ -318,41 +321,40 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
         delay_between_ads: (form.ad_type === 'reward' || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') ? parseInt(form.delay_between_ads) : null,
       }
       const res = await adminApi.bulkCreateAdUnits(payload)
-      toast.success(res.data?.message || 'Ad units created!')
+      toast.success(res.data?.message || t('websites.ad_units_created', 'Ad units created!'))
       onSaved()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to generate ad units')
+      toast.error(e.response?.data?.message || t('websites.failed_generate_ad_units', 'Failed to generate ad units'))
     } finally { setSaving(false) }
   }
 
   const previewNames = buildPreviewNames()
 
   return (
-    <div className="modal-overlay">
-      <div className="modal" style={{ maxWidth: 640, width: '95vw' }}>
+    <div className="modal-overlay">      <div className="modal" style={{ maxWidth: 640, width: '95vw' }}>
         <div className="modal-header">
           <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={18} style={{ color: 'var(--br-primary)' }} />
-            <span>Generate Ad Units in GAM</span>
+            <span>{t('websites.generate_ad_units_title', 'Generate Ad Units in GAM')}</span>
           </span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-
+ 
           {/* Website & Count */}
           <div className="form-row">
             <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">Website *</label>
+              <label className="form-label">{t('common.website', 'Website')} *</label>
               <SearchableSelect
                 value={form.website_id}
                 onChange={val => setForm(f => ({ ...f, website_id: val }))}
                 options={websites.map(w => ({ value: w.id, label: w.domain }))}
-                placeholder="Select website…"
-                emptyMessage="No websites found"
+                placeholder={t('websites.select_website_placeholder', 'Select website…')}
+                emptyMessage={t('websites.no_websites_found', 'No websites found')}
               />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Number of Banners *</label>
+              <label className="form-label">{t('websites.num_banners', 'Number of Banners')} *</label>
               <input className="form-input" type="number" min="1" max="20"
                 value={form.count}
                 onChange={e => setForm(f => ({ ...f, count: e.target.value }))}
@@ -363,7 +365,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
           {/* Ad Type */}
           <div className="form-row" style={{ marginBottom: 16 }}>
             <div className="form-group">
-              <label className="form-label">Ad Type *</label>
+              <label className="form-label">{t('websites.ad_type', 'Ad Type')} *</label>
               <select
                 className="form-select"
                 value={form.ad_type}
@@ -374,39 +376,39 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                 }))}
                 required
               >
-                <option value="banner">Banner</option>
-                <option value="reward">Reward</option>
-                <option value="interstitial">Interstitial</option>
-                <option value="anchor">Anchor</option>
-                <option value="float_top">Float Top</option>
-                <option value="float_bottom">Float Bottom</option>
-                <option value="float_fullscreen">Float Full Screen</option>
+                <option value="banner">{t('websites.banner', 'Banner')}</option>
+                <option value="reward">{t('websites.reward', 'Reward')}</option>
+                <option value="interstitial">{t('websites.interstitial', 'Interstitial')}</option>
+                <option value="anchor">{t('websites.anchor', 'Anchor')}</option>
+                <option value="float_top">{t('websites.float_top', 'Float Top')}</option>
+                <option value="float_bottom">{t('websites.float_bottom', 'Float Bottom')}</option>
+                <option value="float_fullscreen">{t('websites.float_fullscreen', 'Float Full Screen')}</option>
               </select>
             </div>
             {form.ad_type === 'reward' ? (
               <div className="form-group">
-                <label className="form-label">Reward Type *</label>
+                <label className="form-label">{t('websites.reward_type', 'Reward Type')} *</label>
                 <select
                   className="form-select"
                   value={form.ad_subtype}
                   onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
                   required
                 >
-                  <option value="normal">Normal</option>
-                  <option value="repeated">Repeated</option>
+                  <option value="normal">{t('websites.normal', 'Normal')}</option>
+                  <option value="repeated">{t('websites.repeated', 'Repeated')}</option>
                 </select>
               </div>
             ) : form.ad_type === 'anchor' ? (
               <div className="form-group">
-                <label className="form-label">Anchor Position *</label>
+                <label className="form-label">{t('websites.anchor_position', 'Anchor Position')} *</label>
                 <select
                   className="form-select"
                   value={form.ad_subtype}
                   onChange={e => setForm(f => ({ ...f, ad_subtype: e.target.value }))}
                   required
                 >
-                  <option value="top">Top</option>
-                  <option value="bottom">Bottom</option>
+                  <option value="top">{t('websites.top', 'Top')}</option>
+                  <option value="bottom">{t('websites.bottom', 'Bottom')}</option>
                 </select>
               </div>
             ) : <div />}
@@ -418,7 +420,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
               {((form.ad_type === 'reward' && form.ad_subtype === 'repeated') || form.ad_type === 'float_top' || form.ad_type === 'float_bottom' || form.ad_type === 'float_fullscreen') && (
                 <div className="form-group">
                   <label className="form-label">
-                    {form.ad_type === 'reward' ? 'Repeat Count *' : 'Close Button Delay (Seconds) *'}
+                    {form.ad_type === 'reward' ? t('websites.repeat_count', 'Repeat Count') + ' *' : t('websites.close_delay', 'Close Button Delay (Seconds)') + ' *'}
                   </label>
                   <input
                     className="form-input"
@@ -433,7 +435,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
               )}
               <div className="form-group">
                 <label className="form-label">
-                  {form.ad_type === 'reward' ? 'Delay Between Ads (Seconds) *' : 'Delay Before Showing Ad (Seconds) *'}
+                  {form.ad_type === 'reward' ? t('websites.delay_between_ads', 'Delay Between Ads (Seconds)') + ' *' : t('websites.delay_before_show', 'Delay Before Showing Ad (Seconds)') + ' *'}
                 </label>
                 <input
                   className="form-input"
@@ -503,8 +505,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
               value={form.ratio_override}
               onChange={e => setForm(f => ({ ...f, ratio_override: e.target.value }))} />
           </div>
-
-          {/* Live Preview */}
+                 {/* Live Preview */}
           {previewNames.length > 0 && (
             <div style={{
               background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
@@ -512,7 +513,7 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 8, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                 <Eye size={14} style={{ color: 'var(--br-primary)' }} />
-                <span>Preview — names will be assigned round number automatically</span>
+                <span>{t('websites.preview_names_assigned', 'Preview — names will be assigned round number automatically')}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {previewNames.map((name, i) => (
@@ -529,18 +530,22 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
               </div>
               <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Info size={12} style={{ color: 'var(--color-text-subtle)' }} />
-                <span><code>?</code> will be replaced with the next available round (e.g. <code>r1</code>, <code>r2</code>, …) based on existing ad units for this website.</span>
+                <span>{t('websites.preview_info_replace', '? will be replaced with the next available round (e.g. r1, r2, …) based on existing ad units for this website.')}</span>
               </div>
             </div>
           )}
-
+ 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={saving || !form.website_id || form.sizes.length === 0}>
-              {saving ? 'Generating…' : (
+              {saving ? t('websites.generating', 'Generating…') : (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Sparkles size={14} />
-                  <span>Generate {form.count || ''} Ad Unit{form.count > 1 ? 's' : ''} in GAM</span>
+                  <span>
+                    {form.count > 1 
+                      ? t('websites.generate_multiple_in_gam', 'Generate {count} Ad Units in GAM', { count: form.count })
+                      : t('websites.generate_single_in_gam', 'Generate {count} Ad Unit in GAM', { count: form.count })}
+                  </span>
                 </span>
               )}
             </button>

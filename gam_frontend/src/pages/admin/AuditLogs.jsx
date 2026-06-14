@@ -4,10 +4,12 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
 import { ClipboardList, Filter } from 'lucide-react'
+import { useI18n } from '../../contexts/I18nContext'
 
 
 export default function AuditLogsPage() {
   const { formatDateTime } = useSettings()
+  const { t } = useI18n()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ action: '', entity_type: '' })
@@ -25,7 +27,7 @@ export default function AuditLogsPage() {
       
       const res = await adminApi.getAuditLogs(params)
       setLogs(res.data?.data || [])
-    } catch { toast.error('Failed to load audit logs') }
+    } catch { toast.error(t('audit.toast_load_fail', 'Failed to load audit logs')) }
     finally { setLoading(false) }
   }
 
@@ -51,9 +53,9 @@ export default function AuditLogsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <ClipboardList size={24} style={{ color: 'var(--color-primary)' }} /> Audit Logs
+            <ClipboardList size={24} style={{ color: 'var(--color-primary)' }} /> {t('audit.title', 'Audit Logs')}
           </h1>
-          <p className="page-subtitle">Track admin and system actions</p>
+          <p className="page-subtitle">{t('audit.subtitle', 'Track admin and system actions')}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
@@ -62,7 +64,7 @@ export default function AuditLogsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('common.hide_filters', 'Hide Filters') : t('common.show_filters', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -90,15 +92,15 @@ export default function AuditLogsPage() {
             value={filters.action} 
             onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}
           >
-            <option value="">All Actions</option>
-            <option value="created">Created</option>
-            <option value="updated">Updated</option>
-            <option value="deleted">Deleted</option>
-            <option value="suspended">Suspended</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="paid">Paid</option>
-            <option value="closed">Closed</option>
+            <option value="">{t('audit.all_actions', 'All Actions')}</option>
+            <option value="created">{t('audit.action_created', 'Created')}</option>
+            <option value="updated">{t('audit.action_updated', 'Updated')}</option>
+            <option value="deleted">{t('audit.action_deleted', 'Deleted')}</option>
+            <option value="suspended">{t('audit.action_suspended', 'Suspended')}</option>
+            <option value="approved">{t('audit.action_approved', 'Approved')}</option>
+            <option value="rejected">{t('audit.action_rejected', 'Rejected')}</option>
+            <option value="paid">{t('payouts.status_paid', 'Paid')}</option>
+            <option value="closed">{t('common.status_closed', 'Closed')}</option>
           </select>
           
           <select 
@@ -106,13 +108,13 @@ export default function AuditLogsPage() {
             value={filters.entity_type} 
             onChange={e => setFilters(f => ({ ...f, entity_type: e.target.value }))}
           >
-            <option value="">All Entities</option>
-            <option value="Publisher">Publisher</option>
-            <option value="Website">Website</option>
-            <option value="AdUnit">Ad Unit</option>
-            <option value="Setting">Setting</option>
-            <option value="Payout">Payout</option>
-            <option value="PeriodClosing">Period Closing</option>
+            <option value="">{t('audit.all_entities', 'All Entities')}</option>
+            <option value="Publisher">{t('common.publisher', 'Publisher')}</option>
+            <option value="Website">{t('audit.entity_website', 'Website')}</option>
+            <option value="AdUnit">{t('audit.entity_ad_unit', 'Ad Unit')}</option>
+            <option value="Setting">{t('audit.entity_setting', 'Setting')}</option>
+            <option value="Payout">{t('audit.entity_payout', 'Payout')}</option>
+            <option value="PeriodClosing">{t('audit.entity_period_closing', 'Period Closing')}</option>
           </select>
         </div>
       )}
@@ -124,18 +126,18 @@ export default function AuditLogsPage() {
           ) : logs.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon"><ClipboardList size={40} /></div>
-              <div className="empty-state-text">No audit logs found</div>
+              <div className="empty-state-text">{t('audit.no_logs', 'No audit logs found')}</div>
             </div>
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Timestamp</th>
-                  <th>Admin</th>
-                  <th>Action</th>
-                  <th>Entity</th>
-                  <th>Changes (Diff)</th>
-                  <th>IP Address</th>
+                  <th>{t('audit.col_timestamp', 'Timestamp')}</th>
+                  <th>{t('audit.col_admin', 'Admin')}</th>
+                  <th>{t('audit.col_action', 'Action')}</th>
+                  <th>{t('audit.col_entity', 'Entity')}</th>
+                  <th>{t('audit.col_changes', 'Changes (Diff)')}</th>
+                  <th>{t('audit.col_ip', 'IP Address')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,7 +151,7 @@ export default function AuditLogsPage() {
                           <div className="text-xs text-muted">{log.user.email}</div>
                         </div>
                       ) : (
-                        <span className="badge badge-inactive">System</span>
+                        <span className="badge badge-inactive">{t('audit.system', 'System')}</span>
                       )}
                     </td>
                     <td>
@@ -166,12 +168,12 @@ export default function AuditLogsPage() {
                     <td style={{ maxWidth: 300, whiteSpace: 'normal', wordBreak: 'break-all' }}>
                       <details>
                         <summary className="text-sm" style={{ cursor: 'pointer', color: 'var(--color-primary)' }}>
-                          View Payload
+                          {t('audit.view_payload', 'View Payload')}
                         </summary>
                         <div style={{ marginTop: 8, padding: 8, background: 'var(--color-bg)', borderRadius: 4 }}>
                           {log.old_values && (
                             <div style={{ marginBottom: 8 }}>
-                              <div className="text-xs text-muted">Old:</div>
+                              <div className="text-xs text-muted">{t('audit.old_label', 'Old')}:</div>
                               <pre style={{ fontSize: 10, margin: 0, color: '#ef4444' }}>
                                 {JSON.stringify(log.old_values, null, 2)}
                               </pre>
@@ -179,7 +181,7 @@ export default function AuditLogsPage() {
                           )}
                           {log.new_values && (
                             <div>
-                              <div className="text-xs text-muted">New:</div>
+                              <div className="text-xs text-muted">{t('audit.new_label', 'New')}:</div>
                               <pre style={{ fontSize: 10, margin: 0, color: '#10b981' }}>
                                 {JSON.stringify(log.new_values, null, 2)}
                               </pre>

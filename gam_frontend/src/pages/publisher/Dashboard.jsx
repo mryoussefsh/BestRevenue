@@ -4,14 +4,12 @@ import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
+import { useI18n } from '../../contexts/I18nContext'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import AnnouncementsRenderer from '../../components/AnnouncementsRenderer'
-import { 
-  Sparkles, Clock, RefreshCw, FileText, DollarSign, Eye, MousePointer, 
-  Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle, Filter
-} from 'lucide-react'
+import { Sparkles, Clock, RefreshCw, FileText, DollarSign, Eye, MousePointer, Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle, Filter } from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -23,6 +21,7 @@ const toLocalYYYYMMDD = (date) => {
 export default function PublisherDashboard() {
   const { user } = useAuth()
   const { settings, formatDateTime } = useSettings()
+  const { t } = useI18n()
   const [payouts, setPayouts] = useState([])
   const [revenue, setRevenue] = useState([])
   const [lastSyncAt, setLastSyncAt] = useState(null)
@@ -173,7 +172,7 @@ export default function PublisherDashboard() {
       setAggregates(revRes.data?.aggregates || null)
       setLastSyncAt(revRes.data?.last_sync_at || null)
     } catch {
-      toast.error('Failed to load dashboard data')
+      toast.error(t('dashboard.toast_failed', 'Failed to load dashboard data'))
     }
   }
 
@@ -188,7 +187,7 @@ export default function PublisherDashboard() {
       const res = await publisherApi.getAdUnits(newWebId)
       setAdUnits(res.data?.data || [])
     } catch {
-      toast.error('Failed to load ad units')
+      toast.error(t('dashboard.toast_adunits_failed', 'Failed to load ad units'))
     }
   }
 
@@ -222,7 +221,7 @@ export default function PublisherDashboard() {
   // Secure PDF Export handler using Axios blob download to pass Bearer tokens
   const handleExportPDF = async () => {
     try {
-      const toastId = toast.loading('Generating PDF statement...')
+      const toastId = toast.loading(t('dashboard.toast_pdf_generating', 'Generating PDF statement...'))
       const queryParams = {
         date_from: filters.date_from,
         date_to: filters.date_to,
@@ -243,18 +242,18 @@ export default function PublisherDashboard() {
       window.URL.revokeObjectURL(downloadUrl)
       
       toast.dismiss(toastId)
-      toast.success('PDF downloaded successfully')
+      toast.success(t('dashboard.toast_pdf_success', 'PDF downloaded successfully'))
     } catch (err) {
       console.error(err)
-      toast.error('Failed to export PDF statement')
+      toast.error(t('dashboard.toast_pdf_failed', 'Failed to export PDF statement'))
     }
   }
 
   const getGreeting = () => {
     const hr = new Date().getHours()
-    if (hr < 12) return 'Good morning'
-    if (hr < 18) return 'Good afternoon'
-    return 'Good evening'
+    if (hr < 12) return t('dashboard.greeting.morning', 'Good morning')
+    if (hr < 18) return t('dashboard.greeting.afternoon', 'Good afternoon')
+    return t('dashboard.greeting.evening', 'Good evening')
   }
 
   const formatDateString = (dateStr) => {
@@ -320,8 +319,6 @@ export default function PublisherDashboard() {
   const chart = Object.values(byDate)
     .sort((a, b) => a.date < b.date ? -1 : 1)
     .map(d => ({ ...d, approved: +d.approved.toFixed(2), pending: +d.pending.toFixed(2) }))
-
-
 
   // Group daily performance records
   const dailyData = {}
@@ -398,7 +395,7 @@ export default function PublisherDashboard() {
     return (
       <div className="loading-screen">
         <div className="spinner"></div>
-        <p>Loading dashboard metrics...</p>
+        <p>{t('dashboard.loading', 'Loading dashboard metrics...')}</p>
       </div>
     )
   }
@@ -419,12 +416,12 @@ export default function PublisherDashboard() {
             {getGreeting()}, {user?.name || 'Publisher'}!
           </h1>
           <p className="page-subtitle">
-            Earnings overview: {formatDateString(filters.date_from)} - {formatDateString(filters.date_to)}
+            {t('dashboard.earnings_overview', 'Earnings overview: {from} - {to}', { from: formatDateString(filters.date_from), to: formatDateString(filters.date_to) })}
           </p>
           {lastSyncAt && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--br-text-3)', marginTop: 4 }}>
               <span className="dot" style={{ color: 'var(--br-accent)', width: 6, height: 6, display: 'inline-block', borderRadius: '50%', background: 'currentColor' }} />
-              <span>Last updated: {formatDateTime(lastSyncAt)}</span>
+              <span>{t('dashboard.last_updated', 'Last updated: {time}', { time: formatDateTime(lastSyncAt) })}</span>
             </div>
           )}
         </div>
@@ -435,7 +432,7 @@ export default function PublisherDashboard() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Filter size={16} />
-            <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+            <span>{showFiltersPanel ? t('dashboard.filters.hide', 'Hide Filters') : t('dashboard.filters.show', 'Show Filters')}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 background: 'var(--br-primary)',
@@ -459,7 +456,7 @@ export default function PublisherDashboard() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <FileText size={16} />
-            Export PDF Statement
+            {t('dashboard.export_pdf', 'Export PDF Statement')}
           </button>
         </div>
       </div>
@@ -473,25 +470,25 @@ export default function PublisherDashboard() {
           
           {/* Preset Selector */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Time Range</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.time_range', 'Time Range')}</label>
             <select
               className="form-select"
               value={filters.preset}
               onChange={e => handlePresetChange(e.target.value)}
             >
-              {!filters.preset && <option value="" disabled>Custom Range</option>}
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="this_month">This Month</option>
-              <option value="last_month">Last Month</option>
+              {!filters.preset && <option value="" disabled>{t('dashboard.filters.custom_range', 'Custom Range')}</option>}
+              <option value="today">{t('dashboard.presets.today', 'Today')}</option>
+              <option value="yesterday">{t('dashboard.presets.yesterday', 'Yesterday')}</option>
+              <option value="7d">{t('dashboard.presets.7d', 'Last 7 Days')}</option>
+              <option value="30d">{t('dashboard.presets.30d', 'Last 30 Days')}</option>
+              <option value="this_month">{t('dashboard.presets.this_month', 'This Month')}</option>
+              <option value="last_month">{t('dashboard.presets.last_month', 'Last Month')}</option>
             </select>
           </div>
 
           {/* Start Date */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Start Date</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.start_date', 'Start Date')}</label>
             <input
               type="date"
               className="form-input"
@@ -502,7 +499,7 @@ export default function PublisherDashboard() {
 
           {/* End Date */}
           <div>
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>End Date</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.end_date', 'End Date')}</label>
             <input
               type="date"
               className="form-input"
@@ -513,29 +510,29 @@ export default function PublisherDashboard() {
 
           {/* Website Filter */}
           <div className="flex-wide">
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Website</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.website', 'Website')}</label>
             <SearchableSelect
               value={filters.website_id}
               onChange={handleWebsiteChange}
               options={websites.map(w => ({ value: w.id, label: w.domain }))}
-              placeholder="All Websites"
-              emptyMessage="No websites found"
+              placeholder={t('dashboard.filters.all_websites', 'All Websites')}
+              emptyMessage={t('dashboard.filters.no_websites', 'No websites found')}
               isOptional={true}
-              clearLabel="All Websites"
+              clearLabel={t('dashboard.filters.all_websites', 'All Websites')}
             />
           </div>
 
           {/* Ad Unit Filter */}
           <div className="flex-wide">
-            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>Ad Unit</label>
+            <label className="form-label" style={{ marginBottom: 4, fontSize: 12 }}>{t('dashboard.filters.ad_unit', 'Ad Unit')}</label>
             <SearchableSelect
               value={filters.ad_unit_id}
               onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
               options={adUnits.map(au => ({ value: au.id, label: au.display_name }))}
-              placeholder="All Ad Units"
-              emptyMessage={!filters.website_id ? "Select a website first" : "No ad units found"}
+              placeholder={t('dashboard.filters.all_ad_units', 'All Ad Units')}
+              emptyMessage={!filters.website_id ? t('dashboard.filters.select_website_first', 'Select a website first') : t('dashboard.filters.no_ad_units', 'No ad units found')}
               isOptional={true}
-              clearLabel="All Ad Units"
+              clearLabel={t('dashboard.filters.all_ad_units', 'All Ad Units')}
               disabled={!filters.website_id}
             />
           </div>
@@ -549,7 +546,7 @@ export default function PublisherDashboard() {
                 onClick={handleResetFilters}
               >
                 <Ban size={16} />
-                Clear
+                {t('common.clear', 'Clear')}
               </button>
             </div>
           )}
@@ -564,55 +561,55 @@ export default function PublisherDashboard() {
         <div className="stat-grid">
           <div className="stat-card accent">
             <div className="stat-icon"><DollarSign size={20} /></div>
-            <div className="stat-label">Approved Earnings</div>
+            <div className="stat-label">{t('dashboard.stats.approved_earnings', 'Approved Earnings')}</div>
             <div className="stat-value money"><CompactAmount value={totalApprovedEarnings} /></div>
-            <div className="stat-change up">Approved</div>
+            <div className="stat-change up">{t('dashboard.status.approved', 'Approved')}</div>
           </div>
           
           <div className="stat-card warning">
             <div className="stat-icon"><Clock size={20} /></div>
-            <div className="stat-label">Pending Earnings</div>
+            <div className="stat-label">{t('dashboard.stats.pending_earnings', 'Pending Earnings')}</div>
             <div className="stat-value money"><CompactAmount value={totalPendingEarnings} /></div>
-            <div className="stat-change">Holding</div>
+            <div className="stat-change">{t('dashboard.status.holding', 'Holding')}</div>
           </div>
           
           <div className="stat-card info">
             <div className="stat-icon"><Eye size={20} /></div>
-            <div className="stat-label">Total Impressions</div>
+            <div className="stat-label">{t('dashboard.stats.total_impressions', 'Total Impressions')}</div>
             <div className="stat-value">
               <CompactAmount value={totalImpressions} prefix="" decimals={0} />
             </div>
-            <div className="stat-change text-muted">Page ad loads</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.page_ad_loads', 'Page ad loads')}</div>
           </div>
           
           <div className="stat-card info">
             <div className="stat-icon"><Ban size={20} /></div>
-            <div className="stat-label">Unfilled Impressions</div>
+            <div className="stat-label">{t('dashboard.stats.unfilled_impressions', 'Unfilled Impressions')}</div>
             <div className="stat-value">
               <CompactAmount value={totalUnfilled} prefix="" decimals={0} />
             </div>
-            <div className="stat-change text-muted">Unserved inventory</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.unserved_inventory', 'Unserved inventory')}</div>
           </div>
 
           <div className="stat-card info">
             <div className="stat-icon"><MousePointer size={20} /></div>
-            <div className="stat-label">Total Clicks</div>
+            <div className="stat-label">{t('dashboard.stats.total_clicks', 'Total Clicks')}</div>
             <div className="stat-value">
               <CompactAmount value={totalClicks} prefix="" decimals={0} />
             </div>
-            <div className="stat-change text-muted">Selected period</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.selected_period', 'Selected period')}</div>
           </div>
 
           <div className="stat-card primary">
             <div className="stat-icon"><Target size={20} /></div>
-            <div className="stat-label">Average CTR</div>
+            <div className="stat-label">{t('dashboard.stats.average_ctr', 'Average CTR')}</div>
             <div className="stat-value">{averageCtr.toFixed(2)}%</div>
-            <div className="stat-change text-muted">Click-through rate</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.ctr_desc', 'Click-through rate')}</div>
           </div>
 
           <div className="stat-card primary">
             <div className="stat-icon"><Eye size={20} /></div>
-            <div className="stat-label">Viewability Rate</div>
+            <div className="stat-label">{t('dashboard.stats.viewability_rate', 'Viewability Rate')}</div>
             <div className="stat-value">
               {viewabilityRate !== null ? `${viewabilityRate.toFixed(1)}%` : 'N/A'}
             </div>
@@ -622,10 +619,10 @@ export default function PublisherDashboard() {
                   <CompactAmount value={totalAvViewable} prefix="" decimals={0} />
                   <span>/</span>
                   <CompactAmount value={totalAvEligible} prefix="" decimals={0} />
-                  <span>measurable</span>
+                  <span>{t('dashboard.stats.measurable', 'measurable')}</span>
                 </span>
               ) : (
-                'No Active View data'
+                t('dashboard.stats.no_av_data', 'No Active View data')
               )}
             </div>
           </div>
@@ -633,28 +630,28 @@ export default function PublisherDashboard() {
           <div className="stat-card primary">
             <div className="stat-icon"><TrendingUp size={20} /></div>
             <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Monetized CPM
+              {t('dashboard.stats.monetized_cpm', 'Monetized CPM')}
               <span 
                 style={{ cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}
-                title="Your net earnings per 1,000 served (monetized) impressions after the platform share has been applied."
+                title={t('dashboard.stats.cpm_tooltip', 'Your net earnings per 1,000 served (monetized) impressions after the platform share has been applied.')}
               >
                 ⓘ
               </span>
             </div>
             <div className="stat-value money">${averageCpm.toFixed(2)}</div>
-            <div className="stat-change text-muted">Earnings per 1k impressions</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.cpm_desc', 'Earnings per 1k impressions')}</div>
           </div>
           
           <div className="stat-card primary">
             <div className="stat-icon"><CreditCard size={20} /></div>
-            <div className="stat-label">Last Payout</div>
+            <div className="stat-label">{t('dashboard.stats.last_payout', 'Last Payout')}</div>
             <div className="stat-value money">
               {lastPayout ? <CompactAmount value={lastPayout.final_amount} /> : '—'}
             </div>
             <div className="stat-change">
               {lastPayout ? (
                 <span className={`badge badge-${lastPayout.status}`}>{lastPayout.status}</span>
-              ) : 'No payouts yet'}
+              ) : t('dashboard.stats.no_payouts_yet', 'No payouts yet')}
             </div>
           </div>
         </div>
@@ -664,25 +661,25 @@ export default function PublisherDashboard() {
           <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div className="card-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
-              Earnings Trend ({
-                filters.preset === 'today' ? 'Today' :
-                filters.preset === 'yesterday' ? 'Yesterday' :
-                filters.preset === '7d' ? 'Last 7 Days' :
-                filters.preset === '30d' ? 'Last 30 Days' :
-                filters.preset === 'this_month' ? 'This Month' :
-                filters.preset === 'last_month' ? 'Last Month' :
-                'Filtered Range'
+              {t('dashboard.chart.earnings_trend', 'Earnings Trend')} ({
+                filters.preset === 'today' ? t('dashboard.presets.today', 'Today') :
+                filters.preset === 'yesterday' ? t('dashboard.presets.yesterday', 'Yesterday') :
+                filters.preset === '7d' ? t('dashboard.presets.7d', 'Last 7 Days') :
+                filters.preset === '30d' ? t('dashboard.presets.30d', 'Last 30 Days') :
+                filters.preset === 'this_month' ? t('dashboard.presets.this_month', 'This Month') :
+                filters.preset === 'last_month' ? t('dashboard.presets.last_month', 'Last Month') :
+                t('dashboard.chart.filtered_range', 'Filtered Range')
               })
             </div>
             {/* Legend */}
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-accent)' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-accent)', display: 'inline-block' }} />
-                Approved
+                {t('dashboard.status.approved', 'Approved')}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-warning)' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-warning)', display: 'inline-block' }} />
-                Pending
+                {t('dashboard.status.pending', 'Pending')}
               </div>
             </div>
           </div>
@@ -710,7 +707,7 @@ export default function PublisherDashboard() {
                   itemStyle={{ color: 'var(--br-text-2)' }}
                   formatter={(v, name) => [
                     `$${v}`,
-                    name === 'approved' ? 'Approved' : 'Pending'
+                    name === 'approved' ? t('dashboard.status.approved', 'Approved') : t('dashboard.status.pending', 'Pending')
                   ]}
                 />
                 <Area type="monotone" dataKey="approved" stroke="var(--br-accent)"
@@ -722,7 +719,7 @@ export default function PublisherDashboard() {
           ) : (
             <div className="empty-state">
               <TrendingUp size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
-              <div className="empty-state-text">No earnings data for this selection</div>
+              <div className="empty-state-text">{t('dashboard.chart.no_data', 'No earnings data for this selection')}</div>
             </div>
           )}
         </div>
@@ -730,35 +727,35 @@ export default function PublisherDashboard() {
         {/* Daily Performance Table */}
         <div className="glass-card" style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
           <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--br-border)' }}>
-            <div className="card-title">Daily Performance</div>
+            <div className="card-title">{t('dashboard.table.daily_performance', 'Daily Performance')}</div>
           </div>
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
                   <th onClick={() => handleDailySort('date')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Date {dailySortField === 'date' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.date', 'Date')} {dailySortField === 'date' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('impressions')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Impressions {dailySortField === 'impressions' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.impressions', 'Impressions')} {dailySortField === 'impressions' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('clicks')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Clicks {dailySortField === 'clicks' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.clicks', 'Clicks')} {dailySortField === 'clicks' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('ctr')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    CTR {dailySortField === 'ctr' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.ctr', 'CTR')} {dailySortField === 'ctr' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('cpm')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Monetized CPM {dailySortField === 'cpm' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.cpm', 'Monetized CPM')} {dailySortField === 'cpm' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('approved')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Approved {dailySortField === 'approved' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.approved', 'Approved')} {dailySortField === 'approved' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('pending')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Pending {dailySortField === 'pending' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.pending', 'Pending')} {dailySortField === 'pending' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('earnings')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    Total Earnings {dailySortField === 'earnings' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.total_earnings', 'Total Earnings')} {dailySortField === 'earnings' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                 </tr>
               </thead>
@@ -768,7 +765,7 @@ export default function PublisherDashboard() {
                     <td colSpan={8}>
                       <div className="empty-state">
                         <TrendingUp size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
-                        <div className="empty-state-text">No performance data for this selection</div>
+                        <div className="empty-state-text">{t('dashboard.table.no_data', 'No performance data for this selection')}</div>
                       </div>
                     </td>
                   </tr>
@@ -804,7 +801,7 @@ export default function PublisherDashboard() {
               {sortedDailyRecords.length > 0 && (
                 <tfoot>
                   <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '1px solid var(--br-border)' }}>
-                    <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({sortedDailyRecords.length}d)</td>
+                    <td style={{ padding: '10px 16px', fontSize: 12 }}>{t('dashboard.table.totals_days', 'Totals ({days}d)', { days: sortedDailyRecords.length })}</td>
                     <td className="money">
                       <CompactAmount value={dailyTotals.impressions} prefix="" decimals={0} />
                     </td>

@@ -41,6 +41,57 @@ class AdminDashboardRedirectsTest extends TestCase
         $response->assertJsonFragment(['roles_list' => ['Finance Manager']]);
     }
 
+    public function test_login_without_remember_sets_short_token_lifespan(): void
+    {
+        $user = User::create([
+            'name'      => 'Test User',
+            'email'     => 'test@example.com',
+            'password'  => Hash::make('Password123!'),
+            'role'      => 'publisher',
+            'is_active' => true,
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email'    => 'test@example.com',
+            'password' => 'Password123!',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('expires_in', 3600);
+
+        $token = $user->tokens()->first();
+        $this->assertNotNull($token);
+        $this->assertNotNull($token->expires_at);
+        $diffInMinutes = now()->diffInMinutes($token->expires_at);
+        $this->assertEqualsWithDelta(60, $diffInMinutes, 1);
+    }
+
+    public function test_login_with_remember_sets_long_token_lifespan(): void
+    {
+        $user = User::create([
+            'name'      => 'Test User',
+            'email'     => 'test@example.com',
+            'password'  => Hash::make('Password123!'),
+            'role'      => 'publisher',
+            'is_active' => true,
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email'    => 'test@example.com',
+            'password' => 'Password123!',
+            'remember' => true,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('expires_in', 7 * 24 * 60 * 60);
+
+        $token = $user->tokens()->first();
+        $this->assertNotNull($token);
+        $this->assertNotNull($token->expires_at);
+        $diffInDays = now()->diffInDays($token->expires_at);
+        $this->assertEqualsWithDelta(7, $diffInDays, 1);
+    }
+
     public function test_finance_manager_endpoint_access(): void
     {
         $finance = User::create([

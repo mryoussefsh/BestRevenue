@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
+import { useI18n } from '../contexts/I18nContext'
 import { publicApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { TrendingUp, Lock, LayoutDashboard, ArrowRight, X, Menu } from 'lucide-react'
 import './LandingPage.css'
 import './PageDetail.css'
@@ -12,6 +14,7 @@ export default function PageDetail() {
   const { slug } = useParams()
   const { user } = useAuth()
   const { settings } = useSettings()
+  const { t, locale } = useI18n()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [page, setPage] = useState(null)
@@ -24,13 +27,14 @@ export default function PageDetail() {
         setPage(res.data)
         setLoading(false)
         const siteName = settings.site_name || 'BestRevenue'
-        document.title = `${res.data.title} - ${siteName}`
+        const titleVal = (locale === 'ar' && res.data.title_ar) ? res.data.title_ar : res.data.title
+        document.title = `${titleVal} - ${siteName}`
       })
       .catch(() => {
-        toast.error('Page not found')
+        toast.error(t('page.toast.not_found', 'Page not found'))
         navigate('/')
       })
-  }, [slug, navigate, settings.site_name])
+  }, [slug, navigate, settings.site_name, locale])
 
   const handleDashboardRedirect = () => {
     if (user.role === 'admin') navigate('/admin')
@@ -39,7 +43,7 @@ export default function PageDetail() {
 
   if (loading) {
     return (
-      <div className="loading-screen"><div className="spinner" /><span>Loading page…</span></div>
+      <div className="loading-screen"><div className="spinner" /><span>{t('common.loading_page', 'Loading page…')}</span></div>
     )
   }
 
@@ -62,11 +66,11 @@ export default function PageDetail() {
           </Link>
 
           <nav className="landing-nav-links">
-            <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
-            <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
-            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
-            <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Support</Link>
+            <Link to="/" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('common.home_page', 'Home')}</Link>
+            <a href="/#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.features', 'Features')}</a>
+            <a href="/#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.calculator', 'Calculator')}</a>
+            <a href="/#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.payouts_proof', 'Payouts Proof')}</a>
+            <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.support', 'Support')}</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
               <Link
                 key={p.slug}
@@ -74,27 +78,28 @@ export default function PageDetail() {
                 className={`landing-nav-link ${p.slug === slug ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                {p.title}
+                {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
               </Link>
             ))}
             
             {/* Mobile CTAs placed at the end of the dropdown menu list */}
             <div className="mobile-menu-ctas">
+              <LanguageSwitcher style={{ marginBottom: 12, width: '100%' }} />
               {user ? (
                 <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
-                  <LayoutDashboard size={14} /> Dashboard
+                  <LayoutDashboard size={14} /> {t('nav.dashboard', 'Dashboard')}
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
                   {settings.registration_status !== 'closed' ? (
                     <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                      Get Started <ArrowRight size={14} />
+                      {t('landing.get_started', 'Get Started')} <ArrowRight size={14} />
                     </Link>
                   ) : (
-                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>{t('landing.registration_closed', 'Registration Closed')}</span>
                   )}
                   <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                    <Lock size={14} /> Sign In
+                    <Lock size={14} /> {t('auth.login', 'Sign In')}
                   </Link>
                 </div>
               )}
@@ -102,21 +107,22 @@ export default function PageDetail() {
           </nav>
 
           <div className="landing-nav-ctas">
+            <LanguageSwitcher style={{ marginRight: 8 }} />
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
-                <LayoutDashboard size={14} /> Dashboard
+                <LayoutDashboard size={14} /> {t('nav.dashboard', 'Dashboard')}
               </button>
             ) : (
               <>
                 <Link to="/login" className="btn btn-secondary btn-sm">
-                  <Lock size={12} /> Sign In
+                  <Lock size={12} /> {t('auth.login', 'Sign In')}
                 </Link>
                 {settings.registration_status !== 'closed' ? (
                   <Link to="/register" className="btn btn-primary btn-sm">
-                    Get Started <ArrowRight size={12} />
+                    {t('landing.get_started', 'Get Started')} <ArrowRight size={12} />
                   </Link>
                 ) : (
-                  <span className="badge badge-neutral">Registration Closed</span>
+                  <span className="badge badge-neutral">{t('landing.registration_closed', 'Registration Closed')}</span>
                 )}
               </>
             )}
@@ -130,9 +136,9 @@ export default function PageDetail() {
 
       {/* Hero Header */}
       <section className="page-detail-hero">
-        <h1 className="page-detail-hero-title">{page.title}</h1>
+        <h1 className="page-detail-hero-title">{(locale === 'ar' && page?.title_ar) ? page.title_ar : (page?.title || '')}</h1>
         <p className="page-detail-hero-desc">
-          Last updated: {new Date(page.updated_at).toLocaleDateString()}
+          {t('common.last_updated', 'Last updated:')} {new Date(page.updated_at).toLocaleDateString()}
         </p>
       </section>
 
@@ -141,14 +147,13 @@ export default function PageDetail() {
         <div className="page-detail-card">
           <div
             className="page-detail-content"
-            dangerouslySetInnerHTML={{ __html: page.content }}
+            dangerouslySetInnerHTML={{ __html: (locale === 'ar' && page?.content_ar) ? page.content_ar : (page?.content || '') }}
           />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="landing-footer">
-        <div className="footer-content">
+      <footer className="landing-footer">        <div className="footer-content">
           <div className="footer-brand">
             <Link to="/" className="footer-logo">
               {settings.site_logo ? (
@@ -161,7 +166,7 @@ export default function PageDetail() {
               )}
             </Link>
             <p className="footer-desc">
-              A premium, automated ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.
+              {t('landing.footer.desc', 'A premium, automated ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.')}
             </p>
             {(settings.social_facebook || settings.social_instagram || settings.social_x || settings.social_telegram) && (
               <div className="footer-socials" style={{ display: 'flex', gap: 14, marginTop: 18 }}>
@@ -208,25 +213,25 @@ export default function PageDetail() {
 
           <div className="footer-links-grid">
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Platform</h5>
+              <h5 className="footer-link-title">{t('landing.footer.platform', 'Platform')}</h5>
               <div className="footer-links-list">
-                <Link to="/" className="footer-link">Home Page</Link>
-                <a href="/#features" className="footer-link">Features</a>
-                <a href="/#calculator" className="footer-link">Calculator</a>
-                <a href="/#proofs" className="footer-link">Payments Proof</a>
+                <Link to="/" className="footer-link">{t('common.home_page', 'Home Page')}</Link>
+                <a href="/#features" className="footer-link">{t('landing.nav.features', 'Features')}</a>
+                <a href="/#calculator" className="footer-link">{t('landing.nav.calculator', 'Calculator')}</a>
+                <a href="/#proofs" className="footer-link">{t('landing.nav.payouts_proof', 'Payouts Proof')}</a>
               </div>
             </div>
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Access</h5>
+              <h5 className="footer-link-title">{t('landing.footer.access', 'Access')}</h5>
               <div className="footer-links-list">
-                <Link to="/support" className="footer-link">Support Hub</Link>
-                <Link to="/login" className="footer-link">Sign In</Link>
-                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">Google Ad Manager Help</a>
+                <Link to="/support" className="footer-link">{t('landing.nav.support', 'Support Hub')}</Link>
+                <Link to="/login" className="footer-link">{t('auth.login', 'Sign In')}</Link>
+                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">{t('common.gam_help', 'Google Ad Manager Help')}</a>
               </div>
             </div>
             {settings.pages && settings.pages.some(p => p.show_in_public_footer) && (
               <div className="footer-link-group">
-                <h5 className="footer-link-title">Information</h5>
+                <h5 className="footer-link-title">{t('landing.footer.information', 'Information')}</h5>
                 <div className="footer-links-list">
                   {settings.pages.filter(p => p.show_in_public_footer).map(p => (
                     <Link
@@ -235,7 +240,7 @@ export default function PageDetail() {
                       className="footer-link"
                       style={p.slug === slug ? { color: 'var(--color-primary-light)', fontWeight: 600 } : {}}
                     >
-                      {p.title}
+                      {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
                     </Link>
                   ))}
                 </div>
@@ -245,8 +250,8 @@ export default function PageDetail() {
         </div>
 
         <div className="footer-bottom">
-          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. All rights reserved.</div>
-          <div>Empowering publishers through transparent ad metrics.</div>
+          <div>{t('common.all_rights_reserved', '© {year} {site_name}. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'BestRevenue' })}</div>
+          <div>{t('landing.footer.subtext', 'Empowering publishers through transparent ad metrics.')}</div>
         </div>
       </footer>
     </div>

@@ -78,6 +78,9 @@ class AdminTicketController extends Controller
         $ticket = Ticket::with(['publisher', 'user', 'assignee', 'messages.user'])
             ->findOrFail($id);
 
+        $ticket->last_viewed_by_admin_at = now();
+        $ticket->save();
+
         return response()->json($ticket);
     }
 
@@ -147,6 +150,7 @@ class AdminTicketController extends Controller
                 $ticket->assigned_to = $request->user()->id;
             }
 
+            $ticket->last_viewed_by_admin_at = now();
             $ticket->touch();
             $ticket->save();
 

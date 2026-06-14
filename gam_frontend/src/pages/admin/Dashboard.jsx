@@ -1,34 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useI18n } from '../../contexts/I18nContext'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useAuth } from '../../contexts/AuthContext'
-import {
-  DollarSign,
-  Users,
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  Eye,
-  MousePointer,
-  Ban,
-  BarChart2,
-  Target,
-  Percent,
-  Calendar,
-  Award,
-  Lock,
-  ArrowRight,
-  TrendingUp,
-  Scale,
-  LayoutDashboard,
-  RefreshCw,
-  Filter
-} from 'lucide-react'
+import { DollarSign, Users, CheckCircle2, Clock, CreditCard, Eye, MousePointer, Ban, BarChart2, Target, Percent, Calendar, Award, Lock, ArrowRight, TrendingUp, Scale, LayoutDashboard, RefreshCw, Filter } from 'lucide-react'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
 // Use local-timezone formatting to avoid UTC shift (e.g. UTC+3 offset causing day-1 errors)
@@ -103,6 +83,7 @@ const DATE_PRESETS = [
 
 // ── Searchable dropdown ─────────────────────────────────────────────────────
 function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All' }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const ref = useRef(null)
@@ -146,7 +127,7 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
           maxHeight: 260, display: 'flex', flexDirection: 'column',
         }}>
           <div style={{ padding: 8, borderBottom: '1px solid var(--color-border)' }}>
-            <input autoFocus className="form-input" placeholder="Search…" value={q}
+            <input autoFocus className="form-input" placeholder={t('common.search_placeholder', 'Search…')} value={q}
               onChange={e => setQ(e.target.value)}
               style={{ padding: '5px 8px', height: 30, fontSize: 12 }} />
           </div>
@@ -170,7 +151,7 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
             ))}
             {filtered.length === 0 && (
               <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                No results
+                {t('common.no_results', 'No results')}
               </div>
             )}
           </div>
@@ -182,6 +163,7 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
 
 // ── Main Dashboard ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const { t } = useI18n()
   const { settings } = useSettings()
   const { hasPermission } = useAuth()
   const [stats, setStats]           = useState(null)
@@ -457,7 +439,7 @@ export default function AdminDashboard() {
       setPublisherStats(top10)
     } catch (e) {
       console.error(e)
-      toast.error('Failed to load dashboard data: ' + (e.response?.data?.message || e.message))
+      toast.error(t('dashboard.toast_failed', 'Failed to load dashboard data') + ': ' + (e.response?.data?.message || e.message))
     } finally {
       setLoading(false)
     }
@@ -467,10 +449,10 @@ export default function AdminDashboard() {
     setSyncing(true)
     try {
       const res = await adminApi.runSync()
-      toast.success(res.data?.message || 'GAM sync completed successfully!')
+      toast.success(res.data?.message || t('dashboard.toast_sync_success', 'GAM sync completed successfully!'))
       loadData()
     } catch (e) {
-      toast.error(e.response?.data?.message || 'GAM sync failed.')
+      toast.error(e.response?.data?.message || t('dashboard.toast_sync_fail', 'GAM sync failed.'))
     } finally {
       setSyncing(false)
     }
@@ -521,13 +503,13 @@ export default function AdminDashboard() {
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LayoutDashboard size={28} style={{ color: 'var(--br-primary)' }} />
-            <span>Dashboard</span>
+            <span>{t('nav.dashboard', 'Dashboard')}</span>
           </h1>
           <p className="page-subtitle" style={{ color: 'var(--color-text-muted)' }}>
-            {loading ? 'Loading…' : (
+            {loading ? t('common.loading', 'Loading…') : (
               hasPermission('manage_revenue')
-                ? `${stats?.recordCount?.toLocaleString() || 0} revenue records · ${filters.date_from} → ${filters.date_to}`
-                : 'Welcome to the BestRevenue administrator dashboard'
+                ? t('dashboard.revenue_records_count', '{count} revenue records · {from} → {to}', { count: stats?.recordCount?.toLocaleString() || 0, from: filters.date_from, to: filters.date_to })
+                : t('dashboard.admin_welcome', 'Welcome to the BestRevenue administrator dashboard')
             )}
           </p>
         </div>
@@ -539,7 +521,7 @@ export default function AdminDashboard() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               <Filter size={16} />
-              <span>{showFiltersPanel ? 'Hide Filters' : 'Show Filters'}</span>
+              <span>{showFiltersPanel ? t('dashboard.filters.hide', 'Hide Filters') : t('dashboard.filters.show', 'Show Filters')}</span>
               {activeFiltersCount > 0 && (
                 <span style={{
                   background: 'var(--br-primary)',
@@ -564,8 +546,8 @@ export default function AdminDashboard() {
               onClick={handleSync} disabled={syncing} id="run-gam-sync-btn"
             >
               {syncing
-                ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Syncing…</>
-                : <><RefreshCw size={14} /> Run GAM Sync</>}
+                ? <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> {t('dashboard.syncing', 'Syncing…')}</>
+                : <><RefreshCw size={14} /> {t('dashboard.run_sync', 'Run GAM Sync')}</>}
             </button>
           )}
         </div>
@@ -582,25 +564,25 @@ export default function AdminDashboard() {
         <div className="dashboard-filters-grid" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Period Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Period</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{t('dashboard.filters.period', 'Period')}</span>
             <select className="form-select" value={preset}
               onChange={e => applyPreset(e.target.value)}
               style={{ height: 38, fontSize: 13, minWidth: 120 }}>
               {DATE_PRESETS.map(p => (
-                <option key={p.key} value={p.key}>{p.label}</option>
+                <option key={p.key} value={p.key}>{t(`dashboard.presets.${p.key}`, p.label)}</option>
               ))}
             </select>
           </div>
 
           {/* Custom date range — always visible */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>From</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{t('dashboard.filters.from', 'From')}</span>
             <input type="date" className="form-input" value={filters.date_from}
               style={{ height: 38, fontSize: 13, padding: '0 10px' }}
               onChange={e => { setPreset('custom'); setFilters(f => ({ ...f, date_from: e.target.value })) }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>To</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{t('dashboard.filters.to', 'To')}</span>
             <input type="date" className="form-input" value={filters.date_to}
               style={{ height: 38, fontSize: 13, padding: '0 10px' }}
               onChange={e => { setPreset('custom'); setFilters(f => ({ ...f, date_to: e.target.value })) }} />
@@ -615,8 +597,8 @@ export default function AdminDashboard() {
               value={filters.publisher_id}
               onChange={val => setFilters(f => ({ ...f, publisher_id: val, website_id: '', ad_unit_id: '' }))}
               options={publisherOptions}
-              allLabel="All Publishers"
-              placeholder="All Publishers"
+              allLabel={t('dashboard.filters.all_publishers', 'All Publishers')}
+              placeholder={t('dashboard.filters.all_publishers', 'All Publishers')}
             />
           )}
 
@@ -626,8 +608,8 @@ export default function AdminDashboard() {
               value={filters.website_id}
               onChange={val => setFilters(f => ({ ...f, website_id: val, ad_unit_id: '' }))}
               options={websiteOptions}
-              allLabel="All Websites"
-              placeholder="All Websites"
+              allLabel={t('dashboard.filters.all_websites', 'All Websites')}
+              placeholder={t('dashboard.filters.all_websites', 'All Websites')}
             />
           )}
 
@@ -637,8 +619,8 @@ export default function AdminDashboard() {
               value={filters.ad_unit_id}
               onChange={val => setFilters(f => ({ ...f, ad_unit_id: val }))}
               options={adUnitOptions}
-              allLabel="All Ad Units"
-              placeholder="All Ad Units"
+              allLabel={t('dashboard.filters.all_ad_units', 'All Ad Units')}
+              placeholder={t('dashboard.filters.all_ad_units', 'All Ad Units')}
             />
           )}
 
@@ -648,10 +630,10 @@ export default function AdminDashboard() {
               <select className="form-select" value={filters.status}
                 onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
                 style={{ height: 38, fontSize: 13, minWidth: 150, width: '100%' }}>
-                <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="closed">Closed</option>
+                <option value="">{t('dashboard.filters.all_statuses', 'All Statuses')}</option>
+                <option value="pending">{t('dashboard.status.pending', 'Pending')}</option>
+                <option value="approved">{t('dashboard.status.approved', 'Approved')}</option>
+                <option value="closed">{t('dashboard.status.closed', 'Closed')}</option>
               </select>
             </div>
           )}
@@ -686,7 +668,7 @@ export default function AdminDashboard() {
                 }}
               >
                 <RefreshCw size={14} />
-                Reset Filters
+                {t('dashboard.filters.reset', 'Reset Filters')}
               </button>
             </div>
           )}
@@ -702,42 +684,42 @@ export default function AdminDashboard() {
       {/* ── Revenue Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> Revenue Metrics
+          <DollarSign size={14} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.revenue_metrics', 'Revenue Metrics')}
         </div>
         {hasPermission('manage_revenue') ? (
           <div className="stat-grid">
             <div className="stat-card primary">
               <div className="stat-icon"><DollarSign size={20} /></div>
-              <div className="stat-label">Total Gross Revenue</div>
+              <div className="stat-label">{t('dashboard.stats.total_gross', 'Total Gross Revenue')}</div>
               <div className="stat-value money"><CompactAmount value={stats?.totalGross} /></div>
-              <div className="stat-change up">▲ Selected period</div>
+              <div className="stat-change up">▲ {t('dashboard.stats.selected_period', 'Selected period')}</div>
             </div>
             <div className="stat-card accent">
               <div className="stat-icon"><Users size={20} /></div>
-              <div className="stat-label">Total Pub. Earnings</div>
+              <div className="stat-label">{t('dashboard.stats.total_pub_earnings', 'Total Pub. Earnings')}</div>
               <div className="stat-value money"><CompactAmount value={stats?.totalEarnings} /></div>
-              <div className="stat-change up">▲ Ratio split</div>
+              <div className="stat-change up">▲ {t('dashboard.stats.ratio_split', 'Ratio split')}</div>
             </div>
             <div className="stat-card accent">
               <div className="stat-icon"><CheckCircle2 size={20} /></div>
-              <div className="stat-label">Approved Earnings</div>
+              <div className="stat-label">{t('dashboard.stats.approved_earnings', 'Approved Earnings')}</div>
               <div className="stat-value money"><CompactAmount value={stats?.totalApproved} /></div>
-              <div className="stat-change up">✓ Approved</div>
+              <div className="stat-change up">✓ {t('dashboard.stats.approved_label', 'Approved')}</div>
             </div>
             <div className="stat-card warning">
               <div className="stat-icon"><Clock size={20} /></div>
-              <div className="stat-label">Pending Earnings</div>
+              <div className="stat-label">{t('dashboard.stats.pending_earnings', 'Pending Earnings')}</div>
               <div className="stat-value money"><CompactAmount value={stats?.totalPending} /></div>
               <div className="stat-change" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Clock size={12} />
-                <span>Holding period</span>
+                <span>{t('dashboard.stats.holding_period', 'Holding period')}</span>
               </div>
             </div>
             <div className="stat-card accent" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.3)' }}>
               <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}><CreditCard size={20} /></div>
-              <div className="stat-label">Ready for Payout</div>
+              <div className="stat-label">{t('dashboard.stats.ready_payout', 'Ready for Payout')}</div>
               <div className="stat-value money" style={{ color: 'var(--color-accent)' }}><CompactAmount value={stats?.readyForPayout} /></div>
-              <div className="stat-change text-muted">Filtered wallet balance</div>
+              <div className="stat-change text-muted">{t('dashboard.stats.filtered_balance', 'Filtered wallet balance')}</div>
             </div>
           </div>
         ) : (
@@ -766,8 +748,8 @@ export default function AdminDashboard() {
               <Lock size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>Revenue Metrics Restricted</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>You do not have the required permissions to view financial revenue data.</div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>{t('dashboard.restricted.revenue_title', 'Revenue Metrics Restricted')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>{t('dashboard.restricted.revenue_desc', 'You do not have the required permissions to view financial revenue data.')}</div>
             </div>
           </div>
         )}
@@ -776,49 +758,49 @@ export default function AdminDashboard() {
       {/* ── Performance Stats Grid ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <BarChart2 size={14} style={{ color: 'var(--br-primary)' }} /> Performance Metrics
+          <BarChart2 size={14} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.performance_metrics', 'Performance Metrics')}
         </div>
         {hasPermission('manage_revenue') ? (
           <div className="stat-grid">
             <div className="stat-card info">
               <div className="stat-icon"><Eye size={20} /></div>
-              <div className="stat-label">Total Impressions</div>
+              <div className="stat-label">{t('dashboard.stats.total_impressions', 'Total Impressions')}</div>
               <div className="stat-value">
                 {stats?.totalImpressions !== undefined ? <CompactAmount value={stats.totalImpressions} prefix="" decimals={0} /> : '—'}
               </div>
-              <div className="stat-change up">▲ All ad units</div>
+              <div className="stat-change up">▲ {t('dashboard.stats.all_ad_units', 'All ad units')}</div>
             </div>
             <div className="stat-card info">
               <div className="stat-icon"><MousePointer size={20} /></div>
-              <div className="stat-label">Total Clicks</div>
+              <div className="stat-label">{t('dashboard.stats.total_clicks', 'Total Clicks')}</div>
               <div className="stat-value">
                 {stats?.totalClicks !== undefined ? <CompactAmount value={stats.totalClicks} prefix="" decimals={0} /> : '—'}
               </div>
-              <div className="stat-change up">▲ All ad units</div>
+              <div className="stat-change up">▲ {t('dashboard.stats.all_ad_units', 'All ad units')}</div>
             </div>
             <div className="stat-card info">
               <div className="stat-icon"><Ban size={20} /></div>
-              <div className="stat-label">Unfilled Impressions</div>
+              <div className="stat-label">{t('dashboard.stats.unfilled_impressions', 'Unfilled Impressions')}</div>
               <div className="stat-value">
                 {stats?.totalUnfilled !== undefined ? <CompactAmount value={stats.totalUnfilled} prefix="" decimals={0} /> : '—'}
               </div>
-              <div className="stat-change text-muted">Unserved inventory</div>
+              <div className="stat-change text-muted">{t('dashboard.stats.unserved_inventory', 'Unserved inventory')}</div>
             </div>
             <div className="stat-card primary">
               <div className="stat-icon"><TrendingUp size={20} /></div>
-              <div className="stat-label">Avg. Gross CPM</div>
+              <div className="stat-label">{t('dashboard.stats.avg_gross_cpm', 'Avg. Gross CPM')}</div>
               <div className="stat-value money">${stats?.avgCPM ?? '—'}</div>
-              <div className="stat-change">Per 1000 impressions</div>
+              <div className="stat-change">{t('dashboard.stats.per_1k_impr', 'Per 1000 impressions')}</div>
             </div>
             <div className="stat-card primary">
               <div className="stat-icon"><Target size={20} /></div>
-              <div className="stat-label">Avg. CTR</div>
+              <div className="stat-label">{t('dashboard.stats.avg_ctr', 'Avg. CTR')}</div>
               <div className="stat-value">{stats?.avgCTR ?? '—'}%</div>
-              <div className="stat-change">Click-through rate</div>
+              <div className="stat-change">{t('dashboard.stats.ctr_desc', 'Click-through rate')}</div>
             </div>
             <div className="stat-card primary">
               <div className="stat-icon"><Eye size={20} /></div>
-              <div className="stat-label">Viewability Rate</div>
+              <div className="stat-label">{t('dashboard.stats.viewability_rate', 'Viewability Rate')}</div>
               <div className="stat-value">
                 {stats?.viewabilityRate !== null && stats?.viewabilityRate !== undefined
                   ? `${parseFloat(stats.viewabilityRate).toFixed(1)}%`
@@ -830,18 +812,18 @@ export default function AdminDashboard() {
                     <CompactAmount value={stats.totalAvViewable || 0} prefix="" decimals={0} showInfo={false} />
                     <span>/</span>
                     <CompactAmount value={stats.totalAvEligible || 0} prefix="" decimals={0} showInfo={false} />
-                    <span>measurable</span>
+                    <span>{t('dashboard.stats.measurable', 'measurable')}</span>
                   </span>
                 ) : (
-                  'No Active View data'
+                  t('dashboard.stats.no_av_data', 'No Active View data')
                 )}
               </div>
             </div>
             <div className="stat-card accent">
               <div className="stat-icon"><Percent size={20} /></div>
-              <div className="stat-label">Avg. Revenue Ratio</div>
+              <div className="stat-label">{t('dashboard.stats.avg_revenue_ratio', 'Avg. Revenue Ratio')}</div>
               <div className="stat-value">{stats?.avgRatio ?? '—'}%</div>
-              <div className="stat-change">Publisher share</div>
+              <div className="stat-change">{t('dashboard.stats.publisher_share', 'Publisher share')}</div>
             </div>
           </div>
         ) : (
@@ -870,8 +852,8 @@ export default function AdminDashboard() {
               <Lock size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>Performance Metrics Restricted</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>You do not have the required permissions to view traffic and ad performance statistics.</div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)' }}>{t('dashboard.restricted.performance_title', 'Performance Metrics Restricted')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>{t('dashboard.restricted.performance_desc', 'You do not have the required permissions to view traffic and ad performance statistics.')}</div>
             </div>
           </div>
         )}
@@ -881,30 +863,30 @@ export default function AdminDashboard() {
       {(hasPermission('manage_payouts') || hasPermission('manage_publishers') || hasPermission('manage_closings') || hasPermission('manage_revenue')) && (
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, color: 'var(--color-text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Scale size={14} style={{ color: 'var(--br-primary)' }} /> Platform Overview
+            <Scale size={14} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.platform_overview', 'Platform Overview')}
           </div>
           <div className="stat-grid">
             {hasPermission('manage_payouts') && (
               <div className="stat-card warning">
                 <div className="stat-icon"><CreditCard size={20} /></div>
-                <div className="stat-label">Pending Payouts</div>
+                <div className="stat-label">{t('dashboard.stats.pending_payouts', 'Pending Payouts')}</div>
                 <div className="stat-value money" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <CompactAmount value={stats?.pendingPayoutsTotal} />
                   {stats?.pendingPayouts > 0 && (
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
-                      ({stats.pendingPayouts} req.)
+                      {t('dashboard.stats.payout_reqs', '({count} req.)', { count: stats.pendingPayouts })}
                     </span>
                   )}
                 </div>
                 <div className="stat-change" style={{ color: stats?.pendingPayouts > 0 ? 'var(--color-warning)' : 'var(--color-accent)' }}>
-                  {stats?.pendingPayouts > 0 ? '⚠ Needs attention' : '✓ All clear'}
+                  {stats?.pendingPayouts > 0 ? t('dashboard.stats.needs_attention', '⚠ Needs attention') : t('dashboard.stats.all_clear', '✓ All clear')}
                 </div>
               </div>
             )}
             {hasPermission('manage_publishers') && (
               <div className="stat-card accent">
                 <div className="stat-icon"><Users size={20} /></div>
-                <div className="stat-label">Active Publishers</div>
+                <div className="stat-label">{t('dashboard.stats.active_publishers', 'Active Publishers')}</div>
                 <div className="stat-value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {stats?.activePublishers ?? '—'}
                   {stats?.pendingPublishers > 0 && (
@@ -914,19 +896,19 @@ export default function AdminDashboard() {
                       padding: '2px 8px', borderRadius: 12, fontWeight: 600,
                       display: 'inline-flex', alignItems: 'center', gap: 4,
                     }}>
-                      <Clock size={12} /> {stats.pendingPublishers} pending
+                      <Clock size={12} /> {t('dashboard.stats.pending_count', '{count} pending', { count: stats.pendingPublishers })}
                     </span>
                   )}
                 </div>
-                <div className="stat-change">{stats?.publishers ?? '—'} total publishers</div>
+                <div className="stat-change">{t('dashboard.stats.total_publishers_count', '{count} total publishers', { count: stats?.publishers ?? 0 })}</div>
               </div>
             )}
             {hasPermission('manage_closings') && (
               <div className="stat-card primary">
                 <div className="stat-icon"><Lock size={20} /></div>
-                <div className="stat-label">Closed Periods</div>
+                <div className="stat-label">{t('dashboard.stats.closed_periods', 'Closed Periods')}</div>
                 <div className="stat-value">{stats?.closedPeriods ?? '—'}</div>
-                <div className="stat-change">Historical periods</div>
+                <div className="stat-change">{t('dashboard.stats.historical_periods', 'Historical periods')}</div>
               </div>
             )}
 
@@ -937,7 +919,7 @@ export default function AdminDashboard() {
                 border: '1px solid rgba(99,102,241,.25)',
               }}>
                 <div className="stat-icon"><Calendar size={20} /></div>
-                <div className="stat-label">Daily Avg. Pub. Earnings</div>
+                <div className="stat-label">{t('dashboard.stats.daily_avg_earnings', 'Daily Avg. Pub. Earnings')}</div>
                 <div className="stat-value money"><CompactAmount value={stats?.avgDailyEarnings} /></div>
                 {stats?.periodChangePct !== null && stats?.periodChangePct !== undefined ? (
                   <div className="stat-change" style={{
@@ -945,10 +927,10 @@ export default function AdminDashboard() {
                     display: 'flex', alignItems: 'center', gap: 4,
                   }}>
                     {parseFloat(stats.periodChangePct) >= 0 ? '▲' : '▼'}
-                    {Math.abs(parseFloat(stats.periodChangePct)).toFixed(1)}% vs prev {stats.spanDays}d
+                    {t('dashboard.stats.vs_prev_days', '{pct}% vs prev {days}d', { pct: Math.abs(parseFloat(stats.periodChangePct)).toFixed(1), days: stats.spanDays })}
                   </div>
                 ) : (
-                  <div className="stat-change">No prior period data</div>
+                  <div className="stat-change">{t('dashboard.stats.no_prior_data', 'No prior period data')}</div>
                 )}
               </div>
             )}
@@ -960,7 +942,7 @@ export default function AdminDashboard() {
                 border: '1px solid rgba(245,158,11,.25)',
               }}>
                 <div className="stat-icon"><Award size={20} /></div>
-                <div className="stat-label">Best Day (Pub. Earnings)</div>
+                <div className="stat-label">{t('dashboard.stats.best_day_title', 'Best Day (Pub. Earnings)')}</div>
                 {stats?.bestDay ? (
                   <>
                     <div className="stat-value money" style={{ color: '#f59e0b' }}><CompactAmount value={stats.bestDay.earnings} /></div>
@@ -969,13 +951,13 @@ export default function AdminDashboard() {
                       <span style={{
                         fontSize: 10, padding: '1px 6px', borderRadius: 8,
                         background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 600,
-                      }}>Gross ${stats.bestDay.gross}</span>
+                      }}>{t('dashboard.stats.gross_amount', 'Gross ${amount}', { amount: stats.bestDay.gross })}</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="stat-value">—</div>
-                    <div className="stat-change">No data in range</div>
+                    <div className="stat-change">{t('dashboard.stats.no_data_range', 'No data in range')}</div>
                   </>
                 )}
               </div>
@@ -990,7 +972,7 @@ export default function AdminDashboard() {
           <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <TrendingUp size={16} style={{ color: 'var(--br-primary)' }} /> Revenue Trend
+                <TrendingUp size={16} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.chart.revenue_trend', 'Revenue Trend')}
               </div>
               <div className="card-subtitle">
                 {filters.date_from} → {filters.date_to}
@@ -1002,15 +984,15 @@ export default function AdminDashboard() {
             {/* Series toggles */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               {[
-                { key: 'gross',    label: 'Gross Revenue', color: '#6366f1' },
-                { key: 'earnings', label: 'Pub. Earnings',  color: '#10b981' },
-                { key: 'approved', label: 'Approved',    color: '#22d3ee' },
-                { key: 'pending',  label: 'Pending',     color: '#f59e0b' },
+                { key: 'gross',    label: t('dashboard.chart.gross_revenue', 'Gross Revenue'), color: '#6366f1' },
+                { key: 'earnings', label: t('dashboard.chart.pub_earnings', 'Pub. Earnings'),  color: '#10b981' },
+                { key: 'approved', label: t('dashboard.chart.approved', 'Approved'),    color: '#22d3ee' },
+                { key: 'pending',  label: t('dashboard.chart.pending', 'Pending'),     color: '#f59e0b' },
               ].map(s => (
                 <button
                   key={s.key}
                   onClick={() => toggleSeries(s.key)}
-                  title={visibleSeries[s.key] ? `Hide ${s.label}` : `Show ${s.label}`}
+                  title={visibleSeries[s.key] ? t('dashboard.chart.hide_series', 'Hide {label}', { label: s.label }) : t('dashboard.chart.show_series', 'Show {label}', { label: s.label })}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
@@ -1064,10 +1046,10 @@ export default function AdminDashboard() {
                   labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
                   formatter={(v, n) => {
                     const labels = {
-                      gross:    'Gross Revenue',
-                      earnings: 'Pub. Earnings',
-                      approved: 'Approved',
-                      pending:  'Pending',
+                      gross:    t('dashboard.chart.gross_revenue', 'Gross Revenue'),
+                      earnings: t('dashboard.chart.pub_earnings', 'Pub. Earnings'),
+                      approved: t('dashboard.chart.approved', 'Approved'),
+                      pending:  t('dashboard.chart.pending', 'Pending'),
                     }
                     return [`$${v}`, labels[n] || n]
                   }}
@@ -1081,8 +1063,8 @@ export default function AdminDashboard() {
           ) : (
             <div className="empty-state">
               <div className="empty-state-icon"><BarChart2 size={40} style={{ color: 'var(--br-text-2)' }} /></div>
-              <div className="empty-state-text">No revenue data for this period</div>
-              <div className="empty-state-sub">Adjust your filters or run a GAM sync to populate records</div>
+              <div className="empty-state-text">{t('dashboard.chart.no_data', 'No revenue data for this period')}</div>
+              <div className="empty-state-sub">{t('dashboard.chart.no_data_desc', 'Adjust your filters or run a GAM sync to populate records')}</div>
             </div>
           )}
         </div>
@@ -1112,6 +1094,7 @@ const TABLE_COLS = [
 ]
 
 function DailyTable({ rows, bestDay }) {
+  const { t } = useI18n()
   const [sortKey, setSortKey]     = useState('date')
   const [sortDir, setSortDir]     = useState('desc')
 
@@ -1144,9 +1127,9 @@ function DailyTable({ rows, bestDay }) {
       <div className="card-header" style={{ padding: '16px 20px' }}>
         <div>
           <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Calendar size={16} style={{ color: 'var(--br-primary)' }} /> Daily Performance
+            <Calendar size={16} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.table.daily_performance', 'Daily Performance')}
           </div>
-          <div className="card-subtitle">{rows.length} days · click column headers to sort</div>
+          <div className="card-subtitle">{t('dashboard.table.subtitle', '{count} days · click column headers to sort', { count: rows.length })}</div>
         </div>
       </div>
       <div className="table-wrap">
@@ -1159,7 +1142,7 @@ function DailyTable({ rows, bestDay }) {
                   onClick={() => handleSort(col.key)}
                   style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
                 >
-                  {col.label}{arrow(col.key)}
+                  {t(`dashboard.table.${col.key}`, col.label)}{arrow(col.key)}
                 </th>
               ))}
             </tr>
@@ -1179,7 +1162,7 @@ function DailyTable({ rows, bestDay }) {
                       <span style={{
                         marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 6,
                         background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 700,
-                       }}>Best</span>
+                       }}>{t('dashboard.table.best', 'Best')}</span>
                     )}
                   </td>
                   <td className="money">
@@ -1195,7 +1178,7 @@ function DailyTable({ rows, bestDay }) {
           </tbody>
           <tfoot>
             <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
-              <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals ({rows.length}d)</td>
+              <td style={{ padding: '10px 16px', fontSize: 12 }}>{t('dashboard.table.totals_days', 'Totals ({days}d)', { days: rows.length })}</td>
               <td className="money">
                 <CompactAmount value={totals.impressions} prefix="" decimals={0} />
               </td>
@@ -1213,6 +1196,7 @@ function DailyTable({ rows, bestDay }) {
 
 // ── Top 10 Publishers ─────────────────────────────────────────────────────
 function Top10Publishers({ rows }) {
+  const { t } = useI18n()
   const [sortKey, setSortKey] = useState('earnings')
   const [sortDir, setSortDir] = useState('desc')
 
@@ -1244,23 +1228,23 @@ function Top10Publishers({ rows }) {
       <div className="card-header" style={{ padding: '16px 20px' }}>
         <div>
           <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Award size={16} style={{ color: 'var(--br-primary)' }} /> Top {rows.length} Publishers
+            <Award size={16} style={{ color: 'var(--br-primary)' }} /> {t('dashboard.table.top_publishers', 'Top {count} Publishers', { count: rows.length })}
           </div>
-          <div className="card-subtitle">Ranked by publisher earnings for selected period</div>
+          <div className="card-subtitle">{t('dashboard.table.top_publishers_desc', 'Ranked by publisher earnings for selected period')}</div>
         </div>
       </div>
       <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 48 }}>Rank</th>
-              <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Publisher{arrow('name')}</th>
-              <th onClick={() => handleSort('earnings')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Pub. Earnings{arrow('earnings')}</th>
-              <th style={{ minWidth: 140 }}>Approved %</th>
-              <th onClick={() => handleSort('approved')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Approved{arrow('approved')}</th>
-              <th onClick={() => handleSort('pending')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Pending{arrow('pending')}</th>
-              <th onClick={() => handleSort('gross')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Gross Rev.{arrow('gross')}</th>
-              <th onClick={() => handleSort('impressions')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>Impressions{arrow('impressions')}</th>
+              <th style={{ width: 48 }}>{t('dashboard.table.rank', 'Rank')}</th>
+              <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>{t('dashboard.table.publisher', 'Publisher')}{arrow('name')}</th>
+              <th onClick={() => handleSort('earnings')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>{t('dashboard.table.pub_earnings', 'Pub. Earnings')}{arrow('earnings')}</th>
+              <th style={{ minWidth: 140 }}>{t('dashboard.table.approved_pct', 'Approved %')}</th>
+              <th onClick={() => handleSort('approved')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>{t('dashboard.table.approved', 'Approved')}{arrow('approved')}</th>
+              <th onClick={() => handleSort('pending')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>{t('dashboard.table.pending', 'Pending')}{arrow('pending')}</th>
+              <th onClick={() => handleSort('gross')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>{t('dashboard.table.gross_revenue', 'Gross Rev.')}{arrow('gross')}</th>
+              <th onClick={() => handleSort('impressions')} style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>{t('dashboard.table.impressions', 'Impressions')}{arrow('impressions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1311,7 +1295,7 @@ function Top10Publishers({ rows }) {
           <tfoot>
             <tr style={{ background: 'rgba(99,102,241,.07)', fontWeight: 700, borderTop: '2px solid var(--color-border)' }}>
               <td />
-              <td style={{ padding: '10px 16px', fontSize: 12 }}>Totals</td>
+              <td style={{ padding: '10px 16px', fontSize: 12 }}>{t('dashboard.table.totals', 'Totals')}</td>
               <td className="money positive">
                 <CompactAmount value={rows.reduce((s, r) => s + r.earnings, 0)} />
               </td>

@@ -1,19 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { publicApi } from '../api/endpoints'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
-import { 
-  TrendingUp, Plus, Filter, Check, Ban, Download, DollarSign, Users, 
-  CreditCard, Eye, Info, CheckCircle2, AlertTriangle, XCircle, Bell, 
-  LayoutDashboard, Globe, Settings, User, LayoutGrid, Sparkles, Lock,
-  ArrowRight, RefreshCw, LineChart, Shield, ShieldAlert, MessageSquare,
-  ChevronDown, X, Menu, Calendar, HelpCircle
-} from 'lucide-react'
+import { useI18n } from '../contexts/I18nContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { TrendingUp, Plus, Filter, Check, Ban, Download, DollarSign, Users, CreditCard, Eye, Info, CheckCircle2, AlertTriangle, XCircle, Bell, LayoutDashboard, Globe, Settings, User, LayoutGrid, Sparkles, Lock, ArrowRight, RefreshCw, LineChart, Shield, ShieldAlert, MessageSquare, ChevronDown, X, Menu, Calendar, HelpCircle } from 'lucide-react'
 import './LandingPage.css'
 
 export default function LandingPage() {
   const { user } = useAuth()
   const { settings } = useSettings()
+  const { locale, t } = useI18n()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   
@@ -33,72 +31,95 @@ export default function LandingPage() {
     {
       id: "PAY-2026-9041",
       date: "2026-06-05",
-      publisher: "AlphaMedia Group (US)",
-      method: "Wire Transfer",
+      publisher: t('landing.proof.pub1', "AlphaMedia Group (US)"),
+      method: t('landing.proof.method_wire', "Wire Transfer"),
       amount: 14850.00,
       ref: "WT-FED-8492048",
-      status: "Completed"
+      status: t('payout.status.paid', "Completed")
     },
     {
       id: "PAY-2026-9039",
       date: "2026-06-03",
-      publisher: "Cairo Tech Blog (EG)",
+      publisher: t('landing.proof.pub2', "Cairo Tech Blog (EG)"),
       method: "USDT (ERC-20)",
       amount: 4120.50,
       ref: "0x8fa92...e1a49f",
-      status: "Completed"
+      status: t('payout.status.paid', "Completed")
     },
     {
       id: "PAY-2026-9036",
       date: "2026-06-02",
-      publisher: "ByteDev Solutions (UK)",
+      publisher: t('landing.proof.pub3', "ByteDev Solutions (UK)"),
       method: "PayPal",
       amount: 890.00,
       ref: "PP-REF-6582910",
-      status: "Completed"
+      status: t('payout.status.paid', "Completed")
     },
     {
       id: "PAY-2026-9032",
       date: "2026-05-30",
-      publisher: "Riyadh News Hub (SA)",
-      method: "Wire Transfer",
+      publisher: t('landing.proof.pub4', "Riyadh News Hub (SA)"),
+      method: t('landing.proof.method_wire', "Wire Transfer"),
       amount: 22400.00,
       ref: "WT-SIB-9283741",
-      status: "Completed"
+      status: t('payout.status.paid', "Completed")
     },
     {
       id: "PAY-2026-9028",
       date: "2026-05-28",
-      publisher: "Munich Auto Forum (DE)",
+      publisher: t('landing.proof.pub5', "Munich Auto Forum (DE)"),
       method: "USDC (TRC-20)",
       amount: 6780.00,
       ref: "TKh82fs...9d2ka",
-      status: "Completed"
+      status: t('payout.status.paid', "Completed")
     }
   ]
 
-  const faqs = [
+  const [faqs, setFaqs] = useState([])
+  const [faqsLoading, setFaqsLoading] = useState(true)
+
+  useEffect(() => {
+    publicApi.getFaqs()
+      .then(res => {
+        setFaqs(res.data || [])
+      })
+      .catch(err => {
+        console.error('Failed to load FAQs:', err)
+      })
+      .finally(() => {
+        setFaqsLoading(false)
+      })
+  }, [])
+
+  const staticFaqs = [
     {
-      q: "Do I need my own Google Ad Manager (GAM) account to join?",
-      a: "No, you do not need a personal GAM account. We manage the ad exchange bidding and setup. If you do have a GAM account, our platform can synchronize and deliver customized tags directly to your inventory."
+      q: t('landing.faq.q1', "Do I need my own Google Ad Manager (GAM) account to join?"),
+      a: t('landing.faq.a1', "No, you do not need a personal GAM account. We manage the ad exchange bidding and setup. If you do have a GAM account, our platform can synchronize and deliver customized tags directly to your inventory.")
     },
     {
-      q: "What is the revenue-sharing ratio on BestRevenue?",
-      a: "Our standard revenue share is 80% to the publisher. For high-volume publishers, custom revenue-sharing ratios can be configured directly by administrators in the platform settings."
+      q: t('landing.faq.q2', "What is the revenue-sharing ratio on BestRevenue?"),
+      a: t('landing.faq.a2', "Our standard revenue share is 80% to the publisher. For high-volume publishers, custom revenue-sharing ratios can be configured directly by administrators in the platform settings.")
     },
     {
-      q: "When and how do I receive my earnings payouts?",
-      a: "Payouts are calculated at the end of each monthly period closing. Approved balances are paid out via your configured payment method (Wire Transfer, Crypto, PayPal) once they meet your payment method's minimum threshold."
+      q: t('landing.faq.q3', "When and how do I receive my earnings payouts?"),
+      a: t('landing.faq.a3', "Payouts are calculated at the end of each monthly period closing. Approved balances are paid out via your configured payment method (Wire Transfer, Crypto, PayPal) once they meet your payment method's minimum threshold.")
     },
     {
-      q: "How do I implement ads.txt on my websites?",
-      a: "Once your domain is approved, you can view and copy the ads.txt entries directly from your 'My Websites' dashboard. Simply copy these lines and host them at yourdomain.com/ads.txt."
+      q: t('landing.faq.q4', "How do I implement ads.txt on my websites?"),
+      a: t('landing.faq.a4', "Once your domain is approved, you can view and copy the ads.txt entries directly from your 'My Websites' dashboard. Simply copy these lines and host them at yourdomain.com/ads.txt.")
     },
     {
-      q: "What ad formats and placements are supported?",
-      a: "We support standard Banners, Interstitials, Reward ads, top/bottom Anchors, and highly customizable Floating ad formats with advanced display triggers and anti-tamper security configurations."
+      q: t('landing.faq.q5', "What ad formats and placements are supported?"),
+      a: t('landing.faq.a5', "We support standard Banners, Interstitials, Reward ads, top/bottom Anchors, and highly customizable Floating ad formats with advanced display triggers and anti-tamper security configurations.")
     }
   ]
+
+  const displayFaqs = faqs.length > 0
+    ? faqs.map(faq => ({
+        q: locale === 'ar' ? (faq.question_ar || faq.question) : faq.question,
+        a: locale === 'ar' ? (faq.answer_ar || faq.answer) : faq.answer
+      }))
+    : staticFaqs
 
   // Calculate earnings
   const dailyImpressions = pageviews * adUnitsPerPage
@@ -154,58 +175,64 @@ export default function LandingPage() {
           </Link>
 
           <nav className="landing-nav-links">
-            <a href="#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Calculator</a>
-            <a href="#how-it-works" className="landing-nav-link" onClick={() => setMenuOpen(false)}>How It Works</a>
-            <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Payouts Proof</a>
-            <a href="#faqs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>FAQs</a>
-            <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>Support</Link>
+            <a href="#features" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.features', 'Features')}</a>
+            <a href="#calculator" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.calculator', 'Calculator')}</a>
+            <a href="#how-it-works" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.how_it_works', 'How It Works')}</a>
+            <a href="#proofs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.payouts_proof', 'Payouts Proof')}</a>
+            <a href="#faqs" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.faqs', 'FAQs')}</a>
+            <Link to="/support" className="landing-nav-link" onClick={() => setMenuOpen(false)}>{t('landing.nav.support', 'Support')}</Link>
             {settings.pages && settings.pages.filter(p => p.show_in_landing_menu).map(p => (
-              <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>{p.title}</Link>
+              <Link key={p.slug} to={`/page/${p.slug}`} className="landing-nav-link" onClick={() => setMenuOpen(false)}>
+                {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
+              </Link>
             ))}
             
             {/* Mobile CTAs placed at the end of the dropdown menu list */}
             <div className="mobile-menu-ctas">
               {user ? (
                 <button onClick={() => { setMenuOpen(false); handleDashboardRedirect(); }} className="btn btn-primary btn-md" style={{ width: '100%', justifyContent: 'center' }}>
-                  <LayoutDashboard size={14} /> Dashboard
+                  <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
                   {settings.registration_status !== 'closed' ? (
                     <Link to="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                      Get Started <ArrowRight size={14} />
+                      {t('common.get_started', 'Get Started')} <ArrowRight size={14} />
                     </Link>
                   ) : (
-                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>Registration Closed</span>
+                    <span className="badge badge-neutral" style={{ justifyContent: 'center', padding: '10px' }}>{t('common.registration_closed', 'Registration Closed')}</span>
                   )}
                   <Link to="/login" className="btn btn-secondary btn-md" onClick={() => setMenuOpen(false)} style={{ justifyContent: 'center' }}>
-                    <Lock size={14} /> Sign In
+                    <Lock size={14} /> {t('common.sign_in', 'Sign In')}
                   </Link>
                 </div>
               )}
+              <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'center' }}>
+                <LanguageSwitcher />
+              </div>
             </div>
           </nav>
 
           <div className="landing-nav-ctas">
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
-                <LayoutDashboard size={14} /> Dashboard
+                <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
               </button>
             ) : (
               <>
                 <Link to="/login" className="btn btn-secondary btn-sm">
-                  <Lock size={12} /> Sign In
+                  <Lock size={12} /> {t('common.sign_in', 'Sign In')}
                 </Link>
                 {settings.registration_status !== 'closed' ? (
                   <Link to="/register" className="btn btn-primary btn-sm">
-                    Get Started <ArrowRight size={12} />
+                    {t('common.get_started', 'Get Started')} <ArrowRight size={12} />
                   </Link>
                 ) : (
-                  <span className="badge badge-neutral">Registration Closed</span>
+                  <span className="badge badge-neutral">{t('common.registration_closed', 'Registration Closed')}</span>
                 )}
               </>
             )}
+            <LanguageSwitcher style={{ marginInlineStart: '12px' }} />
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
@@ -217,34 +244,34 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-badge">
-          <Sparkles size={13} style={{ color: 'var(--br-accent)' }} /> Automated Google Ad Manager Optimization
+          <Sparkles size={13} style={{ color: 'var(--br-accent)' }} /> {t('landing.hero.badge', 'Automated Google Ad Manager Optimization')}
         </div>
         <h1 className="hero-title">
-          Scale Your Publisher Earnings <br />
-          With <span className="hero-gradient-text">{settings.site_name || 'BestRevenue'}</span>
+          {t('landing.hero.title_part1', 'Scale Your Publisher Earnings')} <br />
+          {t('landing.hero.title_part2', 'With')} <span className="hero-gradient-text">{settings.site_name || 'BestRevenue'}</span>
         </h1>
         <p className="hero-description">
-          A premium, high-performance platform for smart publishers. Seamlessly synchronize with Google Ad Manager, generate secure GPT codes, track real-time analytics, and secure payouts.
+          {t('landing.hero.desc', 'A premium, high-performance platform for smart publishers. Seamlessly synchronize with Google Ad Manager, generate secure GPT codes, track real-time analytics, and secure payouts.')}
         </p>
 
         <div className="hero-ctas">
           {user ? (
             <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
-              <LayoutDashboard size={16} /> Access Dashboard
+              <LayoutDashboard size={16} /> {t('common.access_dashboard', 'Access Dashboard')}
             </button>
           ) : (
             <>
               {settings.registration_status !== 'closed' ? (
                 <Link to="/register" className="btn btn-primary btn-lg">
-                  Create Free Account <ArrowRight size={16} />
+                  {t('common.create_free_account', 'Create Free Account')} <ArrowRight size={16} />
                 </Link>
               ) : (
                 <button className="btn btn-secondary btn-lg" disabled>
-                  <Lock size={16} /> Registration Closed
+                  <Lock size={16} /> {t('common.registration_closed', 'Registration Closed')}
                 </button>
               )}
               <Link to="/login" className="btn btn-secondary btn-lg">
-                Sign In
+                {t('common.sign_in', 'Sign In')}
               </Link>
             </>
           )}
@@ -261,7 +288,7 @@ export default function LandingPage() {
             <div className="banner-stat-value">
               {settings.stats_impressions !== undefined ? formatNumber(settings.stats_impressions) : '5.4B+'}
             </div>
-            <div className="banner-stat-label">Ad Impressions Served</div>
+            <div className="banner-stat-label">{t('landing.stats.impressions', 'Ad Impressions Served')}</div>
           </div>
           <div>
             <div className="banner-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
@@ -270,7 +297,7 @@ export default function LandingPage() {
             <div className="banner-stat-value">
               {settings.stats_total_paid !== undefined ? formatCurrency(settings.stats_total_paid) : '$12.4M+'}
             </div>
-            <div className="banner-stat-label">Total Paid to Publishers</div>
+            <div className="banner-stat-label">{t('landing.stats.total_paid', 'Total Paid to Publishers')}</div>
           </div>
           <div>
             <div className="banner-stat-icon" style={{ background: 'rgba(6, 182, 212, 0.12)', color: '#06b6d4' }}>
@@ -279,7 +306,7 @@ export default function LandingPage() {
             <div className="banner-stat-value">
               {settings.stats_publishers !== undefined ? settings.stats_publishers : '250+'}
             </div>
-            <div className="banner-stat-label">Active Global Publishers</div>
+            <div className="banner-stat-label">{t('landing.stats.publishers', 'Active Global Publishers')}</div>
           </div>
           <div>
             <div className="banner-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
@@ -288,7 +315,7 @@ export default function LandingPage() {
             <div className="banner-stat-value">
               {settings.stats_websites !== undefined ? settings.stats_websites : '180+'}
             </div>
-            <div className="banner-stat-label">Approved Domains</div>
+            <div className="banner-stat-label">{t('landing.stats.websites', 'Approved Domains')}</div>
           </div>
         </div>
       </section>
@@ -296,10 +323,10 @@ export default function LandingPage() {
       {/* Features Grid */}
       <section id="features" className="landing-section">
         <div className="section-header">
-          <span className="section-tag">Features</span>
-          <h2 className="section-title">Built For Professional Publishers</h2>
+          <span className="section-tag">{t('landing.features.tag', 'Features')}</span>
+          <h2 className="section-title">{t('landing.features.title', 'Built For Professional Publishers')}</h2>
           <p className="section-subtitle">
-            Our platform offers industry-leading tools and seamless configurations so you can focus entirely on producing high-quality content.
+            {t('landing.features.subtitle', 'Our platform offers industry-leading tools and seamless configurations so you can focus entirely on producing high-quality content.')}
           </p>
         </div>
 
@@ -308,9 +335,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <RefreshCw size={20} />
             </div>
-            <h3 className="feature-card-title">GAM Auto-Sync</h3>
+            <h3 className="feature-card-title">{t('landing.features.sync_title', 'GAM Auto-Sync')}</h3>
             <p className="feature-card-desc">
-              Connect Google Ad Manager directly. Automatically fetch billing data, impressions, clicks, gross revenues, and views hourly.
+              {t('landing.features.sync_desc', 'Connect Google Ad Manager directly. Automatically fetch billing data, impressions, clicks, gross revenues, and views hourly.')}
             </p>
           </div>
 
@@ -318,9 +345,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <LineChart size={20} />
             </div>
-            <h3 className="feature-card-title">Granular Performance Reports</h3>
+            <h3 className="feature-card-title">{t('landing.features.reports_title', 'Granular Performance Reports')}</h3>
             <p className="feature-card-desc">
-              Track daily metrics like CPM, CTR, and unfilled impressions. Dive deep into analytics filterable by website and specific ad units.
+              {t('landing.features.reports_desc', 'Track daily metrics like CPM, CTR, and unfilled impressions. Dive deep into analytics filterable by website and specific ad units.')}
             </p>
           </div>
 
@@ -328,9 +355,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <Shield size={20} />
             </div>
-            <h3 className="feature-card-title">Anti-Tamper Tag Generator</h3>
+            <h3 className="feature-card-title">{t('landing.features.tag_title', 'Anti-Tamper Tag Generator')}</h3>
             <p className="feature-card-desc">
-              Instantly generate clean GPT header and body codes. Customize refresh rates, anchor/float triggers, and anti-adblock tools.
+              {t('landing.features.tag_desc', 'Instantly generate clean GPT header and body codes. Customize refresh rates, anchor/float triggers, and anti-adblock tools.')}
             </p>
           </div>
 
@@ -338,9 +365,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <CreditCard size={20} />
             </div>
-            <h3 className="feature-card-title">Automated Period Closings</h3>
+            <h3 className="feature-card-title">{t('landing.features.closings_title', 'Automated Period Closings')}</h3>
             <p className="feature-card-desc">
-              Never worry about payment schedules. Verified earnings are locked at month-end, generating statements and clear billing PDFs.
+              {t('landing.features.closings_desc', 'Never worry about payment schedules. Verified earnings are locked at month-end, generating statements and clear billing PDFs.')}
             </p>
           </div>
 
@@ -348,9 +375,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <ShieldAlert size={20} />
             </div>
-            <h3 className="feature-card-title">Fraud & IVT Protection</h3>
+            <h3 className="feature-card-title">{t('landing.features.fraud_title', 'Fraud & IVT Protection')}</h3>
             <p className="feature-card-desc">
-              Comprehensive balance adjustments support deducting Invalid Traffic (IVT) or applying bonuses fairly with details logged in your portal.
+              {t('landing.features.fraud_desc', 'Comprehensive balance adjustments support deducting Invalid Traffic (IVT) or applying bonuses fairly with details logged in your portal.')}
             </p>
           </div>
 
@@ -358,9 +385,9 @@ export default function LandingPage() {
             <div className="feature-icon-wrapper">
               <Bell size={20} />
             </div>
-            <h3 className="feature-card-title">Real-Time Notifications</h3>
+            <h3 className="feature-card-title">{t('landing.features.notify_title', 'Real-Time Notifications')}</h3>
             <p className="feature-card-desc">
-              Receive updates on payouts, policy updates, and critical maintenance notices instantly via integrated announcements and emails.
+              {t('landing.features.notify_desc', 'Receive updates on payouts, policy updates, and critical maintenance notices instantly via integrated announcements and emails.')}
             </p>
           </div>
         </div>
@@ -369,10 +396,10 @@ export default function LandingPage() {
       {/* Revenue Estimator Calculator */}
       <section id="calculator" className="landing-section">
         <div className="section-header">
-          <span className="section-tag">Estimator</span>
-          <h2 className="section-title">Calculate Your Revenue Potential</h2>
+          <span className="section-tag">{t('landing.calc.tag', 'Estimator')}</span>
+          <h2 className="section-title">{t('landing.calc.title', 'Calculate Your Revenue Potential')}</h2>
           <p className="section-subtitle">
-            Slide the parameters to estimate how much revenue you can generate with our 80% baseline revenue share structure.
+            {t('landing.calc.subtitle', 'Slide the parameters to estimate how much revenue you can generate with our 80% baseline revenue share structure.')}
           </p>
         </div>
 
@@ -380,7 +407,7 @@ export default function LandingPage() {
           <div className="calc-inputs">
             <div className="calc-slider-group">
               <div className="calc-slider-header">
-                <span className="calc-label">Daily Pageviews</span>
+                <span className="calc-label">{t('landing.calc.daily_views', 'Daily Pageviews')}</span>
                 <span className="calc-slider-val">{formatNumber(pageviews)}</span>
               </div>
               <input
@@ -404,7 +431,7 @@ export default function LandingPage() {
 
             <div className="calc-slider-group">
               <div className="calc-slider-header">
-                <span className="calc-label">Average Monetized CPM</span>
+                <span className="calc-label">{t('landing.calc.avg_cpm', 'Average Monetized CPM')}</span>
                 <span className="calc-slider-val accent">${cpm.toFixed(2)}</span>
               </div>
               <input
@@ -427,7 +454,7 @@ export default function LandingPage() {
 
             <div className="calc-slider-group">
               <div className="calc-slider-header">
-                <span className="calc-label">Ads Per Page</span>
+                <span className="calc-label">{t('landing.calc.ads_per_page', 'Ads Per Page')}</span>
                 <span className="calc-slider-val">{adUnitsPerPage}</span>
               </div>
               <input
@@ -451,26 +478,26 @@ export default function LandingPage() {
           </div>
 
           <div className="calc-results">
-            <div className="calc-results-title">Estimated Monthly Earnings</div>
+            <div className="calc-results-title">{t('landing.calc.est_monthly', 'Estimated Monthly Earnings')}</div>
             <div className="calc-big-revenue">{formatCurrency(monthlyEarnings)}</div>
             
             <div className="calc-breakdown">
               <div className="calc-breakdown-row">
-                <span className="label">Daily Earnings</span>
+                <span className="label">{t('landing.calc.daily_earnings', 'Daily Earnings')}</span>
                 <span className="value">{formatCurrency(dailyEarnings)}</span>
               </div>
               <div className="calc-breakdown-row">
-                <span className="label">Yearly Earnings</span>
+                <span className="label">{t('landing.calc.yearly_earnings', 'Yearly Earnings')}</span>
                 <span className="value">{formatCurrency(yearlyEarnings)}</span>
               </div>
               <div className="calc-breakdown-row">
-                <span className="label">Daily Impressions</span>
+                <span className="label">{t('landing.calc.daily_impressions', 'Daily Impressions')}</span>
                 <span className="value">{formatNumber(dailyImpressions)}</span>
               </div>
             </div>
 
             <div className="calc-note">
-              *Estimates are calculated based on an 80% baseline revenue share. Actual CPMs and earnings depend on geographic traffic, niche, and content viewability.
+              {t('landing.calc.note', '*Estimates are calculated based on an 80% baseline revenue share. Actual CPMs and earnings depend on geographic traffic, niche, and content viewability.')}
             </div>
           </div>
         </div>
@@ -479,33 +506,33 @@ export default function LandingPage() {
       {/* How it Works Pipeline */}
       <section id="how-it-works" className="landing-section">
         <div className="section-header">
-          <span className="section-tag">Pipeline</span>
-          <h2 className="section-title">Start Monetizing In 4 Steps</h2>
+          <span className="section-tag">{t('landing.steps.tag', 'Pipeline')}</span>
+          <h2 className="section-title">{t('landing.steps.title', 'Start Monetizing In 4 Steps')}</h2>
           <p className="section-subtitle">
-            Getting set up is incredibly simple. You can transition from registration to fully monetized traffic within a matter of minutes.
+            {t('landing.steps.subtitle', 'Getting set up is incredibly simple. You can transition from registration to fully monetized traffic within a matter of minutes.')}
           </p>
         </div>
 
         <div className="steps-pipeline">
           <div className="step-card">
             <div className="step-number">1</div>
-            <h4 className="step-title">Join Platform</h4>
-            <p className="step-desc">Register a publisher account and submit your domains for approval checks.</p>
+            <h4 className="step-title">{t('landing.steps.step1_title', 'Join Platform')}</h4>
+            <p className="step-desc">{t('landing.steps.step1_desc', 'Register a publisher account and submit your domains for approval checks.')}</p>
           </div>
           <div className="step-card">
             <div className="step-number">2</div>
-            <h4 className="step-title">Deploy Ads.txt</h4>
-            <p className="step-desc">Copy our structured lines to your domain's ads.txt directory to authenticate the inventory.</p>
+            <h4 className="step-title">{t('landing.steps.step2_title', 'Deploy Ads.txt')}</h4>
+            <p className="step-desc">{t('landing.steps.step2_desc', "Copy our structured lines to your domain's ads.txt directory to authenticate the inventory.")}</p>
           </div>
           <div className="step-card">
             <div className="step-number">3</div>
-            <h4 className="step-title">Generate GPT Codes</h4>
-            <p className="step-desc">Pick your desired ad placements and inject the secure scripts into your page templates.</p>
+            <h4 className="step-title">{t('landing.steps.step3_title', 'Generate GPT Codes')}</h4>
+            <p className="step-desc">{t('landing.steps.step3_desc', 'Pick your desired ad placements and inject the secure scripts into your page templates.')}</p>
           </div>
           <div className="step-card">
             <div className="step-number">4</div>
-            <h4 className="step-title">Collect Payouts</h4>
-            <p className="step-desc">Monitor performance daily. Receive payments at period close directly to your bank account.</p>
+            <h4 className="step-title">{t('landing.steps.step4_title', 'Collect Payouts')}</h4>
+            <p className="step-desc">{t('landing.steps.step4_desc', 'Monitor performance daily. Receive payments at period close directly to your bank account.')}</p>
           </div>
         </div>
       </section>
@@ -513,10 +540,10 @@ export default function LandingPage() {
       {/* Payment Proofs Section */}
       <section id="proofs" className="landing-section">
         <div className="section-header">
-          <span className="section-tag">Transfers</span>
-          <h2 className="section-title">Verified Payout Proofs</h2>
+          <span className="section-tag">{t('landing.proofs.tag', 'Transfers')}</span>
+          <h2 className="section-title">{t('landing.proofs.title', 'Verified Payout Proofs')}</h2>
           <p className="section-subtitle">
-            Transparency is our core value. View the ledger of our most recent publisher payouts processed during the monthly closing cycles.
+            {t('landing.proofs.subtitle', 'Transparency is our core value. View the ledger of our most recent publisher payouts processed during the monthly closing cycles.')}
           </p>
         </div>
 
@@ -524,10 +551,10 @@ export default function LandingPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Publisher</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
+                <th>{t('landing.proofs.publisher', 'Publisher')}</th>
+                <th>{t('landing.proofs.amount', 'Amount')}</th>
+                <th>{t('landing.proofs.date', 'Date')}</th>
+                <th>{t('landing.proofs.status', 'Status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -548,7 +575,7 @@ export default function LandingPage() {
                   </td>
                   <td>
                     <span className="badge badge-success">
-                      <span className="dot"></span> Paid
+                      <span className="dot"></span> {t('landing.proofs.paid', 'Paid')}
                     </span>
                   </td>
                 </tr>
@@ -561,22 +588,22 @@ export default function LandingPage() {
       {/* FAQ Accordions */}
       <section id="faqs" className="landing-section">
         <div className="section-header">
-          <span className="section-tag">FAQ</span>
-          <h2 className="section-title">Frequently Asked Questions</h2>
+          <span className="section-tag">{t('landing.faq.tag', 'FAQ')}</span>
+          <h2 className="section-title">{t('landing.faq.title', 'Frequently Asked Questions')}</h2>
           <p className="section-subtitle">
-            Everything you need to know about setting up, revenue ratios, payouts, and Google Ad Manager sync rules.
+            {t('landing.faq.subtitle', 'Everything you need to know about setting up, revenue ratios, payouts, and Google Ad Manager sync rules.')}
           </p>
         </div>
 
         <div className="faq-list">
-          {faqs.map((item, index) => (
+          {displayFaqs.map((item, index) => (
             <div key={index} className={`faq-item ${activeFaq === index ? 'active' : ''}`}>
               <button className="faq-question-btn" onClick={() => toggleFaq(index)}>
                 <span>{item.q}</span>
                 <ChevronDown size={14} className="faq-toggle-icon" />
               </button>
               <div className="faq-answer-panel">
-                <p className="faq-answer-text">{item.a}</p>
+                <p className="faq-answer-text" dangerouslySetInnerHTML={{ __html: item.a }} />
               </div>
             </div>
           ))}
@@ -586,28 +613,28 @@ export default function LandingPage() {
       {/* Call to Action Banner */}
       <section className="landing-section">
         <div className="cta-banner">
-          <h2 className="cta-banner-title">Ready to Maximize Your Revenues?</h2>
+          <h2 className="cta-banner-title">{t('landing.cta.title', 'Ready to Maximize Your Revenues?')}</h2>
           <p className="cta-banner-desc">
-            Sign up today to configure your websites, generate tags, and watch your monetization metrics climb.
+            {t('landing.cta.desc', 'Sign up today to configure your websites, generate tags, and watch your monetization metrics climb.')}
           </p>
           <div className="cta-banner-buttons">
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
-                <LayoutDashboard size={16} /> Dashboard
+                <LayoutDashboard size={16} /> {t('common.dashboard', 'Dashboard')}
               </button>
             ) : (
               <>
                 {settings.registration_status !== 'closed' ? (
                   <Link to="/register" className="btn btn-primary btn-lg">
-                    Get Started Now <ArrowRight size={16} />
+                    {t('common.get_started_now', 'Get Started Now')} <ArrowRight size={16} />
                   </Link>
                 ) : (
                   <button className="btn btn-secondary btn-lg" disabled>
-                    <Lock size={16} /> Registration Closed
+                    <Lock size={16} /> {t('common.registration_closed', 'Registration Closed')}
                   </button>
                 )}
                 <Link to="/login" className="btn btn-secondary btn-lg">
-                  Sign In
+                  {t('common.sign_in', 'Sign In')}
                 </Link>
               </>
             )}
@@ -630,7 +657,7 @@ export default function LandingPage() {
               )}
             </Link>
             <p className="footer-desc">
-              A premium, ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.
+              {t('landing.footer.desc', 'A premium, ad optimization suite for publishers using Google Ad Manager. Harness advanced tag generation, robust syncing, and instant payouts.')}
             </p>
             {(settings.social_facebook || settings.social_instagram || settings.social_x || settings.social_telegram) && (
               <div className="footer-socials" style={{ display: 'flex', gap: 14, marginTop: 18 }}>
@@ -677,32 +704,34 @@ export default function LandingPage() {
 
           <div className="footer-links-grid">
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Platform</h5>
+              <h5 className="footer-link-title">{t('landing.footer.platform', 'Platform')}</h5>
               <div className="footer-links-list">
-                <a href="#features" className="footer-link">Features</a>
-                <a href="#calculator" className="footer-link">Calculator</a>
-                <a href="#how-it-works" className="footer-link">How it Works</a>
-                <a href="#proofs" className="footer-link">Payouts Proof</a>
-                <a href="#faqs" className="footer-link">FAQs</a>
+                <a href="#features" className="footer-link">{t('landing.nav.features', 'Features')}</a>
+                <a href="#calculator" className="footer-link">{t('landing.nav.calculator', 'Calculator')}</a>
+                <a href="#how-it-works" className="footer-link">{t('landing.nav.how_it_works', 'How it Works')}</a>
+                <a href="#proofs" className="footer-link">{t('landing.nav.payouts_proof', 'Payouts Proof')}</a>
+                <a href="#faqs" className="footer-link">{t('landing.nav.faqs', 'FAQs')}</a>
               </div>
             </div>
             <div className="footer-link-group">
-              <h5 className="footer-link-title">Access</h5>
+              <h5 className="footer-link-title">{t('landing.footer.access', 'Access')}</h5>
               <div className="footer-links-list">
-                <Link to="/support" className="footer-link">Support Hub</Link>
-                <Link to="/login" className="footer-link">Sign In</Link>
+                <Link to="/support" className="footer-link">{t('landing.footer.support_hub', 'Support Hub')}</Link>
+                <Link to="/login" className="footer-link">{t('common.sign_in', 'Sign In')}</Link>
                 {settings.registration_status !== 'closed' && (
-                  <Link to="/register" className="footer-link">Register</Link>
+                  <Link to="/register" className="footer-link">{t('common.get_started', 'Register')}</Link>
                 )}
-                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">Google Ad Manager Help</a>
+                <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" className="footer-link">{t('landing.footer.gam_help', 'Google Ad Manager Help')}</a>
               </div>
             </div>
             {settings.pages && settings.pages.some(p => p.show_in_public_footer) && (
               <div className="footer-link-group">
-                <h5 className="footer-link-title">Information</h5>
+                <h5 className="footer-link-title">{t('landing.footer.info', 'Information')}</h5>
                 <div className="footer-links-list">
                   {settings.pages.filter(p => p.show_in_public_footer).map(p => (
-                    <Link key={p.slug} to={`/page/${p.slug}`} className="footer-link">{p.title}</Link>
+                    <Link key={p.slug} to={`/page/${p.slug}`} className="footer-link">
+                      {(locale === 'ar' && p.title_ar) ? p.title_ar : p.title}
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -711,8 +740,8 @@ export default function LandingPage() {
         </div>
 
         <div className="footer-bottom">
-          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. All rights reserved.</div>
-          <div>Empowering publishers through transparent ad metrics.</div>
+          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. {t('landing.footer.all_rights', 'All rights reserved.')}</div>
+          <div>{t('landing.footer.empowering', 'Empowering publishers through transparent ad metrics.')}</div>
         </div>
       </footer>
 
@@ -722,7 +751,7 @@ export default function LandingPage() {
           <div className="modal" style={{ maxWidth: 460, border: '0.5px solid rgba(16, 185, 129, 0.4)', background: 'var(--br-bg-2)', backdropFilter: 'blur(20px)' }}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <CheckCircle2 size={18} style={{ color: 'var(--br-accent)' }} /> Payment Receipt
+                <CheckCircle2 size={18} style={{ color: 'var(--br-accent)' }} /> {t('landing.modal.title', 'Payment Receipt')}
               </h3>
               <button className="modal-close" onClick={() => setSelectedProof(null)}>
                 <X size={16} />
@@ -736,36 +765,36 @@ export default function LandingPage() {
                 ) : (
                   <TrendingUp size={32} style={{ color: 'var(--br-primary)', marginBottom: 8 }} />
                 )}
-                <div style={{ fontSize: 11, color: 'var(--br-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Transaction Certified</div>
+                <div style={{ fontSize: 11, color: 'var(--br-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{t('landing.modal.certified', 'Transaction Certified')}</div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13.5 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--br-text-2)' }}>Issue Date:</span>
+                  <span style={{ color: 'var(--br-text-2)' }}>{t('landing.modal.date', 'Issue Date:')}</span>
                   <span style={{ color: 'var(--br-text)' }}>{selectedProof.date}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--br-text-2)' }}>Recipient:</span>
+                  <span style={{ color: 'var(--br-text-2)' }}>{t('landing.modal.recipient', 'Recipient:')}</span>
                   <span style={{ color: 'var(--br-text)' }}>{selectedProof.publisher}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--br-border)', paddingBottom: 8 }}>
-                  <span style={{ color: 'var(--br-text-2)' }}>Payment Route:</span>
+                  <span style={{ color: 'var(--br-text-2)' }}>{t('landing.modal.route', 'Payment Route:')}</span>
                   <span style={{ color: 'var(--br-text)' }}>{selectedProof.method}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--br-text)' }}>Total Disbursed:</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--br-text)' }}>{t('landing.modal.total', 'Total Disbursed:')}</span>
                   <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--br-accent)' }}>{formatCurrency(selectedProof.amount)}</span>
                 </div>
               </div>
             </div>
 
             <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--br-text-3)', lineHeight: 1.4 }}>
-              This payout was verified via banking network records and signed by {settings.site_name || 'BestRevenue'} Treasury.
+              {t('landing.modal.note', 'This payout was verified via banking network records and signed by {site_name} Treasury.', { site_name: settings.site_name || 'BestRevenue' })}
             </div>
 
             <div className="modal-footer" style={{ marginTop: 24 }}>
               <button className="btn btn-secondary" onClick={() => setSelectedProof(null)} style={{ width: '100%', justifyContent: 'center' }}>
-                Close Receipt
+                {t('landing.modal.close', 'Close Receipt')}
               </button>
             </div>
           </div>

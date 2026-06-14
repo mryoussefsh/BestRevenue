@@ -68,6 +68,6 @@ class TranslationController extends Controller
             $query->where('group', $group);
         }
 
-        return response()->json($query->paginate(100));
+        return response()->json($query->paginate(5000));
     }
 }

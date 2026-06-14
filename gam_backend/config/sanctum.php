@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => 60, // FIX [A-1]: Enforce 60-minute token expiry server-side. Matches the TTL set in createToken().
+    'expiration' => null, // Dynamic expiry managed via createToken() expires_at field.
 
     /*
     |--------------------------------------------------------------------------
