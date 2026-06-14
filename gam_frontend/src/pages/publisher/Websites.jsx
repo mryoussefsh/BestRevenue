@@ -731,7 +731,9 @@ ${queueItems}
                   border: '1px solid var(--color-border)',
                   borderRadius: '4px',
                   padding: '12px',
-                  resize: 'vertical'
+                  resize: 'vertical',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
                 readOnly
                 value={selectedAdsTxt.content}
@@ -810,9 +812,11 @@ ${queueItems}
                         color: '#e2e8f0',
                         border: '1px solid var(--color-border)',
                         borderRadius: '4px',
-                        padding: '10px',
+                        padding: '10px 80px 10px 10px',
                         width: '100%',
-                        resize: 'none'
+                        resize: 'none',
+                        direction: 'ltr',
+                        textAlign: 'left'
                       }}
                       readOnly
                       value={scripts.head}
@@ -821,7 +825,7 @@ ${queueItems}
                     <button
                       type="button"
                       className="btn btn-secondary btn-xs"
-                      style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
+                      style={{ position: 'absolute', top: '8px', right: '8px', left: 'auto', opacity: 0.9 }}
                       onClick={() => {
                         navigator.clipboard.writeText(scripts.head);
                         toast.success(t('websites.modal.toast_header_copied', 'Header code copied!'));
@@ -849,9 +853,11 @@ ${queueItems}
                           color: '#e2e8f0',
                           border: '1px solid var(--color-border)',
                           borderRadius: '4px',
-                          padding: '10px',
+                          padding: '10px 80px 10px 10px',
                           width: '100%',
-                          resize: 'none'
+                          resize: 'none',
+                          direction: 'ltr',
+                          textAlign: 'left'
                         }}
                         readOnly
                         value={scripts.body}
@@ -860,7 +866,7 @@ ${queueItems}
                       <button
                         type="button"
                         className="btn btn-secondary btn-xs"
-                        style={{ position: 'absolute', top: '8px', right: '8px', opacity: 0.9 }}
+                        style={{ position: 'absolute', top: '8px', right: '8px', left: 'auto', opacity: 0.9 }}
                         onClick={() => {
                           navigator.clipboard.writeText(scripts.body);
                           toast.success(t('websites.modal.toast_body_copied', 'Body code copied!'));
