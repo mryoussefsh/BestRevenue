@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useI18n } from '../../contexts/I18nContext'
-import { Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, Sparkles, X } from 'lucide-react'
+import { Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, Sparkles, X, Copy } from 'lucide-react'
 
 function groupAdUnits(units, t) {
   const grouped = [];
@@ -796,85 +796,87 @@ ${queueItems}
                   {selectedAdUnitCode.adSubtype && <> ({selectedAdUnitCode.adSubtype})</>}
                 </div>
 
-                <div>
-                  <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                    {t('websites.modal.header_code_desc', '1. Header Code (Place inside the {tag} section of your HTML page)', { tag: '<head>' })}
-                  </label>
-                  <div style={{ position: 'relative' }}>
+                 <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label className="form-label" style={{ fontWeight: 600, margin: 0 }}>
+                      {t('websites.modal.header_code_desc', '1. Header Code (Place inside the {tag} section of your HTML page)', { tag: '<head>' })}
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-xs"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(scripts.head);
+                        toast.success(t('websites.modal.toast_header_copied', 'Header code copied!'));
+                      }}
+                    >
+                      <Copy size={12} />
+                      {t('websites.modal.copy_code', 'Copy Code')}
+                    </button>
+                  </div>
+                  <textarea
+                    className="form-input"
+                    style={{
+                      height: '140px',
+                      fontFamily: 'monospace',
+                      fontSize: '11px',
+                      whiteSpace: 'pre',
+                      background: '#161e2e',
+                      color: '#e2e8f0',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '6px',
+                      padding: '12px',
+                      width: '100%',
+                      resize: 'none',
+                      direction: 'ltr',
+                      textAlign: 'left'
+                    }}
+                    readOnly
+                    value={scripts.head}
+                    onClick={e => e.target.select()}
+                  />
+                </div>
+
+                {scripts.body && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <label className="form-label" style={{ fontWeight: 600, margin: 0 }}>
+                        {t('websites.modal.body_code_desc', '2. Body Code (Place where the ad should render)')}
+                      </label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px' }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(scripts.body);
+                          toast.success(t('websites.modal.toast_body_copied', 'Body code copied!'));
+                        }}
+                      >
+                        <Copy size={12} />
+                        {t('websites.modal.copy_code', 'Copy Code')}
+                      </button>
+                    </div>
                     <textarea
                       className="form-input"
                       style={{
-                        height: '140px',
+                        height: '110px',
                         fontFamily: 'monospace',
                         fontSize: '11px',
                         whiteSpace: 'pre',
                         background: '#161e2e',
                         color: '#e2e8f0',
                         border: '1px solid var(--color-border)',
-                        borderRadius: '4px',
-                        padding: '10px 80px 10px 10px',
+                        borderRadius: '6px',
+                        padding: '12px',
                         width: '100%',
                         resize: 'none',
                         direction: 'ltr',
                         textAlign: 'left'
                       }}
                       readOnly
-                      value={scripts.head}
+                      value={scripts.body}
                       onClick={e => e.target.select()}
                     />
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-xs"
-                      style={{ position: 'absolute', top: '8px', right: '8px', left: 'auto', opacity: 0.9 }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(scripts.head);
-                        toast.success(t('websites.modal.toast_header_copied', 'Header code copied!'));
-                      }}
-                    >
-                      {t('websites.modal.copy_code', 'Copy')}
-                    </button>
-                  </div>
-                </div>
-
-                {scripts.body && (
-                  <div>
-                    <label className="form-label" style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-                      {t('websites.modal.body_code_desc', '2. Body Code (Place where the ad should render)')}
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <textarea
-                        className="form-input"
-                        style={{
-                          height: '110px',
-                          fontFamily: 'monospace',
-                          fontSize: '11px',
-                          whiteSpace: 'pre',
-                          background: '#161e2e',
-                          color: '#e2e8f0',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '4px',
-                          padding: '10px 80px 10px 10px',
-                          width: '100%',
-                          resize: 'none',
-                          direction: 'ltr',
-                          textAlign: 'left'
-                        }}
-                        readOnly
-                        value={scripts.body}
-                        onClick={e => e.target.select()}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-xs"
-                        style={{ position: 'absolute', top: '8px', right: '8px', left: 'auto', opacity: 0.9 }}
-                        onClick={() => {
-                          navigator.clipboard.writeText(scripts.body);
-                          toast.success(t('websites.modal.toast_body_copied', 'Body code copied!'));
-                        }}
-                      >
-                        {t('websites.modal.copy_code', 'Copy')}
-                      </button>
-                    </div>
                   </div>
                 )}
 
