@@ -8,12 +8,31 @@ use App\Models\PeriodClosing;
 use App\Models\RevenueRecord;
 use App\Models\Setting;
 use App\Services\RatioService;
+use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class GamSync extends Command
 {
+    /**
+     * Captured console output lines for audit logging.
+     *
+     * @var array
+     */
+    protected array $capturedOutput = [];
+
+    public function line($string, $style = null, $verbosity = null)
+    {
+        $prefix = '';
+        if ($style === 'error') {
+            $prefix = 'ERROR: ';
+        } elseif ($style === 'warning' || $style === 'comment') {
+            $prefix = 'WARNING: ';
+        }
+        $this->capturedOutput[] = $prefix . $string;
+        parent::line($string, $style, $verbosity);
+    }
     /**
      * The name and signature of the console command.
      *
@@ -73,12 +92,12 @@ class GamSync extends Command
                         $shouldSync = true;
                     }
                 } elseif ($frequency === 'minutes') {
-                    if ($nowTime->diffInMinutes($lastRun) >= $interval) {
+                    if (abs($nowTime->diffInSeconds($lastRun)) >= ($interval * 60 - 30)) {
                         $shouldSync = true;
                     }
                 } else {
                     // Hourly
-                    if ($nowTime->diffInMinutes($lastRun) >= ($interval * 60)) {
+                    if (abs($nowTime->diffInSeconds($lastRun)) >= ($interval * 3600 - 30)) {
                         $shouldSync = true;
                     }
                 }
@@ -114,6 +133,9 @@ class GamSync extends Command
         $syncLog->status       = 'running';
         $syncLog->save();
 
+        $rowsFetched = 0;
+        $rowsMatched = 0;
+
         $rangeDesc = $dateFrom
             ? "from {$dateFrom} to " . ($dateTo ?? 'today')
             : "{$daysBack} days back";
@@ -128,6 +150,16 @@ class GamSync extends Command
                 $gamAccountsQuery->where('id', $filterAccount);
             }
             $gamAccounts = $gamAccountsQuery->get();
+
+            $globalSyncEnabled = \App\Models\Setting::get('global_sync_enabled', true);
+            if (!$globalSyncEnabled) {
+                $this->warn("GAM Sync is globally disabled. Skipping sync run.");
+                $syncLog->status = 'completed';
+                $syncLog->error_message = 'Sync skipped: Globally disabled.';
+                $syncLog->finished_at = now();
+                $syncLog->save();
+                return 0;
+            }
 
         $rowsFetched = 0;
         $rowsMatched = 0;
@@ -163,12 +195,16 @@ class GamSync extends Command
             ->toArray();
 
         foreach ($gamAccounts as $account) {
+                if (!$account->sync_enabled) {
+                    $this->warn("Skipping GAM Account {$account->email} (Sync is disabled for this account).");
+                    continue;
+                }
                 if (!$account->refresh_token || !$account->network_code) {
                     $this->warn("Skipping GAM Account {$account->email} (Missing token or network code).");
                     continue;
                 }
 
-                // Skip accounts that have no active ad units registered in BestRevenue
+                // Skip accounts that have no active ad units registered in Mindora X
                 $registeredCount = \App\Models\AdUnit::whereHas('website', fn($q) => $q->where('gam_account_id', $account->id))
                     ->where('is_active', true)
                     ->count();
@@ -315,11 +351,43 @@ class GamSync extends Command
             $syncLog->rows_locked  = $rowsLocked;
             $syncLog->save();
 
+            // Clear queries cache on sync completion
+            RevenueRecord::clearCache();
+
             $this->info("GAM Sync Completed" . ($hasErrors ? " with partial errors!" : " Successfully!"));
+            
+            // Format table to captured output
+            $tableStr = "| Fetched | Matched | Skipped | Locked | Status |\n"
+                      . "|---------|---------|---------|--------|--------|\n"
+                      . "| {$rowsFetched} | {$rowsMatched} | {$rowsSkipped} | {$rowsLocked} | {$syncLog->status} |";
+            $this->capturedOutput[] = $tableStr;
+
             $this->table(
                 ['Fetched', 'Matched', 'Skipped', 'Locked', 'Status'],
                 [[$rowsFetched, $rowsMatched, $rowsSkipped, $rowsLocked, $syncLog->status]]
             );
+
+            // Write to audit log (only for automatic/scheduler syncs)
+            if (!$isManual) {
+                try {
+                    AuditLogService::log(
+                        'trigger_sync',
+                        'GamAccount',
+                        null,
+                        null,
+                        [
+                            'status'         => $syncLog->status,
+                            'rows_fetched'   => $rowsFetched,
+                            'rows_matched'   => $rowsMatched,
+                            'output'         => substr(implode("\n", $this->capturedOutput), 0, 2000),
+                            'filters'        => null,
+                        ],
+                        'System triggered automatic GAM sync'
+                    );
+                } catch (\Exception $auditEx) {
+                    // Ignore audit logging errors
+                }
+            }
 
             return 0;
 
@@ -329,7 +397,32 @@ class GamSync extends Command
             $syncLog->error_message = $e->getMessage();
             $syncLog->save();
 
+            // Clear queries cache in case some batches succeeded before failing
+            RevenueRecord::clearCache();
+
             $this->error("GAM Sync Failed: " . $e->getMessage());
+
+            // Write to audit log (only for automatic/scheduler syncs)
+            if (!$isManual) {
+                try {
+                    AuditLogService::log(
+                        'trigger_sync',
+                        'GamAccount',
+                        null,
+                        null,
+                        [
+                            'status'         => 'failed',
+                            'rows_fetched'   => $rowsFetched ?? 0,
+                            'rows_matched'   => $rowsMatched ?? 0,
+                            'output'         => substr(implode("\n", $this->capturedOutput), 0, 2000),
+                            'filters'        => null,
+                        ],
+                        'System triggered automatic GAM sync'
+                    );
+                } catch (\Exception $auditEx) {
+                    // Ignore audit logging errors
+                }
+            }
 
             return 1;
         }

@@ -11,11 +11,11 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::where('email', 'admin@bestrevenue.com')->first();
+        $user = User::where('email', 'admin@mindorax.com')->first();
         if (!$user) {
             User::create([
                 'id'       => Str::uuid()->toString(),
-                'email'    => 'admin@bestrevenue.com',
+                'email'    => 'admin@mindorax.com',
                 'name'     => 'Platform Admin',
                 'password' => Hash::make('admin123456'),
                 'role'     => 'admin',
@@ -30,7 +30,7 @@ class AdminUserSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Admin user created: admin@bestrevenue.com / admin123456');
+        $this->command->info('Admin user created: admin@mindorax.com / admin123456');
         $this->command->warn('⚠  Change the admin password immediately after first login!');
     }
 }

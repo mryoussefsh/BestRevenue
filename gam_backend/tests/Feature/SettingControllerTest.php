@@ -318,4 +318,118 @@ class SettingControllerTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_homepage_stats_override_functionality(): void
+    {
+        Setting::create([
+            'key'   => 'homepage_stats_override',
+            'value' => 'false',
+            'group' => 'homepage_stats',
+            'label' => 'Override Homepage Statistics',
+            'type'  => 'boolean',
+        ]);
+        Setting::create([
+            'key'   => 'homepage_stats_publishers',
+            'value' => '1000',
+            'group' => 'homepage_stats',
+            'label' => 'Homepage Stats: Active Global Publishers',
+            'type'  => 'integer',
+        ]);
+        Setting::create([
+            'key'   => 'homepage_stats_impressions',
+            'value' => '9999999',
+            'group' => 'homepage_stats',
+            'label' => 'Homepage Stats: Ad Impressions Served',
+            'type'  => 'integer',
+        ]);
+        Setting::create([
+            'key'   => 'homepage_stats_total_paid',
+            'value' => '88888',
+            'group' => 'homepage_stats',
+            'label' => 'Homepage Stats: Total Paid to Publishers',
+            'type'  => 'integer',
+        ]);
+        Setting::create([
+            'key'   => 'homepage_stats_websites',
+            'value' => '77',
+            'group' => 'homepage_stats',
+            'label' => 'Homepage Stats: Approved Domains',
+            'type'  => 'integer',
+        ]);
+
+        // Seed real data to verify addition behavior
+        $publisher = \App\Models\Publisher::create([
+            'id'            => Str::uuid()->toString(),
+            'name'          => 'Test Publisher',
+            'email'         => 'pub@test.com',
+            'status'        => 'active',
+            'default_ratio' => 0.80,
+        ]);
+
+        $website = \App\Models\Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $publisher->id,
+            'domain'           => 'site-test.com',
+            'gam_network_code' => '1234',
+            'is_active'        => true,
+        ]);
+
+        $adUnit = \App\Models\AdUnit::create([
+            'id'               => Str::uuid()->toString(),
+            'website_id'       => $website->id,
+            'gam_ad_unit_name' => 'banner_test',
+            'display_name'     => 'Banner',
+            'is_active'        => true,
+        ]);
+
+        \App\Models\RevenueRecord::create([
+            'id'                  => Str::uuid()->toString(),
+            'ad_unit_id'          => $adUnit->id,
+            'date'                => '2026-06-15',
+            'hour'                => '00',
+            'impressions'         => 1000,
+            'gross_revenue'       => 100.0,
+            'publisher_earnings'  => 80.0,
+        ]);
+
+        \App\Models\Payout::create([
+            'id'                => Str::uuid()->toString(),
+            'publisher_id'      => $publisher->id,
+            'period_year'       => 2026,
+            'period_month'      => 5,
+            'amount'            => 80.00,
+            'adjustment'        => 0,
+            'final_amount'      => 80.00,
+            'status'            => 'paid',
+            'payment_method'    => 'Wise',
+        ]);
+
+        // 1. Fetch public settings when override is disabled (should only show real database numbers)
+        $response = $this->getJson('/api/v1/public/settings');
+        $response->assertStatus(200);
+        $json = $response->json();
+        
+        // Assert we get standard database stats
+        $this->assertEquals(1, $json['stats_publishers']);
+        $this->assertEquals(1, $json['stats_websites']);
+        $this->assertEquals(80.0, $json['stats_total_paid']);
+        $this->assertEquals(1000, $json['stats_impressions']);
+
+        // 2. Enable override
+        Sanctum::actingAs($this->admin);
+        $this->putJson('/api/v1/admin/settings/homepage_stats_override', [
+            'value' => 'true'
+        ])->assertStatus(200);
+
+        // 3. Fetch public settings when override is enabled (should show real + overridden stats)
+        $response2 = $this->getJson('/api/v1/public/settings');
+        $response2->assertStatus(200);
+        $json2 = $response2->json();
+
+        // Assert overridden stats are returned (real + configured settings)
+        $this->assertEquals(1 + 1000, $json2['stats_publishers']);
+        $this->assertEquals(1 + 77, $json2['stats_websites']);
+        $this->assertEquals(80.0 + 88888.0, $json2['stats_total_paid']);
+        $this->assertEquals(1000 + 9999999, $json2['stats_impressions']);
+    }
 }

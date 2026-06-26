@@ -32,6 +32,7 @@ export const adminApi = {
   activatePublisher:   (id)     => api.post(`/admin/publishers/${id}/activate`),
   adjustPublisherBalance: (id, amount, notes) => api.post(`/admin/publishers/${id}/adjust-balance`, { amount, notes }),
   impersonatePublisher: (id) => api.post(`/admin/publishers/${id}/impersonate`),
+  sendEmail:           (id, subject, body) => api.post(`/admin/publishers/${id}/send-email`, { subject, body }),
   createManualPayout:  (id, data) => api.post(`/admin/publishers/${id}/create-payout`, data),
   manualPayment:       (id, data) => api.post(`/admin/publishers/${id}/manual-payment`, data),
 
@@ -40,6 +41,9 @@ export const adminApi = {
   createWebsite:       (data)   => api.post('/admin/websites', data),
   updateWebsite:       (id, data) => api.put(`/admin/websites/${id}`, data),
   deleteWebsite:       (id)     => api.delete(`/admin/websites/${id}`),
+  scanWebsitesTracking:()       => api.post('/admin/websites/scan-tracking'),
+  scanWebsiteTracking: (id)     => api.post(`/admin/websites/${id}/scan-tracking`),
+  markWebsiteTrackingVerified: (id) => api.post(`/admin/websites/${id}/mark-tracking-verified`),
 
   // Ad Units
   getAdUnits:          (params) => api.get('/admin/ad-units', { params }),
@@ -52,7 +56,7 @@ export const adminApi = {
 
   // Revenue
   getRevenue:          (params) => api.get('/admin/revenue', { params }),
-  wipeRevenue:         ()       => api.delete('/admin/revenue/wipe?confirm=WIPE'),
+  wipeRevenue:         ()       => api.post('/admin/danger/wipe-revenue', { confirm: 'WIPE' }),
 
   // Period Closings
   getPeriodClosings:   ()        => api.get('/admin/period-closings'),
@@ -92,6 +96,12 @@ export const adminApi = {
 
   // Audit Logs
   getAuditLogs: (params) => api.get('/admin/audit-logs', { params }),
+  wipeAuditLogs:       ()       => api.post('/admin/danger/wipe-audit-logs', { confirm: 'WIPE' }),
+  pruneTraffic:        (days)   => api.post('/admin/danger/prune-traffic', { confirm: 'WIPE', days }),
+  flushCache:          ()       => api.post('/admin/danger/flush-cache', { confirm: 'WIPE' }),
+  forceLogoutSessions: ()       => api.post('/admin/danger/force-logout', { confirm: 'WIPE' }),
+  refreshAllTokens:    ()       => api.post('/admin/danger/refresh-tokens', { confirm: 'WIPE' }),
+  resetConfig:         ()       => api.post('/admin/danger/reset-config', { confirm: 'WIPE' }),
 
   // GAM Sync — points to the single correct sync endpoint
   runSync:             (data)    => api.post('/admin/gam-accounts/sync', {}, { params: data, timeout: 300000 }),
@@ -144,6 +154,11 @@ export const adminApi = {
 
   // Permissions List
   getPermissions:      ()         => api.get('/admin/permissions'),
+
+  // Notifications
+  getNotifications:        ()    => api.get('/admin/notifications'),
+  markNotificationRead:    (id)  => api.post(`/admin/notifications/${id}/read`),
+  markAllNotificationsRead:()    => api.post('/admin/notifications/read-all'),
 }
 
 export const gamAccountsApi = {
@@ -163,6 +178,7 @@ export const publisherApi = {
   getAdUnits:     (webId)   => api.get(`/publisher/websites/${webId}/ad-units`),
   getRevenue:     (params)  => api.get('/publisher/revenue', { params }),
   getPayouts:     ()        => api.get('/publisher/payouts'),
+  getAdjustments: (params)  => api.get('/publisher/adjustments', { params }),
   exportPdf:      (params)  => api.get('/publisher/revenue/pdf', { params, responseType: 'blob' }),
   updatePaymentInfo: (data) => api.put('/publisher/payment-info', data),
   updateProfile:     (data) => api.put('/publisher/profile', data),
@@ -180,3 +196,24 @@ export const publisherApi = {
   replyTicket:         (id, data) => api.post(`/publisher/tickets/${id}/reply`, data),
   closeTicket:         (id)       => api.post(`/publisher/tickets/${id}/close`),
 }
+
+export const trafficApi = {
+  // Overview — all publishers combined (Redis + MySQL)
+  getOverview:         ()                     => api.get('/admin/traffic/overview'),
+
+  // Realtime — live Redis data, polled every 30s
+  getRealtime:         ()                     => api.get('/admin/traffic/realtime'),
+
+  // Publisher deep-dive — MySQL aggregate tables
+  getPublisherDetail:  (publisherId, websiteId) => api.get(`/admin/traffic/publishers/${publisherId}`, { params: { website_id: websiteId } }),
+
+  // Anomaly log — filterable, paginated
+  getAnomalies:        (params)               => api.get('/admin/traffic/anomalies', { params }),
+
+  // Resolve anomaly
+  resolveAnomaly:      (id, adminNotes)       => api.patch(`/admin/traffic/anomalies/${id}/resolve`, { admin_notes: adminNotes }),
+
+  // Quality score leaderboard
+  getQualityScores:    (params)               => api.get('/admin/traffic/quality-scores', { params }),
+}
+

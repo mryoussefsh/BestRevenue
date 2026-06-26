@@ -71,7 +71,7 @@ class GamApiService
 
         $session = (new AdManagerSessionBuilder())
             ->withNetworkCode($account->network_code)
-            ->withApplicationName('BestRevenue Sync System')
+            ->withApplicationName('Mindora X Sync System')
             ->withOAuth2Credential($oAuth2Credential)
             ->build();
 
@@ -144,7 +144,7 @@ class GamApiService
 
     /**
      * Fetch a report from Google Ad Manager using the provided GamAccount credentials.
-     * Filters the report to only the ad units registered in BestRevenue for this account.
+     * Filters the report to only the ad units registered in Mindora X for this account.
      *
      * @param GamAccount $account
      * @param int $daysBack

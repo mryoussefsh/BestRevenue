@@ -469,6 +469,76 @@ class FinancialConcurrencyTest extends TestCase
     }
 
     /**
+     * Verifies that the gam:sync command scheduler hourly frequency check triggers if the last run is due (considering 30s grace buffer).
+     */
+    public function test_gam_sync_hourly_frequency_triggers(): void
+    {
+        Setting::updateOrCreate(['key' => 'gam_sync_frequency'], ['value' => 'hourly', 'group' => 'gam', 'label' => 'Freq', 'type' => 'string']);
+        Setting::updateOrCreate(['key' => 'gam_sync_interval'], ['value' => '1', 'group' => 'gam', 'label' => 'Interval', 'type' => 'integer']);
+
+        // Previous log run 59 minutes and 40 seconds ago (3580 seconds)
+        \App\Models\GamSyncLog::create([
+            'triggered_by' => 'scheduler',
+            'started_at'   => \Carbon\Carbon::parse('2026-07-21 19:00:00', 'UTC'),
+            'finished_at'  => \Carbon\Carbon::parse('2026-07-21 19:05:00', 'UTC'),
+            'status'       => 'success',
+        ]);
+
+        // Mock the fetchReport API call
+        $mock = $this->mock(\App\Services\GamApiService::class);
+        $mock->shouldReceive('fetchReport')->andReturn([]);
+
+        // Set test now to 19:59:40 UTC (exactly 3580 seconds later, which is >= 3570 seconds)
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 19:59:40', 'UTC'));
+
+        $exitCode = Artisan::call('gam:sync', [
+            '--manual' => false,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        // Verify a new log was created because it did NOT skip
+        $logs = \App\Models\GamSyncLog::where('triggered_by', 'scheduler')
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        $this->assertCount(2, $logs);
+    }
+
+    /**
+     * Verifies that the gam:sync command scheduler hourly frequency check SKIPS if the last run was too recent.
+     */
+    public function test_gam_sync_hourly_frequency_skips(): void
+    {
+        Setting::updateOrCreate(['key' => 'gam_sync_frequency'], ['value' => 'hourly', 'group' => 'gam', 'label' => 'Freq', 'type' => 'string']);
+        Setting::updateOrCreate(['key' => 'gam_sync_interval'], ['value' => '1', 'group' => 'gam', 'label' => 'Interval', 'type' => 'integer']);
+
+        // Previous log run 58 minutes ago (3480 seconds)
+        \App\Models\GamSyncLog::create([
+            'triggered_by' => 'scheduler',
+            'started_at'   => \Carbon\Carbon::parse('2026-07-21 19:00:00', 'UTC'),
+            'finished_at'  => \Carbon\Carbon::parse('2026-07-21 19:05:00', 'UTC'),
+            'status'       => 'success',
+        ]);
+
+        // Set test now to 19:58:00 UTC (3480 seconds later, which is < 3570 seconds)
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 19:58:00', 'UTC'));
+
+        $exitCode = Artisan::call('gam:sync', [
+            '--manual' => false,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        // Verify no new log was created
+        $logs = \App\Models\GamSyncLog::where('triggered_by', 'scheduler')
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        $this->assertCount(1, $logs);
+    }
+
+    /**
      * Verifies that GAM sync updates financial metrics on subsequent runs
      */
     public function test_gam_sync_updates_financial_metrics_on_subsequent_runs(): void
@@ -557,6 +627,45 @@ class FinancialConcurrencyTest extends TestCase
             'ratio_applied'      => 0.80, // preserved ratio
             'publisher_earnings' => 2.4,  // 3.0 * 0.80
         ]);
+    }
+
+    /**
+     * Verifies that tracking:verify command scheduler check respects the hourly frequency and grace buffer.
+     */
+    public function test_tracking_verify_scheduler_triggers_and_skips(): void
+    {
+        Setting::updateOrCreate(['key' => 'tracking_verify_frequency'], ['value' => 'hourly', 'group' => 'gam', 'label' => 'Freq', 'type' => 'string']);
+        Setting::updateOrCreate(['key' => 'tracking_verify_interval'], ['value' => '1', 'group' => 'gam', 'label' => 'Interval', 'type' => 'integer']);
+
+        // Set last run time to 59 minutes and 40 seconds ago (3580 seconds)
+        $lastRun = \Carbon\Carbon::parse('2026-07-21 19:00:00', 'UTC');
+        \Illuminate\Support\Facades\Cache::put('tracking_verify_last_run', $lastRun->toIso8601String());
+
+        // Set test now to 19:59:40 UTC
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 19:59:40', 'UTC'));
+
+        $exitCode = Artisan::call('tracking:verify', [
+            '--website' => null,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        // Verify the cache key is updated to the new run time
+        $updatedLastRun = \Illuminate\Support\Facades\Cache::get('tracking_verify_last_run');
+        $this->assertEquals(\Carbon\Carbon::parse('2026-07-21 19:59:40', 'UTC')->toIso8601String(), $updatedLastRun);
+
+        // Test skip: set last run to 58 minutes ago (3480 seconds)
+        \Illuminate\Support\Facades\Cache::put('tracking_verify_last_run', \Carbon\Carbon::parse('2026-07-21 19:00:00', 'UTC')->toIso8601String());
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 19:58:00', 'UTC'));
+
+        $exitCodeSkip = Artisan::call('tracking:verify', [
+            '--website' => null,
+        ]);
+
+        $this->assertEquals(0, $exitCodeSkip);
+
+        // Verify the cache key was NOT updated because the run was skipped
+        $this->assertEquals(\Carbon\Carbon::parse('2026-07-21 19:00:00', 'UTC')->toIso8601String(), \Illuminate\Support\Facades\Cache::get('tracking_verify_last_run'));
     }
 }
 

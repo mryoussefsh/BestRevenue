@@ -1,6 +1,6 @@
-# Database Schema — BestRevenue Platform
+# Database Schema — Mindora X Platform
 
-This document details the database architecture of the Publisher Revenue Sharing Platform (BestRevenue), including database tables, columns, relations, indices, and constraints.
+This document details the database architecture of the Publisher Revenue Sharing Platform (Mindora X), including database tables, columns, relations, indices, and constraints.
 
 ---
 

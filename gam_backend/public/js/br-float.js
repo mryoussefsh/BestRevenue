@@ -37,7 +37,7 @@ window.__br_init_float = window.__br_init_float || function(config) {
     platformUrl = window.location.origin;
   }
 
-  var siteName = 'BestRevenue';
+  var siteName = 'Mindora X';
   if (platformUrl) {
     try {
       var hostname = new URL(platformUrl).hostname;

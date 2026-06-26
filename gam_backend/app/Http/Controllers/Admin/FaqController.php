@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,14 @@ class FaqController extends Controller
 
         $faq = Faq::create($validated);
 
+        AuditLogService::log(
+            'created',
+            'Faq',
+            $faq->id,
+            null,
+            $faq->toArray()
+        );
+
         return response()->json([
             'message' => 'FAQ created successfully',
             'data' => $faq
@@ -67,7 +76,16 @@ class FaqController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $oldData = $faq->toArray();
         $faq->update($validated);
+
+        AuditLogService::log(
+            'updated',
+            'Faq',
+            $faq->id,
+            $oldData,
+            $faq->toArray()
+        );
 
         return response()->json([
             'message' => 'FAQ updated successfully',
@@ -81,7 +99,16 @@ class FaqController extends Controller
     public function destroy($id): JsonResponse
     {
         $faq = Faq::findOrFail($id);
+        $oldData = $faq->toArray();
         $faq->delete();
+
+        AuditLogService::log(
+            'deleted',
+            'Faq',
+            $id,
+            $oldData,
+            null
+        );
 
         return response()->json([
             'message' => 'FAQ deleted successfully'

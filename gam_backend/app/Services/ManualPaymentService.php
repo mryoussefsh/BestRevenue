@@ -63,6 +63,11 @@ class ManualPaymentService
             $method = $publisher->payment_info['method'];
         }
 
+        $account = null;
+        if (is_array($publisher->payment_info) && isset($publisher->payment_info['account'])) {
+            $account = $publisher->payment_info['account'];
+        }
+
         if (!$linkedPayoutId) {
             // Calculate approved balance
             $limitDate = \App\Models\RevenueRecord::getApprovedLimitDate()->startOfDay()->format('Y-m-d');
@@ -140,6 +145,7 @@ class ManualPaymentService
                 'status'            => 'pending', // Pending so it flows through approval queue
                 'admin_note'        => $notes,
                 'payment_method'    => $method,
+                'payment_account'   => $account,
                 'payment_reference' => $reference,
                 'paid_at'           => null,      // Not paid yet
                 'is_manual_payment' => true,

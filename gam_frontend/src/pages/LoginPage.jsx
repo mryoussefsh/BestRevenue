@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { useI18n } from '../contexts/I18nContext'
@@ -7,7 +7,7 @@ import { TrendingUp, Lock, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { user, authLoading, login } = useAuth()
   const { settings } = useSettings()
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -16,6 +16,13 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Wait for auth check, then redirect authenticated users to their dashboard
+  if (authLoading) return null
+  if (user) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />
+    return <Navigate to="/publisher" replace />
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -44,8 +51,18 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrapper">
+      {/* Aurora Background */}
       <div className="auth-glow-1"></div>
       <div className="auth-glow-2"></div>
+      <div className="auth-glow-3"></div>
+      <div className="auth-glow-4"></div>
+      <div className="auth-glow-5"></div>
+      <span className="auth-particle" style={{ top:'15%', left:'10%',  width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+      <span className="auth-particle" style={{ top:'70%', left:'15%',  width:3, height:3, background:'#8b5cf6', animationDelay:'2.1s', animationDuration:'8s'  }}></span>
+      <span className="auth-particle" style={{ top:'25%', left:'85%',  width:4, height:4, background:'#10b981', animationDelay:'1.4s', animationDuration:'7s'  }}></span>
+      <span className="auth-particle" style={{ top:'80%', left:'75%',  width:3, height:3, background:'#f59e0b', animationDelay:'3.5s', animationDuration:'9s'  }}></span>
+      <span className="auth-particle" style={{ top:'50%', left:'92%',  width:5, height:5, background:'#00f2fe', animationDelay:'0.8s', animationDuration:'5.5s'}}></span>
+      <span className="auth-particle" style={{ top:'90%', left:'40%',  width:3, height:3, background:'#f43f5e', animationDelay:'4.2s', animationDuration:'10s' }}></span>
 
       <div className="auth-card">
         <div className="auth-logo">
@@ -58,7 +75,7 @@ export default function LoginPage() {
               <div className="auth-logo-icon">
                 <TrendingUp size={24} />
               </div>
-              <h1 className="auth-title">{settings.site_name || 'BestRevenue'}</h1>
+              <h1 className="auth-title">{settings.site_name || 'Mindora X'}</h1>
             </Link>
           )}
           <p className="auth-subtitle">{t('auth.login_subtitle', 'Sign in to your account')}</p>
@@ -139,7 +156,7 @@ export default function LoginPage() {
 
         {settings.registration_status !== 'closed' && (
           <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--br-text-2)' }}>
-            {t('auth.new_to_platform', 'New to {site_name}?', { site_name: settings.site_name || 'BestRevenue' })}{' '}
+            {t('auth.new_to_platform', 'New to {site_name}?', { site_name: settings.site_name || 'Mindora X' })}{' '}
             <Link to="/register" id="go-to-register" style={{ color: 'var(--br-primary)', fontWeight: 600, textDecoration: 'none' }}>
               {t('auth.create_publisher_account', 'Create a Publisher Account')}
             </Link>
@@ -148,7 +165,7 @@ export default function LoginPage() {
 
         <div style={{ marginTop: 20, padding: '16px', background: 'rgba(255,255,255,0.015)', border: '0.5px solid var(--br-border)', borderRadius: 'var(--br-radius)', fontSize: 12, color: 'var(--br-text-3)' }}>
           <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--br-text-2)' }}>{t('auth.demo_credentials', 'Demo Credentials')}</div>
-          <div>{t('auth.demo_admin', 'Admin')}: <code style={{ color: 'var(--br-primary)' }}>admin@bestrevenue.com</code> / <code style={{ color: 'var(--br-primary)' }}>admin123456</code></div>
+          <div>{t('auth.demo_admin', 'Admin')}: <code style={{ color: 'var(--br-primary)' }}>admin@mindorax.com</code> / <code style={{ color: 'var(--br-primary)' }}>admin123456</code></div>
         </div>
       </div>
     </div>

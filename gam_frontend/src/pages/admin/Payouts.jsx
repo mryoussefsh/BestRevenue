@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -235,8 +236,9 @@ function PublisherSelect({ publishers, value, onChange }) {
 
 /* ── Main Page ───────────────────────────────────────────────────────────── */
 export default function PayoutsPage() {
-  const { formatDate } = useSettings()
+  const { formatDate, settings } = useSettings()
   const { t } = useI18n()
+  const queryClient = useQueryClient()
   const [payouts,    setPayouts]    = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading,    setLoading]    = useState(true)
@@ -244,39 +246,70 @@ export default function PayoutsPage() {
   const [paidModal,  setPaidModal]  = useState(null)
   const [page,       setPage]       = useState(1)
 
-  // Filters — status + publisher go to API; year + month are client-side
+  // Filters — status + publisher + payment method + payment account go to API; year + month are client-side
   const [filterStatus,    setFilterStatus]    = useState('')
   const [filterPublisher, setFilterPublisher] = useState('')
   const [filterYear,      setFilterYear]      = useState('')
   const [filterMonth,     setFilterMonth]     = useState('')
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('')
+  const [filterPaymentAccount, setFilterPaymentAccount] = useState('')
+  const [debouncedPaymentAccount, setDebouncedPaymentAccount] = useState('')
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
-  // Load publishers list
-  async function loadPublishers() {
-    try {
-      const r = await adminApi.getPublishers({ per_page: 500 })
-      setPublishers(r.data?.data || [])
-    } catch {}
-  }
+  const { data: publishersData, isLoading: publishersLoading } = useQuery({
+    queryKey: ['adminPublishersForPayouts'],
+    queryFn: () => adminApi.getPublishers({ per_page: 500 }).then(r => r.data?.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
 
   useEffect(() => {
-    loadPublishers()
-  }, [])
+    if (publishersData) {
+      setPublishers(publishersData)
+    }
+  }, [publishersData])
 
-  // Reload from API when server-side filters change
-  useEffect(() => { load() }, [filterStatus, filterPublisher])
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedPaymentAccount(filterPaymentAccount)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [filterPaymentAccount])
 
-  async function load() {
-    setLoading(true)
-    setPage(1)
-    try {
-      const params = {}
-      if (filterStatus)    params.status       = filterStatus
-      if (filterPublisher) params.publisher_id = filterPublisher
-      const res = await adminApi.getPayouts(params)
-      setPayouts(res.data?.data || [])
-    } catch { toast.error(t('payouts.toast_load_fail', 'Failed to load payouts')) }
-    finally { setLoading(false) }
+  const payoutsParams = {}
+  if (filterStatus) payoutsParams.status = filterStatus
+  if (filterPublisher) payoutsParams.publisher_id = filterPublisher
+  if (filterPaymentMethod) payoutsParams.payment_method = filterPaymentMethod
+  if (debouncedPaymentAccount) payoutsParams.payment_account = debouncedPaymentAccount
+
+  const { data: payoutsData, isLoading: payoutsLoading, error: payoutsError } = useQuery({
+    queryKey: ['adminPayouts', payoutsParams],
+    queryFn: () => adminApi.getPayouts(payoutsParams).then(r => r.data?.data || []),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (payoutsData) {
+      setPayouts(payoutsData)
+      setPage(1)
+    }
+  }, [payoutsData])
+
+  useEffect(() => {
+    setLoading(payoutsLoading || publishersLoading)
+  }, [payoutsLoading, publishersLoading])
+
+  useEffect(() => {
+    if (payoutsError) {
+      toast.error(t('payouts.toast_load_fail', 'Failed to load payouts'))
+    }
+  }, [payoutsError, t])
+
+  function load() {
+    queryClient.invalidateQueries({ queryKey: ['adminPayouts'] })
+  }
+
+  function loadPublishers() {
+    queryClient.invalidateQueries({ queryKey: ['adminPublishersForPayouts'] })
   }
 
   // Client-side year + month filter
@@ -287,6 +320,10 @@ export default function PayoutsPage() {
   })
 
   const uniqueYears = [...new Set(payouts.map(p => p.period_year))].sort((a, b) => b - a)
+
+  const settingsMethods = (settings?.payment_methods || []).map(m => (typeof m === 'object' && m !== null) ? m.name : m).filter(Boolean)
+  const payoutsMethods = [...new Set(payouts.map(p => p.payment_method))].filter(Boolean)
+  const allPaymentMethods = [...new Set([...settingsMethods, ...payoutsMethods])]
 
   const paginated  = filteredPayouts.slice((page - 1) * 15, page * 15)
   const totalBase  = filteredPayouts.reduce((s, p) => s + parseFloat(p.amount      || 0), 0)
@@ -306,12 +343,14 @@ export default function PayoutsPage() {
   const pendingCount = pendingPayouts.length
   const pendingSum = pendingPayouts.reduce((s, p) => s + parseFloat(p.final_amount || 0), 0)
 
-  const hasFilter = filterStatus || filterPublisher || filterYear || filterMonth
+  const hasFilter = filterStatus || filterPublisher || filterYear || filterMonth || filterPaymentMethod || filterPaymentAccount
   const activeFiltersCount = [
     filterStatus,
     filterPublisher,
     filterYear,
-    filterMonth
+    filterMonth,
+    filterPaymentMethod,
+    filterPaymentAccount
   ].filter(Boolean).length
 
   function handleReset() {
@@ -319,6 +358,8 @@ export default function PayoutsPage() {
     setFilterPublisher('')
     setFilterYear('')
     setFilterMonth('')
+    setFilterPaymentMethod('')
+    setFilterPaymentAccount('')
     setPage(1)
   }
 
@@ -448,6 +489,35 @@ export default function PayoutsPage() {
               <option value="11">{t('common.months.november', 'November')}</option>
               <option value="12">{t('common.months.december', 'December')}</option>
             </select>
+          </div>
+
+          {/* Payment Method */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('payouts.payment_method_label', 'Payment Method')}</label>
+            <select
+              className="form-select"
+              style={{ padding: '6px 10px', fontSize: 13, minWidth: 150 }}
+              value={filterPaymentMethod}
+              onChange={e => { setFilterPaymentMethod(e.target.value) }}
+            >
+              <option value="">{t('payouts.all_payment_methods', 'All Methods')}</option>
+              {allPaymentMethods.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Payment Account */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('payouts.payment_account_search', 'Search Account')}</label>
+            <input
+              type="text"
+              className="form-input"
+              style={{ padding: '6px 10px', fontSize: 13, minWidth: 180 }}
+              placeholder={t('payouts.payment_account_placeholder', 'Search account…')}
+              value={filterPaymentAccount}
+              onChange={e => { setFilterPaymentAccount(e.target.value) }}
+            />
           </div>
 
           {/* Reset */}

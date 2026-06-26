@@ -114,8 +114,7 @@ return new class extends Migration
         if (DB::getDriverName() !== 'sqlite') {
             Schema::table('payouts', function (Blueprint $table) {
                 $table->uuid('active_period_closing_id')
-                    ->nullable()
-                    ->virtualAs("CASE WHEN status != 'rejected' THEN period_closing_id ELSE NULL END");
+                    ->nullable();
 
                 $table->unique(
                     ['publisher_id', 'active_period_closing_id'],

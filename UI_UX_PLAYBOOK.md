@@ -1,6 +1,6 @@
-# BestRevenue UI/UX Playbook
+# Mindora X UI/UX Playbook
 
-This playbook establishes the user experience guidelines, navigation principles, cognitive load reduction tactics, and visual validation checklists for the BestRevenue platform.
+This playbook establishes the user experience guidelines, navigation principles, cognitive load reduction tactics, and visual validation checklists for the Mindora X platform.
 
 ---
 

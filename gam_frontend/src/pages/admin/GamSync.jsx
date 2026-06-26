@@ -49,6 +49,59 @@ function TriggerBadge({ triggeredBy }) {
   )
 }
 
+function LastSyncTime({ startedAt, fmt }) {
+  const [timeAgo, setTimeAgo] = useState('')
+
+  useEffect(() => {
+    if (!startedAt) return
+
+    const updateTime = () => {
+      const diff = Date.now() - new Date(startedAt).getTime()
+      const s = Math.floor(diff / 1000)
+      if (s < 0) {
+        setTimeAgo('0s ago')
+        return
+      }
+      if (s < 60) {
+        setTimeAgo(`${s}s ago`)
+        return
+      }
+      const m = Math.floor(s / 60)
+      if (m < 60) {
+        setTimeAgo(`${m}m ago`)
+        return
+      }
+      const h = Math.floor(m / 60)
+      if (h < 24) {
+        setTimeAgo(`${h}h ago`)
+        return
+      }
+      const d = Math.floor(h / 24)
+      if (d < 30) {
+        setTimeAgo(`${d}d ago`)
+        return
+      }
+      const mo = Math.floor(d / 30)
+      setTimeAgo(`${mo}mo ago`)
+    }
+
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [startedAt])
+
+  return (
+    <>
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' }}>{fmt(startedAt)}</div>
+      {timeAgo && (
+        <div style={{ fontSize: 12, color: 'var(--color-text-subtle)', marginTop: 2, fontWeight: 400 }}>
+          {timeAgo}
+        </div>
+      )}
+    </>
+  )
+}
+
 function PublisherSelect({ publishers, value, onChange }) {
   const { t } = useI18n()
   const [search, setSearch] = useState('')
@@ -120,9 +173,9 @@ function PublisherSelect({ publishers, value, onChange }) {
                 style={{ 
                   padding: '8px 12px', 
                   cursor: 'pointer', 
-                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  background: isSelected ? 'rgba(0, 242, 254, 0.15)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
                   borderBottom: '1px solid var(--color-border-light)',
-                  color: isSelected ? 'white' : 'var(--color-text)',
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
                   transition: 'background 0.15s'
                 }} 
                 onMouseDown={() => { onChange(p.id); setOpen(false); setSearch('') }}
@@ -130,7 +183,7 @@ function PublisherSelect({ publishers, value, onChange }) {
                 onMouseLeave={() => setHoveredId(null)}
               >
                 <div style={{ fontWeight: 600 }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(0, 242, 254, 0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
               </div>
             )
           })}
@@ -214,9 +267,9 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
                 style={{ 
                   padding: '8px 12px', 
                   cursor: 'pointer', 
-                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  background: isSelected ? 'rgba(0, 242, 254, 0.15)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
                   borderBottom: '1px solid var(--color-border-light)',
-                  color: isSelected ? 'white' : 'var(--color-text)',
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
                   transition: 'background 0.15s'
                 }} 
                 onMouseDown={() => { onChange(a.id); setOpen(false); setSearch('') }}
@@ -224,7 +277,7 @@ function GamAccountSelect({ gamAccounts, value, onChange }) {
                 onMouseLeave={() => setHoveredId(null)}
               >
                 <div style={{ fontWeight: 600 }}>{a.name}</div>
-                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{a.email}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(0, 242, 254, 0.7)' : 'var(--color-text-muted)' }}>{a.email}</div>
               </div>
             )
           })}
@@ -271,7 +324,7 @@ export default function GamSyncPage() {
   }
 
   const today = getPlatformDateStr(0)
-  const threeDaysAgo = getPlatformDateStr(3)
+  const threeDaysAgo = getPlatformDateStr(2)
 
   const [syncing,   setSyncing]   = useState(false)
   const [logs,      setLogs]      = useState([])
@@ -284,18 +337,58 @@ export default function GamSyncPage() {
   const LOGS_PAGE_SIZE = 20
 
   const [filters, setFilters] = useState({
+    preset:         '3d',
     date_from:      threeDaysAgo,
     date_to:        today,
     publisher_id:   '',
     gam_account_id: '',
   })
 
+  const handlePresetChange = (preset) => {
+    let from = filters.date_from
+    let to = filters.date_to
+
+    if (preset === 'today') {
+      from = getPlatformDateStr(0)
+      to = getPlatformDateStr(0)
+    } else if (preset === 'yesterday') {
+      from = getPlatformDateStr(1)
+      to = getPlatformDateStr(1)
+    } else if (preset === '3d') {
+      from = getPlatformDateStr(2)
+      to = getPlatformDateStr(0)
+    } else if (preset === '7d') {
+      from = getPlatformDateStr(6)
+      to = getPlatformDateStr(0)
+    } else if (preset === '14d') {
+      from = getPlatformDateStr(13)
+      to = getPlatformDateStr(0)
+    } else if (preset === '30d') {
+      from = getPlatformDateStr(29)
+      to = getPlatformDateStr(0)
+    } else if (preset === '60d') {
+      from = getPlatformDateStr(59)
+      to = getPlatformDateStr(0)
+    } else if (preset === '90d') {
+      from = getPlatformDateStr(89)
+      to = getPlatformDateStr(0)
+    }
+
+    setFilters(f => ({
+      ...f,
+      preset,
+      date_from: from,
+      date_to: to
+    }))
+  }
+
   // Re-align default range when timezone settings load
   useEffect(() => {
     if (settings.platform_timezone) {
       setFilters(f => ({
         ...f,
-        date_from: getPlatformDateStr(3),
+        preset: '3d',
+        date_from: getPlatformDateStr(2),
         date_to: getPlatformDateStr(0)
       }))
     }
@@ -352,6 +445,17 @@ export default function GamSyncPage() {
   }
 
   async function handleSync() {
+    if (filters.date_from && filters.date_to) {
+      const fromDate = new Date(filters.date_from)
+      const toDate = new Date(filters.date_to)
+      const diffTime = Math.abs(toDate - fromDate)
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      if (diffDays > 90) {
+        toast.error(t('sync.toast_max_days_error', 'Maximum date range is 90 days'))
+        return
+      }
+    }
+
     setSyncing(true)
     setOutput('')
     setShowOutput(true)
@@ -378,6 +482,16 @@ export default function GamSyncPage() {
   }
 
   const lastSync = logs[0] || null
+
+  const defaultDateFrom = getPlatformDateStr(2)
+  const defaultDateTo = getPlatformDateStr(0)
+
+  const isFilterSelected =
+    filters.preset !== '3d' ||
+    filters.publisher_id !== '' ||
+    filters.gam_account_id !== '' ||
+    filters.date_from !== defaultDateFrom ||
+    filters.date_to !== defaultDateTo
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
@@ -409,7 +523,7 @@ export default function GamSyncPage() {
         }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.last_sync', 'Last Sync')}</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)' }}>{fmt(lastSync.started_at)}</div>
+            <LastSyncTime startedAt={lastSync.started_at} fmt={fmt} />
           </div>
           <div>
             <div style={{ fontSize: 11, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t('sync.type', 'Type')}</div>
@@ -443,7 +557,26 @@ export default function GamSyncPage() {
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>
           {t('sync.filters', 'Sync Filters')}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label">{t('sync.preset_label', 'Period')}</label>
+            <select
+              className="form-input"
+              value={filters.preset}
+              onChange={e => handlePresetChange(e.target.value)}
+            >
+              <option value="today">{t('sync.presets.today', 'Today')}</option>
+              <option value="yesterday">{t('sync.presets.yesterday', 'Yesterday')}</option>
+              <option value="3d">{t('sync.presets.last_3_days', 'Last 3 days')}</option>
+              <option value="7d">{t('sync.presets.last_7_days', 'Last 7 days')}</option>
+              <option value="14d">{t('sync.presets.last_14_days', 'Last 14 days')}</option>
+              <option value="30d">{t('sync.presets.last_30_days', 'Last 30 days')}</option>
+              <option value="60d">{t('sync.presets.last_60_days', 'Last 60 days')}</option>
+              <option value="90d">{t('sync.presets.last_90_days', 'Last 90 days')}</option>
+              <option value="custom">{t('sync.presets.custom', 'Custom Range')}</option>
+            </select>
+          </div>
 
           <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label">{t('sync.date_from', 'Date From')}</label>
@@ -453,7 +586,7 @@ export default function GamSyncPage() {
               className="form-input"
               value={filters.date_from}
               max={filters.date_to || today}
-              onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
+              onChange={e => setFilters(f => ({ ...f, date_from: e.target.value, preset: 'custom' }))}
             />
           </div>
 
@@ -466,7 +599,7 @@ export default function GamSyncPage() {
               value={filters.date_to}
               min={filters.date_from}
               max={today}
-              onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
+              onChange={e => setFilters(f => ({ ...f, date_to: e.target.value, preset: 'custom' }))}
             />
           </div>
 
@@ -489,36 +622,17 @@ export default function GamSyncPage() {
           </div>
         </div>
 
-        {/* Quick range buttons */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Today',      days: 0 },
-            { label: 'Last 3 days', days: 2 },
-            { label: 'Last 7 days', days: 6 },
-            { label: 'Last 14 days', days: 13 },
-            { label: 'Last 30 days', days: 29 },
-          ].map(({ label, days }) => (
+        <div style={{ display: 'flex', justifyContent: isFilterSelected ? 'space-between' : 'flex-end', alignItems: 'center', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+          {isFilterSelected && (
             <button
-              key={label}
+              type="button"
               className="btn btn-secondary btn-xs"
-              onClick={() => {
-                const from = getPlatformDateStr(days)
-                setFilters(f => ({ ...f, date_from: from, date_to: today }))
-              }}
+              style={{ color: '#ef4444', height: 38, padding: '0 16px', display: 'inline-flex', alignItems: 'center', borderRadius: 8 }}
+              onClick={() => setFilters({ preset: '3d', date_from: getPlatformDateStr(2), date_to: getPlatformDateStr(0), publisher_id: '', gam_account_id: '' })}
             >
-              {label}
+              {t('common.reset_filters', 'Reset Filters')}
             </button>
-          ))}
-          <button
-            className="btn btn-secondary btn-xs"
-            style={{ color: '#ef4444' }}
-            onClick={() => setFilters(f => ({ ...f, publisher_id: '', gam_account_id: '', date_from: threeDaysAgo, date_to: today }))}
-          >
-            {t('common.reset_filters', 'Reset Filters')}
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+          )}
           <button
             id="btn-run-sync"
             className={`btn btn-primary${syncing ? ' btn-loading' : ''}`}

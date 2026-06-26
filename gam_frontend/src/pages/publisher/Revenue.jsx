@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useI18n } from '../../contexts/I18nContext'
-import { DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye, Filter } from 'lucide-react'
+import { DollarSign, FileText, Ban, TrendingUp, CheckCircle, Clock, Lock, Eye, Filter, Sliders } from 'lucide-react'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -20,17 +21,20 @@ export default function PublisherRevenue() {
   const [records, setRecords] = useState([])
   const [pendingAdjustment, setPendingAdjustment] = useState(0)
   const [payoutsSum, setPayoutsSum] = useState(0)
+  const [adjustments, setAdjustments] = useState([])
+  const [adjustmentsLoading, setAdjustmentsLoading] = useState(true)
   const [aggregates, setAggregates] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     preset: '30d',
-    date_from: toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+    date_from: toLocalYYYYMMDD(new Date(Date.now() - 29 * 86400000)),
     date_to: toLocalYYYYMMDD(new Date()),
     ad_unit_id: '',
     status: ''
   })
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
+  const [adjustmentsPage, setAdjustmentsPage] = useState(1)
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
 
@@ -89,10 +93,10 @@ export default function PublisherRevenue() {
       from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
       to = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
     } else if (preset === '7d') {
-      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 7)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 6)
       to = platDate
     } else if (preset === '30d') {
-      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 30)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 29)
       to = platDate
     } else if (preset === 'this_month') {
       from = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
@@ -140,58 +144,65 @@ export default function PublisherRevenue() {
     }
   }, [settings.platform_timezone])
 
-  // Initial load
+  const queryClient = useQueryClient()
+
+  const { data: adjustmentsRes, isLoading: adjustmentsLoadingQuery } = useQuery({
+    queryKey: ['publisherAdjustments'],
+    queryFn: () => publisherApi.getAdjustments(),
+    staleTime: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
-    const dates = getPresetDates('30d')
-    const initialFilters = {
-      preset: '30d',
-      date_from: dates ? dates.date_from : toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
-      date_to: dates ? dates.date_to : toLocalYYYYMMDD(new Date()),
-      ad_unit_id: '',
-      status: ''
+    if (adjustmentsRes?.data?.data) {
+      setAdjustments(adjustmentsRes.data.data)
     }
-    
-    setLoading(true)
-    publisherApi.getRevenue(initialFilters).then(res => {
-      setRecords(res.data?.data || [])
-      setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
-      setPayoutsSum(res.data?.payouts_sum || 0)
-      setAggregates(res.data?.aggregates || null)
+  }, [adjustmentsRes])
+
+  useEffect(() => {
+    setAdjustmentsLoading(adjustmentsLoadingQuery)
+  }, [adjustmentsLoadingQuery])
+
+  const { data: revenueQueryRes, isLoading: revenueLoadingQuery, error: revenueQueryError } = useQuery({
+    queryKey: ['publisherRevenue', filters],
+    queryFn: () => publisherApi.getRevenue(filters),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (revenueQueryRes?.data) {
+      setRecords(revenueQueryRes.data.data || [])
+      setPendingAdjustment(revenueQueryRes.data.pending_balance_adjustment || 0)
+      setPayoutsSum(revenueQueryRes.data.payouts_sum || 0)
+      setAggregates(revenueQueryRes.data.aggregates || null)
       setPage(1)
-      setLoading(false)
-    }).catch(() => {
+    }
+  }, [revenueQueryRes])
+
+  useEffect(() => {
+    setLoading(revenueLoadingQuery)
+  }, [revenueLoadingQuery])
+
+  useEffect(() => {
+    if (revenueQueryError) {
       toast.error(t('revenue.toast_failed', 'Failed to load revenue'))
-      setLoading(false)
-    })
-  }, [])
+    }
+  }, [revenueQueryError, t])
 
   // Refetch when filters change (live updates)
   useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false
-      return
-    }
-    load()
+    setAdjustmentsPage(1)
   }, [filters.date_from, filters.date_to, filters.status])
 
-  async function load() {
-    setLoading(true)
-    try {
-      const res = await publisherApi.getRevenue(filters)
-      setRecords(res.data?.data || [])
-      setPendingAdjustment(res.data?.pending_balance_adjustment || 0)
-      setPayoutsSum(res.data?.payouts_sum || 0)
-      setAggregates(res.data?.aggregates || null)
-      setPage(1)
-    } catch { toast.error(t('revenue.toast_failed', 'Failed to load revenue')) }
-    finally { setLoading(false) }
+  function load() {
+    queryClient.invalidateQueries({ queryKey: ['publisherRevenue'] })
+    queryClient.invalidateQueries({ queryKey: ['publisherAdjustments'] })
   }
 
   const handleResetFilters = () => {
     const dates = getPresetDates('30d')
     setFilters({
       preset: '30d',
-      date_from: dates ? dates.date_from : toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+      date_from: dates ? dates.date_from : toLocalYYYYMMDD(new Date(Date.now() - 29 * 86400000)),
       date_to: dates ? dates.date_to : toLocalYYYYMMDD(new Date()),
       ad_unit_id: '',
       status: ''
@@ -211,7 +222,10 @@ export default function PublisherRevenue() {
     let valA = a[sortField]
     let valB = b[sortField]
 
-    if (sortField === 'ad_unit') {
+    if (sortField === 'impressions') {
+      valA = a.revenue_eligible_impressions
+      valB = b.revenue_eligible_impressions
+    } else if (sortField === 'ad_unit') {
       valA = a.ad_unit?.display_name || ''
       valB = b.ad_unit?.display_name || ''
     } else if (['impressions', 'clicks', 'ctr', 'cpm', 'publisher_cpm', 'publisher_earnings'].includes(sortField)) {
@@ -226,6 +240,26 @@ export default function PublisherRevenue() {
 
   const paginated = sortedRecords.slice((page - 1) * 15, page * 15)
 
+  const filteredAdjustments = adjustments.filter(adj => {
+    // 1. Date range filter
+    const adjDateStr = adj.created_at ? adj.created_at.slice(0, 10) : ''
+    if (filters.date_from && adjDateStr < filters.date_from) return false
+    if (filters.date_to && adjDateStr > filters.date_to) return false
+
+    // 2. Status filter
+    if (filters.status) {
+      if (filters.status === 'pending') {
+        if (adj.status !== 'pending') return false
+      } else if (filters.status === 'approved' || filters.status === 'closed') {
+        if (adj.status !== 'applied') return false
+      }
+    }
+    return true
+  })
+
+  const adjustmentsPageSize = 10
+  const paginatedAdjustments = filteredAdjustments.slice((adjustmentsPage - 1) * adjustmentsPageSize, adjustmentsPage * adjustmentsPageSize)
+
   const approvedEarningsTotal = aggregates ? aggregates.approved_earnings : 0
   const pendingEarningsTotal = aggregates ? aggregates.pending_earnings : 0
   const impressionsTotal = aggregates ? aggregates.total_impressions : 0
@@ -236,7 +270,7 @@ export default function PublisherRevenue() {
   const totalEarningsCard = Math.max(0, approvedEarningsTotal + pendingAdjustment) + pendingEarningsTotal + payoutsSum
 
   const totalEarnings = aggregates ? (aggregates.approved_earnings + aggregates.pending_earnings + aggregates.closed_earnings) : 0
-  const avgCtr = impressionsTotal > 0 ? (aggregates.total_clicks / impressionsTotal) * 100 : 0
+  const avgCtr = aggregates?.total_ctr ?? 0
   const avgCpm = impressionsTotal > 0 ? (totalEarnings / impressionsTotal) * 1000 : 0
 
   const handleExportPDF = async () => {
@@ -411,7 +445,7 @@ export default function PublisherRevenue() {
         </div>
         <div className="stat-card info">
           <div className="stat-icon"><Eye size={20} /></div>
-          <div className="stat-label">{t('dashboard.stats.total_impressions', 'Total Impressions')}</div>
+          <div className="stat-label">{t('dashboard.stats.total_impressions', 'Revenue Eligible Impressions')}</div>
           <div className="stat-value">
             <CompactAmount value={totalImpressions} prefix="" decimals={0} />
           </div>
@@ -429,7 +463,7 @@ export default function PublisherRevenue() {
                   <tr>
                     <th onClick={() => handleSort('date')} style={{cursor: 'pointer'}}>{t('revenue.table.date', 'Date')} {sortField === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('ad_unit')} style={{cursor: 'pointer'}}>{t('revenue.table.ad_unit', 'Ad Unit')} {sortField === 'ad_unit' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>{t('revenue.table.impressions', 'Impressions')} {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('impressions')} style={{cursor: 'pointer'}}>{t('revenue.table.impressions', 'Revenue Eligible Impressions')} {sortField === 'impressions' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('ctr')} style={{cursor: 'pointer'}}>{t('revenue.table.ctr', 'CTR')} {sortField === 'ctr' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('publisher_cpm')} style={{cursor: 'pointer'}}>{t('revenue.table.cpm', 'My CPM')} {sortField === 'publisher_cpm' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('publisher_earnings')} style={{cursor: 'pointer'}}>{t('revenue.table.earnings', 'My Earnings')} {sortField === 'publisher_earnings' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</th>
@@ -455,7 +489,7 @@ export default function PublisherRevenue() {
                         <div className="text-muted" style={{ fontSize: 11 }}>{r.ad_unit?.website?.domain}</div>
                       </td>
                       <td className="money">
-                        <CompactAmount value={r.impressions} prefix="" decimals={0} />
+                        <CompactAmount value={r.revenue_eligible_impressions} prefix="" decimals={0} />
                       </td>
                       <td className="money">{(parseFloat(r.ctr) * 100).toFixed(2)}%</td>
                       <td className="money">${parseFloat(r.publisher_cpm || 0).toFixed(3)}</td>
@@ -511,6 +545,85 @@ export default function PublisherRevenue() {
           pageSize={15}
           onPageChange={setPage}
         />
+      </div>
+
+      {/* Adjustments Section */}
+      <div className="glass-card" style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
+        <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+          <div className="card-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700 }}>
+            <Sliders size={18} style={{ color: 'var(--br-primary)' }} />
+            {t('revenue.adjustments.title', 'Balance Adjustments')}
+          </div>
+        </div>
+        <div>
+          {adjustmentsLoading ? (
+            <div className="empty-state"><div className="spinner"></div></div>
+          ) : filteredAdjustments.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <Sliders size={40} style={{ color: 'var(--br-text-3)', opacity: 0.6 }} />
+              </div>
+              <div className="empty-state-text">{t('revenue.adjustments.no_data', 'No adjustments found')}</div>
+              <div className="empty-state-sub">{t('revenue.adjustments.no_data_desc', 'Adjustments like bonuses or IVT deductions will appear here')}</div>
+            </div>
+          ) : (
+            <>
+              <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>{t('revenue.adjustments.date', 'Date')}</th>
+                      <th>{t('revenue.adjustments.reason', 'Description / Reason')}</th>
+                      <th>{t('revenue.adjustments.amount', 'Amount')}</th>
+                      <th>{t('revenue.adjustments.status', 'Status')}</th>
+                      <th>{t('revenue.adjustments.applied_period', 'Applied Period')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedAdjustments.map(adj => {
+                      const isPositive = parseFloat(adj.amount) >= 0
+                      return (
+                        <tr key={adj.id}>
+                          <td className="text-sm">{adj.created_at ? adj.created_at.slice(0, 10) : '—'}</td>
+                          <td className="text-sm" style={{ maxWidth: 300, wordBreak: 'break-word', whiteSpace: 'normal' }}>
+                            {adj.notes ? adj.notes.replace(/(Invalid Traffic Deduction)\s*\(\d+(?:\.\d+)?%\)/g, '$1') : '—'}
+                          </td>
+                          <td className={`money ${isPositive ? 'positive' : 'negative'}`}>
+                            {isPositive ? '+' : ''}<CompactAmount value={adj.amount} />
+                          </td>
+                          <td>
+                            {adj.status === 'pending' ? (
+                              <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Clock size={12} /> {t('revenue.adjustments.status.pending', 'Pending')}
+                              </span>
+                            ) : (
+                              <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <CheckCircle size={12} /> {t('revenue.adjustments.status.applied', 'Applied')}
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-sm" style={{ fontWeight: 700 }}>
+                            {adj.period_closing ? (
+                              `${adj.period_closing.period_year}-${String(adj.period_closing.period_month).padStart(2, '0')}`
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                currentPage={adjustmentsPage}
+                totalItems={filteredAdjustments.length}
+                pageSize={10}
+                onPageChange={setAdjustmentsPage}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

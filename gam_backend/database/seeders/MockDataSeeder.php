@@ -23,7 +23,7 @@ class MockDataSeeder extends Seeder
         $publisher = Publisher::create([
             'id'            => $publisherId,
             'name'          => 'Demo Publisher',
-            'email'         => 'publisher@bestrevenue.local',
+            'email'         => 'publisher@mindorax.local',
             'status'        => 'active',
             'default_ratio' => 0.85, // Publisher gets 85%
             'payment_info'  => ['method' => 'Bank Transfer', 'account' => '1234567890'],
@@ -32,7 +32,7 @@ class MockDataSeeder extends Seeder
         User::create([
             'id'           => Str::uuid()->toString(),
             'name'         => 'Demo Publisher',
-            'email'        => 'publisher@bestrevenue.local',
+            'email'        => 'publisher@mindorax.local',
             'password'     => Hash::make('publisher123'),
             'role'         => 'publisher',
             'publisher_id' => $publisherId,
@@ -82,6 +82,6 @@ class MockDataSeeder extends Seeder
             }
         }
 
-        $this->command->info('Mock data seeded successfully! You can login with publisher@bestrevenue.local / publisher123');
+        $this->command->info('Mock data seeded successfully! You can login with publisher@mindorax.local / publisher123');
     }
 }

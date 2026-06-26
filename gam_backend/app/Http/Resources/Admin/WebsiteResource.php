@@ -18,6 +18,8 @@ class WebsiteResource extends JsonResource
             'ratio_override'   => $this->ratio_override !== null ? (float) $this->ratio_override : null,
             'gam_network_code' => $this->gam_network_code,
             'is_active'        => $this->is_active,
+            'tracking_status'  => $this->tracking_status,
+            'tracking_checked_at'=> $this->tracking_checked_at ? $this->tracking_checked_at->toIso8601String() : null,
             'created_at'       => $this->created_at,
             'updated_at'       => $this->updated_at,
             'publisher'        => $this->whenLoaded('publisher', function () {

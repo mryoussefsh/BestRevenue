@@ -113,9 +113,18 @@ class PublisherTicketController extends Controller
             return $ticket;
         });
 
+        // Log support ticket creation
+        \App\Services\AuditLogService::log(
+            'created',
+            'Ticket',
+            $ticket->id,
+            null,
+            $ticket->toArray()
+        );
+
         // Send Email Notification to Admin
         try {
-            $destEmail = Setting::get('support_email', 'support@bestrevenue.local');
+            $destEmail = Setting::get('support_email', 'support@mindorax.local');
             Mail::to($destEmail)->send(new TicketCreatedAdminMail($ticket, $request->message));
         } catch (\Exception $e) {
             Log::error("Failed to send ticket created email to admin: " . $e->getMessage());
@@ -189,9 +198,18 @@ class PublisherTicketController extends Controller
             return $message;
         });
 
+        // Log reply in audit logs
+        \App\Services\AuditLogService::log(
+            'reply',
+            'Ticket',
+            $ticket->id,
+            null,
+            ['message' => $request->message]
+        );
+
         // Send Email Notification to Admin
         try {
-            $destEmail = Setting::get('support_email', 'support@bestrevenue.local');
+            $destEmail = Setting::get('support_email', 'support@mindorax.local');
             Mail::to($destEmail)->send(new TicketRepliedAdminMail($ticket, $request->message));
         } catch (\Exception $e) {
             Log::error("Failed to send ticket reply email to admin: " . $e->getMessage());
@@ -216,8 +234,18 @@ class PublisherTicketController extends Controller
 
         $ticket = Ticket::where('publisher_id', $publisherId)->findOrFail($id);
 
+        $oldStatus = $ticket->status;
         $ticket->status = 'closed';
         $ticket->save();
+
+        // Log close action in audit logs
+        \App\Services\AuditLogService::log(
+            'closed',
+            'Ticket',
+            $ticket->id,
+            ['status' => $oldStatus],
+            ['status' => 'closed']
+        );
 
         return response()->json([
             'message' => 'Ticket closed successfully.',

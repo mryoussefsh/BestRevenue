@@ -53,6 +53,8 @@ class GeolocatePublisherJob implements ShouldQueue
         if ($country) {
             $publisher->update(['country' => $country]);
             Log::info("Geolocated publisher {$this->publisherId} as country: {$country}");
+        } else {
+            Log::warning("GeolocatePublisherJob: Could not detect country for publisher {$this->publisherId} with IP {$this->ip}");
         }
     }
 

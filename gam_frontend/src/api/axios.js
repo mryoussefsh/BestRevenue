@@ -16,29 +16,25 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// On 401, clear token and redirect to login
+// On 401 or 403, clear tokens and redirect to login (except for the login request itself)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      const sessToken = sessionStorage.getItem('token')
-      const localToken = localStorage.getItem('token')
-      if (sessToken && sessToken !== localToken) {
-        sessionStorage.removeItem('token')
-        sessionStorage.removeItem('user')
-        sessionStorage.removeItem('admin_token')
-        sessionStorage.removeItem('admin_user')
-      } else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        localStorage.removeItem('admin_token')
-        localStorage.removeItem('admin_user')
-        sessionStorage.removeItem('token')
-        sessionStorage.removeItem('user')
-        sessionStorage.removeItem('admin_token')
-        sessionStorage.removeItem('admin_user')
+    const isLoginRequest = err.config?.url?.includes('/auth/login')
+    if ((err.response?.status === 401 || err.response?.status === 403) && !isLoginRequest) {
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
+      sessionStorage.removeItem('admin_token')
+      sessionStorage.removeItem('admin_user')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_user')
+
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
       }
-      window.location.href = '/login'
+      return new Promise(() => {}) // Suppress further promise execution to avoid error toast messages during redirect
     }
     return Promise.reject(err)
   }

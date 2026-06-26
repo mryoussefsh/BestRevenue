@@ -21,6 +21,9 @@ class Website extends Model
         'ratio_override',
         'gam_network_code',
         'is_active',
+        'tracking_status',
+        'tracking_checked_at',
+        'last_gam_account_email',
     ];
 
     protected function casts(): array
@@ -28,6 +31,7 @@ class Website extends Model
         return [
             'ratio_override' => 'decimal:4',
             'is_active'      => 'boolean',
+            'tracking_checked_at' => 'datetime',
         ];
     }
 
@@ -44,5 +48,48 @@ class Website extends Model
     public function adUnits(): HasMany
     {
         return $this->hasMany(AdUnit::class);
+    }
+
+    public function hourlyStats(): HasMany
+    {
+        return $this->hasMany(TrafficHourlyStat::class);
+    }
+
+    public function dailyStats(): HasMany
+    {
+        return $this->hasMany(TrafficDailyStat::class);
+    }
+
+    public function baselines(): HasMany
+    {
+        return $this->hasMany(TrafficBaseline::class);
+    }
+
+    public function anomalies(): HasMany
+    {
+        return $this->hasMany(TrafficAnomaly::class);
+    }
+
+    public function qualityScores(): HasMany
+    {
+        return $this->hasMany(TrafficQualityScore::class);
+    }
+
+    /**
+     * Clear all cached website and ad unit listings query results.
+     */
+    public static function clearCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forever('website_cache_version', time());
+    }
+
+    /**
+     * Get the current website cache version string.
+     */
+    public static function getCacheVersion(): string
+    {
+        return (string) \Illuminate\Support\Facades\Cache::rememberForever('website_cache_version', function () {
+            return time();
+        });
     }
 }

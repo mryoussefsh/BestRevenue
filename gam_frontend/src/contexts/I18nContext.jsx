@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
+import LanguagePreloader from '../components/LanguagePreloader'
 
 const I18nContext = createContext(null)
 
@@ -15,6 +16,8 @@ export function I18nProvider({ children }) {
   })
   const [strings, setStrings] = useState({})
   const [loading, setLoading] = useState(true)
+  const [isSwitching, setIsSwitching] = useState(false)
+  const [nextLocale, setNextLocale] = useState(null)
 
   const loadTranslations = useCallback(async (loc) => {
     try {
@@ -27,12 +30,13 @@ export function I18nProvider({ children }) {
     }
   }, [])
 
+  // Initial load
   useEffect(() => {
     loadTranslations(locale)
     document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.lang = locale
     localStorage.setItem('locale', locale)
-  }, [locale, loadTranslations])
+  }, []) // Run once on mount
 
   const t = useCallback((key, fallback, replacements = {}) => {
     let text = strings[key] || fallback || key
@@ -44,11 +48,42 @@ export function I18nProvider({ children }) {
     return text
   }, [strings])
 
-  const switchLocale = useCallback((loc) => setLocale(loc), [])
+  const switchLocale = useCallback(async (loc) => {
+    if (loc === locale || isSwitching) return
+    
+    setIsSwitching(true)
+    setNextLocale(loc)
+
+    // Wait 300ms for overlay fade-in animation to cover layout
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    try {
+      // 1. Fetch translations for new language before flipping layout
+      const res = await api.get(`/translations/${loc}`)
+      
+      // 2. Set strings and locale simultaneously in React state
+      setStrings(res.data || {})
+      setLocale(loc)
+      
+      // 3. Update DOM settings
+      document.documentElement.dir = loc === 'ar' ? 'rtl' : 'ltr'
+      document.documentElement.lang = loc
+      localStorage.setItem('locale', loc)
+      
+      // 4. Wait 150ms for layout to settle behind the blurred overlay
+      await new Promise(resolve => setTimeout(resolve, 150))
+    } catch (err) {
+      console.error('Failed to change language:', err)
+    } finally {
+      setIsSwitching(false)
+      setNextLocale(null)
+    }
+  }, [locale, isSwitching])
 
   return (
-    <I18nContext.Provider value={{ locale, t, switchLocale, loading, strings, loadTranslations }}>
+    <I18nContext.Provider value={{ locale, t, switchLocale, loading, strings, loadTranslations, isSwitching, nextLocale }}>
       {children}
+      <LanguagePreloader isVisible={isSwitching} nextLocale={nextLocale} />
     </I18nContext.Provider>
   )
 }
@@ -56,3 +91,4 @@ export function I18nProvider({ children }) {
 export function useI18n() {
   return useContext(I18nContext)
 }
+

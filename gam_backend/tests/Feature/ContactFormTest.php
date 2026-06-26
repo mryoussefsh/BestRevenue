@@ -19,7 +19,7 @@ class ContactFormTest extends TestCase
         Setting::updateOrCreate(
             ['key' => 'support_email'],
             [
-                'value' => 'support@bestrevenue.local',
+                'value' => 'support@mindorax.local',
                 'group' => 'support',
                 'label' => 'Support Destination & Contact Email',
                 'type'  => 'string',
@@ -29,7 +29,7 @@ class ContactFormTest extends TestCase
         Setting::updateOrCreate(
             ['key' => 'site_name'],
             [
-                'value' => 'BestRevenue',
+                'value' => 'Mindora X',
                 'group' => 'display',
                 'label' => 'Platform Name',
                 'type'  => 'string',
@@ -57,7 +57,7 @@ class ContactFormTest extends TestCase
             $toAddresses = array_map(fn($addr) => $addr->getAddress(), $event->message->getTo());
             $replyToAddresses = array_map(fn($addr) => $addr->getAddress(), $event->message->getReplyTo());
             
-            return in_array('support@bestrevenue.local', $toAddresses) &&
+            return in_array('support@mindorax.local', $toAddresses) &&
                    in_array($payload['email'], $replyToAddresses) &&
                    str_contains($event->message->getSubject(), 'Issue with Banner Ads');
         });

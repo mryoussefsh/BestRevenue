@@ -24,7 +24,7 @@ return new class extends Migration
             ],
             [
                 'key'   => 'meta_title_ar',
-                'value' => 'BestRevenue - منصة مشاركة أرباح الناشرين',
+                'value' => 'Mindora X - منصة مشاركة أرباح الناشرين',
                 'group' => 'seo',
                 'label' => 'SEO Meta Title (Arabic)',
                 'type'  => 'string',

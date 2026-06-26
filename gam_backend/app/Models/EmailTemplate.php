@@ -43,7 +43,7 @@ class EmailTemplate extends Model
      */
     public static function defaults(string $key): array
     {
-        $site = config('app.name', 'BestRevenue');
+        $site = config('app.name', 'Mindora X');
         $loginUrl = config('app.frontend_url', 'http://localhost:5173') . '/login';
         $dashboardUrl = config('app.frontend_url', 'http://localhost:5173') . '/publisher';
 
@@ -53,7 +53,7 @@ class EmailTemplate extends Model
                 'body'    => "<p>Hi {{ name }},</p>
 <p>Great news! Your publisher account on <strong>{{ site_name }}</strong> has been <strong>approved</strong>.</p>
 <p>You can now log in to your dashboard and start tracking your revenue.</p>
-<p><a href='{{ login_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>Log In to Dashboard</a></p>
+<p><a href='{{ login_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>Log In to Dashboard</a></p>
 <p>Welcome aboard!<br>The {{ site_name }} Team</p>",
             ],
             'registration_pending' => [
@@ -68,7 +68,7 @@ class EmailTemplate extends Model
                 'subject' => 'Welcome to {{ site_name }} — Account Created!',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>Welcome to <strong>{{ site_name }}</strong>! Your publisher account has been created and is ready to use.</p>
-<p><a href='{{ login_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>Go to Dashboard</a></p>
+<p><a href='{{ login_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>Go to Dashboard</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'account_suspended' => [
@@ -83,7 +83,7 @@ class EmailTemplate extends Model
                 'body'    => "<p>Hi {{ name }},</p>
 <p>We received a request to reset your password for your <strong>{{ site_name }}</strong> account.</p>
 <p>Click the button below to set a new password. This link will expire in <strong>60 minutes</strong>.</p>
-<p><a href='{{ reset_link }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>Reset My Password</a></p>
+<p><a href='{{ reset_link }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>Reset My Password</a></p>
 <p>If you did not request a password reset, you can safely ignore this email.</p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
@@ -91,26 +91,26 @@ class EmailTemplate extends Model
                 'subject' => '{{ site_name }} — A Payout Has Been Queued for You',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>A payout has been created for your account on <strong>{{ site_name }}</strong>.</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Period</td><td style='padding:8px;border:1px solid #ddd;'>{{ period }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Method</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_method }}</td></tr>
+<table>
+<tr><td>Period</td><td>{{ period }}</td></tr>
+<tr><td>Amount</td><td>{{ amount }}</td></tr>
+<tr><td>Payment Method</td><td>{{ payment_method }}</td></tr>
 </table>
 <p>Your payout is currently <strong>pending review</strong>. You will receive another email once it is approved.</p>
-<p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payouts</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>View Payouts</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'payout_approved' => [
                 'subject' => '{{ site_name }} — Your Payout Has Been Approved!',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>Your payout for <strong>{{ site_name }}</strong> has been <strong>approved</strong>!</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Period</td><td style='padding:8px;border:1px solid #ddd;'>{{ period }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Method</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_method }}</td></tr>
+<table>
+<tr><td>Period</td><td>{{ period }}</td></tr>
+<tr><td>Amount</td><td>{{ amount }}</td></tr>
+<tr><td>Payment Method</td><td>{{ payment_method }}</td></tr>
 </table>
 <p>Your payment will be processed shortly.</p>
-<p><a href='{{ dashboard_url }}' style='background:#10b981;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payout Details</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#10b981;padding:11px 28px;border-radius:50px;border:1.5px solid #10b981;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(16,185,129,0.20),inset 0 0 8px rgba(16,185,129,0.04);'>View Payout Details</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'payout_rejected' => [
@@ -119,62 +119,62 @@ class EmailTemplate extends Model
 <p>Unfortunately, your payout for <strong>{{ site_name }}</strong> (period <strong>{{ period }}</strong>) has been <strong>rejected</strong>.</p>
 <p><strong>Reason:</strong> {{ admin_note }}</p>
 <p>Please log in to your dashboard for more details or contact support if you have questions.</p>
-<p><a href='{{ dashboard_url }}' style='background:#ef4444;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payouts</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#f43f5e;padding:11px 28px;border-radius:50px;border:1.5px solid #f43f5e;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(244,63,94,0.20),inset 0 0 8px rgba(244,63,94,0.04);'>View Payouts</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'payout_paid' => [
                 'subject' => '{{ site_name }} — Payment Sent!',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>Great news! Your payment for <strong>{{ site_name }}</strong> has been sent.</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Period</td><td style='padding:8px;border:1px solid #ddd;'>{{ period }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Amount Paid</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Reference</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_reference }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Method</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_method }}</td></tr>
+<table>
+<tr><td>Period</td><td>{{ period }}</td></tr>
+<tr><td>Amount Paid</td><td>{{ amount }}</td></tr>
+<tr><td>Payment Reference</td><td>{{ payment_reference }}</td></tr>
+<tr><td>Payment Method</td><td>{{ payment_method }}</td></tr>
 </table>
-<p><a href='{{ dashboard_url }}' style='background:#10b981;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payout History</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#10b981;padding:11px 28px;border-radius:50px;border:1.5px solid #10b981;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(16,185,129,0.20),inset 0 0 8px rgba(16,185,129,0.04);'>View Payout History</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'period_closed' => [
                 'subject' => '{{ site_name }} — Your Earnings for {{ period }} Have Been Finalized',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>Your earnings for the period <strong>{{ period }}</strong> on <strong>{{ site_name }}</strong> have been finalized.</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Period</td><td style='padding:8px;border:1px solid #ddd;'>{{ period }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Your Earnings</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
+<table>
+<tr><td>Period</td><td>{{ period }}</td></tr>
+<tr><td>Your Earnings</td><td>{{ amount }}</td></tr>
 </table>
 <p>You can review your full revenue breakdown in your dashboard.</p>
-<p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Revenue Details</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>View Revenue Details</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'manual_payment' => [
                 'subject' => '{{ site_name }} — Standalone Manual Payment Recorded',
                 'body'    => "<p>Hi {{ name }},</p>
 <p>An administrator has recorded a manual payment to your account on <strong>{{ site_name }}</strong>.</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>{{ amount }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Payment Method</td><td style='padding:8px;border:1px solid #ddd;'>{{ payment_method }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Reference</td><td style='padding:8px;border:1px solid #ddd;'>{{ reference }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Notes</td><td style='padding:8px;border:1px solid #ddd;'>{{ note }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Date</td><td style='padding:8px;border:1px solid #ddd;'>{{ paid_at }}</td></tr>
+<table>
+<tr><td>Amount</td><td>{{ amount }}</td></tr>
+<tr><td>Payment Method</td><td>{{ payment_method }}</td></tr>
+<tr><td>Reference</td><td>{{ reference }}</td></tr>
+<tr><td>Notes</td><td>{{ note }}</td></tr>
+<tr><td>Date</td><td>{{ paid_at }}</td></tr>
 </table>
 <p>This payment has been deducted from your upcoming period balance as a standalone adjustment.</p>
-<p><a href='{{ dashboard_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Payout History</a></p>
+<p><a href='{{ dashboard_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>View Payout History</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'ticket_created_admin' => [
                 'subject' => '[Ticket #{{ ticket_id }}] New Ticket: {{ subject }}',
                 'body'    => "<p>Hello,</p>
 <p>A new support ticket has been created on <strong>{{ site_name }}</strong> by <strong>{{ publisher_name }}</strong> ({{ publisher_email }}).</p>
-<table style='border-collapse:collapse;width:100%;margin:16px 0;'>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Ticket ID</td><td style='padding:8px;border:1px solid #ddd;'>#{{ ticket_id }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Subject</td><td style='padding:8px;border:1px solid #ddd;'>{{ subject }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Category</td><td style='padding:8px;border:1px solid #ddd;'>{{ category }}</td></tr>
-<tr><td style='padding:8px;border:1px solid #ddd;font-weight:600;'>Priority</td><td style='padding:8px;border:1px solid #ddd;'>{{ priority }}</td></tr>
+<table>
+<tr><td>Ticket ID</td><td>#{{ ticket_id }}</td></tr>
+<tr><td>Subject</td><td>{{ subject }}</td></tr>
+<tr><td>Category</td><td>{{ category }}</td></tr>
+<tr><td>Priority</td><td>{{ priority }}</td></tr>
 </table>
 <p><strong>Initial Message:</strong></p>
-<blockquote style='border-left: 4px solid #6366f1; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
-<p><a href='{{ admin_ticket_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket in Admin Panel</a></p>
+<blockquote style='border-left:4px solid #8b5cf6;padding-left:14px;margin-left:0;color:#64748b;background:rgba(139,92,246,0.04);border-radius:0 6px 6px 0;padding:12px 14px;'>{{ message }}</blockquote>
+<p><a href='{{ admin_ticket_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>View Ticket in Admin Panel</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'ticket_replied_publisher' => [
@@ -182,8 +182,8 @@ class EmailTemplate extends Model
                 'body'    => "<p>Hi {{ name }},</p>
 <p>A new reply has been posted to your support ticket <strong>\"{{ subject }}\"</strong> on <strong>{{ site_name }}</strong>.</p>
 <p><strong>Latest Message:</strong></p>
-<blockquote style='border-left: 4px solid #10b981; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
-<p><a href='{{ publisher_ticket_url }}' style='background:#10b981;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket & Reply</a></p>
+<blockquote style='border-left:4px solid #10b981;padding-left:14px;margin-left:0;color:#64748b;background:rgba(16,185,129,0.04);border-radius:0 6px 6px 0;padding:12px 14px;'>{{ message }}</blockquote>
+<p><a href='{{ publisher_ticket_url }}' style='background:transparent;color:#10b981;padding:11px 28px;border-radius:50px;border:1.5px solid #10b981;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(16,185,129,0.20),inset 0 0 8px rgba(16,185,129,0.04);'>View Ticket & Reply</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
             'ticket_replied_admin' => [
@@ -191,8 +191,8 @@ class EmailTemplate extends Model
                 'body'    => "<p>Hello,</p>
 <p>A new reply has been posted by publisher <strong>{{ publisher_name }}</strong> to ticket <strong>\"{{ subject }}\"</strong> on <strong>{{ site_name }}</strong>.</p>
 <p><strong>Latest Message:</strong></p>
-<blockquote style='border-left: 4px solid #6366f1; padding-left: 12px; margin-left: 0; color: #475569;'>{{ message }}</blockquote>
-<p><a href='{{ admin_ticket_url }}' style='background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:12px 0;'>View Ticket in Admin Panel</a></p>
+<blockquote style='border-left:4px solid #8b5cf6;padding-left:14px;margin-left:0;color:#64748b;background:rgba(139,92,246,0.04);border-radius:0 6px 6px 0;padding:12px 14px;'>{{ message }}</blockquote>
+<p><a href='{{ admin_ticket_url }}' style='background:transparent;color:#00d4e0;padding:11px 28px;border-radius:50px;border:1.5px solid #00d4e0;text-decoration:none;display:inline-block;margin:16px 0;font-weight:600;font-size:13px;letter-spacing:0.5px;box-shadow:0 0 16px rgba(0,212,224,0.22),inset 0 0 8px rgba(0,212,224,0.04);'>View Ticket in Admin Panel</a></p>
 <p>Best regards,<br>The {{ site_name }} Team</p>",
             ],
         ];
@@ -226,3 +226,11 @@ class EmailTemplate extends Model
         ];
     }
 }
+
+
+
+
+
+
+
+

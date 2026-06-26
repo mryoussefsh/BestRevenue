@@ -10,14 +10,14 @@ return new class extends Migration
         $settings = [
             [
                 'key'   => 'support_email',
-                'value' => 'support@bestrevenue.local',
+                'value' => 'support@mindorax.local',
                 'group' => 'support',
                 'label' => 'Support Destination & Contact Email',
                 'type'  => 'string',
             ],
             [
                 'key'   => 'support_telegram',
-                'value' => 'https://t.me/bestrevenue_support',
+                'value' => 'https://t.me/mindorax_support',
                 'group' => 'support',
                 'label' => 'Support Telegram Link',
                 'type'  => 'string',

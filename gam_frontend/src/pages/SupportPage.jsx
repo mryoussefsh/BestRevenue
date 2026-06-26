@@ -58,24 +58,43 @@ export default function SupportPage() {
   }
 
   // Fallbacks for support info
-  const supportEmail = settings.support_email || 'support@bestrevenue.local'
-  const supportTelegram = settings.support_telegram || 'https://t.me/bestrevenue_support'
+  const supportEmail = settings.support_email || 'support@mindorax.local'
+  const supportTelegram = settings.support_telegram || 'https://t.me/mindorax_support'
   const supportWhatsapp = settings.support_whatsapp || 'https://wa.me/1234567890'
 
   return (
     <div className="support-wrapper">
-      <div className="support-glow"></div>
+      {/* ── Aurora Background Layer ── */}
+      <div className="aurora-layer" aria-hidden="true">
+        {/* Large drifting color orbs */}
+        <div className="landing-glow-1"></div>
+        <div className="landing-glow-2"></div>
+        <div className="landing-glow-3"></div>
+        <div className="landing-glow-4"></div>
+        <div className="landing-glow-5"></div>
+
+        {/* Small floating particle dots */}
+        <span className="aurora-particle" style={{ top:'18%',  left:'12%',  width:5,  height:5,  background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+        <span className="aurora-particle" style={{ top:'42%',  left:'28%',  width:3,  height:3,  background:'#8b5cf6', animationDelay:'1.4s', animationDuration:'8s'  }}></span>
+        <span className="aurora-particle" style={{ top:'72%',  left:'18%',  width:4,  height:4,  background:'#10b981', animationDelay:'2.8s', animationDuration:'7s'  }}></span>
+        <span className="aurora-particle" style={{ top:'25%',  left:'58%',  width:3,  height:3,  background:'#f59e0b', animationDelay:'0.7s', animationDuration:'9s'  }}></span>
+        <span className="aurora-particle" style={{ top:'60%',  left:'70%',  width:5,  height:5,  background:'#00f2fe', animationDelay:'3.5s', animationDuration:'5.5s'}}></span>
+        <span className="aurora-particle" style={{ top:'85%',  left:'50%',  width:3,  height:3,  background:'#8b5cf6', animationDelay:'1.9s', animationDuration:'10s' }}></span>
+        <span className="aurora-particle" style={{ top:'10%',  left:'80%',  width:4,  height:4,  background:'#f43f5e', animationDelay:'4.2s', animationDuration:'7.5s'}}></span>
+        <span className="aurora-particle" style={{ top:'50%',  left:'88%',  width:3,  height:3,  background:'#10b981', animationDelay:'2.1s', animationDuration:'11s' }}></span>
+        <span className="aurora-particle" style={{ top:'35%',  left:'45%',  width:6,  height:6,  background:'#00f2fe', animationDelay:'5.0s', animationDuration:'8.5s'}}></span>
+      </div>
 
       {/* Header */}
       <header className={`landing-header ${menuOpen ? 'menu-open' : ''}`}>
         <div className="landing-nav-container">
           <Link to="/" className="landing-logo">
             {settings.site_logo ? (
-              <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} />
+              <img src={settings.site_logo} alt={settings.site_name || 'Mindora X'} />
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
-                <span>{settings.site_name || 'BestRevenue'}</span>
+                <span>{settings.site_name || 'Mindora X'}</span>
               </span>
             )}
           </Link>
@@ -119,6 +138,7 @@ export default function SupportPage() {
           </nav>
 
           <div className="landing-nav-ctas">
+            <LanguageSwitcher style={{ marginInlineEnd: '12px' }} />
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
                 <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
@@ -137,7 +157,6 @@ export default function SupportPage() {
                 )}
               </>
             )}
-            <LanguageSwitcher style={{ marginInlineStart: '12px' }} />
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
@@ -171,7 +190,7 @@ export default function SupportPage() {
                 </div>
                 <div className="support-channel-details">
                   <span className="support-channel-label">{t('support.telegram_channel', 'Telegram Channel')}</span>
-                  <span className="support-channel-value">@BestRevenueSupport</span>
+                  <span className="support-channel-value">@MindoraXSupport</span>
                   <span className="support-channel-link">{t('support.open_telegram', 'Open Telegram ↗')}</span>
                 </div>
               </a>
@@ -297,11 +316,11 @@ export default function SupportPage() {
           <div className="footer-brand">
             <Link to="/" className="footer-logo">
               {settings.site_logo ? (
-                <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} style={{ maxHeight: 50 }} />
+                <img src={settings.site_logo} alt={settings.site_name || 'Mindora X'} style={{ maxHeight: 50 }} />
               ) : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <TrendingUp size={20} style={{ color: 'var(--br-primary)' }} />
-                  <span>{settings.site_name || 'BestRevenue'}</span>
+                  <span>{settings.site_name || 'Mindora X'}</span>
                 </span>
               )}
             </Link>
@@ -385,7 +404,7 @@ export default function SupportPage() {
         </div>
 
         <div className="footer-bottom">
-          <div>{t('common.all_rights_reserved', '© {year} {site_name}. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'BestRevenue' })}</div>
+          <div>{t('common.all_rights_reserved', '© {year} {site_name}. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'Mindora X' })}</div>
           <div>{t('landing.footer.subtext', 'Empowering publishers through transparent ad metrics.')}</div>
         </div>
       </footer>

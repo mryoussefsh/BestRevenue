@@ -14,9 +14,9 @@ export function SettingsProvider({ children }) {
     const isAr = locale === 'ar'
     return {
       ...settings,
-      site_name: (isAr && settings.site_name_ar) ? settings.site_name_ar : (settings.site_name || 'BestRevenue'),
+      site_name: (isAr && settings.site_name_ar) ? settings.site_name_ar : (settings.site_name || 'Mindora X'),
       site_description: (isAr && settings.site_description_ar) ? settings.site_description_ar : (settings.site_description || ''),
-      meta_title: (isAr && settings.meta_title_ar) ? settings.meta_title_ar : (settings.meta_title || settings.site_name || 'BestRevenue'),
+      meta_title: (isAr && settings.meta_title_ar) ? settings.meta_title_ar : (settings.meta_title || settings.site_name || 'Mindora X'),
       meta_description: (isAr && settings.meta_description_ar) ? settings.meta_description_ar : (settings.meta_description || settings.site_description || ''),
       meta_keywords: (isAr && settings.meta_keywords_ar) ? settings.meta_keywords_ar : (settings.meta_keywords || ''),
       publisher_pending_message: (isAr && settings.publisher_pending_message_ar) ? settings.publisher_pending_message_ar : (settings.publisher_pending_message || ''),

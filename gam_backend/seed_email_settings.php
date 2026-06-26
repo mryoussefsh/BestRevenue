@@ -13,7 +13,7 @@ $emailSettings = [
     ['key' => 'mail_username',     'label' => 'SMTP Username',           'value' => '',                       'type' => 'string',  'group' => 'email'],
     ['key' => 'mail_password',     'label' => 'SMTP Password',           'value' => '',                       'type' => 'string',  'group' => 'email'],
     ['key' => 'mail_encryption',   'label' => 'Encryption (tls/ssl/none)','value' => 'tls',                  'type' => 'string',  'group' => 'email'],
-    ['key' => 'mail_from_address', 'label' => 'Sender Email',            'value' => 'noreply@bestrevenue.com','type' => 'string',  'group' => 'email'],
+    ['key' => 'mail_from_address', 'label' => 'Sender Email',            'value' => 'noreply@mindorax.com','type' => 'string',  'group' => 'email'],
     ['key' => 'mail_from_name',    'label' => 'Sender Name',             'value' => config('app.name'),       'type' => 'string',  'group' => 'email'],
 ];
 

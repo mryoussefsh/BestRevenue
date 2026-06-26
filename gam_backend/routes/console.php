@@ -50,3 +50,54 @@ Schedule::call(function () {
         }
     }
 })->daily()->name('prune-old-sync-logs')->withoutOverlapping(2);
+
+// ── Traffic Intelligence System ─────────────────────────────────────────────
+
+use App\Jobs\FlushHourlyTrafficJob;
+use App\Jobs\BuildDailyTrafficSummaryJob;
+use App\Jobs\RecalculateBaselinesJob;
+use App\Jobs\DetectTrafficAnomaliesJob;
+
+// Flush Redis hourly counters → traffic_hourly_stats (runs every hour)
+Schedule::job(new FlushHourlyTrafficJob())
+    ->hourly()
+    ->withoutOverlapping(5)
+    ->name('traffic-flush-hourly');
+
+// Build daily traffic summary from Redis ZSETs → traffic_daily_stats (runs at 00:05 daily)
+Schedule::job(new BuildDailyTrafficSummaryJob())
+    ->dailyAt('00:05')
+    ->withoutOverlapping(10)
+    ->name('traffic-build-daily-summary');
+
+// Rebuild baselines from last 4 weeks of hourly data (runs every Sunday at 02:00)
+Schedule::job(new RecalculateBaselinesJob())
+    ->weeklyOn(0, '02:00')
+    ->withoutOverlapping(30)
+    ->name('traffic-recalculate-baselines');
+
+// Run anomaly detection across all active publishers (every 15 minutes)
+Schedule::job(new DetectTrafficAnomaliesJob())
+    ->everyFifteenMinutes()
+    ->withoutOverlapping(10)
+    ->name('traffic-detect-anomalies');
+
+// Verify tracking code on active websites — statically scheduled to run every minute.
+// The command itself (VerifyWebsiteTracking.php) handles the scheduling logic internally
+// based on the frequency and interval configured in admin settings.
+Schedule::command('tracking:verify')
+    ->everyMinute()
+    ->withoutOverlapping(15)
+    ->name('tracking-verify-websites');
+
+// Prune old traffic intelligence data daily
+Schedule::command('traffic:prune')
+    ->daily()
+    ->withoutOverlapping(10)
+    ->name('traffic-prune-old-data');
+
+// Run queue worker every minute on shared hosting to process queued tasks (database queue)
+Schedule::command('queue:work --stop-when-empty')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->name('queue-work');

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SetLocaleMiddleware::class);
+        $middleware->trustProxies(at: '*');
 
         // Register 'role' as a route middleware alias
         $middleware->alias([

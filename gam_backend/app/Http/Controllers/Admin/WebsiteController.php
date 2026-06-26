@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class WebsiteController extends Controller
@@ -21,22 +22,27 @@ class WebsiteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Website::with(['publisher', 'gamAccount'])->withCount('adUnits');
+        $cacheVersion = Website::getCacheVersion();
+        $cacheKey = "admin_websites_v_{$cacheVersion}_" . md5(json_encode($request->all()));
 
-        if ($request->has('search')) {
-            $search = $request->query('search');
-            $query->where('domain', 'like', "%{$search}%");
-        }
+        $websites = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($request) {
+            $query = Website::with(['publisher', 'gamAccount'])->withCount('adUnits');
 
-        if ($request->has('publisher_id')) {
-            $query->where('publisher_id', $request->query('publisher_id'));
-        }
+            if ($request->has('search')) {
+                $search = $request->query('search');
+                $query->where('domain', 'like', "%{$search}%");
+            }
 
-        if ($request->has('gam_account_id')) {
-            $query->where('gam_account_id', $request->query('gam_account_id'));
-        }
+            if ($request->has('publisher_id')) {
+                $query->where('publisher_id', $request->query('publisher_id'));
+            }
 
-        $websites = $query->orderBy('domain')->paginate(100);
+            if ($request->has('gam_account_id')) {
+                $query->where('gam_account_id', $request->query('gam_account_id'));
+            }
+
+            return $query->orderBy('domain')->paginate(100);
+        });
 
         return WebsiteResource::collection($websites);
     }
@@ -74,6 +80,8 @@ class WebsiteController extends Controller
             }
 
             DB::commit();
+
+            Website::clearCache();
 
             AuditLogService::log('created', 'Website', $website->id, null, $website->toArray());
 
@@ -133,6 +141,8 @@ class WebsiteController extends Controller
 
             DB::commit();
 
+            Website::clearCache();
+
             AuditLogService::log('updated', 'Website', $website->id, $oldData, $website->toArray());
 
             return response()->json([
@@ -173,11 +183,72 @@ class WebsiteController extends Controller
             $website->delete();
             AuditLogService::log('deleted', 'Website', $id, $oldData, null);
             DB::commit();
+            Website::clearCache();
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to delete website.', 'error' => $e->getMessage()], 500);
         }
 
         return response()->json(['message' => 'Website deleted successfully.']);
+    }
+
+    /**
+     * POST /api/v1/admin/websites/scan-tracking
+     */
+    public function scanTracking(Request $request): JsonResponse
+    {
+        \Illuminate\Support\Facades\Artisan::call('tracking:verify');
+        Website::clearCache();
+        return response()->json([
+            'message' => 'Tracking code verification scan completed for all active websites.'
+        ]);
+    }
+
+    /**
+     * POST /api/v1/admin/websites/{id}/scan-tracking
+     */
+    public function scanTrackingSingle(Request $request, string $id): JsonResponse
+    {
+        $website = Website::findOrFail($id);
+        
+        \Illuminate\Support\Facades\Artisan::call('tracking:verify', [
+            '--website' => $id
+        ]);
+        
+        $website->refresh();
+        Website::clearCache();
+        
+        return response()->json([
+            'message' => "Tracking code verification completed for {$website->domain}.",
+            'website' => new WebsiteResource($website->load('publisher'))
+        ]);
+    }
+
+    /**
+     * POST /api/v1/admin/websites/{id}/mark-tracking-verified
+     * Manual override — admin has visually confirmed the script is installed
+     * but the automated scan cannot reach the site (e.g. WAF/Cloudflare block).
+     */
+    public function markTrackingVerified(string $id): JsonResponse
+    {
+        $website = Website::findOrFail($id);
+
+        $website->tracking_status = 'active';
+        $website->tracking_checked_at = now();
+        $website->save();
+
+        Website::clearCache();
+
+        AuditLogService::log('updated', 'Website', $website->id,
+            ['tracking_status' => 'missing'],
+            ['tracking_status' => 'active', 'note' => 'Manually verified by admin']
+        );
+
+        Log::info("Website {$website->domain} tracking manually marked as active by admin.");
+
+        return response()->json([
+            'message' => "Tracking status for {$website->domain} manually marked as Active.",
+            'website' => new WebsiteResource($website->load('publisher'))
+        ]);
     }
 }

@@ -135,11 +135,22 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs Selection */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid var(--color-border)', paddingBottom: 12 }}>
+      <div
+        className="publisher-settings-tabs"
+        style={{
+          display: 'flex',
+          gap: 12,
+          marginBottom: 24,
+          borderBottom: '1px solid var(--color-border)',
+          paddingBottom: 12,
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
         <button
           className={`btn ${activeTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('profile')}
-          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <User size={14} />
           {t('settings.profile_info_tab', 'Profile Info')}
@@ -147,7 +158,7 @@ export default function SettingsPage() {
         <button
           className={`btn ${activeTab === 'payment' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('payment')}
-          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <CreditCard size={14} />
           {t('settings.payment_method_tab', 'Payment Method')}
@@ -155,7 +166,7 @@ export default function SettingsPage() {
         <button
           className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('security')}
-          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <Lock size={14} />
           {t('settings.security_tab', 'Security')}
@@ -382,7 +393,11 @@ export default function SettingsPage() {
                   value={account}
                   onChange={e => setAccount(e.target.value)}
                   required
-                  placeholder={t('settings.payment_destination_placeholder', 'Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions.')}
+                  placeholder={
+                    selectedMethodObj 
+                      ? ((locale === 'ar' && selectedMethodObj.guidance_ar) ? selectedMethodObj.guidance_ar : selectedMethodObj.guidance) || t('settings.payment_destination_placeholder', 'Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions.')
+                      : t('settings.payment_destination_placeholder', 'Enter bank account info, IBAN, PayPal email, or crypto address details exactly as required by the platform instructions.')
+                  }
                   style={{ width: '100%' }}
                 />
               </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,14 @@ class PageController extends Controller
         ]);
 
         $page = Page::create($validated);
+
+        AuditLogService::log(
+            'created',
+            'Page',
+            $page->id,
+            null,
+            $page->toArray()
+        );
 
         return response()->json([
             'message' => 'Page created successfully',
@@ -71,7 +80,16 @@ class PageController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $oldData = $page->toArray();
         $page->update($validated);
+
+        AuditLogService::log(
+            'updated',
+            'Page',
+            $page->id,
+            $oldData,
+            $page->toArray()
+        );
 
         return response()->json([
             'message' => 'Page updated successfully',
@@ -85,7 +103,16 @@ class PageController extends Controller
     public function destroy($id): JsonResponse
     {
         $page = Page::findOrFail($id);
+        $oldData = $page->toArray();
         $page->delete();
+
+        AuditLogService::log(
+            'deleted',
+            'Page',
+            $id,
+            $oldData,
+            null
+        );
 
         return response()->json([
             'message' => 'Page deleted successfully'

@@ -27,8 +27,8 @@ class ContactController extends Controller
         $subject = $request->subject;
         $messageText = $request->message;
 
-        $destEmail = Setting::get('support_email', 'support@bestrevenue.local');
-        $siteName = Setting::get('site_name', 'BestRevenue');
+        $destEmail = Setting::get('support_email', 'support@mindorax.local');
+        $siteName = Setting::get('site_name', 'Mindora X');
 
         try {
             \App\Services\MailConfigService::applyFromSettings();

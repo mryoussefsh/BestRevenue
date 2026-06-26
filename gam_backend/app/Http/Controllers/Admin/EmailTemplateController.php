@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\EmailTemplate;
 use App\Services\MailConfigService;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -55,12 +56,32 @@ class EmailTemplateController extends Controller
             'body'    => 'required|string',
         ]);
 
+        $oldTemplate = EmailTemplate::where('key', $key)->first();
+        $oldData = $oldTemplate ? [
+            'subject' => $oldTemplate->subject,
+            'body'    => $oldTemplate->body,
+        ] : [
+            'subject' => EmailTemplate::defaults($key)['subject'],
+            'body'    => EmailTemplate::defaults($key)['body'],
+        ];
+
         $template = EmailTemplate::updateOrCreate(
             ['key' => $key],
             [
                 'label'   => $allKeys[$key],
                 'subject' => $request->subject,
                 'body'    => $request->body,
+            ]
+        );
+
+        AuditLogService::log(
+            'updated',
+            'EmailTemplate',
+            $key,
+            $oldData,
+            [
+                'subject' => $template->subject,
+                'body'    => $template->body,
             ]
         );
 
@@ -81,8 +102,25 @@ class EmailTemplateController extends Controller
             return response()->json(['message' => 'Unknown template key.'], 404);
         }
 
-        EmailTemplate::where('key', $key)->delete();
+        $template = EmailTemplate::where('key', $key)->first();
+        $oldData = $template ? [
+            'subject' => $template->subject,
+            'body'    => $template->body,
+        ] : null;
+
+        if ($template) {
+            $template->delete();
+        }
+
         $default = EmailTemplate::defaults($key);
+
+        AuditLogService::log(
+            'reset',
+            'EmailTemplate',
+            $key,
+            $oldData,
+            null
+        );
 
         return response()->json([
             'message'         => 'Template reset to default.',

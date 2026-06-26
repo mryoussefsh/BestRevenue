@@ -29,6 +29,14 @@ class PublisherSettingsController extends Controller
             'country'  => 'nullable|string|max:100',
         ]);
 
+        // Capture old details for logging
+        $oldData = [
+            'name'     => $publisher->name,
+            'phone'    => $publisher->phone,
+            'telegram' => $publisher->telegram,
+            'country'  => $publisher->country,
+        ];
+
         // Update publisher details
         $publisher->update([
             'name'     => $validated['name'],
@@ -41,6 +49,20 @@ class PublisherSettingsController extends Controller
         $user->update([
             'name' => $validated['name'],
         ]);
+
+        // Log profile update in audit logs
+        \App\Services\AuditLogService::log(
+            'profile_updated',
+            'Publisher',
+            $publisher->id,
+            $oldData,
+            [
+                'name'     => $publisher->name,
+                'phone'    => $publisher->phone,
+                'telegram' => $publisher->telegram,
+                'country'  => $publisher->country,
+            ]
+        );
 
         return response()->json([
             'message' => 'Profile updated successfully.',
@@ -83,6 +105,15 @@ class PublisherSettingsController extends Controller
         $user->update([
             'password' => Hash::make($request->new_password),
         ]);
+
+        // Log password change in audit logs
+        \App\Services\AuditLogService::log(
+            'password_changed',
+            'Publisher',
+            $user->publisher_id,
+            null,
+            null
+        );
 
         return response()->json([
             'message' => 'Password changed successfully.'

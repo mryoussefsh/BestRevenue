@@ -74,4 +74,22 @@ class Payout extends Model
     {
         return (bool) $this->is_manual_payment;
     }
+
+    /**
+     * Clear all cached payouts list query results.
+     */
+    public static function clearCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forever('payout_cache_version', time());
+    }
+
+    /**
+     * Get the current payout cache version string.
+     */
+    public static function getCacheVersion(): string
+    {
+        return (string) \Illuminate\Support\Facades\Cache::rememberForever('payout_cache_version', function () {
+            return time();
+        });
+    }
 }

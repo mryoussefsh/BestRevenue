@@ -1,15 +1,20 @@
-# BestRevenue Design System
+# Mindora X Design System
 
-Welcome to the **BestRevenue Design System**. This document defines the structural guidelines, visual styling paradigms, layout patterns, and user experience standards for the platform.
+Welcome to the **Mindora X Design System**. This document defines the structural guidelines, visual styling paradigms, layout patterns, and user experience standards for the platform.
 
 ---
 
 ## 1. Visual Style & Theme Core
-The core visual layout of the BestRevenue platform is built on **Premium Glassmorphic Dark Mode**.
+The core visual layout of the Mindora X platform is built on a **Layered Dark Mode Architecture** optimized for visual comfort and high contrast hierarchy.
 
-* **Dark Theme Default**: Deep dark primary surfaces reduce eye fatigue during long-term auditing sessions.
-* **Frosted Glass Containers**: Key dashboard panels use a semi-transparent dark surface backdrop with high saturation and a Gaussian blur filter to separate background depth layers.
-* **Vibrant Accent Borders**: Components are bordered with extremely thin, low-opacity styles to simulate clean physical panels. E.g., `1px solid rgba(255, 255, 255, 0.08)`.
+* **Layered Surfaces**:
+  * **Main Body Background**: `#13151f` (Cool dark gray, HSL 227, 23%, 10%)
+  * **Sidebar**: `#11131e` (Distinct deep navy/slate blue to integrate brand accent, HSL 230, 27%, 9%)
+  * **Header (Topbar)**: `rgba(19, 21, 31, 0.8)` (Translucent top navigation header with backdrop-filter blur)
+  * **Cards & Widgets**: `#1b1e2c` (Slightly lighter than body background to create depth, HSL 227, 24%, 13.7%)
+  * **Nested Panels & Headers**: `#222739` (Used for nested list overlays, table headers, and secondary child panels)
+* **Soft Depth Shadows**: Components utilize refined multi-layered shadows (e.g., `var(--shadow-md)`) to elevate cards above the background.
+* **Vibrant Accent Borders**: Cards and panels are bordered with thin, low-opacity styles (`1px solid rgba(255, 255, 255, 0.06)`) to simulate clean physical borders.
 
 ---
 
@@ -17,11 +22,11 @@ The core visual layout of the BestRevenue platform is built on **Premium Glassmo
 
 The color scheme utilizes a primary color to drive interactions, accents to highlight earnings, and warning hues to communicate pending states.
 
-* **Primary (`#4f46e5` / Indigo)**: Interactive actions, navigation selections, primary submit buttons, active filter states.
-* **Secondary (`#3b82f6` / Blue)**: Subheadings, secondary buttons, generic information links.
+* **Primary (`#6366f1` / Indigo)**: Interactive actions, active navigation states, primary buttons.
+* **Secondary (`#3b82f6` / Blue)**: Secondary actions and informative badge items.
 * **Accent (`#10b981` / Emerald)**: Wallet balance, earnings increase indicator, paid/approved success badges.
-* **Warning (`#f59e0b` / Amber)**: Pending balances, pending payouts, pending adjustments. Indicates items in the approval pipeline.
-* **Danger (`#ef4444` / Red)**: Rejected payouts, suspend buttons, delete actions, system error messages.
+* **Warning (`#f59e0b` / Amber)**: Pending balances, pending payouts, pending adjustments.
+* **Danger (`#f43f5e` / Rose)**: Rejected payouts, delete actions, system error messages.
 
 ---
 

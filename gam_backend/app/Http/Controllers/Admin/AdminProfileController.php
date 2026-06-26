@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Services\AuditLogService;
 
 class AdminProfileController extends Controller
 {
@@ -22,7 +23,20 @@ class AdminProfileController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
         ]);
 
+        $oldData = [
+            'name'  => $user->name,
+            'email' => $user->email,
+        ];
+
         $user->update($validated);
+
+        AuditLogService::log(
+            'profile_updated',
+            'Admin',
+            $user->id,
+            $oldData,
+            $validated
+        );
 
         return response()->json([
             'message' => 'Profile updated successfully.',
@@ -63,6 +77,14 @@ class AdminProfileController extends Controller
         $user->update([
             'password' => Hash::make($request->new_password),
         ]);
+
+        AuditLogService::log(
+            'password_changed',
+            'Admin',
+            $user->id,
+            null,
+            null
+        );
 
         return response()->json([
             'message' => 'Password changed successfully.'

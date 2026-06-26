@@ -1,6 +1,6 @@
-# Project Progress — BestRevenue Platform
+# Project Progress — Mindora X Platform
 
-This document tracks the milestones, sprint tasks, and progress status of the Publisher Revenue Sharing Platform (BestRevenue).
+This document tracks the milestones, sprint tasks, and progress status of the Publisher Revenue Sharing Platform (Mindora X).
 
 ---
 

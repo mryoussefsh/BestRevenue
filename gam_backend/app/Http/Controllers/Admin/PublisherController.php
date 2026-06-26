@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StorePublisherRequest;
 use App\Http\Requests\Admin\UpdatePublisherRequest;
 use App\Http\Resources\Admin\PublisherResource;
 use App\Mail\AccountSuspendedMail;
+use App\Mail\CustomMail;
 use App\Mail\PayoutCreatedMail;
 use App\Mail\WelcomeMail;
 use App\Models\Publisher;
@@ -277,6 +278,8 @@ class PublisherController extends Controller
 
             DB::commit();
 
+            RevenueRecord::clearCache();
+
             return response()->json([
                 'message' => 'Ratio updated successfully.',
                 'new_ratio' => $newRatio,
@@ -365,6 +368,8 @@ class PublisherController extends Controller
 
             try { Mail::to($publisher->email)->send(new AccountSuspendedMail($publisher)); } catch (\Exception $e) {}
 
+            RevenueRecord::clearCache();
+
             return response()->json(['message' => 'Publisher suspended successfully.']);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -394,6 +399,8 @@ class PublisherController extends Controller
             \App\Services\AuditLogService::log('activated', 'Publisher', $publisher->id, $oldData, $publisher->toArray());
 
             try { Mail::to($publisher->email)->send(new WelcomeMail($publisher)); } catch (\Exception $e) {}
+
+            RevenueRecord::clearCache();
 
             return response()->json(['message' => 'Publisher activated successfully.']);
         } catch (\Exception $e) {
@@ -442,6 +449,8 @@ class PublisherController extends Controller
                 ['pending_balance_adjustment' => $oldBalance],
                 ['pending_balance_adjustment' => $newBalance, 'amount' => $amount, 'notes' => $request->notes, 'adjustment_id' => $adjustment->id]
             );
+
+            RevenueRecord::clearCache();
 
             return response()->json([
                 'message' => 'Balance adjusted successfully.',
@@ -645,6 +654,8 @@ class PublisherController extends Controller
             ]);
         } catch (\Exception $e) {}
 
+        RevenueRecord::clearCache();
+
         return response()->json([
             'message' => 'Payout created successfully.',
             'payout'  => $payout,
@@ -690,9 +701,49 @@ class PublisherController extends Controller
             return response()->json(['message' => 'Failed to create manual payment.', 'error' => $e->getMessage()], 500);
         }
 
+        RevenueRecord::clearCache();
+
         return response()->json([
             'message' => 'Manual payment recorded successfully.',
             'payout'  => $manualPayout,
         ], 201);
+    }
+
+    /**
+     * POST /api/v1/admin/publishers/{id}/send-email
+     */
+    public function sendEmail(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'body'    => 'required|string',
+        ]);
+
+        $publisher = Publisher::findOrFail($id);
+
+        try {
+            Mail::to($publisher->email)->send(new CustomMail($request->subject, $request->body));
+            
+            AuditLogService::log(
+                action: 'email_sent',
+                entityType: 'Publisher',
+                entityId: $publisher->id,
+                oldValues: null,
+                newValues: [
+                    'subject' => $request->subject,
+                    'body'    => $request->body,
+                ],
+                description: "Admin sent email to publisher \"{$publisher->name}\" with subject \"{$request->subject}\""
+            );
+
+            return response()->json([
+                'message' => 'Email sent successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to send email.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 }

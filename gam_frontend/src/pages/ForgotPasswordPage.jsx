@@ -29,8 +29,16 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-wrapper">
+      {/* Aurora Background */}
       <div className="auth-glow-1"></div>
       <div className="auth-glow-2"></div>
+      <div className="auth-glow-3"></div>
+      <div className="auth-glow-4"></div>
+      <div className="auth-glow-5"></div>
+      <span className="auth-particle" style={{ top:'15%', left:'10%',  width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+      <span className="auth-particle" style={{ top:'70%', left:'15%',  width:3, height:3, background:'#8b5cf6', animationDelay:'2.1s', animationDuration:'8s'  }}></span>
+      <span className="auth-particle" style={{ top:'25%', left:'85%',  width:4, height:4, background:'#10b981', animationDelay:'1.4s', animationDuration:'7s'  }}></span>
+      <span className="auth-particle" style={{ top:'80%', left:'78%',  width:3, height:3, background:'#f59e0b', animationDelay:'3.5s', animationDuration:'9s'  }}></span>
 
       <div className="auth-card">
         <div className="auth-logo">

@@ -57,6 +57,13 @@ class SettingController extends Controller
                 'group' => 'system_info',
             ];
         }
+        $settings[] = [
+            'key'   => 'google_redirect_uri',
+            'value' => \App\Http\Controllers\Admin\GamAccountController::oauthRedirectUri(),
+            'label' => 'Google OAuth Redirect URI',
+            'type'  => 'string',
+            'group' => 'gam',
+        ];
 
         return response()->json($settings);
     }
@@ -81,7 +88,7 @@ class SettingController extends Controller
         $setting = Setting::findOrFail($key);
 
         // Allow certain settings to be cleared (nullable)
-        $nullableKeys = ['site_logo', 'site_favicon', 'og_image', 'support_telegram', 'support_whatsapp', 'social_facebook', 'social_instagram', 'social_x', 'social_telegram'];
+        $nullableKeys = ['site_logo', 'site_favicon', 'og_image', 'support_telegram', 'support_whatsapp', 'social_facebook', 'social_instagram', 'social_x', 'social_telegram', 'company_address', 'company_address_ar'];
         $isRequired = !in_array($key, $nullableKeys);
 
         $request->validate([
@@ -115,6 +122,33 @@ class SettingController extends Controller
 
         if ($key === 'gam_sync_interval') {
             $request->validate(['value' => 'required|integer|min:1']);
+        }
+
+        if ($key === 'tracking_verify_frequency') {
+            $request->validate(['value' => 'required|in:daily,hourly,minutes']);
+        }
+
+        if ($key === 'tracking_verify_interval') {
+            $request->validate(['value' => 'required|integer|min:1']);
+        }
+
+        if ($key === 'traffic_tracking_enabled' || $key === 'homepage_stats_override' || $key === 'global_sync_enabled') {
+            $request->validate([
+                'value' => [
+                    'required',
+                    function ($attribute, $value, $fail) {
+                        $normalized = strtolower(trim((string) $value));
+                        $acceptable = ['true', 'false', '1', '0', 'yes', 'no', 'on', 'off'];
+                        if (!in_array($normalized, $acceptable, true) && !is_bool($value)) {
+                            $fail('The ' . $attribute . ' must be a valid boolean.');
+                        }
+                    }
+                ]
+            ]);
+        }
+
+        if (in_array($key, ['homepage_stats_publishers', 'homepage_stats_impressions', 'homepage_stats_total_paid', 'homepage_stats_websites'])) {
+            $request->validate(['value' => 'required|integer|min:0']);
         }
 
         if ($key === 'publisher_registration_status') {
@@ -164,7 +198,11 @@ class SettingController extends Controller
             $request->validate(['value' => 'required|email']);
         }
 
-        $setting->value = is_array($value) ? json_encode($value) : $value;
+        $saveValue = $value;
+        if ($setting->type === 'boolean') {
+            $saveValue = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+        }
+        $setting->value = is_array($saveValue) ? json_encode($saveValue) : $saveValue;
         $setting->updated_at = now();
         $setting->save();
 
@@ -206,7 +244,7 @@ class SettingController extends Controller
         ]);
 
         $recipient = $request->email;
-        $siteName = config('app.name', 'BestRevenue');
+        $siteName = config('app.name', 'Mindora X');
 
         try {
             \App\Services\MailConfigService::applyFromSettings();
@@ -224,7 +262,7 @@ class SettingController extends Controller
     /**
      * GET /api/v1/public/settings
      */
-    public function getPublicSettings(): JsonResponse
+    public function getPublicSettings(Request $request): JsonResponse
     {
         $publicKeys = [
             'site_name',
@@ -245,6 +283,7 @@ class SettingController extends Controller
             'publisher_pending_message',
             'publisher_pending_message_ar',
             'payment_methods',
+            'payout_threshold',
             'platform_timezone',
             'ad_type_preselected_sizes',
             'support_email',
@@ -254,6 +293,8 @@ class SettingController extends Controller
             'social_instagram',
             'social_x',
             'social_telegram',
+            'company_address',
+            'company_address_ar',
         ];
 
         $settings = Setting::whereIn('key', $publicKeys)->get()->map(function ($setting) {
@@ -275,11 +316,25 @@ class SettingController extends Controller
             $map[$s['key']] = $s['value'];
         }
 
-        // Add dynamic stats from the database
-        $map['stats_publishers'] = \App\Models\Publisher::where('status', 'active')->count();
-        $map['stats_websites'] = \App\Models\Website::where('is_active', true)->count();
-        $map['stats_total_paid'] = (float) \App\Models\Payout::where('status', 'paid')->sum('final_amount');
-        $map['stats_impressions'] = (int) \App\Models\RevenueRecord::sum('impressions');
+        // Add dynamic stats from the database (or add homepage stats overrides to real numbers if enabled)
+        $overrideEnabled = filter_var(\App\Models\Setting::get('homepage_stats_override', false), FILTER_VALIDATE_BOOLEAN);
+
+        $realPublishers = \App\Models\Publisher::where('status', 'active')->count();
+        $realWebsites = \App\Models\Website::where('is_active', true)->count();
+        $realTotalPaid = (float) \App\Models\Payout::where('status', 'paid')->sum('final_amount');
+        $realImpressions = (int) \App\Models\RevenueRecord::sum('impressions');
+
+        if ($overrideEnabled) {
+            $map['stats_publishers'] = $realPublishers + (int) \App\Models\Setting::get('homepage_stats_publishers', 250);
+            $map['stats_websites'] = $realWebsites + (int) \App\Models\Setting::get('homepage_stats_websites', 180);
+            $map['stats_total_paid'] = $realTotalPaid + (float) \App\Models\Setting::get('homepage_stats_total_paid', 12400000);
+            $map['stats_impressions'] = $realImpressions + (int) \App\Models\Setting::get('homepage_stats_impressions', 5400000000);
+        } else {
+            $map['stats_publishers'] = $realPublishers;
+            $map['stats_websites'] = $realWebsites;
+            $map['stats_total_paid'] = $realTotalPaid;
+            $map['stats_impressions'] = $realImpressions;
+        }
 
         // Dynamic recent payouts (proofs)
         $realPayouts = \App\Models\Payout::where('status', 'paid')
@@ -319,6 +374,17 @@ class SettingController extends Controller
         $map['pages'] = \App\Models\Page::where('is_active', true)
             ->select(['id', 'title', 'title_ar', 'slug', 'show_in_public_footer', 'show_in_publisher_footer', 'show_in_landing_menu'])
             ->get();
+
+        // Detect visitor's country code based on IP address (supports Cloudflare/Proxy)
+        $clientIp = $request->header('CF-Connecting-IP') 
+            ?? $request->header('X-Real-IP') 
+            ?? $request->ip();
+        if ($clientIp) {
+            $clientIp = trim(explode(',', $clientIp)[0]);
+        }
+        
+        $countryName = \App\Http\Controllers\Auth\RegisterController::detectCountry($clientIp);
+        $map['detected_country'] = strtolower(\App\Http\Controllers\Auth\RegisterController::getCountryCodeFromName($countryName ?? '') ?? 'us');
 
         return response()->json($map);
     }

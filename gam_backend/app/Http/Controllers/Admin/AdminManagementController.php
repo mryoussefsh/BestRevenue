@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Services\AuditLogService;
 
 class AdminManagementController extends Controller
 {
@@ -54,6 +55,20 @@ class AdminManagementController extends Controller
             $admin->syncPermissions($validated['permissions']);
         }
 
+        AuditLogService::log(
+            'created',
+            'Admin',
+            $admin->id,
+            null,
+            [
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'is_active' => $admin->is_active,
+                'roles' => $admin->roles_list,
+                'permissions' => $admin->permissions_list,
+            ]
+        );
+
         return response()->json($admin->load(['roles', 'permissions']), 201);
     }
 
@@ -93,6 +108,14 @@ class AdminManagementController extends Controller
             $validated['is_active'] = true;
         }
 
+        $oldData = [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'is_active' => $admin->is_active,
+            'roles' => $admin->roles_list,
+            'permissions' => $admin->permissions_list,
+        ];
+
         $admin->name = $validated['name'];
         $admin->email = $validated['email'];
         if (!empty($validated['password'])) {
@@ -114,6 +137,22 @@ class AdminManagementController extends Controller
             }
         }
 
+        $newData = [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'is_active' => $admin->is_active,
+            'roles' => $admin->roles_list,
+            'permissions' => $admin->permissions_list,
+        ];
+
+        AuditLogService::log(
+            'updated',
+            'Admin',
+            $admin->id,
+            $oldData,
+            $newData
+        );
+
         return response()->json($admin->load(['roles', 'permissions']));
     }
 
@@ -132,7 +171,23 @@ class AdminManagementController extends Controller
             return response()->json(['message' => 'The primary administrator account cannot be deleted.'], 422);
         }
 
+        $oldData = [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'is_active' => $admin->is_active,
+            'roles' => $admin->roles_list,
+            'permissions' => $admin->permissions_list,
+        ];
+
         $admin->delete();
+
+        AuditLogService::log(
+            'deleted',
+            'Admin',
+            $id,
+            $oldData,
+            null
+        );
 
         return response()->json(['message' => 'Administrator deleted successfully.']);
     }

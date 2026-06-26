@@ -465,8 +465,8 @@ function ApplyIvtModal({ onClose, onSaved }) {
 
   // Handlers moved to WebsiteSelectionModal component
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit(e, isForced = false) {
+    if (e) e.preventDefault()
     if (!selectedGamAccountId) {
       toast.error(t('adjustments.toast_select_gam', 'Please select a GAM Account'))
       return
@@ -492,13 +492,22 @@ function ApplyIvtModal({ onClose, onSaved }) {
         website_ids: selectedWebsiteIds,
         date_from: dateFrom,
         date_to: dateTo,
-        ivt_percent: percent
+        ivt_percent: percent,
+        force: isForced
       })
       const count = res.data?.applied_adjustments?.length || 0
       toast.success(t('adjustments.toast_ivt_success', 'Successfully applied IVT. Created {count} adjustment(s).', { count }))
       onSaved()
-    } catch (e) {
-      toast.error(e.response?.data?.message || t('adjustments.toast_ivt_fail', 'Failed to apply IVT deductions'))
+    } catch (err) {
+      if (err.response?.status === 409 && err.response?.data?.conflict) {
+        const confirmMessage = err.response.data.message
+        if (window.confirm(confirmMessage)) {
+          await handleSubmit(null, true)
+          return
+        }
+      } else {
+        toast.error(err.response?.data?.message || t('adjustments.toast_ivt_fail', 'Failed to apply IVT deductions'))
+      }
     } finally {
       setSubmitting(false)
     }

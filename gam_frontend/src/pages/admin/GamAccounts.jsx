@@ -15,6 +15,7 @@ export default function GamAccountsPage() {
   const canConfigureGoogleApi = hasSettingsPermission || hasPermission('manage_gam_accounts')
 
   const [accounts, setAccounts] = useState([])
+  const [redirectUriFromServer, setRedirectUriFromServer] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingSettings, setSavingSettings] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
@@ -23,7 +24,7 @@ export default function GamAccountsPage() {
     google_client_secret: ''
   })
   const [editingAccount, setEditingAccount] = useState(null)
-  const [editForm, setEditForm] = useState({ name: '', network_code: '', ads_txt: '' })
+  const [editForm, setEditForm] = useState({ name: '', network_code: '', ads_txt: '', notes: '' })
   const [syncing, setSyncing] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -33,10 +34,21 @@ export default function GamAccountsPage() {
     // Handle OAuth callback messages in URL
     const oauthStatus = searchParams.get('oauth')
     const message = searchParams.get('message')
+    const relinked = parseInt(searchParams.get('relinked') || '0', 10)
     
     if (oauthStatus) {
-      if (oauthStatus === 'connected') toast.success(t('gam.toast_connected', 'GAM Account connected successfully!'))
-      if (oauthStatus === 'reconnected') toast.success(t('gam.toast_reconnected', 'GAM Account tokens refreshed!'))
+      if (oauthStatus === 'connected') {
+        const relinkSuffix = relinked > 0
+          ? ` ${t('gam.toast_relinked', '{{count}} website(s) were automatically re-linked.').replace('{{count}}', relinked)}`
+          : ''
+        toast.success(t('gam.toast_connected', 'GAM Account connected successfully!') + relinkSuffix)
+      }
+      if (oauthStatus === 'reconnected') {
+        const relinkSuffix = relinked > 0
+          ? ` ${t('gam.toast_relinked', '{{count}} website(s) were automatically re-linked.').replace('{{count}}', relinked)}`
+          : ''
+        toast.success(t('gam.toast_reconnected', 'GAM Account tokens refreshed!') + relinkSuffix)
+      }
       if (oauthStatus === 'error') toast.error(`${t('gam.toast_conn_fail', 'Connection failed')}: ${message || t('common.unknown_error', 'Unknown error')}`)
       
       // Clean up URL
@@ -57,11 +69,13 @@ export default function GamAccountsPage() {
         const settings = setRes.data || []
         const clientId = settings.find(s => s.key === 'google_client_id')?.value || ''
         const clientSecret = settings.find(s => s.key === 'google_client_secret')?.value || ''
+        const googleRedirectUri = settings.find(s => s.key === 'google_redirect_uri')?.value || ''
         
         setCredentials({
           google_client_id: clientId,
           google_client_secret: clientSecret
         })
+        setRedirectUriFromServer(googleRedirectUri)
       } else {
         const accRes = await gamAccountsApi.getAll().catch(() => ({ data: [] }))
         setAccounts(accRes.data || [])
@@ -146,7 +160,8 @@ export default function GamAccountsPage() {
     setEditForm({
       name: acc.name || '',
       network_code: acc.network_code || '',
-      ads_txt: acc.ads_txt || ''
+      ads_txt: acc.ads_txt || '',
+      notes: acc.notes || ''
     })
   }
 
@@ -162,20 +177,13 @@ export default function GamAccountsPage() {
     }
   }
 
-  async function handleWipeData() {
-    if (!window.confirm(t('gam.confirm_wipe', 'WARNING: This will permanently delete ALL revenue records and sync logs from the database. Are you absolutely sure?'))) return
-    const toastId2 = toast.loading(t('gam.wiping', 'Wiping revenue data...'))
-    try {
-      const res = await adminApi.wipeRevenue()
-      toast.success(res.data.message, { id: toastId2 })
-    } catch (err) {
-      toast.error(err.response?.data?.message || t('gam.toast_wipe_fail', 'Failed to wipe data'), { id: toastId2 })
-    }
-  }
 
-  const redirectUri = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+
+  const fallbackRedirectUri = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
     ? 'http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback'
     : `${window.location.origin}/api/v1/gam-accounts/oauth/callback`
+
+  const activeRedirectUri = redirectUriFromServer || fallbackRedirectUri
 
   return (
     <div>
@@ -187,11 +195,7 @@ export default function GamAccountsPage() {
           <p className="page-subtitle">{t('gam.subtitle', 'Connect Google Ad Manager accounts via OAuth')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {hasRevenuePermission && (
-            <button className="btn btn-danger" onClick={handleWipeData} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Trash2 size={14} /> {t('gam.wipe_all_revenue', 'Wipe All Revenue')}
-            </button>
-          )}
+
           <button className="btn btn-secondary" onClick={handleManualSync} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             {syncing ? t('gam.syncing_label', 'Syncing...') : <><RefreshCw size={14} /> {t('gam.run_sync_btn', 'Run GAM Sync Now')}</>}
           </button>
@@ -279,14 +283,14 @@ export default function GamAccountsPage() {
                     fontFamily: 'monospace', color: '#e2e8f0',
                     wordBreak: 'break-all', display: 'block', flex: 1, minWidth: '200px'
                   }}>
-                    {redirectUri}
+                    {activeRedirectUri}
                   </code>
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
                     style={{ padding: '8px 16px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
                     onClick={() => {
-                      navigator.clipboard.writeText(redirectUri)
+                      navigator.clipboard.writeText(activeRedirectUri)
                       toast.success(t('gam.toast_redirect_copied', 'Redirect URI copied!'))
                     }}
                   >
@@ -428,6 +432,16 @@ export default function GamAccountsPage() {
                   placeholder="e.g. google.com, pub-1234567890, DIRECT, f08c47fec0942fa0"
                   value={editForm.ads_txt}
                   onChange={e => setEditForm(f => ({...f, ads_txt: e.target.value}))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">{t('gam.notes_label', 'Notes')}</label>
+                <textarea 
+                  className="form-input" 
+                  style={{ minHeight: '80px', fontSize: '13px' }}
+                  placeholder={t('gam.notes_placeholder', 'Internal notes about this account...')}
+                  value={editForm.notes}
+                  onChange={e => setEditForm(f => ({...f, notes: e.target.value}))}
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>

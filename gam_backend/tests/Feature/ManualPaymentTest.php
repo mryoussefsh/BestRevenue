@@ -591,4 +591,56 @@ class ManualPaymentTest extends TestCase
         // Verify the adjustment is gone (deleted via the reject workflow)
         $this->assertDatabaseMissing('adjustments', ['id' => $adjustment->id]);
     }
+
+    public function test_admin_can_filter_payouts_by_payment_method_and_account(): void
+    {
+        $admin = $this->makeAdmin();
+        $publisher = $this->makePublisher('pub_filter@test.com');
+
+        // Create a few payouts with different payment methods and accounts
+        Payout::create([
+            'id'                => Str::uuid()->toString(),
+            'publisher_id'      => $publisher->id,
+            'period_year'       => 2026,
+            'period_month'      => 6,
+            'amount'            => 100.00,
+            'final_amount'      => 100.00,
+            'status'            => 'pending',
+            'payment_method'    => 'PayPal',
+            'payment_account'   => 'paypal_filter@test.com',
+            'is_manual_payment' => true,
+        ]);
+
+        Payout::create([
+            'id'                => Str::uuid()->toString(),
+            'publisher_id'      => $publisher->id,
+            'period_year'       => 2026,
+            'period_month'      => 6,
+            'amount'            => 200.00,
+            'final_amount'      => 200.00,
+            'status'            => 'pending',
+            'payment_method'    => 'Bank Transfer',
+            'payment_account'   => 'Chase Bank Account 12345',
+            'is_manual_payment' => true,
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($admin, ['*']);
+
+        // 1. Filter by payment method
+        $response = $this->getJson('/api/v1/admin/payouts?payment_method=PayPal');
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.payment_method', 'PayPal');
+
+        // 2. Search by payment account
+        $response = $this->getJson('/api/v1/admin/payouts?payment_account=Chase');
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.payment_account', 'Chase Bank Account 12345');
+
+        // 3. Search with no matches
+        $response = $this->getJson('/api/v1/admin/payouts?payment_account=NonExistent');
+        $response->assertStatus(200);
+        $response->assertJsonCount(0, 'data');
+    }
 }

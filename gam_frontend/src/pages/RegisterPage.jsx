@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { authApi } from '../api/endpoints'
 import toast from 'react-hot-toast'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
+import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { useI18n } from '../contexts/I18nContext'
 import { TrendingUp, Lock, ArrowRight, ArrowLeft, Phone, Send, Clock, AlertTriangle, Check, FileText, Icon } from 'lucide-react'
 
 export default function RegisterPage() {
+  const { user, authLoading } = useAuth()
   const { settings } = useSettings()
   const { t } = useI18n()
 
@@ -23,6 +25,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [pendingMessage, setPendingMessage] = useState('')
+
+  // Wait for auth check, then redirect authenticated users to their dashboard
+  if (authLoading) return null
+  if (user) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />
+    return <Navigate to="/publisher" replace />
+  }
 
   const calculatePasswordStrength = (password) => {
     let score = 0
@@ -105,8 +114,15 @@ export default function RegisterPage() {
   if (pendingMessage) {
     return (
       <div className="auth-wrapper">
+        {/* Aurora Background */}
         <div className="auth-glow-1"></div>
         <div className="auth-glow-2"></div>
+        <div className="auth-glow-3"></div>
+        <div className="auth-glow-4"></div>
+        <div className="auth-glow-5"></div>
+        <span className="auth-particle" style={{ top:'15%', left:'8%',   width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+        <span className="auth-particle" style={{ top:'75%', left:'85%',  width:3, height:3, background:'#8b5cf6', animationDelay:'2.1s', animationDuration:'8s'  }}></span>
+        <span className="auth-particle" style={{ top:'50%', left:'92%',  width:5, height:5, background:'#10b981', animationDelay:'1.4s', animationDuration:'7s'  }}></span>
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <Clock size={40} style={{ color: 'var(--br-warning)', marginBottom: 12 }} />
@@ -158,8 +174,14 @@ export default function RegisterPage() {
   if (settings.registration_status === 'closed') {
     return (
       <div className="auth-wrapper">
+        {/* Aurora Background */}
         <div className="auth-glow-1"></div>
         <div className="auth-glow-2"></div>
+        <div className="auth-glow-3"></div>
+        <div className="auth-glow-4"></div>
+        <div className="auth-glow-5"></div>
+        <span className="auth-particle" style={{ top:'20%', left:'10%',  width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+        <span className="auth-particle" style={{ top:'80%', left:'80%',  width:3, height:3, background:'#8b5cf6', animationDelay:'1.8s', animationDuration:'8s'  }}></span>
         <div className="auth-card" style={{ maxWidth: 500 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <Lock size={40} style={{ color: 'var(--br-danger)', marginBottom: 12 }} />
@@ -184,8 +206,18 @@ export default function RegisterPage() {
   // ── Registration Form ────────────────────────────────────────────────
   return (
     <div className="auth-wrapper">
+      {/* Aurora Background */}
       <div className="auth-glow-1"></div>
       <div className="auth-glow-2"></div>
+      <div className="auth-glow-3"></div>
+      <div className="auth-glow-4"></div>
+      <div className="auth-glow-5"></div>
+      <span className="auth-particle" style={{ top:'15%', left:'10%',  width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+      <span className="auth-particle" style={{ top:'70%', left:'15%',  width:3, height:3, background:'#8b5cf6', animationDelay:'2.1s', animationDuration:'8s'  }}></span>
+      <span className="auth-particle" style={{ top:'25%', left:'85%',  width:4, height:4, background:'#10b981', animationDelay:'1.4s', animationDuration:'7s'  }}></span>
+      <span className="auth-particle" style={{ top:'80%', left:'75%',  width:3, height:3, background:'#f59e0b', animationDelay:'3.5s', animationDuration:'9s'  }}></span>
+      <span className="auth-particle" style={{ top:'50%', left:'92%',  width:5, height:5, background:'#00f2fe', animationDelay:'0.8s', animationDuration:'5.5s'}}></span>
+      <span className="auth-particle" style={{ top:'90%', left:'40%',  width:3, height:3, background:'#f43f5e', animationDelay:'4.2s', animationDuration:'10s' }}></span>
 
       <div className="auth-card" style={{ maxWidth: 520 }}>
         <div className="auth-logo">
@@ -201,7 +233,7 @@ export default function RegisterPage() {
             </Link>
           )}
           <h1 className="auth-title">{t('auth.create_account', 'Create Account')}</h1>
-          <p className="auth-subtitle">{t('auth.join_and_monetize', 'Join {site_name} and start monetizing your traffic', { site_name: settings.site_name || 'BestRevenue' })}</p>
+          <p className="auth-subtitle">{t('auth.join_and_monetize', 'Join {site_name} and start monetizing your traffic', { site_name: settings.site_name || 'Mindora X' })}</p>
         </div>
 
         {errors.general && (
@@ -337,7 +369,7 @@ export default function RegisterPage() {
                   const PhoneInputComp = PhoneInput.default || PhoneInput;
                   return (
                     <PhoneInputComp
-                      country={'us'}
+                      country={settings.detected_country || 'us'}
                       value={form.phone}
                       onChange={phone => setForm(f => ({ ...f, phone: phone ? (phone.startsWith('+') ? phone : '+' + phone) : '' }))}
                       enableSearch={true}

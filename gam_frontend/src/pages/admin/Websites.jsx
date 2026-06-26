@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import { BulkAdUnitGeneratorModal, SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
-import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X, Filter } from 'lucide-react'
+import { Globe, Plus, Edit2, Trash2, Sparkles, Link, Layers, X, Filter, RefreshCw, AlertTriangle, Activity, ShieldCheck } from 'lucide-react'
 import { useI18n } from '../../contexts/I18nContext'
 
 export function WebsiteModal({ website, publishers, gamAccounts, onClose, onSaved, hidePublisherSelect }) {
@@ -311,6 +312,7 @@ export function AdUnitModal({ adUnit, websites, onClose, onSaved }) {
 
 export default function WebsitesPage() {
   const { t } = useI18n()
+  const queryClient = useQueryClient()
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState([])
   const [publishers, setPublishers] = useState([])
@@ -321,6 +323,51 @@ export default function WebsitesPage() {
   const [gamAdModal, setGamAdModal] = useState(false)
   const [tab, setTab] = useState('websites')
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
+  const [scanningAll, setScanningAll] = useState(false)
+  const [scanningWebsiteId, setScanningWebsiteId] = useState(null)
+  const [markingVerifiedId, setMarkingVerifiedId] = useState(null)
+
+  async function handleScanAllTracking() {
+    setScanningAll(true)
+    try {
+      await adminApi.scanWebsitesTracking()
+      toast.success(t('admin.websites.toast.scan_all_success', 'Tracking code verification scan completed.'))
+      loadAll()
+    } catch (err) {
+      toast.error(t('admin.websites.toast.scan_all_failed', 'Failed to scan websites.'))
+    } finally {
+      setScanningAll(false)
+    }
+  }
+
+  async function handleScanSingleTracking(id) {
+    setScanningWebsiteId(id)
+    try {
+      const res = await adminApi.scanWebsiteTracking(id)
+      toast.success(res.data.message || t('admin.websites.toast.scan_success', 'Verification complete.'))
+      setWebsites(prev => prev.map(w => w.id === id ? res.data.website : w))
+      queryClient.invalidateQueries({ queryKey: ['adminWebsites'] })
+    } catch (err) {
+      toast.error(t('admin.websites.toast.scan_failed', 'Failed to scan website.'))
+    } finally {
+      setScanningWebsiteId(null)
+    }
+  }
+
+  async function handleMarkVerified(id) {
+    if (!confirm(t('admin.websites.confirm_mark_verified', 'Mark this website as tracking Active? Only do this if you have manually confirmed the tracking script is installed in the page source.'))) return
+    setMarkingVerifiedId(id)
+    try {
+      const res = await adminApi.markWebsiteTrackingVerified(id)
+      toast.success(res.data.message || t('admin.websites.toast.mark_verified_success', 'Tracking status marked as Active.'))
+      setWebsites(prev => prev.map(w => w.id === id ? res.data.website : w))
+      queryClient.invalidateQueries({ queryKey: ['adminWebsites'] })
+    } catch (err) {
+      toast.error(t('admin.websites.toast.mark_verified_failed', 'Failed to mark as verified.'))
+    } finally {
+      setMarkingVerifiedId(null)
+    }
+  }
 
   // ─── Filters ─────────────────────────────────────────────────────────────
   const [wSearch, setWSearch] = useState('')
@@ -383,23 +430,61 @@ export default function WebsitesPage() {
   function clearWFilters() { setWSearch(''); setWPublisher(''); setWGamLinked(''); setWStatus(''); setWRatio(''); setWPage(1) }
   function clearAFilters() { setASearch(''); setAWebsite(''); setAPublisher(''); setAStatus(''); setARatio(''); setAPage(1) }
 
-  useEffect(() => { loadAll() }, [])
+  const { data: websitesData, isLoading: websitesLoading, error: websitesError } = useQuery({
+    queryKey: ['adminWebsites'],
+    queryFn: () => adminApi.getWebsites().then(r => r.data?.data || []),
+    staleTime: 5 * 60 * 1000,
+  })
 
-  async function loadAll() {
-    setLoading(true)
-    try {
-      const [wRes, aRes, pRes, gRes] = await Promise.all([
-        adminApi.getWebsites().catch(() => ({ data: { data: [] } })),
-        adminApi.getAdUnits().catch(() => ({ data: { data: [] } })),
-        adminApi.getPublishers().catch(() => ({ data: { data: [] } })),
-        gamAccountsApi.getAll().catch(() => ({ data: [] }))
-      ])
-      setWebsites(wRes.data?.data || [])
-      setAdUnits(aRes.data?.data || [])
-      setPublishers(pRes.data?.data || [])
-      setGamAccounts(gRes.data || [])
-    } catch { toast.error(t('admin.websites.toast.load_failed', 'Failed to load data')) }
-    finally { setLoading(false) }
+  const { data: adUnitsData, isLoading: adUnitsLoading, error: adUnitsError } = useQuery({
+    queryKey: ['adminAdUnits'],
+    queryFn: () => adminApi.getAdUnits().then(r => r.data?.data || []),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: publishersData, isLoading: publishersLoading, error: publishersError } = useQuery({
+    queryKey: ['adminPublishers'],
+    queryFn: () => adminApi.getPublishers().then(r => r.data?.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const { data: gamAccountsData, isLoading: gamAccountsLoading, error: gamAccountsError } = useQuery({
+    queryKey: ['adminGamAccounts'],
+    queryFn: () => gamAccountsApi.getAll().then(r => r.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (websitesData) setWebsites(websitesData)
+  }, [websitesData])
+
+  useEffect(() => {
+    if (adUnitsData) setAdUnits(adUnitsData)
+  }, [adUnitsData])
+
+  useEffect(() => {
+    if (publishersData) setPublishers(publishersData)
+  }, [publishersData])
+
+  useEffect(() => {
+    if (gamAccountsData) setGamAccounts(gamAccountsData)
+  }, [gamAccountsData])
+
+  useEffect(() => {
+    setLoading(websitesLoading || adUnitsLoading || publishersLoading || gamAccountsLoading)
+  }, [websitesLoading, adUnitsLoading, publishersLoading, gamAccountsLoading])
+
+  useEffect(() => {
+    if (websitesError || adUnitsError || publishersError || gamAccountsError) {
+      toast.error(t('admin.websites.toast.load_failed', 'Failed to load data'))
+    }
+  }, [websitesError, adUnitsError, publishersError, gamAccountsError, t])
+
+  function loadAll() {
+    queryClient.invalidateQueries({ queryKey: ['adminWebsites'] })
+    queryClient.invalidateQueries({ queryKey: ['adminAdUnits'] })
+    queryClient.invalidateQueries({ queryKey: ['adminPublishers'] })
+    queryClient.invalidateQueries({ queryKey: ['adminGamAccounts'] })
   }
 
   const activeFiltersCount = tab === 'websites' 
@@ -440,6 +525,15 @@ export default function WebsitesPage() {
                 {activeFiltersCount}
               </span>
             )}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleScanAllTracking}
+            disabled={scanningAll}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <RefreshCw size={16} className={scanningAll ? 'spin' : ''} />
+            <span>{scanningAll ? t('admin.websites.btn.scanning', 'Scanning…') : t('admin.websites.btn.scan_tracking', 'Scan Tracking')}</span>
           </button>
           <button id="add-website-btn" className="btn btn-secondary" onClick={() => setModal('create')}>
             <Plus size={16} /> {t('admin.websites.btn.add_website', 'Add Website')}
@@ -718,6 +812,7 @@ export default function WebsitesPage() {
                     <th>{t('admin.websites.table.col_publisher', 'Publisher')}</th>
                     <th>{t('admin.websites.table.col_gam_code', 'GAM Code')}</th>
                     <th>{t('admin.websites.table.col_ratio_override', 'Ratio Override')}</th>
+                    <th>{t('admin.websites.table.col_tracking', 'Tracking')}</th>
                     <th>{t('admin.websites.table.col_status', 'Status')}</th>
                     <th>{t('admin.websites.table.col_actions', 'Actions')}</th>
                   </tr></thead>
@@ -746,6 +841,26 @@ export default function WebsitesPage() {
                               : <span className="text-muted text-xs">{t('admin.websites.table.inherited', 'Inherited')}</span>}
                           </td>
                           <td>
+                            {w.tracking_status === 'active' ? (
+                              <span className="badge badge-active" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>
+                                <Globe size={12} /> {t('admin.websites.tracking.active', 'Active')}
+                              </span>
+                            ) : w.tracking_status === 'missing' ? (
+                              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>
+                                <AlertTriangle size={12} /> {t('admin.websites.tracking.missing', 'Missing')}
+                              </span>
+                            ) : (
+                              <span className="badge badge-inactive" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <span>?</span> {t('admin.websites.tracking.unknown', 'Unknown')}
+                              </span>
+                            )}
+                            {w.tracking_checked_at && (
+                              <div className="text-muted text-xs" style={{ marginTop: 2, fontSize: 10 }}>
+                                {new Date(w.tracking_checked_at).toLocaleDateString()}
+                              </div>
+                            )}
+                          </td>
+                          <td>
                             <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`}>
                               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                               {w.is_active ? t('admin.websites.badge.active', 'Active') : t('admin.websites.badge.inactive', 'Inactive')}
@@ -753,6 +868,27 @@ export default function WebsitesPage() {
                           </td>
                           <td>
                             <div className="flex gap-2">
+                              <button 
+                                className="btn btn-secondary btn-xs" 
+                                onClick={() => handleScanSingleTracking(w.id)}
+                                disabled={scanningWebsiteId === w.id}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                              >
+                                <RefreshCw size={12} className={scanningWebsiteId === w.id ? 'spin' : ''} />
+                                {t('admin.websites.btn.scan', 'Scan')}
+                              </button>
+                              {w.tracking_status === 'missing' && (
+                                <button
+                                  className="btn btn-xs"
+                                  onClick={() => handleMarkVerified(w.id)}
+                                  disabled={markingVerifiedId === w.id}
+                                  title={t('admin.websites.btn.mark_verified_title', 'Manually mark tracking as Active (use when scanner is blocked by the publisher firewall)')}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}
+                                >
+                                  <ShieldCheck size={12} />
+                                  {markingVerifiedId === w.id ? t('admin.websites.btn.marking', 'Marking…') : t('admin.websites.btn.mark_verified', 'Mark Verified')}
+                                </button>
+                              )}
                               <button className="btn btn-secondary btn-xs" onClick={() => setModal(w)}><Edit2 size={12} /> {t('admin.websites.btn.edit', 'Edit')}</button>
                               <button className="btn btn-danger btn-xs"
                                 onClick={async () => {

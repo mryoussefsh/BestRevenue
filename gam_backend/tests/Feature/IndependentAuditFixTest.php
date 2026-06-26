@@ -418,4 +418,137 @@ class IndependentAuditFixTest extends TestCase
         $responseImpersonate = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/impersonate");
         $responseImpersonate->assertStatus(403);
     }
+
+    /**
+     * Test publisher metrics transformation layer correctness.
+     */
+    public function test_publisher_revenue_metrics_transformation_layer(): void
+    {
+        $website = \App\Models\Website::create([
+            'id'               => Str::uuid()->toString(),
+            'publisher_id'     => $this->publisher->id,
+            'domain'           => 'securedomain3.com',
+            'gam_network_code' => '987654321',
+            'is_active'        => true,
+        ]);
+
+        $adUnit = \App\Models\AdUnit::create([
+            'id'                => Str::uuid()->toString(),
+            'website_id'        => $website->id,
+            'display_name'      => 'Leaderboard 3',
+            'gam_ad_unit_name'  => 'leaderboard_unit_3',
+            'is_active'         => true,
+        ]);
+
+        // ratio_applied is 0.80
+        RevenueRecord::create([
+            'id'                               => Str::uuid()->toString(),
+            'ad_unit_id'                       => $adUnit->id,
+            'date'                             => '2026-06-08',
+            'hour'                             => 0,
+            'impressions'                      => 100000,
+            'unfilled_impressions'             => 5000,
+            'active_view_eligible_impressions' => 90000,
+            'active_view_viewable_impressions' => 45000,
+            'clicks'                           => 1000,
+            'ctr'                              => 0.01,
+            'publisher_earnings'               => 50.00,
+            'publisher_cpm'                    => 0.50,
+            'ratio_applied'                    => 0.80,
+        ]);
+
+        $this->actingAs($this->publisherUser);
+
+        $response = $this->getJson('/api/v1/publisher/revenue');
+
+        $response->assertStatus(200);
+
+        // Assert record transformation
+        $data = $response->json('data.0');
+        $this->assertEquals(80000, $data['revenue_eligible_impressions']);
+        $this->assertEquals(4000, $data['revenue_eligible_unfilled']);
+        $this->assertEquals(72000, $data['revenue_eligible_av_eligible']);
+        $this->assertEquals(36000, $data['revenue_eligible_av_viewable']);
+        $this->assertEquals(0.625, $data['publisher_cpm']);
+
+        // Assert absent keys
+        $response->assertJsonMissingPath('data.0.impressions');
+        $response->assertJsonMissingPath('data.0.unfilled_impressions');
+        $response->assertJsonMissingPath('data.0.active_view_eligible_impressions');
+        $response->assertJsonMissingPath('data.0.active_view_viewable_impressions');
+        $response->assertJsonMissingPath('data.0.ratio_applied');
+        $response->assertJsonMissingPath('data.0.gross_revenue');
+        $response->assertJsonMissingPath('data.0.cpm');
+
+        // Assert aggregates
+        $aggregates = $response->json('aggregates');
+        $this->assertEquals(80000, $aggregates['total_impressions']);
+        $this->assertEquals(4000, $aggregates['total_unfilled']);
+        $this->assertEquals(1000, $aggregates['total_clicks']);
+        $this->assertEquals(1.0, $aggregates['total_ctr']);
+        $this->assertEquals(72000, $aggregates['total_active_view_eligible']);
+        $this->assertEquals(36000, $aggregates['total_active_view_viewable']);
+
+        // Assert daily stats
+        $daily = $response->json('daily_stats.0');
+        $this->assertEquals('2026-06-08', $daily['date']);
+        $this->assertEquals(80000, $daily['impressions']);
+        $this->assertEquals(4000, $daily['unfilled_impressions']);
+        $this->assertEquals(1000, $daily['clicks']);
+        $this->assertEquals(1.0, $daily['ctr']);
+        $this->assertEquals(0.625, $daily['cpm']);
+        $this->assertEquals(50.0, $daily['earnings']);
+    }
+
+    /**
+     * Test sending email to publisher successfully.
+     */
+    public function test_send_email_to_publisher_successfully(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $this->actingAs($this->admin);
+
+        $response = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/send-email", [
+            'subject' => 'Test Subject',
+            'body'    => 'Test Body message',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'message' => 'Email sent successfully.',
+        ]);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\CustomMail::class, function ($mail) {
+            return $mail->hasTo($this->publisher->email) &&
+                   $mail->customSubject === 'Test Subject' &&
+                   $mail->customBody === nl2br(e('Test Body message'));
+        });
+
+        // Assert audit log was recorded
+        $log = \App\Models\AuditLog::where('action', 'email_sent')
+            ->where('entity_type', 'Publisher')
+            ->where('entity_id', $this->publisher->id)
+            ->first();
+
+        $this->assertNotNull($log);
+        $this->assertEquals("Admin sent email to publisher \"{$this->publisher->name}\" with subject \"Test Subject\"", $log->description);
+        $this->assertEquals('Test Subject', $log->new_values['subject']);
+        $this->assertEquals('Test Body message', $log->new_values['body']);
+    }
+
+    /**
+     * Test sending email to publisher fails when unauthorized.
+     */
+    public function test_send_email_to_publisher_unauthorized(): void
+    {
+        $this->actingAs($this->publisherUser);
+
+        $response = $this->postJson("/api/v1/admin/publishers/{$this->publisher->id}/send-email", [
+            'subject' => 'Test Subject',
+            'body'    => 'Test Body message',
+        ]);
+
+        $response->assertStatus(403);
+    }
 }

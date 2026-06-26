@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useI18n } from '../../contexts/I18nContext'
 import toast from 'react-hot-toast'
+import { useQuery } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { CreditCard, DollarSign, Clock, CheckCircle, XCircle, TrendingUp, Ban, Filter } from 'lucide-react'
@@ -24,19 +25,40 @@ export default function PublisherPayouts() {
   const [filterMonth,  setFilterMonth]  = useState('')
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
+  const { data: payoutsRes, isLoading: payoutsLoading, error: payoutsError } = useQuery({
+    queryKey: ['publisherPayouts'],
+    queryFn: () => publisherApi.getPayouts(),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: revenueRes, isLoading: revenueLoading, error: revenueError } = useQuery({
+    queryKey: ['publisherRevenue', { per_page: 1000 }],
+    queryFn: () => publisherApi.getRevenue({ per_page: 1000 }),
+    staleTime: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
-    Promise.all([
-      publisherApi.getPayouts(),
-      publisherApi.getRevenue({ per_page: 1000 }),
-    ])
-      .then(([payRes, revRes]) => {
-        setPayouts(payRes.data?.data || [])
-        setAggregates(revRes.data?.aggregates || null)
-        setPendingAdjustment(revRes.data?.pending_balance_adjustment || 0)
-      })
-      .catch(() => toast.error(t('payouts.toast_failed', 'Failed to load payouts')))
-      .finally(() => setLoading(false))
-  }, [])
+    if (payoutsRes?.data?.data) {
+      setPayouts(payoutsRes.data.data)
+    }
+  }, [payoutsRes])
+
+  useEffect(() => {
+    if (revenueRes?.data) {
+      setAggregates(revenueRes.data.aggregates || null)
+      setPendingAdjustment(revenueRes.data.pending_balance_adjustment || 0)
+    }
+  }, [revenueRes])
+
+  useEffect(() => {
+    setLoading(payoutsLoading || revenueLoading)
+  }, [payoutsLoading, revenueLoading])
+
+  useEffect(() => {
+    if (payoutsError || revenueError) {
+      toast.error(t('payouts.toast_failed', 'Failed to load payouts'))
+    }
+  }, [payoutsError, revenueError, t])
 
   // Derive unique years for the year filter dropdown
   const uniqueYears = [...new Set(payouts.map(p => p.period_year))].sort((a, b) => b - a)
@@ -59,6 +81,8 @@ export default function PublisherPayouts() {
   // Approved Earnings = revenue records approved/closed by admin, same value as shown on Dashboard.
   // Adjusted by any pending balance adjustments (e.g. manual payment deductions).
   const availableBalance = Math.max(0, (aggregates?.approved_earnings ?? 0) + pendingAdjustment)
+
+  const lastPayout = payouts[0]
 
   // Table totals follow the filtered set
   const totalBase  = filteredPayouts.reduce((s, p) => s + parseFloat(p.amount || 0), 0)
@@ -217,6 +241,23 @@ export default function PublisherPayouts() {
             <CompactAmount value={availableBalance} />
           </div>
           <div className="stat-sub">{t('payouts.stats.available_sub', 'Approved & awaiting next payment cycle')}</div>
+        </div>
+        <div className="stat-card primary">
+          <div className="stat-icon"><CreditCard size={20} /></div>
+          <div className="stat-label">{t('payouts.stats.last_payout', 'Last Payout')}</div>
+          <div className="stat-value money">
+            {lastPayout ? <CompactAmount value={lastPayout.final_amount} /> : '—'}
+          </div>
+          <div className="stat-sub">
+            {lastPayout ? (
+              <span className={`badge ${statusBadge(lastPayout.status)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                {lastPayout.status === 'pending'  && <><Clock size={12} /> {t('dashboard.status.pending', 'Pending')}</>}
+                {lastPayout.status === 'approved' && <><CheckCircle size={12} /> {t('dashboard.status.approved', 'Approved')}</>}
+                {lastPayout.status === 'paid'     && <><DollarSign size={12} /> {t('landing.proofs.paid', 'Paid')}</>}
+                {lastPayout.status === 'rejected' && <><XCircle size={12} /> {t('payouts.status.rejected', 'Rejected')}</>}
+              </span>
+            ) : t('payouts.stats.no_payouts_yet', 'No payouts yet')}
+          </div>
         </div>
       </div>
 

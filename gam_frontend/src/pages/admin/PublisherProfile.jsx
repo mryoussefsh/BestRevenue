@@ -9,7 +9,7 @@ import { PublisherModal, AdjustBalanceModal } from './Publishers'
 import { BulkAdUnitGeneratorModal } from '../../components/BulkAdUnitGeneratorModal'
 import { WebsiteModal, AdUnitModal } from './Websites'
 import { useI18n } from '../../contexts/I18nContext'
-import { Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, Trash2, Globe, Calendar, FileText, Clipboard, Link as LinkIcon, History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus, Lock, Clock, Filter } from 'lucide-react'
+import { Edit2, DollarSign, CreditCard, Sparkles, User, Play, Pause, Check, Trash2, Globe, Calendar, FileText, Clipboard, StickyNote, Link as LinkIcon, History, BarChart2, Eye, Info, X, Scale, ExternalLink, Plus, Lock, Clock, Filter, Mail } from 'lucide-react'
 
 
 export default function PublisherProfile() {
@@ -45,6 +45,7 @@ export default function PublisherProfile() {
   const [websiteModal, setWebsiteModal] = useState(null)
   const [adModal, setAdModal] = useState(null)
   const [impersonateModalOpen, setImpersonateModalOpen] = useState(false)
+  const [emailModalOpen, setEmailModalOpen] = useState(false)
 
   // Tab State
   const [activeTab, setActiveTab] = useState('websites')
@@ -357,6 +358,13 @@ export default function PublisherProfile() {
             )}
             {canEdit && (
               <button className="btn btn-secondary"
+                style={{ background: 'rgba(6,182,212,0.12)', color: '#06b6d4', border: '1px solid rgba(6,182,212,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setEmailModalOpen(true)}>
+                <Mail size={14} /> {t('admin.publisher_profile.actions.send_email', 'Send Email')}
+              </button>
+            )}
+            {canEdit && (
+              <button className="btn btn-secondary"
                 style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--color-accent)', border: '1px solid rgba(16,185,129,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 onClick={() => setAdjustBalanceOpen(true)}>
                 <DollarSign size={14} /> {t('admin.publisher_profile.actions.adjust_balance', 'Adjust Balance')}
@@ -614,7 +622,10 @@ export default function PublisherProfile() {
 
           <div className="card">
             <div className="card-header" style={{ paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
-              <div className="card-title" style={{ fontSize: 16 }}>{t('admin.publisher_profile.notes.title', '📝 Internal Notes (Admin Only)')}</div>
+              <div className="card-title" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <StickyNote size={18} style={{ color: 'var(--br-primary)' }} />
+                <span>{t('admin.publisher_profile.notes.title', 'Internal Notes (Admin Only)').replace('📝', '').trim()}</span>
+              </div>
             </div>
             <div style={{ padding: 16 }}>
               {publisher.notes ? (
@@ -1086,6 +1097,88 @@ export default function PublisherProfile() {
           onClose={() => setImpersonateModalOpen(false)}
         />
       )}
+      {emailModalOpen && (
+        <SendEmailModal
+          publisher={publisher}
+          onClose={() => setEmailModalOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function SendEmailModal({ publisher, onClose }) {
+  const { t } = useI18n()
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!subject.trim() || !body.trim()) {
+      toast.error(t('admin.publisher_profile.send_email_modal.toast.required_fields', 'Please fill in both subject and message.'))
+      return
+    }
+    setSending(true)
+    try {
+      await adminApi.sendEmail(publisher.id, subject.trim(), body.trim())
+      toast.success(t('admin.publisher_profile.send_email_modal.toast.success', 'Email sent successfully!'))
+      onClose()
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('admin.publisher_profile.send_email_modal.toast.failed', 'Failed to send email'))
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal" style={{ maxWidth: '600px', width: '90vw' }}>
+        <div className="modal-header">
+          <span className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Mail size={18} style={{ color: 'var(--br-primary)' }} />
+            <span>{t('admin.publisher_profile.send_email_modal.title', 'Send Email to Publisher')}</span>
+          </span>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ padding: '10px 0 16px 0', fontSize: 13, color: 'var(--color-text-muted)' }}>
+            {t('admin.publisher_profile.send_email_modal.help_text', 'Send a direct email to {name} ({email}). The message will be formatted with the platform\'s brand design layout.', { name: publisher.name, email: publisher.email })}
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label className="form-label">{t('admin.publisher_profile.send_email_modal.subject_label', 'Subject *')}</label>
+            <input 
+              className="form-input" 
+              type="text" 
+              value={subject}
+              onChange={e => setSubject(e.target.value)} 
+              placeholder={t('admin.publisher_profile.send_email_modal.subject_placeholder', 'Enter email subject')}
+              required 
+              autoFocus 
+            />
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 20 }}>
+            <label className="form-label">{t('admin.publisher_profile.send_email_modal.message_label', 'Message Body *')}</label>
+            <textarea 
+              className="form-textarea" 
+              rows={8} 
+              value={body}
+              onChange={e => setBody(e.target.value)} 
+              placeholder={t('admin.publisher_profile.send_email_modal.message_placeholder', 'Type your message here...')}
+              required 
+            />
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>{t('common.cancel', 'Cancel')}</button>
+            <button type="submit" className="btn btn-primary" disabled={sending} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {sending ? t('admin.publisher_profile.send_email_modal.sending', 'Sending…') : <><Mail size={14} /> {t('admin.publisher_profile.send_email_modal.send_btn', 'Send Email')}</>}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

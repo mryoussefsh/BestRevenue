@@ -3,7 +3,7 @@ import { adminApi } from '../../api/endpoints'
 import { useSettings } from '../../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 import { useI18n } from '../../contexts/I18nContext'
-import { Settings, CreditCard, Server, DollarSign, Palette, Globe, UserPlus, Mail, Search, MessageSquare, Share2, Trash2, Plus, Clock, Info, Send, CheckCircle2, FileText } from 'lucide-react'
+import { Settings, CreditCard, Server, DollarSign, Palette, Globe, UserPlus, Mail, Search, MessageSquare, Share2, Trash2, Plus, Clock, Info, Send, CheckCircle2, FileText, Activity } from 'lucide-react'
 
 function TimezoneSelect({ value, onChange }) {
   const { t } = useI18n()
@@ -131,9 +131,9 @@ function TimezoneSelect({ value, onChange }) {
                 style={{ 
                   padding: '8px 12px', 
                   cursor: 'pointer', 
-                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  background: isSelected ? 'rgba(0, 242, 254, 0.15)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
                   borderBottom: '1px solid var(--color-border-light)',
-                  color: isSelected ? 'white' : 'var(--color-text)',
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
                   transition: 'background 0.15s',
                   fontSize: '13px'
                 }} 
@@ -264,18 +264,21 @@ export default function SettingsPage() {
   }
 
   const getUiGroup = (s) => {
-    if (['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency'].includes(s.key)) {
+    if (['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency', 'company_address', 'company_address_ar'].includes(s.key)) {
       return 'main_settings'
     }
     if (['site_logo', 'site_favicon', 'og_image'].includes(s.key)) {
       return 'branding'
+    }
+    if (['traffic_tracking_enabled', 'tracking_verify_frequency', 'tracking_verify_interval'].includes(s.key)) {
+      return 'tracking'
     }
     return s.group
   }
 
   const getUiGroupKeysOrder = (group) => {
     if (group === 'main_settings') {
-      return ['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency']
+      return ['site_name', 'site_name_ar', 'site_description', 'site_description_ar', 'platform_timezone', 'default_currency', 'company_address', 'company_address_ar']
     }
     if (group === 'branding') {
       return ['site_logo', 'site_favicon', 'og_image']
@@ -288,7 +291,15 @@ export default function SettingsPage() {
         'gam_sync_interval',
         'google_client_id',
         'google_client_secret',
+        'google_redirect_uri',
         'ad_type_preselected_sizes'
+      ]
+    }
+    if (group === 'tracking') {
+      return [
+        'traffic_tracking_enabled',
+        'tracking_verify_frequency',
+        'tracking_verify_interval'
       ]
     }
     if (group === 'seo') {
@@ -308,6 +319,23 @@ export default function SettingsPage() {
         'publisher_pending_message',
         'publisher_pending_message_ar',
         'publisher_default_ratio'
+      ]
+    }
+    if (group === 'homepage_stats') {
+      return [
+        'homepage_stats_override',
+        'homepage_stats_publishers',
+        'homepage_stats_impressions',
+        'homepage_stats_total_paid',
+        'homepage_stats_websites'
+      ]
+    }
+    if (group === 'social') {
+      return [
+        'social_facebook',
+        'social_instagram',
+        'social_x',
+        'social_telegram'
       ]
     }
     return null
@@ -352,7 +380,7 @@ export default function SettingsPage() {
     }
   }
 
-  const groupsOrder = ['main_settings', 'branding']
+  const groupsOrder = ['main_settings', 'branding', 'homepage_stats', 'gam', 'tracking']
   const groups = useMemo(() => {
     return [...new Set(settings.map(s => getUiGroup(s)))]
       .filter(g => g !== 'system_info')
@@ -378,12 +406,14 @@ export default function SettingsPage() {
     branding: 'Branding Settings',
     payout: 'Payout Settings',
     gam: 'GAM Sync Settings',
+    tracking: 'Traffic Tracking',
     payment: 'Payment Methods',
     registration: 'Registration Rules',
     email: 'SMTP Mail Server',
     seo: 'SEO Configuration',
     support: 'Support & Helpdesk',
-    social: 'Social Media'
+    social: 'Social Media',
+    homepage_stats: 'Homepage Statistics'
   }
 
   const renderGroupIcon = (group) => {
@@ -392,12 +422,14 @@ export default function SettingsPage() {
       branding: <Palette size={18} />,
       payout: <CreditCard size={18} />,
       gam: <Server size={18} />,
+      tracking: <Activity size={18} />,
       payment: <DollarSign size={18} />,
       registration: <UserPlus size={18} />,
       email: <Mail size={18} />,
       seo: <Search size={18} />,
       support: <MessageSquare size={18} />,
-      social: <Share2 size={18} />
+      social: <Share2 size={18} />,
+      homepage_stats: <Globe size={18} />
     }
     return icons[group] || <Settings size={18} />
   }
@@ -476,7 +508,7 @@ export default function SettingsPage() {
 
               <div className="settings-rows-container" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {(() => {
-                  const filteredSettings = [...settings].filter(s => getUiGroup(s) === activeTab)
+                  const filteredSettings = [...settings].filter(s => getUiGroup(s) === activeTab && s.key !== 'global_sync_enabled')
                   const order = getUiGroupKeysOrder(activeTab)
                   if (order) {
                     filteredSettings.sort((a, b) => {
@@ -518,7 +550,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div style={{ width: '100%' }}>
-                      {s.key === 'gam_sync_frequency' ? (
+                      {['gam_sync_frequency', 'tracking_verify_frequency'].includes(s.key) ? (
                         <select
                           className="form-select"
                           value={edited[s.key] ?? ''}
@@ -725,13 +757,13 @@ export default function SettingsPage() {
                                               />
                                             </div>
                                           </div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
                                             <div>
                                               <label className="pm-field-label">{t('admin.settings.payment_methods.fields.guidance', 'Guidance Text (English)')}</label>
                                               <textarea
-                                                rows={3}
+                                                rows={4}
                                                 className="form-textarea"
-                                                style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
+                                                style={{ fontSize: 14, resize: 'vertical', minHeight: 100 }}
                                                 value={m.guidance ?? ''}
                                                 onChange={e => {
                                                   const updated = list.map((item, i) => i === idx ? { ...item, guidance: e.target.value } : item)
@@ -743,9 +775,9 @@ export default function SettingsPage() {
                                             <div>
                                               <label className="pm-field-label">{t('admin.settings.payment_methods.fields.guidance_ar', 'Guidance Text (Arabic)')}</label>
                                               <textarea
-                                                rows={3}
+                                                rows={4}
                                                 className="form-textarea"
-                                                style={{ fontSize: 13, resize: 'vertical', minHeight: 72 }}
+                                                style={{ fontSize: 14, resize: 'vertical', minHeight: 100 }}
                                                 dir="rtl"
                                                 value={m.guidance_ar ?? ''}
                                                 onChange={e => {
@@ -830,24 +862,26 @@ export default function SettingsPage() {
                                             marginRight: 2,
                                             flexShrink: 0
                                           }}>▶</span>
-                                          <span className="gam-size-card-title" style={{ flexShrink: 0 }}>{t('admin.settings.gam_sizes.card_title', '{type} Sizes', { type: t(`admin.settings.gam_sizes.types.${type.key}`, type.label) })}</span>
-                                          {!isExpanded && activeSizes.length > 0 && (
-                                            <span 
-                                              style={{ 
-                                                fontSize: '11px', 
-                                                color: 'var(--color-text-muted)', 
-                                                overflow: 'hidden', 
-                                                textOverflow: 'ellipsis', 
-                                                whiteSpace: 'nowrap',
-                                                fontFamily: 'monospace',
-                                                opacity: 0.7,
-                                                paddingLeft: 6
-                                              }}
-                                              title={activeSizes.join(', ')}
-                                            >
-                                              ({activeSizes.join(', ')})
-                                            </span>
-                                          )}
+                                          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                            <span className="gam-size-card-title">{t('admin.settings.gam_sizes.card_title', '{type} Sizes', { type: t(`admin.settings.gam_sizes.types.${type.key}`, type.label) })}</span>
+                                            {!isExpanded && activeSizes.length > 0 && (
+                                              <span 
+                                                style={{ 
+                                                  fontSize: '11px', 
+                                                  color: 'var(--color-text-muted)', 
+                                                  overflow: 'hidden', 
+                                                  textOverflow: 'ellipsis', 
+                                                  whiteSpace: 'nowrap',
+                                                  fontFamily: 'monospace',
+                                                  opacity: 0.7,
+                                                  marginTop: 2
+                                                }}
+                                                title={activeSizes.join(', ')}
+                                              >
+                                                ({activeSizes.join(', ')})
+                                              </span>
+                                            )}
+                                          </div>
                                         </div>
                                         <span className="gam-size-card-badge">{activeSizes.length}</span>
                                       </div>
@@ -1034,20 +1068,34 @@ export default function SettingsPage() {
                           <option value="true">{t('admin.settings.status.enabled', 'Enabled')}</option>
                           <option value="false">{t('admin.settings.status.disabled', 'Disabled')}</option>
                         </select>
+                      ) : s.key === 'google_redirect_uri' ? (
+                        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            className="form-input"
+                            style={{ flex: 1, background: 'var(--color-surface-3)', cursor: 'default' }}
+                            readOnly
+                            value={edited[s.key] ?? ''}
+                          />
+                          <CopyButton text={edited[s.key] ?? ''} />
+                        </div>
                       ) : (
                         <input
                           className="form-input"
                           type={s.type === 'integer' ? 'number' : 'text'}
-                          disabled={s.key === 'gam_sync_interval' && edited['gam_sync_frequency'] === 'daily'}
-                          placeholder={
-                            s.key === 'gam_sync_interval'
-                              ? edited['gam_sync_frequency'] === 'hourly'
-                                ? t('admin.settings.gam_sync_interval.hourly_placeholder', 'Interval in hours (e.g. 1, 2, 6)')
-                                : edited['gam_sync_frequency'] === 'minutes'
-                                  ? t('admin.settings.gam_sync_interval.minutes_placeholder', 'Interval in minutes (e.g. 10, 15, 30)')
-                                  : t('admin.settings.gam_sync_interval.daily_placeholder', 'Not applicable for daily sync')
-                              : ''
-                          }
+                          disabled={
+                             (s.key === 'gam_sync_interval' && edited['gam_sync_frequency'] === 'daily') ||
+                             (s.key === 'tracking_verify_interval' && edited['tracking_verify_frequency'] === 'daily')
+                           }
+                           placeholder={
+                             ['gam_sync_interval', 'tracking_verify_interval'].includes(s.key)
+                               ? (s.key === 'gam_sync_interval' ? edited['gam_sync_frequency'] : edited['tracking_verify_frequency']) === 'hourly'
+                                 ? t('admin.settings.gam_sync_interval.hourly_placeholder', 'Interval in hours (e.g. 1, 2, 6)')
+                                 : (s.key === 'gam_sync_interval' ? edited['gam_sync_frequency'] : edited['tracking_verify_frequency']) === 'minutes'
+                                   ? t('admin.settings.gam_sync_interval.minutes_placeholder', 'Interval in minutes (e.g. 10, 15, 30)')
+                                   : t('admin.settings.gam_sync_interval.daily_placeholder', 'Not applicable for daily sync')
+                               : ''
+                           }
                           value={edited[s.key] ?? ''}
                           onChange={e => setEdited(v => ({ ...v, [s.key]: e.target.value }))}
                         />
@@ -1058,23 +1106,7 @@ export default function SettingsPage() {
               })()}
               </div>
 
-              {/* One single Save Button for the entire Active Settings Group */}
-              <div className="settings-save-bar">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => handleSaveGroup(activeTab)}
-                  disabled={savingGroup[activeTab] || !activeTabChanged}
-                >
-                  {savingGroup[activeTab] ? (
-                    <><Clock size={16} className="spinner" /> {t('admin.settings.saving', 'Saving...')}</>
-                  ) : (
-                    <><CheckCircle2 size={16} /> {t('admin.settings.save_group_btn', 'Save {group} Settings', {
-                      group: t(`admin.settings.group.${activeTab}`, groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1))
-                    })}</>
-                  )}
-                </button>
-              </div>
+
 
               {/* Special informational or testing blocks per tab */}
               {activeTab === 'gam' && (
@@ -1165,8 +1197,8 @@ export default function SettingsPage() {
                           </code>
                           <CopyButton text={`/usr/bin/php ${projectPath}/artisan schedule:run >> /dev/null 2>&1`} />
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }} className="text-xs text-muted">
-                          <Info size={12} style={{ flexShrink: 0 }} /> 
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 8, wordBreak: 'break-word', overflowWrap: 'anywhere' }} className="text-xs text-muted">
+                          <Info size={12} style={{ flexShrink: 0, marginTop: 2 }} /> 
                           <em>{t('admin.settings.cron.note', 'Note: Replace {projectPath} with your actual absolute server directory path. If the default PHP binary doesn\'t work, try /usr/local/bin/php.', { projectPath })}</em>
                         </div>
                       </div>
@@ -1217,6 +1249,24 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* One single Save Button for the entire Active Settings Group */}
+              <div className="settings-save-bar">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleSaveGroup(activeTab)}
+                  disabled={savingGroup[activeTab] || !activeTabChanged}
+                >
+                  {savingGroup[activeTab] ? (
+                    <><Clock size={16} className="spinner" /> {t('admin.settings.saving', 'Saving...')}</>
+                  ) : (
+                    <><CheckCircle2 size={16} /> {t('admin.settings.save_group_btn', 'Save {group} Settings', {
+                      group: t(`admin.settings.group.${activeTab}`, groupLabels[activeTab] || activeTab.charAt(0).toUpperCase() + activeTab.slice(1))
+                    })}</>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>

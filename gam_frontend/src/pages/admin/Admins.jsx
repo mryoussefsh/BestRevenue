@@ -308,7 +308,7 @@ export default function Admins() {
           {/* ADMINISTRATORS LIST */}
           {activeTab === 'admins' && (
             <div className="card" style={{ padding: '0px', overflow: 'hidden' }}>
-              <div className="table-responsive">
+              <div className="table-wrap">
                 <table className="table">
                   <thead>
                     <tr>
@@ -402,13 +402,13 @@ export default function Admins() {
                     })}
                   </tbody>
                 </table>
-                <Pagination
-                  currentPage={adminPage}
-                  totalItems={admins.length}
-                  pageSize={PAGE_SIZE}
-                  onPageChange={setAdminPage}
-                />
               </div>
+              <Pagination
+                currentPage={adminPage}
+                totalItems={admins.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setAdminPage}
+              />
             </div>
           )}
 
@@ -492,7 +492,7 @@ export default function Admins() {
                   </div>
                 )}
 
-                <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                <div className="form-grid" style={{ marginBottom: '20px' }}>
                   <div className="form-group">
                     <label className="form-label">{t('admin.admins.form.full_name', 'Full Name')}</label>
                     <div className="input-with-icon">

@@ -23,31 +23,43 @@ class AdUnitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AdUnit::with('website');
+        $cacheVersion = Website::getCacheVersion();
+        $cacheKey = "admin_adunits_v_{$cacheVersion}_" . md5(json_encode($request->all()));
 
-        if ($request->has('search')) {
-            $search = $request->query('search');
-            $query->where('gam_ad_unit_name', 'like', "%{$search}%")
-                  ->orWhere('display_name', 'like', "%{$search}%");
-        }
+        $adUnits = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($request) {
+            $query = AdUnit::with('website');
 
-        if ($request->has('website_id')) {
-            $query->where('website_id', $request->query('website_id'));
-        }
+            if ($request->has('search')) {
+                $search = $request->query('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('gam_ad_unit_name', 'like', "%{$search}%")
+                      ->orWhere('display_name', 'like', "%{$search}%");
+                });
+            }
 
-        if ($request->has('publisher_id')) {
-            $query->whereHas('website', function ($q) use ($request) {
-                $q->where('publisher_id', $request->query('publisher_id'));
-            });
-        }
+            if ($request->has('website_id')) {
+                $query->where('website_id', $request->query('website_id'));
+            }
 
-        $perPage = $request->query('per_page', 100);
-        if ($perPage === 'all') {
-            $adUnits = $query->orderBy('gam_ad_unit_name')->get();
-            return AdUnitResource::collection($adUnits);
-        }
+            if ($request->has('publisher_id')) {
+                $query->whereHas('website', function ($q) use ($request) {
+                    $q->where('publisher_id', $request->query('publisher_id'));
+                });
+            }
 
-        $adUnits = $query->orderBy('gam_ad_unit_name')->paginate((int)$perPage);
+            if ($request->has('gam_account_id')) {
+                $query->whereHas('website', function ($q) use ($request) {
+                    $q->where('gam_account_id', $request->query('gam_account_id'));
+                });
+            }
+
+            $perPage = $request->query('per_page', 100);
+            if ($perPage === 'all') {
+                return $query->orderBy('gam_ad_unit_name')->get();
+            }
+
+            return $query->orderBy('gam_ad_unit_name')->paginate((int)$perPage);
+        });
 
         return AdUnitResource::collection($adUnits);
     }
@@ -110,10 +122,12 @@ class AdUnitController extends Controller
 
             DB::commit();
 
+            Website::clearCache();
+
             AuditLogService::log('created_in_gam', 'AdUnit', $adUnit->id, null, $adUnit->toArray());
 
             return response()->json([
-                'message' => 'Ad Unit successfully created in Google Ad Manager and BestRevenue.',
+                'message' => 'Ad Unit successfully created in Google Ad Manager and Mindora X.',
                 'ad_unit' => new AdUnitResource($adUnit->load('website')),
             ], 201);
         } catch (\Exception $e) {
@@ -250,6 +264,8 @@ class AdUnitController extends Controller
 
             DB::commit();
 
+            Website::clearCache();
+
             return response()->json([
                 'message'  => count($created) . ' ad units successfully created in GAM (Round ' . $nextRound . ').',
                 'round'    => $nextRound,
@@ -304,6 +320,8 @@ class AdUnitController extends Controller
             }
 
             DB::commit();
+
+            Website::clearCache();
 
             AuditLogService::log('created', 'AdUnit', $adUnit->id, null, $adUnit->toArray());
 
@@ -369,6 +387,8 @@ class AdUnitController extends Controller
 
             DB::commit();
 
+            Website::clearCache();
+
             AuditLogService::log('updated', 'AdUnit', $adUnit->id, $oldData, $adUnit->toArray());
 
             return response()->json([
@@ -404,6 +424,8 @@ class AdUnitController extends Controller
         }
  
         $adUnit->delete();
+
+        Website::clearCache();
 
         // FIX [NEW-11]: Wrap audit log in try/catch — delete is already committed above via
         // the GAM archive step. The audit log write must not cause an unrelated rollback.
@@ -471,6 +493,8 @@ class AdUnitController extends Controller
             }
  
             DB::commit();
+
+            Website::clearCache();
  
             return response()->json([
                 'message' => "{$count} ad units deleted successfully.",

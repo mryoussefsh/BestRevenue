@@ -2077,6 +2077,14 @@ class PeriodAutoCloseTest extends TestCase
             'method' => 'PayPal',
             'account' => 'paypal@pubstringtest.com'
         ], $publisher->payment_info);
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payment_info_updated',
+            'entity_type' => 'Publisher',
+            'entity_id' => $publisher->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     /**
@@ -2154,5 +2162,74 @@ class PeriodAutoCloseTest extends TestCase
         // Reset test time
         \Carbon\Carbon::setTestNow();
     }
+
+    public function test_auto_close_catches_throwable_on_mail_failures(): void
+    {
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-07-21 12:00:00'));
+
+        $publisher = Publisher::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Mail Error Publisher',
+            'email' => 'mailerror@publisher.com',
+            'status' => 'active',
+            'default_ratio' => 0.80,
+            'payment_info' => ['method' => 'Wise', 'account' => 'test_account'],
+        ]);
+
+        $website = Website::create([
+            'id' => Str::uuid()->toString(),
+            'publisher_id' => $publisher->id,
+            'domain' => 'mailerrortest.com',
+            'gam_network_code' => '1234567',
+            'is_active' => true,
+        ]);
+
+        $adUnit = AdUnit::create([
+            'id' => Str::uuid()->toString(),
+            'website_id' => $website->id,
+            'gam_ad_unit_name' => 'mail_error_banner',
+            'display_name' => 'Mail Error Banner',
+            'is_active' => true,
+        ]);
+
+        RevenueRecord::create([
+            'id' => Str::uuid()->toString(),
+            'ad_unit_id' => $adUnit->id,
+            'date' => '2026-05-15',
+            'hour' => '00',
+            'impressions' => 1000,
+            'gross_revenue' => 100.00,
+            'publisher_earnings' => 80.00,
+        ]);
+
+        // Mock Mail facade to throw a Throwable (e.g., an Error) instead of executing normally
+        \Illuminate\Support\Facades\Mail::shouldReceive('to')
+            ->andThrow(new \Error("SMTP host lookup failed catastrophically"));
+
+        // Expect that a log error is generated but the command completes successfully (exit code 0)
+        $logSpy = \Illuminate\Support\Facades\Log::spy();
+
+        $exitCode = Artisan::call('period:auto-close', [
+            '--force-year' => 2026,
+            '--force-month' => 5,
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+
+        $logSpy->shouldHaveReceived('error')->atLeast()->once();
+
+        // Period should still be successfully closed because the email error was caught and logged
+        $closing = PeriodClosing::where('period_year', 2026)->where('period_month', 5)->first();
+        $this->assertNotNull($closing);
+        $this->assertEquals('closed', $closing->status);
+
+        // Payout should still be created
+        $payout = Payout::where('publisher_id', $publisher->id)->first();
+        $this->assertNotNull($payout);
+        $this->assertEquals(80.00, (float)$payout->final_amount);
+        
+        \Carbon\Carbon::setTestNow();
+    }
 }
+
 

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { adminApi } from '../../api/endpoints'
+import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import CompactAmount from '../../components/CompactAmount'
 import { DollarSign, RefreshCw, Search, Lock, Clock, Check, X, Filter } from 'lucide-react'
 import { useI18n } from '../../contexts/I18nContext'
+import { useSettings } from '../../contexts/SettingsContext'
 
 function PublisherSelect({ publishers, value, onChange, style }) {
+  const { t } = useI18n()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [hoveredId, setHoveredId] = useState(null)
@@ -73,9 +76,9 @@ function PublisherSelect({ publishers, value, onChange, style }) {
                 style={{ 
                   padding: '8px 12px', 
                   cursor: 'pointer', 
-                  background: isSelected ? 'var(--color-primary)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  background: isSelected ? 'rgba(0, 242, 254, 0.15)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
                   borderBottom: '1px solid var(--color-border-light)',
-                  color: isSelected ? 'white' : 'var(--color-text)',
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
                   transition: 'background 0.15s'
                 }} 
                 onMouseDown={() => { onChange(p.id); setOpen(false); setSearch('') }}
@@ -83,7 +86,7 @@ function PublisherSelect({ publishers, value, onChange, style }) {
                 onMouseLeave={() => setHoveredId(null)}
               >
                 <div style={{ fontWeight: 600 }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(0, 242, 254, 0.7)' : 'var(--color-text-muted)' }}>{p.email}</div>
               </div>
             )
           })}
@@ -96,50 +99,306 @@ function PublisherSelect({ publishers, value, onChange, style }) {
   )
 }
 
+function GamAccountSelect({ gamAccounts, value, onChange, style }) {
+  const { t } = useI18n()
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const [hoveredId, setHoveredId] = useState(null)
+  
+  const selected = gamAccounts.find(g => g.id === value)
+  const filtered = gamAccounts.filter(g => 
+    g.name.toLowerCase().includes(search.toLowerCase()) || 
+    (g.network_code && g.network_code.toLowerCase().includes(search.toLowerCase())) ||
+    g.email.toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div style={{ position: 'relative', width: '100%', ...style }} onBlur={e => { if(!e.currentTarget.contains(e.relatedTarget)) setOpen(false) }}>
+      <div 
+        className="form-select" 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '38px' }} 
+        onClick={() => setOpen(!open)}
+        tabIndex={0}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {selected ? selected.name : t('common.all_gam_accounts', 'All GAM Accounts')}
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>▼</span>
+      </div>
+      {open && (
+        <div style={{ 
+          position: 'absolute', 
+          top: 'calc(100% + 4px)', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: 'var(--color-surface-2)', 
+          border: '1px solid var(--color-border-light)', 
+          borderRadius: 'var(--radius-md)', 
+          marginTop: 4, 
+          maxHeight: 300, 
+          overflow: 'auto', 
+          boxShadow: 'var(--shadow-md)' 
+        }}>
+          <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-light)', position: 'sticky', top: 0, background: 'var(--color-surface-2)', zIndex: 11 }}>
+            <input 
+              autoFocus
+              className="form-input" 
+              placeholder={t('common.search_gam_account', 'Search GAM account...')} 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ padding: '4px 8px', height: '30px' }}
+            />
+          </div>
+          <div 
+            style={{ 
+              padding: '8px 12px', 
+              cursor: 'pointer', 
+              borderBottom: '1px solid var(--color-border-light)',
+              background: hoveredId === 'all' ? 'var(--color-surface-3)' : 'transparent',
+              transition: 'background 0.15s'
+            }} 
+            onMouseDown={() => { onChange(''); setOpen(false); setSearch('') }}
+            onMouseEnter={() => setHoveredId('all')}
+            onMouseLeave={() => setHoveredId(null)}
+          >
+            {t('common.all_gam_accounts', 'All GAM Accounts')}
+          </div>
+          {filtered.map(g => {
+            const isSelected = value === g.id
+            const isHovered = hoveredId === g.id
+            return (
+              <div 
+                key={g.id} 
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: 'pointer', 
+                  background: isSelected ? 'rgba(0, 242, 254, 0.15)' : (isHovered ? 'var(--color-surface-3)' : 'transparent'), 
+                  borderBottom: '1px solid var(--color-border-light)',
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
+                  transition: 'background 0.15s'
+                }} 
+                onMouseDown={() => { onChange(g.id); setOpen(false); setSearch('') }}
+                onMouseEnter={() => setHoveredId(g.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div style={{ fontWeight: 600 }}>{g.name}</div>
+                <div style={{ fontSize: 11, color: isSelected ? 'rgba(0, 242, 254, 0.7)' : 'var(--color-text-muted)' }}>
+                  {g.network_code ? `${g.network_code} · ${g.email}` : g.email}
+                </div>
+              </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div style={{ padding: '8px 12px', color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center' }}>
+              {t('common.no_gam_accounts', 'No GAM accounts found')}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Date preset helpers ─────────────────────────────────────────────────────
+function fmtLocal(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function getPlatformDate(timezone) {
+  try {
+    const formatter = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: timezone || 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    const formatted = formatter.format(new Date())
+    const parts = formatted.split('-')
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+  } catch (err) {
+    console.error('Timezone offset error:', err)
+    return new Date()
+  }
+}
+
+function getPresetRange(preset, timezone) {
+  const platDate = getPlatformDate(timezone)
+  const today = fmtLocal(platDate)
+  const daysAgo = n => fmtLocal(new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - n))
+  switch (preset) {
+    case 'today':
+      return { date_from: today, date_to: today }
+    case 'yesterday': {
+      const y = daysAgo(1)
+      return { date_from: y, date_to: y }
+    }
+    case '7d':
+      return { date_from: daysAgo(6),  date_to: today }
+    case '14d':
+      return { date_from: daysAgo(13), date_to: today }
+    case '30d':
+      return { date_from: daysAgo(29), date_to: today }
+    case '90d':
+      return { date_from: daysAgo(89), date_to: today }
+    case 'this_month': {
+      const s = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
+      return { date_from: fmtLocal(s), date_to: today }
+    }
+    case 'last_month': {
+      const s = new Date(platDate.getFullYear(), platDate.getMonth() - 1, 1)
+      const e = new Date(platDate.getFullYear(), platDate.getMonth(), 0)
+      return { date_from: fmtLocal(s), date_to: fmtLocal(e) }
+    }
+    default:
+      return { date_from: daysAgo(29), date_to: today }
+  }
+}
+
+const DATE_PRESETS = [
+  { key: 'today',      label: 'Today' },
+  { key: 'yesterday',  label: 'Yesterday' },
+  { key: '7d',         label: '7 Days' },
+  { key: '14d',        label: '14 Days' },
+  { key: '30d',        label: '30 Days' },
+  { key: '90d',        label: '90 Days' },
+  { key: 'this_month', label: 'This Month' },
+  { key: 'last_month', label: 'Last Month' },
+  { key: 'custom',     label: 'Custom' },
+]
+
 export default function RevenuePage() {
   const { t } = useI18n()
+  const { settings } = useSettings()
+  const queryClient = useQueryClient()
   const [records, setRecords] = useState([])
   const [publishers, setPublishers] = useState([])
   const [loading, setLoading] = useState(true)
   
+  const [preset, setPreset] = useState('30d')
   const [initialFilters] = useState(() => ({
-    date_from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10),
-    date_to: new Date().toISOString().slice(0,10),
+    ...getPresetRange('30d'),
     publisher_id: '',
+    gam_account_id: '',
     search: '',
     status: '',
   }))
   const [filters, setFilters] = useState(initialFilters)
+
+  useEffect(() => {
+    if (settings?.platform_timezone) {
+      const range = getPresetRange(preset, settings.platform_timezone)
+      setFilters(f => ({
+        ...f,
+        ...range
+      }))
+    }
+  }, [settings?.platform_timezone])
+
+  function applyPreset(key) {
+    setPreset(key)
+    if (key !== 'custom') {
+      setFilters(f => ({ ...f, ...getPresetRange(key, settings?.platform_timezone) }))
+    }
+  }
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [page, setPage] = useState(1)
   const [sortField, setSortField] = useState('date')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  useEffect(() => {
-    adminApi.getPublishers().then(r => setPublishers(r.data?.data || []))
-  }, [])
+  const [debouncedFilters, setDebouncedFilters] = useState(filters)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadData()
+      setDebouncedFilters(filters)
     }, 250)
     return () => clearTimeout(timer)
   }, [filters])
 
-  async function loadData() {
-    setLoading(true)
-    try {
-      const params = {}
-      if (filters.date_from)    params.date_from    = filters.date_from
-      if (filters.date_to)      params.date_to      = filters.date_to
-      if (filters.publisher_id) params.publisher_id = filters.publisher_id
-      if (filters.search)       params.search       = filters.search
-      if (filters.status)       params.status       = filters.status
-      const res = await adminApi.getRevenue(params)
-      setRecords(res.data?.data || [])
+  const { data: publishersData, isLoading: publishersLoading } = useQuery({
+    queryKey: ['adminPublishersForRevenue'],
+    queryFn: () => adminApi.getPublishers().then(r => r.data?.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (publishersData) {
+      setPublishers(publishersData)
+    }
+  }, [publishersData])
+
+  const { data: gamAccountsData } = useQuery({
+    queryKey: ['adminGamAccountsForRevenue'],
+    queryFn: () => gamAccountsApi.getAll().then(r => r.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const [gamAccounts, setGamAccounts] = useState([])
+
+  useEffect(() => {
+    if (gamAccountsData) {
+      setGamAccounts(gamAccountsData)
+    }
+  }, [gamAccountsData])
+
+  const { data: websitesData } = useQuery({
+    queryKey: ['adminWebsitesForRevenue'],
+    queryFn: () => adminApi.getWebsites().then(r => r.data?.data || []),
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const [websites, setWebsites] = useState([])
+
+  useEffect(() => {
+    if (websitesData) {
+      setWebsites(websitesData)
+    }
+  }, [websitesData])
+
+  const filteredPublishers = publishers.filter(p => {
+    if (!filters.gam_account_id) return true
+    return websites.some(w => w.publisher_id === p.id && w.gam_account_id === filters.gam_account_id)
+  })
+
+  const params = {}
+  if (debouncedFilters.date_from)    params.date_from    = debouncedFilters.date_from
+  if (debouncedFilters.date_to)      params.date_to      = debouncedFilters.date_to
+  if (debouncedFilters.publisher_id) params.publisher_id = debouncedFilters.publisher_id
+  if (debouncedFilters.gam_account_id) params.gam_account_id = debouncedFilters.gam_account_id
+  if (debouncedFilters.search)       params.search       = debouncedFilters.search
+  if (debouncedFilters.status)       params.status       = debouncedFilters.status
+
+  const { data: revenueData, isLoading: revenueLoading, error: revenueError } = useQuery({
+    queryKey: ['adminRevenue', params],
+    queryFn: () => adminApi.getRevenue(params).then(r => r.data?.data || []),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (revenueData) {
+      setRecords(revenueData)
       setPage(1)
-    } catch { toast.error(t('revenue.toast_load_fail', 'Failed to load revenue')) }
-    finally { setLoading(false) }
+    }
+  }, [revenueData])
+
+  useEffect(() => {
+    setLoading(revenueLoading || publishersLoading)
+  }, [revenueLoading, publishersLoading])
+
+  useEffect(() => {
+    if (revenueError) {
+      toast.error(t('revenue.toast_load_fail', 'Failed to load revenue'))
+    }
+  }, [revenueError, t])
+
+  function loadData() {
+    queryClient.invalidateQueries({ queryKey: ['adminRevenue'] })
+    queryClient.invalidateQueries({ queryKey: ['adminPublishersForRevenue'] })
+    queryClient.invalidateQueries({ queryKey: ['adminGamAccountsForRevenue'] })
+    queryClient.invalidateQueries({ queryKey: ['adminWebsitesForRevenue'] })
   }
 
   function handleSort(field) {
@@ -169,7 +428,14 @@ export default function RevenuePage() {
   })
 
   function resetFilters() {
-    setFilters(initialFilters)
+    setPreset('30d')
+    setFilters({
+      ...getPresetRange('30d', settings?.platform_timezone),
+      publisher_id: '',
+      gam_account_id: '',
+      search: '',
+      status: '',
+    })
   }
 
   const paginated = sortedRecords.slice((page - 1) * 15, page * 15)
@@ -184,16 +450,16 @@ export default function RevenuePage() {
   const avgRatio      = records.length > 0 ? (records.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / records.length) * 100 : 0
 
   const hasAppliedFilters = 
-    filters.date_from !== initialFilters.date_from ||
-    filters.date_to !== initialFilters.date_to ||
+    preset !== '30d' ||
     filters.publisher_id !== initialFilters.publisher_id ||
+    filters.gam_account_id !== initialFilters.gam_account_id ||
     filters.search !== initialFilters.search ||
     filters.status !== initialFilters.status
 
   const activeFiltersCount = [
-    filters.date_from !== initialFilters.date_from,
-    filters.date_to !== initialFilters.date_to,
+    preset !== '30d',
     filters.publisher_id !== initialFilters.publisher_id,
+    filters.gam_account_id !== initialFilters.gam_account_id,
     filters.search !== initialFilters.search,
     filters.status !== initialFilters.status
   ].filter(Boolean).length
@@ -249,19 +515,37 @@ export default function RevenuePage() {
               gap: 12 
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('dashboard.filters.period', 'Period')}</label>
+                <select className="form-select" value={preset}
+                  onChange={e => applyPreset(e.target.value)}
+                  style={{ height: 38 }}>
+                  {DATE_PRESETS.map(p => (
+                    <option key={p.key} value={p.key}>{t(`dashboard.presets.${p.key}`, p.label)}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('revenue.filter_date_from', 'Date From')}</label>
                 <input type="date" className="form-input" value={filters.date_from}
-                  onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} style={{ height: 38 }} />
+                  onChange={e => { setPreset('custom'); setFilters(f => ({ ...f, date_from: e.target.value })) }} style={{ height: 38 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('revenue.filter_date_to', 'Date To')}</label>
                 <input type="date" className="form-input" value={filters.date_to}
-                  onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} style={{ height: 38 }} />
+                  onChange={e => { setPreset('custom'); setFilters(f => ({ ...f, date_to: e.target.value })) }} style={{ height: 38 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('common.gam_account', 'GAM Account')}</label>
+                <GamAccountSelect 
+                  gamAccounts={gamAccounts} 
+                  value={filters.gam_account_id} 
+                  onChange={val => setFilters(f => ({ ...f, gam_account_id: val, publisher_id: '' }))} 
+                />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label className="text-muted text-xs" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('common.publisher', 'Publisher')}</label>
                 <PublisherSelect 
-                  publishers={publishers} 
+                  publishers={filteredPublishers} 
                   value={filters.publisher_id} 
                   onChange={val => setFilters(f => ({ ...f, publisher_id: val }))} 
                 />

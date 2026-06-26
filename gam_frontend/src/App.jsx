@@ -43,10 +43,17 @@ import AdminPages         from './pages/admin/Pages'
 import AdminFaqs          from './pages/admin/Faqs'
 import AdminProfile       from './pages/admin/Profile'
 import AdminAdmins        from './pages/admin/Admins'
+import Tools              from './pages/admin/Tools'
+import DangerZone         from './pages/admin/DangerZone'
 import FinanceDashboard   from './pages/admin/FinanceDashboard'
 import AdOpsDashboard     from './pages/admin/AdOpsDashboard'
 import SupportDashboard   from './pages/admin/SupportDashboard'
 import ContentDashboard   from './pages/admin/ContentDashboard'
+import TrafficOverview    from './pages/admin/Traffic'
+import TrafficRealtime    from './pages/admin/TrafficRealtime'
+import TrafficPublisher   from './pages/admin/TrafficPublisher'
+import TrafficAnomalies   from './pages/admin/TrafficAnomalies'
+import TrafficQuality     from './pages/admin/TrafficQuality'
 
 // Publisher pages
 import PubDashboard from './pages/publisher/Dashboard'
@@ -58,10 +65,11 @@ import PubTickets   from './pages/publisher/Tickets'
 import PubTicketDetail from './pages/publisher/TicketDetail'
 
 function RootRedirect() {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
-  if (user.role === 'admin') return <Navigate to="/admin" replace />
-  return <Navigate to="/publisher" replace />
+  const { authLoading } = useAuth()
+  // Wait for auth verification before rendering the landing page so the
+  // correct buttons (Dashboard vs Sign In/Sign Up) appear immediately.
+  if (authLoading) return null
+  return <LandingPage />
 }
 
 function AdminDashboardGateway() {
@@ -83,7 +91,7 @@ function PageTitleUpdater() {
   const { t } = useI18n()
 
   useEffect(() => {
-    const siteName = settings.site_name || 'BestRevenue'
+    const siteName = settings.site_name || 'Mindora X'
     const path = location.pathname
 
     let title = ''
@@ -156,8 +164,20 @@ function PageTitleUpdater() {
       title = `${t('title.admin_tickets', 'Support Tickets')} - ${siteName}`
     } else if (path === '/admin/admins') {
       title = `${t('title.admin_admins', 'Admins')} - ${siteName}`
+    } else if (path === '/admin/tools') {
+      title = `${t('title.admin_tools', 'Tools')} - ${siteName}`
     } else if (path.startsWith('/admin/tickets/')) {
       title = `${t('title.admin_ticket_detail', 'Ticket Detail')} - ${siteName}`
+    } else if (path === '/admin/traffic') {
+      title = `${t('title.admin_traffic_intelligence', 'Traffic Intelligence')} - ${siteName}`
+    } else if (path === '/admin/traffic/realtime') {
+      title = `${t('title.admin_realtime_monitor', 'Realtime Monitor')} - ${siteName}`
+    } else if (path === '/admin/traffic/anomalies') {
+      title = `${t('title.admin_anomaly_feed', 'Anomaly Feed')} - ${siteName}`
+    } else if (path === '/admin/traffic/quality-scores') {
+      title = `${t('title.admin_quality_scores', 'Quality Scores')} - ${siteName}`
+    } else if (path.startsWith('/admin/traffic/publishers/')) {
+      title = `${t('title.admin_publisher_traffic', 'Publisher Traffic')} - ${siteName}`
     }
     // Publisher routes
     else if (path === '/publisher') {
@@ -184,209 +204,272 @@ function PageTitleUpdater() {
   return null
 }
 
+function AppContent() {
+  const { loading: i18nLoading } = useI18n()
+  const { loading: settingsLoading } = useSettings()
+
+  useEffect(() => {
+    // Hide the initial global preloader when translations & settings have loaded
+    if (!i18nLoading && !settingsLoading) {
+      const preloader = document.getElementById('global-preloader')
+      if (preloader) {
+        preloader.classList.add('fade-out')
+        // Remove the preloader from DOM after the 500ms opacity transition finishes
+        const timer = setTimeout(() => {
+          preloader.remove()
+        }, 500)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [i18nLoading, settingsLoading])
+
+  return (
+    <BrowserRouter>
+      <PageTitleUpdater />
+      <Toaster
+        position="top-right"
+        containerStyle={{ zIndex: 100000 }}
+        toastOptions={{
+          style: {
+            background: '#080f1d',
+            color: '#f8fafc',
+            border: '0.5px solid rgba(0, 242, 254, 0.14)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(0,242,254,0.06)',
+            fontSize: '13px',
+          },
+          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+          error:   { iconTheme: { primary: '#f43f5e', secondary: '#fff' } },
+        }}
+      />
+
+      <Routes>
+        {/* Root landing page */}
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/design-system" element={<DesignSystemPreview />} />
+        <Route path="/page/:slug" element={<PageDetail />} />
+
+        {/* Auth */}
+        <Route path="/login"          element={<LoginPage />} />
+        <Route path="/register"        element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password"  element={<ResetPasswordPage />} />
+
+        {/* Admin routes */}
+        <Route path="/admin" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminDashboardGateway /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/finance" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><FinanceDashboard /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/adops" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdOpsDashboard /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/support" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><SupportDashboard /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/content" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><ContentDashboard /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/publishers" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Publishers /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/publishers/:id" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><PublisherProfile /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/websites" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Websites /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/revenue" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminRevenue /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/closings" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><PeriodClosings /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/payouts" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Payouts /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/adjustments" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Adjustments /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Settings /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/danger-zone" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><DangerZone /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/profile" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminProfile /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/translations" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Translations /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/audit-logs" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AuditLogs /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/gam-accounts" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><GamAccounts /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/gam-sync" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><GamSync /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/announcements" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Announcements /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/pages" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminPages /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/faqs" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminFaqs /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/email-templates" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><EmailTemplates /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/tickets" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminTickets /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/tickets/:id" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminTicketDetail /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/admins" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><AdminAdmins /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/tools" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><Tools /></AdminLayout>
+          </PrivateRoute>
+        } />
+
+        {/* Traffic Intelligence — admin-only */}
+        <Route path="/admin/traffic" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><TrafficOverview /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/traffic/realtime" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><TrafficRealtime /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/traffic/publishers/:publisherId" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><TrafficPublisher /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/traffic/anomalies" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><TrafficAnomalies /></AdminLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin/traffic/quality-scores" element={
+          <PrivateRoute role="admin">
+            <AdminLayout><TrafficQuality /></AdminLayout>
+          </PrivateRoute>
+        } />
+
+        {/* Publisher routes */}
+        <Route path="/publisher" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubDashboard /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/websites" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubWebsites /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/revenue" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubRevenue /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/payouts" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubPayouts /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/settings" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubSettings /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/tickets" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubTickets /></PublisherLayout>
+          </PrivateRoute>
+        } />
+        <Route path="/publisher/tickets/:id" element={
+          <PrivateRoute role="publisher">
+            <PublisherLayout><PubTicketDetail /></PublisherLayout>
+          </PrivateRoute>
+        } />
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
 function App() {
   return (
     <AuthProvider>
       <I18nProvider>
         <SettingsProvider>
-          <BrowserRouter>
-          <PageTitleUpdater />
-          <Toaster
-            position="top-right"
-            containerStyle={{ zIndex: 100000 }}
-            toastOptions={{
-              style: {
-                background: '#1a1a2e',
-                color: '#e2e8f0',
-                border: '1px solid #2a2a4a',
-                borderRadius: '10px',
-              },
-              success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-              error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-            }}
-          />
-
-          <Routes>
-            {/* Root landing page */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/support" element={<SupportPage />} />
-            <Route path="/design-system" element={<DesignSystemPreview />} />
-            <Route path="/page/:slug" element={<PageDetail />} />
-
-            {/* Auth */}
-            <Route path="/login"          element={<LoginPage />} />
-            <Route path="/register"        element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password"  element={<ResetPasswordPage />} />
-
-            {/* Admin routes */}
-            <Route path="/admin" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminDashboardGateway /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/finance" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><FinanceDashboard /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/adops" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdOpsDashboard /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/support" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><SupportDashboard /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/content" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><ContentDashboard /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/publishers" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Publishers /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/publishers/:id" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><PublisherProfile /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/websites" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Websites /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/revenue" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminRevenue /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/closings" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><PeriodClosings /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/payouts" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Payouts /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/adjustments" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Adjustments /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Settings /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/profile" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminProfile /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/translations" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Translations /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/audit-logs" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AuditLogs /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/gam-accounts" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><GamAccounts /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/gam-sync" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><GamSync /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/announcements" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><Announcements /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/pages" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminPages /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/faqs" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminFaqs /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/email-templates" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><EmailTemplates /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/tickets" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminTickets /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/tickets/:id" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminTicketDetail /></AdminLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/admin/admins" element={
-              <PrivateRoute role="admin">
-                <AdminLayout><AdminAdmins /></AdminLayout>
-              </PrivateRoute>
-            } />
-
-            {/* Publisher routes */}
-            <Route path="/publisher" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubDashboard /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/websites" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubWebsites /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/revenue" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubRevenue /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/payouts" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubPayouts /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/settings" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubSettings /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/tickets" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubTickets /></PublisherLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/publisher/tickets/:id" element={
-              <PrivateRoute role="publisher">
-                <PublisherLayout><PubTicketDetail /></PublisherLayout>
-              </PrivateRoute>
-            } />
-
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          </BrowserRouter>
+          <AppContent />
         </SettingsProvider>
       </I18nProvider>
     </AuthProvider>

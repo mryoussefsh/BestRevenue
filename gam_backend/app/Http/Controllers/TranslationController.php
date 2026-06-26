@@ -39,9 +39,18 @@ class TranslationController extends Controller
             ->where('key', $key)
             ->firstOrFail();
 
+        $oldValue = $translation->value;
         $translation->value = $request->value;
         $translation->updated_at = now();
         $translation->save();
+
+        \App\Services\AuditLogService::log(
+            'updated',
+            'Translation',
+            $locale . ':' . $key,
+            ['value' => $oldValue],
+            ['value' => $translation->value]
+        );
 
         return response()->json([
             'message' => 'Translation updated.',

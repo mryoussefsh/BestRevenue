@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { adminApi } from '../../api/endpoints'
+import { adminApi, gamAccountsApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { useI18n } from '../../contexts/I18nContext'
 import {
@@ -9,6 +9,7 @@ import CompactAmount from '../../components/CompactAmount'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { DollarSign, Users, CheckCircle2, Clock, CreditCard, Eye, MousePointer, Ban, BarChart2, Target, Percent, Calendar, Award, Lock, ArrowRight, TrendingUp, Scale, LayoutDashboard, RefreshCw, Filter } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 // ── Date preset helpers ─────────────────────────────────────────────────────
 // Use local-timezone formatting to avoid UTC shift (e.g. UTC+3 offset causing day-1 errors)
@@ -48,13 +49,13 @@ function getPresetRange(preset, timezone) {
       return { date_from: y, date_to: y }
     }
     case '7d':
-      return { date_from: daysAgo(7),  date_to: today }
+      return { date_from: daysAgo(6),  date_to: today }
     case '14d':
-      return { date_from: daysAgo(14), date_to: today }
+      return { date_from: daysAgo(13), date_to: today }
     case '30d':
-      return { date_from: daysAgo(30), date_to: today }
+      return { date_from: daysAgo(29), date_to: today }
     case '90d':
-      return { date_from: daysAgo(90), date_to: today }
+      return { date_from: daysAgo(89), date_to: today }
     case 'this_month': {
       const s = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
       return { date_from: fmtLocal(s), date_to: today }
@@ -65,7 +66,7 @@ function getPresetRange(preset, timezone) {
       return { date_from: fmtLocal(s), date_to: fmtLocal(e) }
     }
     default:
-      return { date_from: daysAgo(30), date_to: today }
+      return { date_from: daysAgo(29), date_to: today }
   }
 }
 
@@ -141,8 +142,8 @@ function SearchDropdown({ value, onChange, options, placeholder, allLabel = 'All
               <div key={o.value} onClick={() => { onChange(o.value); setOpen(false) }}
                 style={{
                   padding: '8px 12px', cursor: 'pointer', fontSize: 13,
-                  background: o.value === value ? 'var(--color-primary)' : 'transparent',
-                  color: o.value === value ? '#fff' : 'var(--color-text)',
+                  background: o.value === value ? 'rgba(0, 242, 254, 0.15)' : 'transparent',
+                  color: o.value === value ? 'var(--color-primary)' : 'var(--color-text)',
                   transition: 'background .12s',
                 }}>
                 <div style={{ fontWeight: 500 }}>{o.label}</div>
@@ -170,6 +171,7 @@ export default function AdminDashboard() {
   const [revenueChart, setRevenueChart] = useState([])
   const [publishers, setPublishers] = useState([])
   const [websites, setWebsites]     = useState([])
+  const [gamAccounts, setGamAccounts] = useState([])
   const [adUnits, setAdUnits]       = useState([])
   const [syncing, setSyncing]       = useState(false)
   const [loading, setLoading]       = useState(true)
@@ -184,6 +186,7 @@ export default function AdminDashboard() {
   const [preset, setPreset] = useState('30d')
   const [filters, setFilters] = useState({
     ...getPresetRange('30d'),
+    gam_account_id: '',
     publisher_id: '',
     website_id: '',
     ad_unit_id: '',
@@ -201,61 +204,85 @@ export default function AdminDashboard() {
     }
   }, [settings.platform_timezone])
 
-  // Load publishers & websites once for dropdowns
-  useEffect(() => {
-    const pPromise = hasPermission('manage_publishers') ? adminApi.getPublishers() : Promise.resolve({ data: { data: [] } })
-    const wPromise = hasPermission('manage_websites') ? adminApi.getWebsites() : Promise.resolve({ data: { data: [] } })
+  const queryClient = useQueryClient()
 
-    Promise.all([pPromise, wPromise])
-      .then(([pRes, wRes]) => {
-        setPublishers(pRes.data?.data || [])
-        setWebsites(wRes.data?.data || [])
-      })
-      .catch(err => {
-        console.error('Failed to load dropdown data:', err)
-      })
-  }, [hasPermission])
+  // 1. Dropdown Queries (Load publishers & websites once, cached)
+  const { data: pubDropdownRes } = useQuery({
+    queryKey: ['adminPublishersDropdown'],
+    queryFn: () => adminApi.getPublishers(),
+    enabled: hasPermission('manage_publishers'),
+  })
 
-  // Load ad units dynamically when filters.publisher_id or filters.website_id changes
+  const { data: webDropdownRes } = useQuery({
+    queryKey: ['adminWebsitesDropdown'],
+    queryFn: () => adminApi.getWebsites(),
+    enabled: hasPermission('manage_websites'),
+  })
+
+  const { data: gamAccountsDropdownRes } = useQuery({
+    queryKey: ['adminGamAccountsDropdown'],
+    queryFn: () => gamAccountsApi.getAll(),
+    enabled: hasPermission('manage_gam_accounts') || hasPermission('manage_revenue'),
+  })
+
+  // Keep local states updated for compatibility
   useEffect(() => {
-    if (!hasPermission('manage_ad_units')) {
+    if (pubDropdownRes?.data?.data) setPublishers(pubDropdownRes.data.data)
+  }, [pubDropdownRes])
+
+  useEffect(() => {
+    if (webDropdownRes?.data?.data) setWebsites(webDropdownRes.data.data)
+  }, [webDropdownRes])
+
+  useEffect(() => {
+    if (gamAccountsDropdownRes?.data) setGamAccounts(gamAccountsDropdownRes.data)
+  }, [gamAccountsDropdownRes])
+
+  // 2. Ad Units dropdown (dependent on filters.publisher_id, filters.website_id, or filters.gam_account_id)
+  const { data: adUnitsDropdownRes } = useQuery({
+    queryKey: ['adminAdUnitsDropdown', filters.publisher_id, filters.website_id, filters.gam_account_id],
+    queryFn: () => {
+      const params = { per_page: 'all' }
+      if (filters.publisher_id) params.publisher_id = filters.publisher_id
+      if (filters.website_id)   params.website_id   = filters.website_id
+      if (filters.gam_account_id) params.gam_account_id = filters.gam_account_id
+      return adminApi.getAdUnits(params)
+    },
+    enabled: hasPermission('manage_ad_units'),
+  })
+
+  useEffect(() => {
+    if (adUnitsDropdownRes?.data?.data) {
+      setAdUnits(adUnitsDropdownRes.data.data)
+    } else {
       setAdUnits([])
-      return
     }
-    const params = { per_page: 'all' }
-    if (filters.publisher_id) params.publisher_id = filters.publisher_id
-    if (filters.website_id)   params.website_id   = filters.website_id
+  }, [adUnitsDropdownRes])
 
-    adminApi.getAdUnits(params)
-      .then(res => {
-        setAdUnits(res.data?.data || [])
-      })
-      .catch(err => {
-        console.error('Failed to load ad units:', err)
-      })
-  }, [filters.publisher_id, filters.website_id, hasPermission])
-
-  // Reload stats whenever filters change (debounced 300ms)
+  // 3. Debounce stats/revenue fetches to prevent query spam on filter change
+  const [debouncedFilters, setDebouncedFilters] = useState(filters)
   useEffect(() => {
-    const t = setTimeout(() => loadData(), 300)
+    const t = setTimeout(() => setDebouncedFilters(filters), 300)
     return () => clearTimeout(t)
   }, [filters])
 
-  async function loadData() {
-    setLoading(true)
-    try {
+  // 4. Main consolidated dashboard stats query
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useQuery({
+    queryKey: ['adminDashboardData', debouncedFilters],
+    queryFn: async () => {
       const params = {}
-      if (filters.date_from)    params.date_from    = filters.date_from
-      if (filters.date_to)      params.date_to      = filters.date_to
-      if (filters.publisher_id) params.publisher_id = filters.publisher_id
-      if (filters.website_id)   params.website_id   = filters.website_id
-      if (filters.ad_unit_id)   params.ad_unit_id   = filters.ad_unit_id
-      if (filters.status)       params.status       = filters.status
+      if (debouncedFilters.date_from)    params.date_from    = debouncedFilters.date_from
+      if (debouncedFilters.date_to)      params.date_to      = debouncedFilters.date_to
+      if (debouncedFilters.gam_account_id) params.gam_account_id = debouncedFilters.gam_account_id
+      if (debouncedFilters.publisher_id) params.publisher_id = debouncedFilters.publisher_id
+      if (debouncedFilters.website_id)   params.website_id   = debouncedFilters.website_id
+      if (debouncedFilters.ad_unit_id)   params.ad_unit_id   = debouncedFilters.ad_unit_id
+      if (debouncedFilters.status)       params.status       = debouncedFilters.status
 
       // Compute previous period date range (same length, immediately before)
       const dayMs = 86400000
-      const dateFrom = filters.date_from ? new Date(filters.date_from) : new Date(Date.now() - 30 * dayMs)
-      const dateTo   = filters.date_to   ? new Date(filters.date_to)   : new Date()
+      const dateFrom = debouncedFilters.date_from ? new Date(debouncedFilters.date_from) : new Date(Date.now() - 29 * dayMs)
+      const dateTo   = debouncedFilters.date_to   ? new Date(debouncedFilters.date_to)   : new Date()
       const spanDays = Math.max(1, Math.round((dateTo - dateFrom) / dayMs) + 1)
       const prevTo   = new Date(dateFrom - dayMs)
       const prevFrom = new Date(prevTo   - (spanDays - 1) * dayMs)
@@ -268,9 +295,9 @@ export default function AdminDashboard() {
       delete prevParams.status // compare gross periods regardless of status
 
       const pubParams = {}
-      if (filters.date_from)    pubParams.date_from    = filters.date_from
-      if (filters.date_to)      pubParams.date_to      = filters.date_to
-      if (filters.website_id)   pubParams.website_id   = filters.website_id
+      if (debouncedFilters.date_from)    pubParams.date_from    = debouncedFilters.date_from
+      if (debouncedFilters.date_to)      pubParams.date_to      = debouncedFilters.date_to
+      if (debouncedFilters.website_id)   pubParams.website_id   = debouncedFilters.website_id
 
       const pubPromise = hasPermission('manage_publishers')
         ? adminApi.getPublishers(pubParams)
@@ -300,157 +327,173 @@ export default function AdminDashboard() {
         prevRevenuePromise,
       ])
 
-      const allPublishers = pubRes.data?.data       || []
-      const closings      = closingsRes.data?.data  || []
-      const pending       = payoutsRes.data?.data   || []
-      const revenue       = revenueRes.data?.data   || []
-      const prevRevenue   = prevRevenueRes.data?.data || []
-
-      // Chart — group by date (last 60 days max)
-      const byDate = {}
-      revenue.forEach(r => {
-        const d = r.date?.slice(0, 10) || r.date
-        const isApproved = r.period_closing_id !== null || r.is_approved
-        if (!byDate[d]) byDate[d] = { date: d, gross: 0, earnings: 0, approved: 0, pending: 0, impressions: 0 }
-        byDate[d].gross       += parseFloat(r.gross_revenue || 0)
-        byDate[d].earnings    += parseFloat(r.publisher_earnings || 0)
-        byDate[d].impressions += parseInt(r.impressions || 0)
-        if (isApproved) byDate[d].approved += parseFloat(r.publisher_earnings || 0)
-        else            byDate[d].pending  += parseFloat(r.publisher_earnings || 0)
-      })
-      const chart = Object.values(byDate)
-        .sort((a, b) => a.date < b.date ? -1 : 1)
-        .slice(-60)
-        .map(d => ({
-          ...d,
-          gross:    +d.gross.toFixed(2),
-          earnings: +d.earnings.toFixed(2),
-          approved: +d.approved.toFixed(2),
-          pending:  +d.pending.toFixed(2),
-          impressions: d.impressions,
-        }))
-
-      // Stat aggregations
-      const totalGross      = revenue.reduce((s, r) => s + parseFloat(r.gross_revenue || 0), 0)
-      const totalEarnings   = revenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
-      const filteredApprovedPubs = filters.publisher_id
-        ? allPublishers.filter(p => p.id === filters.publisher_id)
-        : allPublishers
-      const totalApproved = filteredApprovedPubs.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
-      const totalPendingAmt = revenue
-        .filter(r => r.period_closing_id === null && !r.is_approved)
-        .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
-      const totalImpr   = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
-      const totalClicks  = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
-      const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
-      const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)
-      const totalAvViewable = revenue.reduce((s, r) => s + parseInt(r.active_view_viewable_impressions || 0), 0)
-      const avgCPM      = totalImpr > 0 ? (totalGross / totalImpr) * 1000 : 0
-      const avgCTR      = totalImpr > 0 ? (totalClicks / totalImpr) * 100  : 0
-      const viewabilityRate = totalAvEligible > 0 ? (totalAvViewable / totalAvEligible) * 100 : null
-      const avgRatio    = revenue.length > 0
-        ? revenue.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / revenue.length
-        : 0
-
-      // — Period daily average & comparison —
-      // Unique days in current period
-      const currentDays = new Set(revenue.map(r => r.date?.slice(0, 10))).size || 1
-      const prevDays    = new Set(prevRevenue.map(r => r.date?.slice(0, 10))).size || 1
-      const currentAvgDaily = totalEarnings / currentDays
-      const prevTotalEarnings = prevRevenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
-      const prevAvgDaily = prevTotalEarnings / prevDays
-      const periodChangePct = prevAvgDaily > 0
-        ? ((currentAvgDaily - prevAvgDaily) / prevAvgDaily) * 100
-        : null
-
-      // — Best day in selected range —
-      let bestDay = null
-      if (chart.length > 0) {
-        bestDay = chart.reduce((best, d) => d.earnings > best.earnings ? d : best, chart[0])
+      return {
+        allPublishers: pubRes.data?.data || [],
+        closings: closingsRes.data?.data || [],
+        pending: payoutsRes.data?.data || [],
+        revenue: revenueRes.data?.data || [],
+        prevRevenue: prevRevenueRes.data?.data || [],
+        spanDays
       }
-
-      // — Ready for Payout sum —
-      const filteredPubsForPayout = filters.publisher_id
-        ? allPublishers.filter(p => p.id === filters.publisher_id)
-        : allPublishers
-      const readyForPayout = filteredPubsForPayout.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
-
-      setStats({
-        // Publisher counts (always global regardless of filter)
-        publishers:        allPublishers.length,
-        activePublishers:  allPublishers.filter(p => p.status === 'active').length,
-        pendingPublishers: allPublishers.filter(p => p.status === 'pending').length,
-        pendingPayouts:    pending.length,
-        pendingPayoutsTotal: pending.reduce((s, p) => s + parseFloat(p.final_amount || p.amount || 0), 0).toFixed(2),
-        closedPeriods:     closings.filter(c => c.status === 'closed').length,
-        // Revenue stats (filtered)
-        totalGross:    totalGross.toFixed(2),
-        totalEarnings: totalEarnings.toFixed(2),
-        totalApproved: totalApproved.toFixed(2),
-        totalPending:  totalPendingAmt.toFixed(2),
-        readyForPayout: readyForPayout.toFixed(2),
-        totalImpressions: totalImpr,
-        totalClicks:   totalClicks,
-        totalUnfilled: totalUnfilled,
-        totalAvEligible,
-        totalAvViewable,
-        viewabilityRate,
-        avgCPM:        avgCPM.toFixed(2),
-        avgCTR:        avgCTR.toFixed(3),
-        avgRatio:      (avgRatio * 100).toFixed(1),
-        recordCount:   revenue.length,
-        // Period comparison
-        avgDailyEarnings: currentAvgDaily.toFixed(2),
-        periodChangePct:  periodChangePct !== null ? periodChangePct.toFixed(1) : null,
-        spanDays,
-        // Best day
-        bestDay: bestDay ? { date: bestDay.date, earnings: bestDay.earnings.toFixed(2), gross: bestDay.gross.toFixed(2) } : null,
-      })
-      setRevenueChart(chart)
-
-      // — Top publishers aggregation —
-      const byPub = {}
-      revenue.forEach(r => {
-        const pub = r.ad_unit?.website?.publisher
-        if (!pub) return
-        const key = pub.id || pub.name
-        const isApproved = r.period_closing_id !== null || r.is_approved
-        if (!byPub[key]) byPub[key] = {
-          id: pub.id, name: pub.name, email: pub.email,
-          earnings: 0, approved: 0, pending: 0,
-          gross: 0, impressions: 0,
-        }
-        byPub[key].earnings    += parseFloat(r.publisher_earnings || 0)
-        byPub[key].gross       += parseFloat(r.gross_revenue      || 0)
-        byPub[key].impressions += parseInt(r.impressions          || 0)
-        if (isApproved) byPub[key].approved += parseFloat(r.publisher_earnings || 0)
-        else            byPub[key].pending  += parseFloat(r.publisher_earnings || 0)
-      })
-      const top10 = Object.values(byPub)
-        .sort((a, b) => b.earnings - a.earnings)
-        .slice(0, 10)
-        .map(p => ({
-          ...p,
-          earnings:    +p.earnings.toFixed(2),
-          approved:    +p.approved.toFixed(2),
-          pending:     +p.pending.toFixed(2),
-          gross:       +p.gross.toFixed(2),
-        }))
-      setPublisherStats(top10)
-    } catch (e) {
-      console.error(e)
-      toast.error(t('dashboard.toast_failed', 'Failed to load dashboard data') + ': ' + (e.response?.data?.message || e.message))
-    } finally {
-      setLoading(false)
     }
-  }
+  })
+
+  // Map react query loading state
+  useEffect(() => {
+    setLoading(dashboardLoading)
+  }, [dashboardLoading])
+
+  // Show error if main query fails
+  useEffect(() => {
+    if (dashboardError) {
+      toast.error(t('dashboard.toast_failed', 'Failed to load dashboard data') + ': ' + (dashboardError.response?.data?.message || dashboardError.message))
+    }
+  }, [dashboardError, t])
+
+  // Derive stats, chart, and top publishers from fetched query data
+  useEffect(() => {
+    if (!dashboardData) return
+
+    const { allPublishers, closings, pending, revenue, prevRevenue, spanDays } = dashboardData
+
+    // Chart — group by date (last 60 days max)
+    const byDate = {}
+    revenue.forEach(r => {
+      const d = r.date?.slice(0, 10) || r.date
+      const isApproved = r.period_closing_id !== null || r.is_approved
+      if (!byDate[d]) byDate[d] = { date: d, gross: 0, earnings: 0, approved: 0, pending: 0, impressions: 0 }
+      byDate[d].gross       += parseFloat(r.gross_revenue || 0)
+      byDate[d].earnings    += parseFloat(r.publisher_earnings || 0)
+      byDate[d].impressions += parseInt(r.impressions || 0)
+      if (isApproved) byDate[d].approved += parseFloat(r.publisher_earnings || 0)
+      else            byDate[d].pending  += parseFloat(r.publisher_earnings || 0)
+    })
+    const chart = Object.values(byDate)
+      .sort((a, b) => a.date < b.date ? -1 : 1)
+      .slice(-60)
+      .map(d => ({
+        ...d,
+        gross:    +d.gross.toFixed(2),
+        earnings: +d.earnings.toFixed(2),
+        approved: +d.approved.toFixed(2),
+        pending:  +d.pending.toFixed(2),
+        impressions: d.impressions,
+      }))
+
+    // Stat aggregations
+    const totalGross      = revenue.reduce((s, r) => s + parseFloat(r.gross_revenue || 0), 0)
+    const totalEarnings   = revenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+    const displayPublishers = allPublishers.filter(p => 
+      !filters.gam_account_id || websites.some(w => w.publisher_id === p.id && w.gam_account_id === filters.gam_account_id)
+    )
+    const filteredApprovedPubs = filters.publisher_id
+      ? displayPublishers.filter(p => p.id === filters.publisher_id)
+      : displayPublishers
+    const totalApproved = filteredApprovedPubs.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
+    const totalPendingAmt = revenue
+      .filter(r => r.period_closing_id === null && !r.is_approved)
+      .reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+    const totalImpr   = revenue.reduce((s, r) => s + parseInt(r.impressions || 0), 0)
+    const totalClicks  = revenue.reduce((s, r) => s + parseInt(r.clicks || 0), 0)
+    const totalUnfilled = revenue.reduce((s, r) => s + parseInt(r.unfilled_impressions || 0), 0)
+    const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)
+    const totalAvViewable = revenue.reduce((s, r) => s + parseInt(r.active_view_viewable_impressions || 0), 0)
+    const avgCPM      = totalImpr > 0 ? (totalGross / totalImpr) * 1000 : 0
+    const avgCTR      = totalImpr > 0 ? (totalClicks / totalImpr) * 100  : 0
+    const viewabilityRate = totalAvEligible > 0 ? (totalAvViewable / totalAvEligible) * 100 : null
+    const avgRatio    = revenue.length > 0
+      ? revenue.reduce((s, r) => s + parseFloat(r.ratio_applied || 0), 0) / revenue.length
+      : 0
+
+    // — Period daily average & comparison —
+    const currentDays = new Set(revenue.map(r => r.date?.slice(0, 10))).size || 1
+    const prevDays    = new Set(prevRevenue.map(r => r.date?.slice(0, 10))).size || 1
+    const currentAvgDaily = totalEarnings / currentDays
+    const prevTotalEarnings = prevRevenue.reduce((s, r) => s + parseFloat(r.publisher_earnings || 0), 0)
+    const prevAvgDaily = prevTotalEarnings / prevDays
+    const periodChangePct = prevAvgDaily > 0
+      ? ((currentAvgDaily - prevAvgDaily) / prevAvgDaily) * 100
+      : null
+
+    // — Best day in selected range —
+    let bestDay = null
+    if (chart.length > 0) {
+      bestDay = chart.reduce((best, d) => d.earnings > best.earnings ? d : best, chart[0])
+    }
+
+    // — Ready for Payout sum —
+    const filteredPubsForPayout = filters.publisher_id
+      ? displayPublishers.filter(p => p.id === filters.publisher_id)
+      : displayPublishers
+    const readyForPayout = filteredPubsForPayout.reduce((sum, p) => sum + parseFloat(p.approved_balance || 0), 0)
+
+    setStats({
+      publishers:        displayPublishers.length,
+      activePublishers:  displayPublishers.filter(p => p.status === 'active').length,
+      pendingPublishers: displayPublishers.filter(p => p.status === 'pending').length,
+      pendingPayouts:    pending.length,
+      pendingPayoutsTotal: pending.reduce((s, p) => s + parseFloat(p.final_amount || p.amount || 0), 0).toFixed(2),
+      closedPeriods:     closings.filter(c => c.status === 'closed').length,
+      totalGross:    totalGross.toFixed(2),
+      totalEarnings: totalEarnings.toFixed(2),
+      totalApproved: totalApproved.toFixed(2),
+      totalPending:  totalPendingAmt.toFixed(2),
+      readyForPayout: readyForPayout.toFixed(2),
+      totalImpressions: totalImpr,
+      totalClicks:   totalClicks,
+      totalUnfilled: totalUnfilled,
+      totalAvEligible,
+      totalAvViewable,
+      viewabilityRate,
+      avgCPM:        avgCPM.toFixed(2),
+      avgCTR:        avgCTR.toFixed(3),
+      avgRatio:      (avgRatio * 100).toFixed(1),
+      recordCount:   revenue.length,
+      avgDailyEarnings: currentAvgDaily.toFixed(2),
+      periodChangePct:  periodChangePct !== null ? periodChangePct.toFixed(1) : null,
+      spanDays,
+      bestDay: bestDay ? { date: bestDay.date, earnings: bestDay.earnings.toFixed(2), gross: bestDay.gross.toFixed(2) } : null,
+    })
+    setRevenueChart(chart)
+
+    // — Top publishers aggregation —
+    const byPub = {}
+    revenue.forEach(r => {
+      const pub = r.ad_unit?.website?.publisher
+      if (!pub) return
+      const key = pub.id || pub.name
+      const isApproved = r.period_closing_id !== null || r.is_approved
+      if (!byPub[key]) byPub[key] = {
+        id: pub.id, name: pub.name, email: pub.email,
+        earnings: 0, approved: 0, pending: 0,
+        gross: 0, impressions: 0,
+      }
+      byPub[key].earnings    += parseFloat(r.publisher_earnings || 0)
+      byPub[key].gross       += parseFloat(r.gross_revenue      || 0)
+      byPub[key].impressions += parseInt(r.impressions          || 0)
+      if (isApproved) byPub[key].approved += parseFloat(r.publisher_earnings || 0)
+      else            byPub[key].pending  += parseFloat(r.publisher_earnings || 0)
+    })
+    const top10 = Object.values(byPub)
+      .sort((a, b) => b.earnings - a.earnings)
+      .slice(0, 10)
+      .map(p => ({
+        ...p,
+        earnings:    +p.earnings.toFixed(2),
+        approved:    +p.approved.toFixed(2),
+        pending:     +p.pending.toFixed(2),
+        gross:       +p.gross.toFixed(2),
+      }))
+    setPublisherStats(top10)
+  }, [dashboardData, filters.publisher_id])
 
   async function handleSync() {
     setSyncing(true)
     try {
       const res = await adminApi.runSync()
       toast.success(res.data?.message || t('dashboard.toast_sync_success', 'GAM sync completed successfully!'))
-      loadData()
+      // Invalidate the cache to trigger a fresh load from the database
+      queryClient.invalidateQueries({ queryKey: ['adminDashboardData'] })
     } catch (e) {
       toast.error(e.response?.data?.message || t('dashboard.toast_sync_fail', 'GAM sync failed.'))
     } finally {
@@ -467,12 +510,13 @@ export default function AdminDashboard() {
 
   function resetFilters() {
     setPreset('30d')
-    setFilters({ ...getPresetRange('30d', settings.platform_timezone), publisher_id: '', website_id: '', ad_unit_id: '', status: '' })
+    setFilters({ ...getPresetRange('30d', settings.platform_timezone), gam_account_id: '', publisher_id: '', website_id: '', ad_unit_id: '', status: '' })
   }
 
-  const hasFilters = filters.publisher_id || filters.website_id || filters.ad_unit_id || filters.status || preset !== '30d'
+  const hasFilters = filters.gam_account_id || filters.publisher_id || filters.website_id || filters.ad_unit_id || filters.status || preset !== '30d'
 
   const activeFiltersCount = [
+    filters.gam_account_id,
     filters.publisher_id,
     filters.website_id,
     filters.ad_unit_id,
@@ -480,21 +524,41 @@ export default function AdminDashboard() {
     preset !== '30d' ? 'preset' : null
   ].filter(Boolean).length
 
-  // Filter website dropdown to selected publisher
+  // Filter website dropdown to selected publisher and selected GAM account
   const websiteOptions = websites
-    .filter(w => !filters.publisher_id || w.publisher_id === filters.publisher_id)
+    .filter(w => (!filters.publisher_id || w.publisher_id === filters.publisher_id) &&
+                 (!filters.gam_account_id || w.gam_account_id === filters.gam_account_id))
     .map(w => ({ value: w.id, label: w.domain, sub: w.gam_network_code || '' }))
 
-  const publisherOptions = publishers.map(p => ({ value: p.id, label: p.name, sub: p.email }))
+  // Filter publisher dropdown to publishers that have websites on the selected GAM account
+  const publisherOptions = publishers
+    .filter(p => {
+      if (!filters.gam_account_id) return true
+      return websites.some(w => w.publisher_id === p.id && w.gam_account_id === filters.gam_account_id)
+    })
+    .map(p => ({ value: p.id, label: p.name, sub: p.email }))
 
-  const adUnitOptions = adUnits.map(a => {
-    const web = websites.find(w => w.id === a.website_id)
-    return {
-      value: a.id,
-      label: a.display_name,
-      sub: `${web ? web.domain + ' · ' : ''}${a.gam_ad_unit_name}`
-    }
-  })
+  const gamAccountOptions = gamAccounts.map(g => ({
+    value: g.id,
+    label: g.name,
+    sub: g.network_code ? `${g.network_code} · ${g.email}` : g.email
+  }))
+
+  const adUnitOptions = adUnits
+    .filter(a => {
+      const web = websites.find(w => w.id === a.website_id)
+      if (!web) return false
+      if (filters.gam_account_id && web.gam_account_id !== filters.gam_account_id) return false
+      return true
+    })
+    .map(a => {
+      const web = websites.find(w => w.id === a.website_id)
+      return {
+        value: a.id,
+        label: a.display_name,
+        sub: `${web ? web.domain + ' · ' : ''}${a.gam_ad_unit_name}`
+      }
+    })
 
   return (
     <div>
@@ -509,7 +573,7 @@ export default function AdminDashboard() {
             {loading ? t('common.loading', 'Loading…') : (
               hasPermission('manage_revenue')
                 ? t('dashboard.revenue_records_count', '{count} revenue records · {from} → {to}', { count: stats?.recordCount?.toLocaleString() || 0, from: filters.date_from, to: filters.date_to })
-                : t('dashboard.admin_welcome', 'Welcome to the BestRevenue administrator dashboard')
+                : t('dashboard.admin_welcome', 'Welcome to the Mindora X administrator dashboard')
             )}
           </p>
         </div>
@@ -590,6 +654,17 @@ export default function AdminDashboard() {
 
           {/* Divider */}
           <div className="filter-divider" />
+
+          {/* GAM Account */}
+          {(hasPermission('manage_gam_accounts') || hasPermission('manage_revenue')) && (
+            <SearchDropdown
+              value={filters.gam_account_id}
+              onChange={val => setFilters(f => ({ ...f, gam_account_id: val, publisher_id: '', website_id: '', ad_unit_id: '' }))}
+              options={gamAccountOptions}
+              allLabel={t('dashboard.filters.all_gam_accounts', 'All GAM Accounts')}
+              placeholder={t('dashboard.filters.all_gam_accounts', 'All GAM Accounts')}
+            />
+          )}
 
           {/* Publisher */}
           {hasPermission('manage_publishers') && (
@@ -968,7 +1043,7 @@ export default function AdminDashboard() {
 
       {/* ── Revenue Chart ── */}
       {hasPermission('manage_revenue') && (
-        <div className="card">
+        <div className="card dashboard-chart-card">
           <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -999,7 +1074,7 @@ export default function AdminDashboard() {
                     fontSize: 12, fontWeight: 600, transition: 'all .15s',
                     border: `1.5px solid ${s.color}`,
                     background: visibleSeries[s.key] ? s.color + '22' : 'transparent',
-                    color: visibleSeries[s.key] ? s.color : '#4a5568',
+                    color: visibleSeries[s.key] ? s.color : 'var(--color-text-muted, #94a3b8)',
                     opacity: visibleSeries[s.key] ? 1 : 0.5,
                   }}
                 >
@@ -1016,50 +1091,59 @@ export default function AdminDashboard() {
           </div>
 
           {revenueChart.length > 0 ? (
-            <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.30} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.30} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#22d3ee" stopOpacity={0.30} />
-                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.30} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
-                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }}
-                  tickFormatter={d => d.slice(5)} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11 }}
-                  tickFormatter={v => `$${v}`} />
-                <Tooltip
-                  contentStyle={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 8 }}
-                  labelStyle={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}
-                  formatter={(v, n) => {
-                    const labels = {
-                      gross:    t('dashboard.chart.gross_revenue', 'Gross Revenue'),
-                      earnings: t('dashboard.chart.pub_earnings', 'Pub. Earnings'),
-                      approved: t('dashboard.chart.approved', 'Approved'),
-                      pending:  t('dashboard.chart.pending', 'Pending'),
-                    }
-                    return [`$${v}`, labels[n] || n]
-                  }}
-                />
-                {visibleSeries.gross    && <Area type="monotone" dataKey="gross"    stroke="#6366f1" fill="url(#grossGrad)"    strokeWidth={2} dot={false} />}
-                {visibleSeries.earnings && <Area type="monotone" dataKey="earnings" stroke="#10b981" fill="url(#earningsGrad)" strokeWidth={2} dot={false} />}
-                {visibleSeries.approved && <Area type="monotone" dataKey="approved" stroke="#22d3ee" fill="url(#approvedGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />}
-                {visibleSeries.pending  && <Area type="monotone" dataKey="pending"  stroke="#f59e0b" fill="url(#pendingGrad)"  strokeWidth={2} dot={false} strokeDasharray="3 3" />}
-              </AreaChart>
-            </ResponsiveContainer>
+            <div className="chart-container-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.30} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#10b981" stopOpacity={0.30} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#22d3ee" stopOpacity={0.30} />
+                      <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.30} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a4a" />
+                  <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }}
+                    tickFormatter={d => d.slice(5)} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 11 }} width={40}
+                    tickFormatter={v => `$${v}`} />
+                  <Tooltip
+                    contentStyle={{ 
+                      background: 'rgba(15, 23, 42, 0.9)', 
+                      border: '1px solid rgba(255, 255, 255, 0.08)', 
+                      borderRadius: 12,
+                      backdropFilter: 'blur(12px)',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)'
+                    }}
+                    labelStyle={{ color: '#f8fafc', fontWeight: 700, marginBottom: 6 }}
+                    itemStyle={{ color: '#e2e8f0', fontSize: 13 }}
+                    formatter={(v, n) => {
+                      const labels = {
+                        gross:    t('dashboard.chart.gross_revenue', 'Gross Revenue'),
+                        earnings: t('dashboard.chart.pub_earnings', 'Pub. Earnings'),
+                        approved: t('dashboard.chart.approved', 'Approved'),
+                        pending:  t('dashboard.chart.pending', 'Pending'),
+                      }
+                      return [`$${v}`, labels[n] || n]
+                    }}
+                  />
+                  {visibleSeries.gross    && <Area type="monotone" dataKey="gross"    stroke="#6366f1" fill="url(#grossGrad)"    strokeWidth={3} dot={false} />}
+                  {visibleSeries.earnings && <Area type="monotone" dataKey="earnings" stroke="#10b981" fill="url(#earningsGrad)" strokeWidth={3} dot={false} />}
+                  {visibleSeries.approved && <Area type="monotone" dataKey="approved" stroke="#22d3ee" fill="url(#approvedGrad)" strokeWidth={2.5} dot={false} strokeDasharray="5 3" />}
+                  {visibleSeries.pending  && <Area type="monotone" dataKey="pending"  stroke="#f59e0b" fill="url(#pendingGrad)"  strokeWidth={2.5} dot={false} strokeDasharray="3 3" />}
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="empty-state">
               <div className="empty-state-icon"><BarChart2 size={40} style={{ color: 'var(--br-text-2)' }} /></div>

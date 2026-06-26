@@ -394,9 +394,6 @@ export default function AdminAnnouncements() {
                 <th>{t('admin.announcements.table.col_priority', 'Priority')}</th>
                 <th>{t('admin.announcements.table.col_status', 'Status')}</th>
                 <th>{t('admin.announcements.table.col_schedule', 'Schedule')}</th>
-                <th>{t('admin.announcements.table.col_views', 'Views')}</th>
-                <th>{t('admin.announcements.table.col_clicks', 'Clicks')}</th>
-                <th>{t('admin.announcements.table.col_dismissals', 'Dismissals')}</th>
                 <th>{t('admin.announcements.table.col_actions', 'Actions')}</th>
               </tr>
             </thead>
@@ -446,9 +443,6 @@ export default function AdminAnnouncements() {
                       </div>
                     ) : <span>{t('admin.announcements.schedule.lifetime', 'Lifetime')}</span>}
                   </td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-primary)' }}>{item.views_count || 0}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-success)' }}>{item.clicks_count || 0}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-warning)' }}>{item.dismissals_count || 0}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-secondary btn-xs" onClick={() => openEdit(item)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit2 size={12} /> {t('admin.announcements.btn.edit', 'Edit')}</button>
@@ -631,15 +625,15 @@ export default function AdminAnnouncements() {
                   </div>
                 )}
                 {form.buttons.map((btn, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                  <div key={idx} className="announcement-button-row">
                     <input className="form-input" placeholder={t('admin.announcements.form.btn_text_placeholder', 'Text (EN)')} value={btn.text} onChange={e => updateButton(idx, 'text', e.target.value)} style={{ height: 38 }} />
                     <input className="form-input" placeholder={t('admin.announcements.form.btn_text_ar_placeholder', 'Text (AR)')} value={btn.text_ar || ''} onChange={e => updateButton(idx, 'text_ar', e.target.value)} style={{ height: 38 }} dir="rtl" />
-                    <input className="form-input" placeholder="URL (https://...)" value={btn.url} onChange={e => updateButton(idx, 'url', e.target.value)} style={{ height: 38 }} />
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, whiteSpace: 'nowrap', cursor: 'pointer' }}>
+                    <input className="form-input url-input" placeholder="URL (https://...)" value={btn.url} onChange={e => updateButton(idx, 'url', e.target.value)} style={{ height: 38 }} />
+                    <label className="new-tab-label" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, whiteSpace: 'nowrap', cursor: 'pointer' }}>
                       <input type="checkbox" checked={btn.new_tab} onChange={e => updateButton(idx, 'new_tab', e.target.checked)} />
                       {t('admin.announcements.form.new_tab', 'New tab')}
                     </label>
-                    <button type="button" onClick={() => removeButton(idx)} style={{ background: 'var(--color-danger)', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', padding: '6px 10px', fontSize: 13 }}>×</button>
+                    <button type="button" className="remove-btn" onClick={() => removeButton(idx)} style={{ background: 'var(--color-danger)', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', padding: '6px 10px', fontSize: 13 }}>×</button>
                   </div>
                 ))}
               </div>

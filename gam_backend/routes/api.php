@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminTrafficController;
 use App\Http\Controllers\Admin\GamAccountController;
+use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\AdminTicketController;
@@ -51,6 +53,14 @@ Route::prefix('v1')->group(function () {
     Route::get('public/faqs', [\App\Http\Controllers\PublicFaqController::class, 'index']);
 
     // ──────────────────────────────────────────────────────
+    // Traffic Tracking (public — publisher JS snippet POSTs here)
+    // ──────────────────────────────────────────────────────
+    // OPTIONS preflight — browsers send this before cross-origin POSTs (CORS)
+    Route::options('track', [TrackingController::class, 'preflight']);
+    // POST beacon — publisher JS snippet POSTs here; rate-limited and CORS-enabled
+    Route::post('track', [TrackingController::class, 'track'])->middleware('throttle:60,1');
+
+    // ──────────────────────────────────────────────────────
     // Google OAuth callback (public — Google redirects here)
     // ──────────────────────────────────────────────────────
     Route::get('gam-accounts/oauth/callback', [GamAccountController::class, 'oauthCallback']);
@@ -64,6 +74,11 @@ Route::prefix('v1')->group(function () {
         Route::get('sidebar-stats', [\App\Http\Controllers\Admin\SidebarStatsController::class, 'index']);
         Route::put('profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updateProfile']);
         Route::put('change-password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'changePassword']);
+
+        // --- Notifications ---
+        Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'readAll']);
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'read']);
 
         // --- Settings ---
         Route::get('settings', [SettingController::class, 'index']);
@@ -99,6 +114,7 @@ Route::prefix('v1')->group(function () {
             Route::post('publishers/{id}/activate', [\App\Http\Controllers\Admin\PublisherController::class, 'activate']);
             Route::post('publishers/{id}/adjust-balance', [\App\Http\Controllers\Admin\PublisherController::class, 'adjustBalance']);
             Route::post('publishers/{id}/impersonate', [\App\Http\Controllers\Admin\PublisherController::class, 'impersonate']);
+            Route::post('publishers/{id}/send-email', [\App\Http\Controllers\Admin\PublisherController::class, 'sendEmail']);
             Route::apiResource('publishers', \App\Http\Controllers\Admin\PublisherController::class)->except(['index', 'show']);
             Route::post('adjustments/apply-ivt', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyIvt']);
             Route::post('adjustments/apply-bonus', [\App\Http\Controllers\Admin\AdjustmentController::class, 'applyBonus']);
@@ -107,6 +123,9 @@ Route::prefix('v1')->group(function () {
 
         // --- Websites ---
         Route::middleware('can:manage_websites')->group(function () {
+            Route::post('websites/scan-tracking', [\App\Http\Controllers\Admin\WebsiteController::class, 'scanTracking']);
+            Route::post('websites/{id}/scan-tracking', [\App\Http\Controllers\Admin\WebsiteController::class, 'scanTrackingSingle']);
+            Route::post('websites/{id}/mark-tracking-verified', [\App\Http\Controllers\Admin\WebsiteController::class, 'markTrackingVerified']);
             Route::apiResource('websites', \App\Http\Controllers\Admin\WebsiteController::class);
         });
 
@@ -146,8 +165,8 @@ Route::prefix('v1')->group(function () {
         });
 
         // --- GAM Accounts ---
+        Route::get('gam-accounts',                   [GamAccountController::class, 'index']);
         Route::middleware('can:manage_gam_accounts')->group(function () {
-            Route::get('gam-accounts',                   [GamAccountController::class, 'index']);
             Route::post('gam-accounts/sync',             [GamAccountController::class, 'triggerSync']);
             Route::get('gam-accounts/sync-logs',         [GamAccountController::class, 'syncLogs']);
             Route::get('gam-accounts/sync-log',          [GamAccountController::class, 'syncLogs']);
@@ -178,12 +197,31 @@ Route::prefix('v1')->group(function () {
             Route::post('tickets/{id}/reply', [AdminTicketController::class, 'reply']);
         });
 
+        // --- Traffic Intelligence (admin-only, no publisher access) ---
+        Route::prefix('traffic')->group(function () {
+            Route::get('overview',                              [AdminTrafficController::class, 'overview']);
+            Route::get('realtime',                             [AdminTrafficController::class, 'realtime']);
+            Route::get('publishers/{publisher_id}',            [AdminTrafficController::class, 'publisherDetail']);
+            Route::get('anomalies',                            [AdminTrafficController::class, 'anomalies']);
+            Route::patch('anomalies/{id}/resolve',             [AdminTrafficController::class, 'resolveAnomaly']);
+            Route::get('quality-scores',                       [AdminTrafficController::class, 'qualityScores']);
+        });
+
         // --- Admin Management (Super Admin only) ---
         Route::middleware('can:manage_admins')->group(function () {
             Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index']);
             Route::get('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index']);
             Route::apiResource('admins', \App\Http\Controllers\Admin\AdminManagementController::class);
             Route::apiResource('roles', \App\Http\Controllers\Admin\RolesController::class);
+
+            // --- Danger Zone ---
+            Route::post('danger/wipe-revenue', [\App\Http\Controllers\Admin\DangerController::class, 'wipeRevenue']);
+            Route::post('danger/wipe-audit-logs', [\App\Http\Controllers\Admin\DangerController::class, 'wipeAuditLogs']);
+            Route::post('danger/prune-traffic', [\App\Http\Controllers\Admin\DangerController::class, 'pruneTraffic']);
+            Route::post('danger/flush-cache', [\App\Http\Controllers\Admin\DangerController::class, 'flushCache']);
+            Route::post('danger/force-logout', [\App\Http\Controllers\Admin\DangerController::class, 'forceLogoutSessions']);
+            Route::post('danger/refresh-tokens', [\App\Http\Controllers\Admin\DangerController::class, 'refreshTokens']);
+            Route::post('danger/reset-config', [\App\Http\Controllers\Admin\DangerController::class, 'resetConfig']);
         });
 
     });
@@ -203,6 +241,7 @@ Route::prefix('v1')->group(function () {
         // Revenue — Sprint 6
         Route::get('revenue', [\App\Http\Controllers\Publisher\PublisherRevenueController::class, 'index']);
         Route::get('revenue/pdf', [\App\Http\Controllers\Publisher\PublisherRevenueController::class, 'exportPdf']);
+        Route::get('adjustments', [\App\Http\Controllers\Publisher\PublisherAdjustmentController::class, 'index']);
 
         // Payouts — Sprint 6
         Route::get('payouts', [\App\Http\Controllers\Publisher\PublisherPayoutController::class, 'index']);

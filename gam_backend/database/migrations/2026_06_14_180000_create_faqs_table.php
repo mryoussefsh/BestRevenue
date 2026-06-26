@@ -37,8 +37,8 @@ return new class extends Migration
             ],
             [
                 'id' => (string) \Illuminate\Support\Str::uuid(),
-                'question' => 'What is the revenue-sharing ratio on BestRevenue?',
-                'question_ar' => 'ما هي نسبة مشاركة الأرباح في BestRevenue؟',
+                'question' => 'What is the revenue-sharing ratio on Mindora X?',
+                'question_ar' => 'ما هي نسبة مشاركة الأرباح في Mindora X؟',
                 'answer' => 'Our standard revenue share is 80% to the publisher. For high-volume publishers, custom revenue-sharing ratios can be configured directly by administrators in the platform settings.',
                 'answer_ar' => 'حصة الأرباح القياسية لدينا هي 80٪ للناشر. بالنسبة للناشرين ذوي الأحجام الكبيرة، يمكن لمسؤولي النظام تهيئة نسب مشاركة أرباح مخصصة مباشرة في إعدادات المنصة.',
                 'sort_order' => 2,

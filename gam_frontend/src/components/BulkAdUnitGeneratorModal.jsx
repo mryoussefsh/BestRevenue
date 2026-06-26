@@ -145,8 +145,8 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
                       borderRadius: 'var(--radius-sm)',
                       cursor: 'pointer',
                       fontSize: '13px',
-                      background: isSelected ? 'var(--color-primary)' : 'transparent',
-                      color: isSelected ? 'white' : 'var(--color-text)',
+                      background: isSelected ? 'rgba(0, 242, 254, 0.15)' : 'transparent',
+                      color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
                       transition: 'background 0.15s, color 0.15s',
                       display: 'flex',
                       flexDirection: 'column',
@@ -165,7 +165,7 @@ export function SearchableSelect({ value, onChange, options, placeholder, emptyM
                   >
                     <span style={{ fontWeight: 500 }}>{opt.label}</span>
                     {opt.subLabel && (
-                      <span style={{ fontSize: '11px', color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}>
+                      <span style={{ fontSize: '11px', color: isSelected ? 'rgba(0, 242, 254, 0.7)' : 'var(--color-text-muted)' }}>
                         {opt.subLabel}
                       </span>
                     )}
@@ -463,8 +463,8 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                       padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
                       fontWeight: selected ? 600 : 400,
                       border: `1px solid ${selected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                      background: selected ? 'var(--color-primary)' : 'transparent',
-                      color: selected ? 'white' : 'var(--color-text-muted)',
+                      background: selected ? 'rgba(0, 242, 254, 0.15)' : 'transparent',
+                      color: selected ? 'var(--color-primary)' : 'var(--color-text-muted)',
                       transition: 'all 0.15s',
                     }}>
                     {s}
@@ -476,7 +476,8 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                   style={{
                     padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
                     fontWeight: 600, border: '1px solid var(--color-accent)',
-                    background: 'var(--color-accent)', color: 'white',
+                    background: 'rgba(16, 185, 129, 0.15)', color: 'var(--color-accent)',
+                    transition: 'all 0.15s',
                   }}>
                   {s} ✕
                 </button>
@@ -515,13 +516,15 @@ export function BulkAdUnitGeneratorModal({ websites, onClose, onSaved }) {
                 <Eye size={14} style={{ color: 'var(--br-primary)' }} />
                 <span>{t('websites.preview_names_assigned', 'Preview — names will be assigned round number automatically')}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 180, overflowY: 'auto', paddingRight: 4 }}>
                 {previewNames.map((name, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
-                    <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>✓</span>
-                    <code style={{ color: 'var(--color-primary-light)', fontFamily: 'monospace' }}>{name}</code>
+                  <div key={i} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '2px 8px', fontSize: 13 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>✓</span>
+                      <code style={{ color: 'var(--color-primary-light)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{name}</code>
+                    </div>
                     {form.sizes.length > 0 && (
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
+                      <span style={{ color: 'var(--color-text-muted)', fontSize: 11, wordBreak: 'break-word' }}>
                         ({form.sizes.join(', ')})
                       </span>
                     )}

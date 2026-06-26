@@ -20,26 +20,62 @@ class PayoutController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Payout::with(['publisher', 'periodClosing']);
+        $cacheVersion = Payout::getCacheVersion();
+        $cacheKey = "admin_payouts_v_{$cacheVersion}_" . md5(json_encode($request->all()));
 
-        if ($request->has('status')) {
-            $query->where('status', $request->query('status'));
-        }
+        $payouts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($request) {
+            $query = Payout::with(['publisher', 'periodClosing']);
 
-        if ($request->has('publisher_id')) {
-            $query->where('publisher_id', $request->query('publisher_id'));
-        }
+            if ($request->has('status')) {
+                $query->where('status', $request->query('status'));
+            }
 
-        if ($request->has('date_from')) {
-            $query->where('created_at', '>=', $request->query('date_from') . ' 00:00:00');
-        }
+            if ($request->has('publisher_id')) {
+                $query->where('publisher_id', $request->query('publisher_id'));
+            }
 
-        if ($request->has('date_to')) {
-            $query->where('created_at', '<=', $request->query('date_to') . ' 23:59:59');
-        }
+            if ($request->has('date_from')) {
+                $query->where('created_at', '>=', $request->query('date_from') . ' 00:00:00');
+            }
 
-        $payouts = $query->orderBy('created_at', 'desc')
-                         ->paginate(100);
+            if ($request->has('date_to')) {
+                $query->where('created_at', '<=', $request->query('date_to') . ' 23:59:59');
+            }
+
+            if ($request->filled('payment_method')) {
+                $query->where('payment_method', $request->query('payment_method'));
+            }
+
+            if ($request->filled('payment_account')) {
+                $search = $request->query('payment_account');
+                
+                // Get all publisher IDs whose decrypted payment_info account matches the search string
+                $matchingPublisherIds = [];
+                $publishers = \App\Models\Publisher::whereNotNull('payment_info')->get();
+                foreach ($publishers as $publisher) {
+                    $info = $publisher->payment_info;
+                    $account = null;
+                    if ($info) {
+                        if (is_array($info)) {
+                            $account = $info['account'] ?? null;
+                        } else if (is_string($info)) {
+                            $account = $info;
+                        }
+                    }
+                    if ($account && stripos((string) $account, $search) !== false) {
+                        $matchingPublisherIds[] = $publisher->id;
+                    }
+                }
+
+                $query->where(function ($q) use ($search, $matchingPublisherIds) {
+                    $q->where('payment_account', 'like', '%' . $search . '%')
+                      ->orWhereIn('publisher_id', $matchingPublisherIds);
+                });
+            }
+
+            return $query->orderBy('created_at', 'desc')
+                             ->paginate(100);
+        });
 
         return response()->json($payouts);
     }
@@ -76,6 +112,8 @@ class PayoutController extends Controller
             AuditLogService::log('approved', 'Payout', $payout->id, ['status' => $oldStatus], ['status' => 'approved']);
 
             DB::commit();
+
+            Payout::clearCache();
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to approve payout.', 'error' => $e->getMessage()], 500);
@@ -196,6 +234,8 @@ class PayoutController extends Controller
             AuditLogService::log('rejected', 'Payout', $payout->id, ['status' => $payout->getOriginal('status')], ['status' => 'rejected', 'admin_note' => $request->admin_note]);
 
             \Illuminate\Support\Facades\DB::commit();
+
+            Payout::clearCache();
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             return response()->json(['message' => 'Failed to reject payout and rollback balances.', 'error' => $e->getMessage()], 500);
@@ -245,6 +285,8 @@ class PayoutController extends Controller
             AuditLogService::log('paid', 'Payout', $payout->id, ['status' => $oldStatus], ['status' => 'paid', 'payment_reference' => $request->payment_reference]);
 
             DB::commit();
+
+            Payout::clearCache();
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to mark payout as paid.', 'error' => $e->getMessage()], 500);

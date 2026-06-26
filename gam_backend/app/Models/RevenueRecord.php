@@ -109,4 +109,22 @@ class RevenueRecord extends Model
         }
         return $this->is_approved ? 'approved' : 'pending';
     }
+
+    /**
+     * Clear all cached revenue records and statistics query results.
+     */
+    public static function clearCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forever('revenue_cache_version', time());
+    }
+
+    /**
+     * Get the current cache version string.
+     */
+    public static function getCacheVersion(): string
+    {
+        return (string) \Illuminate\Support\Facades\Cache::rememberForever('revenue_cache_version', function () {
+            return time();
+        });
+    }
 }

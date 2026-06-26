@@ -1,53 +1,75 @@
 {
   "colors": {
     "primary": {
-      "hex": "#4f46e5",
-      "hsl": "hsl(244, 75%, 59%)",
-      "description": "Indigo color used for active states, link interactions, tabs, and primary action buttons."
+      "hex": "#00f2fe",
+      "hsl": "hsl(185, 100%, 50%)",
+      "description": "Neon Cyan — primary brand accent for active states, primary actions, and key highlights."
     },
     "primary_light": {
-      "hex": "#6366f1",
-      "hsl": "hsl(239, 84%, 67%)",
-      "description": "Light Indigo used for subheadings and hover state borders."
+      "hex": "#5eead4",
+      "hsl": "hsl(171, 77%, 66%)",
+      "description": "Mint Teal — hover state and muted accent variant of the primary brand color."
     },
     "secondary": {
-      "hex": "#3b82f6",
-      "hsl": "hsl(217, 91%, 60%)",
-      "description": "Vibrant Blue used for secondary buttons and info alerts."
+      "hex": "#8b5cf6",
+      "hsl": "hsl(262, 83%, 63%)",
+      "description": "Electric Violet — platform's unique secondary brand accent. Used in gradients, secondary highlights, and brand differentiators."
+    },
+    "secondary_light": {
+      "hex": "#a78bfa",
+      "hsl": "hsl(262, 90%, 75%)",
+      "description": "Soft Violet — hover state of the Electric Violet brand secondary."
+    },
+    "brand_gradient": {
+      "value": "linear-gradient(135deg, #00f2fe 0%, #8b5cf6 100%)",
+      "description": "Core brand gradient from Neon Cyan to Electric Violet. Used in logos, primary buttons, section highlights, and stat values."
     },
     "accent": {
       "hex": "#10b981",
       "hsl": "hsl(162, 76%, 41%)",
-      "description": "Emerald Green used for success, paid states, approved balances, and growth graphs."
+      "description": "Emerald Green — success, paid states, approved balances, and growth graphs."
     },
     "warning": {
       "hex": "#f59e0b",
       "hsl": "hsl(38, 92%, 50%)",
-      "description": "Amber color used for pending payouts, holding balances, and warning badges."
+      "description": "Amber — pending payouts, holding balances, and warning badges."
     },
     "danger": {
-      "hex": "#ef4444",
-      "hsl": "hsl(0, 84%, 60%)",
-      "description": "Crimson used for delete actions, rejections, suspensions, and error states."
+      "hex": "#f43f5e",
+      "hsl": "hsl(343, 88%, 60%)",
+      "description": "Rose — delete actions, rejections, suspensions, and error states."
     },
     "background": {
-      "hex": "#0b0f19",
-      "hsl": "hsl(225, 39%, 7%)",
-      "description": "Base dark background color of the platform viewport body."
+      "hex": "#030712",
+      "hsl": "hsl(222, 66%, 4%)",
+      "description": "Deep Space — base canvas background of the platform."
     },
     "surface": {
-      "hex": "#111827",
-      "hsl": "hsl(224, 71%, 4%)",
-      "description": "Surface Card color, used for dashboard panels and settings sections."
+      "hex": "#080f1d",
+      "hsl": "hsl(221, 57%, 8%)",
+      "description": "Cosmic Slate — elevated card/container surface background."
     },
     "surface_nested": {
-      "hex": "#1f2937",
-      "hsl": "hsl(220, 13%, 18%)",
-      "description": "Surface level 2, used for inner modal overlays, nested lists, and table headers."
+      "hex": "#0e1726",
+      "hsl": "hsl(218, 52%, 10%)",
+      "description": "Deep Navy — nested modals, table headers, and inner panels."
+    },
+    "sidebar": {
+      "hex": "#02050c",
+      "hsl": "hsl(222, 71%, 4%)",
+      "description": "Void Black — sidebar navigation background for maximum contrast hierarchy."
+    },
+    "header": {
+      "rgba": "rgba(3, 7, 18, 0.85)",
+      "description": "Translucent Deep Space header with backdrop blur."
     },
     "border": {
-      "rgba": "rgba(255, 255, 255, 0.08)",
-      "description": "Standard border line styling for cards, grids, and divider rules."
+      "rgba": "rgba(0, 242, 254, 0.07)",
+      "description": "Cyan-tinted subtle border for cards, grids, and layout dividers."
+    },
+    "border_strong": {
+      "rgba": "rgba(139, 92, 246, 0.22)",
+      "description": "Violet-tinted active border for hover states and highlighted components."
     }
   },
   "typography": {
@@ -68,7 +90,8 @@
       "regular": "400",
       "medium": "500",
       "semibold": "600",
-      "bold": "700"
+      "bold": "700",
+      "extrabold": "800"
     },
     "line_heights": {
       "compact": "1.2",
@@ -91,20 +114,34 @@
   "borders": {
     "radius": {
       "sm": "8px",
-      "md": "12px",
+      "md": "10px",
+      "lg": "14px",
+      "xl": "20px",
       "circle": "50%"
     }
   },
   "effects": {
     "blur": {
-      "card": "12px"
+      "card": "20px",
+      "header": "16px"
     },
     "shadows": {
-      "glass": "0 8px 32px 0 rgba(0, 0, 0, 0.37)"
+      "sm": "0 1px 3px rgba(0, 0, 0, 0.4)",
+      "md": "0 4px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 242, 254, 0.05), 0 0 16px rgba(139, 92, 246, 0.05)",
+      "lg": "0 12px 40px rgba(0, 0, 0, 0.6), 0 0 32px rgba(0, 242, 254, 0.08), 0 0 32px rgba(139, 92, 246, 0.08)",
+      "neon_cyan": "0 0 20px rgba(0, 242, 254, 0.35), 0 0 40px rgba(0, 242, 254, 0.15)",
+      "neon_violet": "0 0 20px rgba(139, 92, 246, 0.35), 0 0 40px rgba(139, 92, 246, 0.15)"
     }
+  },
+  "animations": {
+    "glowDrift": "18s ease-in-out infinite — organic drifting of background glow orbs",
+    "livePulse": "2s ease-in-out infinite — neon pulse for live activity indicators",
+    "dashFloat": "6s ease-in-out infinite — 3D floating perspective for dashboard hero cards",
+    "wordIn": "0.6s ease-out — word-by-word entrance for hero headings"
   },
   "transitions": {
     "micro": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
-    "container": "250ms cubic-bezier(0.4, 0, 0.2, 1)"
+    "container": "250ms cubic-bezier(0.4, 0, 0.2, 1)",
+    "slow": "400ms cubic-bezier(0.4, 0, 0.2, 1)"
   }
 }

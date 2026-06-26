@@ -122,7 +122,7 @@ class FaqTest extends TestCase
 
         // Update FAQ
         $updateResponse = $this->putJson("/api/v1/admin/faqs/{$faqId}", [
-            'question' => 'How to join BestRevenue?',
+            'question' => 'How to join Mindora X?',
             'question_ar' => 'كيفية الانضمام إلى بست ريفينيو؟',
             'answer' => 'Register online today.',
             'answer_ar' => 'سجل عبر الإنترنت اليوم.',
@@ -133,7 +133,7 @@ class FaqTest extends TestCase
         $updateResponse->assertStatus(200);
         $this->assertDatabaseHas('faqs', [
             'id' => $faqId,
-            'question' => 'How to join BestRevenue?',
+            'question' => 'How to join Mindora X?',
             'is_active' => false,
         ]);
 

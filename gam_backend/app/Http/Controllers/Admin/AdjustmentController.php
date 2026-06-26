@@ -83,6 +83,8 @@ class AdjustmentController extends Controller
                 $adjustment->toArray()
             );
 
+            RevenueRecord::clearCache();
+
             return response()->json([
                 'message'    => 'Adjustment created successfully.',
                 'adjustment' => new AdjustmentResource($adjustment->load(['publisher', 'creator'])),
@@ -132,6 +134,8 @@ class AdjustmentController extends Controller
             null
         );
 
+        RevenueRecord::clearCache();
+
         return response()->json([
             'message' => 'Adjustment deleted successfully.'
         ]);
@@ -149,6 +153,7 @@ class AdjustmentController extends Controller
             'date_from'      => 'required|date',
             'date_to'        => 'required|date|after_or_equal:date_from',
             'ivt_percent'    => 'required|numeric|between:0,100',
+            'force'          => 'nullable|boolean',
         ]);
 
         $gamAccountId = $request->input('gam_account_id');
@@ -156,6 +161,7 @@ class AdjustmentController extends Controller
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $ivtPercent = (float) $request->input('ivt_percent');
+        $force = (bool) $request->input('force', false);
 
         $websites = Website::with('publisher')->where('gam_account_id', $gamAccountId)->whereIn('id', $websiteIds)->get();
 
@@ -163,6 +169,35 @@ class AdjustmentController extends Controller
             return response()->json([
                 'message' => 'Some selected websites do not belong to the selected GAM Account.'
             ], 422);
+        }
+
+        // Conflict pre-check if force is false
+        if (!$force) {
+            $existingDomains = [];
+            foreach ($websites as $website) {
+                $notePattern = "Invalid Traffic Deduction%for {$website->domain} ({$dateFrom}%";
+                $alreadyApplied = Adjustment::where('publisher_id', $website->publisher_id)
+                    ->where('notes', 'like', $notePattern)
+                    ->where('status', '!=', 'applied')
+                    ->exists();
+                if ($alreadyApplied) {
+                    $existingDomains[] = $website->domain;
+                }
+            }
+            if (!empty($existingDomains)) {
+                $totalConflictCount = count($existingDomains);
+                if ($totalConflictCount > 5) {
+                    $slice = array_slice($existingDomains, 0, 5);
+                    $domainsStr = implode(', ', $slice) . ' and ' . ($totalConflictCount - 5) . ' others';
+                } else {
+                    $domainsStr = implode(', ', $existingDomains);
+                }
+
+                return response()->json([
+                    'conflict' => true,
+                    'message' => 'An IVT deduction already exists for this date range for the following website(s): ' . $domainsStr . '. Do you want to proceed and add a duplicate deduction anyway?'
+                ], 409);
+            }
         }
 
         $appliedAdjustments = [];
@@ -174,20 +209,20 @@ class AdjustmentController extends Controller
             foreach ($websites as $website) {
                 $adUnitIds = $website->adUnits()->pluck('id');
 
-                // FIX [ADJ-2 / FIX-13]: Idempotency check — prevent double-applying IVT
-                // to the same website and date range. Check by notes pattern match.
-                $notePattern = "Invalid Traffic Deduction%for {$website->domain} ({$dateFrom}%";
-                $alreadyApplied = Adjustment::where('publisher_id', $website->publisher_id)
-                    ->where('notes', 'like', $notePattern)
-                    ->where('status', '!=', 'applied')
-                    ->exists();
+                if (!$force) {
+                    $notePattern = "Invalid Traffic Deduction%for {$website->domain} ({$dateFrom}%";
+                    $alreadyApplied = Adjustment::where('publisher_id', $website->publisher_id)
+                        ->where('notes', 'like', $notePattern)
+                        ->where('status', '!=', 'applied')
+                        ->exists();
 
-                if ($alreadyApplied) {
-                    $skippedAdjustments[] = [
-                        'website' => $website->domain,
-                        'reason'  => 'IVT deduction already exists for this date range. Delete the existing pending deduction first to reapply.',
-                    ];
-                    continue;
+                    if ($alreadyApplied) {
+                        $skippedAdjustments[] = [
+                            'website' => $website->domain,
+                            'reason'  => 'IVT deduction already exists for this date range. Delete the existing pending deduction first to reapply.',
+                        ];
+                        continue;
+                    }
                 }
 
                 // FIX [ADJ-1 / FIX-12]: Only sum revenue from OPEN records (period_closing_id IS NULL).
@@ -249,6 +284,8 @@ class AdjustmentController extends Controller
             }
 
             DB::commit();
+
+            RevenueRecord::clearCache();
 
             $response = [
                 'message'             => 'IVT deductions applied successfully.',
@@ -364,6 +401,8 @@ class AdjustmentController extends Controller
             }
 
             DB::commit();
+
+            RevenueRecord::clearCache();
 
             $response = [
                 'message'             => 'Bonuses applied successfully.',

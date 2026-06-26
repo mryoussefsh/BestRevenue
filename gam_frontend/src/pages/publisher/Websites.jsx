@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Pagination from '../../components/Pagination'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useI18n } from '../../contexts/I18nContext'
-import { Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, Sparkles, X, Copy } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { Globe, FileText, ChevronUp, ChevronDown, Code, ExternalLink, Sparkles, X, Copy, Activity, Info } from 'lucide-react'
 
 function groupAdUnits(units, t) {
   const grouped = [];
@@ -64,8 +66,10 @@ function groupAdUnits(units, t) {
 
 export default function PublisherWebsites() {
   const { t } = useI18n()
+  const { user } = useAuth()
   const { settings } = useSettings()
-  const siteName = settings?.site_name || 'BestRevenue'
+  const queryClient = useQueryClient()
+  const siteName = settings?.site_name || 'Mindora X'
   const platformUrl = window.location.origin
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState({})
@@ -74,6 +78,16 @@ export default function PublisherWebsites() {
   const [page, setPage] = useState(1)
   const [selectedAdsTxt, setSelectedAdsTxt] = useState(null)
   const [selectedAdUnitCode, setSelectedAdUnitCode] = useState(null)
+  const [selectedTrackingWebsite, setSelectedTrackingWebsite] = useState(null)
+
+  // Build the tracker snippet for a given website
+  const getTrackerSnippet = (website) => {
+    const backendUrl = import.meta.env.VITE_APP_API_URL
+      ? import.meta.env.VITE_APP_API_URL.replace('/api/v1', '')
+      : window.location.origin.replace(':5173', ':8000').replace('/BestRevenue/gam_frontend', '/BestRevenue/gam_backend/public')
+    return `<script async src="${backendUrl}/publisher-tracker.js" data-website-id="${website?.id || ''}"></script>`
+  }
+
 
   const getAdUnitScripts = (unit, allUnits = []) => {
     if (!unit) return { head: '', body: '' }
@@ -526,12 +540,27 @@ ${queueItems}
     }
   }
 
+  const { data: websitesRes, isLoading: websitesLoading, error: websitesError } = useQuery({
+    queryKey: ['publisherWebsites'],
+    queryFn: () => publisherApi.getWebsites(),
+    staleTime: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
-    publisherApi.getWebsites()
-      .then(r => setWebsites(r.data?.data || []))
-      .catch(() => toast.error(t('websites.toast_failed', 'Failed to load websites')))
-      .finally(() => setLoading(false))
-  }, [])
+    if (websitesRes?.data?.data) {
+      setWebsites(websitesRes.data.data)
+    }
+  }, [websitesRes])
+
+  useEffect(() => {
+    setLoading(websitesLoading)
+  }, [websitesLoading])
+
+  useEffect(() => {
+    if (websitesError) {
+      toast.error(t('websites.toast_failed', 'Failed to load websites'))
+    }
+  }, [websitesError, t])
 
   const paginatedWebsites = websites.slice((page - 1) * 15, page * 15)
 
@@ -540,9 +569,15 @@ ${queueItems}
     setExpanded(webId)
     if (!adUnits[webId]) {
       try {
-        const res = await publisherApi.getAdUnits(webId)
+        const res = await queryClient.fetchQuery({
+          queryKey: ['publisherAdUnits', webId],
+          queryFn: () => publisherApi.getAdUnits(webId),
+          staleTime: 5 * 60 * 1000,
+        })
         setAdUnits(a => ({ ...a, [webId]: res.data?.data || [] }))
-      } catch { toast.error(t('websites.toast_adunits_failed', 'Failed to load ad units')) }
+      } catch {
+        toast.error(t('websites.toast_adunits_failed', 'Failed to load ad units'))
+      }
     }
   }
 
@@ -581,9 +616,7 @@ ${queueItems}
                       <Globe size={18} style={{ color: 'var(--br-primary)', flexShrink: 0 }} />
                       {w.domain}
                     </div>
-                    <div className="text-muted text-sm" style={{ marginTop: 4 }}>
-                      GAM: <code>{w.gam_network_code}</code>
-                    </div>
+
                   </div>
                   <div className="website-card-actions">
                     <span className={`badge ${w.is_active ? 'badge-active' : 'badge-inactive'}`} style={{ flexShrink: 0 }}>
@@ -599,6 +632,14 @@ ${queueItems}
                         {t('websites.show_ads_txt', 'Show ads.txt')}
                       </button>
                     )}
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setSelectedTrackingWebsite(w)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Activity size={14} />
+                      {t('websites.tracking_code', 'Tracking Code')}
+                    </button>
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => toggleAdUnits(w.id)}
@@ -629,6 +670,7 @@ ${queueItems}
                             <thead>
                               <tr>
                                 <th>{t('websites.table.name', 'Ad Unit Name')}</th>
+                                <th>{t('websites.table.ad_type', 'Ad Type')}</th>
                                 <th>{t('websites.table.status', 'Status')}</th>
                                 <th>{t('websites.table.actions', 'Actions')}</th>
                               </tr>
@@ -637,6 +679,11 @@ ${queueItems}
                               {groupedUnits.map(a => (
                                 <tr key={a.id}>
                                   <td className="td-primary" style={{ fontWeight: 600 }}>{a.display_name}</td>
+                                  <td>
+                                    <span className="badge badge-inactive">
+                                      {t(`websites.ad_type.${a.ad_type || 'banner'}`, a.ad_type ? a.ad_type.replace('_', ' ') : 'Banner')}
+                                    </span>
+                                  </td>
                                   <td>
                                     <span className={`badge ${a.is_active ? 'badge-active' : 'badge-inactive'}`}>
                                       {a.is_active ? t('common.status.active', 'Active') : t('common.status.inactive', 'Inactive')}
@@ -757,7 +804,136 @@ ${queueItems}
         </div>
       )}
 
+      {/* ── Tracking Code Modal ─────────────────────────────────────────── */}
+      {selectedTrackingWebsite && (() => {
+        const snippet = getTrackerSnippet(selectedTrackingWebsite)
+        return (
+          <div className="modal-backdrop">
+            <div className="modal" style={{ maxWidth: '640px' }}>
+              <div className="modal-header">
+                <h2>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Activity size={20} style={{ color: 'var(--br-primary)' }} />
+                    {t('websites.modal.tracking_title', 'Tracking Code — {domain}', { domain: selectedTrackingWebsite.domain })}
+                  </span>
+                </h2>
+                <button
+                  onClick={() => setSelectedTrackingWebsite(null)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--br-text-3)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', padding: 4, borderRadius: 6,
+                    transition: 'var(--br-transition)'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--br-text)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--br-text-3)'}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                {/* Instruction banner */}
+                <div style={{
+                  padding: '12px 14px',
+                  background: 'rgba(59,130,246,0.08)',
+                  border: '1px solid rgba(59,130,246,0.2)',
+                  borderRadius: 8, fontSize: 13,
+                  color: 'var(--color-text-muted)', lineHeight: 1.6,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                }}>
+                  <Info size={16} style={{ color: 'var(--br-primary)', marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    {t('websites.modal.tracking_desc',
+                      'Paste this snippet into the <head> of every page on {domain}. It fires once per pageview — no cookies, no localStorage.',
+                      { domain: selectedTrackingWebsite.domain }
+                    )}
+                  </div>
+                </div>
+
+                {/* Code block with top copy button */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label className="form-label" style={{ fontWeight: 600, margin: 0 }}>
+                      {t('websites.modal.tracking_code_label', 'Tracking Code')}
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-xs"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(snippet)
+                        toast.success(t('websites.modal.tracking_copied', 'Tracking snippet copied!'))
+                      }}
+                    >
+                      <Copy size={12} />
+                      {t('websites.modal.copy_code', 'Copy Code')}
+                    </button>
+                  </div>
+                  <textarea
+                    className="form-input"
+                    style={{
+                      height: '80px',
+                      fontFamily: 'monospace',
+                      fontSize: '11px',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-all',
+                      background: '#161e2e',
+                      color: '#e2e8f0',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '6px',
+                      padding: '12px',
+                      width: '100%',
+                      resize: 'none',
+                      direction: 'ltr',
+                      textAlign: 'left'
+                    }}
+                    readOnly
+                    value={snippet}
+                    onClick={e => e.target.select()}
+                  />
+                </div>
+
+                {/* Install steps */}
+                <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>
+                    {t('websites.modal.tracking_steps', 'How to install:')}
+                  </div>
+                  <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <li>{t('websites.modal.tracking_step1', 'Copy the snippet above.')}</li>
+                    <li>{t('websites.modal.tracking_step2', 'Open your website\'s HTML template or CMS theme editor.')}</li>
+                    <li>{t('websites.modal.tracking_step3', 'Paste it just before the closing </head> tag on every page.')}</li>
+                    <li>{t('websites.modal.tracking_step4', 'Save and publish. Traffic tracking starts immediately.')}</li>
+                  </ol>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(snippet)
+                      toast.success(t('websites.modal.tracking_copied', 'Tracking snippet copied!'))
+                    }}
+                  >
+                    <Copy size={14} />
+                    {t('common.copy_content', 'Copy Snippet')}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setSelectedTrackingWebsite(null)}>
+                    {t('common.close', 'Close')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {selectedAdUnitCode && (() => {
+
         const websiteAdUnits = adUnits[selectedAdUnitCode.websiteId] || [];
         const scripts = getAdUnitScripts(selectedAdUnitCode, websiteAdUnits);
         return (

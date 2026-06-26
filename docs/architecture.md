@@ -1,6 +1,6 @@
-# System Architecture — BestRevenue Platform
+# System Architecture — Mindora X Platform
 
-This document describes the high-level architecture, design patterns, and data flow of the Publisher Revenue Sharing Platform (BestRevenue).
+This document describes the high-level architecture, design patterns, and data flow of the Publisher Revenue Sharing Platform (Mindora X).
 
 ---
 

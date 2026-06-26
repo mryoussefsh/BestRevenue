@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GamAccount;
+use App\Models\GamAccountSnapshot;
 use App\Services\AuditLogService;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
@@ -20,8 +21,12 @@ class GamAccountController extends Controller
     /**
      * GET /api/v1/admin/gam-accounts
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        if (!$request->user()->can('manage_gam_accounts') && !$request->user()->can('manage_revenue')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
         $accounts = GamAccount::withCount('websites')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -75,6 +80,7 @@ class GamAccountController extends Controller
             'network_code' => 'sometimes|nullable|string|max:50',
             'notes'        => 'sometimes|nullable|string',
             'ads_txt'      => 'sometimes|nullable|string',
+            'sync_enabled' => 'sometimes|boolean',
         ]);
 
         $account->update($data);
@@ -95,8 +101,28 @@ class GamAccountController extends Controller
         $account = GamAccount::findOrFail($id);
         $oldData = $account->toApiArray();
 
-        // Unlink websites (FK is nullOnDelete, but we do it explicitly for clarity)
-        $account->websites()->update(['gam_account_id' => null]);
+        // Snapshot the account's metadata keyed by email so it can be restored
+        // automatically when the same Google account is reconnected via OAuth.
+        GamAccountSnapshot::updateOrCreate(
+            ['email' => $account->email],
+            [
+                'name'         => $account->name,
+                'network_code' => $account->network_code,
+                'ads_txt'      => $account->ads_txt,
+                'notes'        => $account->notes,
+            ]
+        );
+
+        // Stamp the email onto every website before unlinking, so that when the
+        // same Google account is reconnected later we can auto-relink them.
+        $account->websites()->update([
+            'last_gam_account_email' => $account->email,
+            'gam_account_id'         => null,
+        ]);
+
+        // Bust the website list cache so the link icon disappears immediately
+        \App\Models\Website::clearCache();
+
         $account->delete();
 
         AuditLogService::log('deleted', 'GamAccount', $id, $oldData, null);
@@ -270,10 +296,22 @@ class GamAccountController extends Controller
      * FIX [SEC-2]: Build the OAuth redirect URI from config/env, not hardcoded.
      * This reads from GOOGLE_REDIRECT_URI in .env (falls back to the default).
      */
-    private function oauthRedirectUri(): string
+    public static function oauthRedirectUri(): string
     {
-        return config('services.google.redirect', 'http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback');
+        $redirect = config('services.google.redirect');
+        if (!empty($redirect) && $redirect !== 'http://127.0.0.1:8000/api/v1/gam-accounts/oauth/callback') {
+            return $redirect;
+        }
+
+        $appUrl = rtrim(config('app.url'), '/');
+        if (!empty($appUrl) && $appUrl !== 'http://localhost') {
+            return $appUrl . '/api/v1/gam-accounts/oauth/callback';
+        }
+
+        return url('api/v1/gam-accounts/oauth/callback');
     }
+
+
 
     /**
      * FIX [SEC-2]: Apply Google credentials from DB settings at runtime.
@@ -284,7 +322,7 @@ class GamAccountController extends Controller
         config([
             'services.google.client_id'     => Setting::get('google_client_id') ?: config('services.google.client_id'),
             'services.google.client_secret' => Setting::get('google_client_secret') ?: config('services.google.client_secret'),
-            'services.google.redirect'      => $this->oauthRedirectUri(),
+            'services.google.redirect'      => self::oauthRedirectUri(),
         ]);
     }
 
@@ -387,10 +425,17 @@ class GamAccountController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
+            // Temporarily authenticate the user so the audit log captures their details
+            $userIdToLog = $cachedState['user_id'] ?? null;
+            if ($userIdToLog) {
+                \Illuminate\Support\Facades\Auth::loginUsingId($userIdToLog);
+            }
+
             // Check if this Google account is already connected
             $account = GamAccount::where('email', $googleUser->getEmail())->first();
 
             if ($account) {
+                $oldData = $account->toApiArray();
                 // Update existing account with fresh tokens
                 $account->update([
                     'access_token'     => $googleUser->token,
@@ -399,6 +444,7 @@ class GamAccountController extends Controller
                     'status'           => 'active',
                 ]);
                 $message = 'reconnected';
+                AuditLogService::log('connected', 'GamAccount', $account->id, $oldData, $account->toApiArray());
             } else {
                 // Create new account
                 $account = GamAccount::create([
@@ -414,8 +460,60 @@ class GamAccountController extends Controller
                 AuditLogService::log('connected', 'GamAccount', $account->id, null, $account->toApiArray());
             }
 
+            // ─── Restore metadata from snapshot ───────────────────────────────
+            // A snapshot is saved whenever an account is deleted. On reconnect we
+            // restore it. We only restore for a freshly created account ('connected'),
+            // not for a simple token refresh ('reconnected') where the existing account
+            // already has all its data intact.
+            $snapshot = GamAccountSnapshot::find($account->email);
+            if ($snapshot) {
+                if ($message === 'connected') {
+                    // Brand-new account after deletion — restore everything from snapshot
+                    $restore = [];
+                    if ($snapshot->name)         $restore['name']         = $snapshot->name;
+                    if ($snapshot->network_code) $restore['network_code'] = $snapshot->network_code;
+                    if ($snapshot->ads_txt)      $restore['ads_txt']      = $snapshot->ads_txt;
+                    if ($snapshot->notes)        $restore['notes']        = $snapshot->notes;
+                    if ($restore) {
+                        $account->update($restore);
+                    }
+                }
+                // Consume the snapshot — it has served its purpose
+                $snapshot->delete();
+            }
+
+            // ─── Auto-relink previously linked websites ──────────────────────
+            // After a GAM account is deleted, websites keep their gam_network_code
+            // and last_gam_account_email. On reconnect we use those to find and
+            // re-link them automatically without any manual admin work.
+            $relinkQuery = \App\Models\Website::whereNull('gam_account_id')
+                ->where(function ($q) use ($account) {
+                    // Primary: match by GAM network code (globally unique, now restored from snapshot)
+                    if ($account->network_code) {
+                        $q->where('gam_network_code', $account->network_code);
+                    }
+                    // Fallback: match by the stamped email from the last linked account
+                    $q->orWhere('last_gam_account_email', $account->email);
+                });
+
+            $relinkedCount = $relinkQuery->count();
+
+            if ($relinkedCount > 0) {
+                $relinkQuery->update(['gam_account_id' => $account->id]);
+
+                AuditLogService::log(
+                    'relinked_websites',
+                    'GamAccount',
+                    $account->id,
+                    null,
+                    ['relinked_websites_count' => $relinkedCount]
+                );
+
+                \App\Models\Website::clearCache();
+            }
+
             // Redirect back to frontend with success
-            return redirect("{$frontendUrl}/admin/gam-accounts?oauth={$message}&account={$account->id}");
+            return redirect("{$frontendUrl}/admin/gam-accounts?oauth={$message}&account={$account->id}&relinked={$relinkedCount}");
 
         } catch (\Exception $e) {
             // FIX [SEC-8]: Log the full exception internally but redirect with a generic

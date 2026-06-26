@@ -1,4 +1,4 @@
-# Publisher Revenue Sharing Platform (BestRevenue)
+# Publisher Revenue Sharing Platform (Mindora X)
 
 An enterprise-grade, multi-account Publisher Revenue Sharing Platform. The platform enables publisher networks to integrate Google Ad Manager (GAM) accounts, synchronize ad unit metrics (impressions, clicks, unfilled impressions, and revenue), manage custom revenue-share ratios, run monthly period closings with deductions (IVT) or bonuses, and process publisher payouts securely.
 

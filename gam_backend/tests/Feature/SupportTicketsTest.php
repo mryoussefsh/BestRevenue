@@ -30,14 +30,14 @@ class SupportTicketsTest extends TestCase
 
         // Seed basic settings
         Setting::updateOrCreate(['key' => 'support_email'], [
-            'value' => 'support@bestrevenue.local',
+            'value' => 'support@mindorax.local',
             'group' => 'support',
             'label' => 'Support Destination',
             'type'  => 'string'
         ]);
 
         Setting::updateOrCreate(['key' => 'site_name'], [
-            'value' => 'BestRevenue',
+            'value' => 'Mindora X',
             'group' => 'general',
             'label' => 'Site Name',
             'type'  => 'string'
@@ -113,8 +113,16 @@ class SupportTicketsTest extends TestCase
 
         // Assert email notification was sent to admin support email
         Mail::assertSent(TicketCreatedAdminMail::class, function ($mail) {
-            return $mail->hasTo('support@bestrevenue.local');
+            return $mail->hasTo('support@mindorax.local');
         });
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'created',
+            'entity_type' => 'Ticket',
+            'entity_id' => $ticketId,
+            'user_id' => $this->publisherUser->id,
+        ]);
     }
 
     public function test_publisher_cannot_access_other_publisher_tickets(): void
@@ -181,8 +189,16 @@ class SupportTicketsTest extends TestCase
 
         // Assert email notification was sent to admin support email
         Mail::assertSent(TicketRepliedAdminMail::class, function ($mail) {
-            return $mail->hasTo('support@bestrevenue.local');
+            return $mail->hasTo('support@mindorax.local');
         });
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'reply',
+            'entity_type' => 'Ticket',
+            'entity_id' => $ticket->id,
+            'user_id' => $this->publisherUser->id,
+        ]);
     }
 
     public function test_publisher_cannot_reply_to_closed_ticket(): void
@@ -426,5 +442,34 @@ class SupportTicketsTest extends TestCase
         $response = $this->getJson('/api/v1/admin/sidebar-stats');
         $response->assertStatus(200);
         $response->assertJsonPath('pending_tickets', 1);
+    }
+
+    public function test_publisher_can_close_ticket(): void
+    {
+        $ticket = Ticket::create([
+            'id'           => (string) \Illuminate\Support\Str::uuid(),
+            'publisher_id' => $this->publisher->id,
+            'user_id'      => $this->publisherUser->id,
+            'subject'      => 'Close Me Test',
+            'status'       => 'open',
+        ]);
+
+        Sanctum::actingAs($this->publisherUser);
+
+        $response = $this->postJson("/api/v1/publisher/tickets/{$ticket->id}/close");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Ticket closed successfully.');
+
+        $ticket->refresh();
+        $this->assertEquals('closed', $ticket->status);
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'closed',
+            'entity_type' => 'Ticket',
+            'entity_id' => $ticket->id,
+            'user_id' => $this->publisherUser->id,
+        ]);
     }
 }

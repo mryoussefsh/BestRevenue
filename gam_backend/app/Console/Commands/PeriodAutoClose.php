@@ -415,7 +415,11 @@ class PeriodAutoClose extends Command
                             'period'     => "{$year}-{$month}",
                         ]
                     );
-                } catch (\Exception $e) {}
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send period closed email to publisher {$pub->id}: " . $e->getMessage(), [
+                        'exception' => $e
+                    ]);
+                }
             }
 
             // Only payout-eligible publishers → payout_created email
@@ -435,7 +439,11 @@ class PeriodAutoClose extends Command
                                 'payout_id'  => $payout->id,
                             ]
                         );
-                    } catch (\Exception $e) {}
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::error("Failed to send payout created email for payout {$payout->id}: " . $e->getMessage(), [
+                            'exception' => $e
+                        ]);
+                    }
                 }
             }
 
@@ -445,11 +453,17 @@ class PeriodAutoClose extends Command
                 [[count($publisherIds), $payoutsCreated, $rollovers, number_format($totalGross, 2), number_format($totalEarnings, 2)]]
             );
 
+            RevenueRecord::clearCache();
+
             return 0;
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 DB::rollBack();
+                RevenueRecord::clearCache();
                 $this->error("Failed to close period: " . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("Failed to close period {$year}-{$month}: " . $e->getMessage(), [
+                    'exception' => $e
+                ]);
                 return 1;
             }
         } finally {

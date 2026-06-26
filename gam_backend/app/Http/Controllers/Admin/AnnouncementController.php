@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Announcement;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use App\Services\AuditLogService;
 
 class AnnouncementController extends Controller
 {
@@ -51,6 +53,16 @@ class AnnouncementController extends Controller
 
         $announcement = Announcement::create($validated);
 
+        Cache::forget('active_announcements');
+
+        AuditLogService::log(
+            'created',
+            'Announcement',
+            $announcement->id,
+            null,
+            $announcement->toArray()
+        );
+
         return response()->json(['message' => 'Announcement created successfully', 'data' => $announcement], 201);
     }
 
@@ -77,7 +89,18 @@ class AnnouncementController extends Controller
             'target_roles' => 'nullable|array',
         ]);
 
+        $oldData = $announcement->toArray();
         $announcement->update($validated);
+
+        Cache::forget('active_announcements');
+
+        AuditLogService::log(
+            'updated',
+            'Announcement',
+            $announcement->id,
+            $oldData,
+            $announcement->toArray()
+        );
 
         return response()->json(['message' => 'Announcement updated successfully', 'data' => $announcement]);
     }
@@ -85,7 +108,18 @@ class AnnouncementController extends Controller
     public function destroy($id)
     {
         $announcement = Announcement::findOrFail($id);
+        $oldData = $announcement->toArray();
         $announcement->delete();
+
+        Cache::forget('active_announcements');
+
+        AuditLogService::log(
+            'deleted',
+            'Announcement',
+            $id,
+            $oldData,
+            null
+        );
 
         return response()->json(['message' => 'Announcement deleted successfully']);
     }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Services\AuditLogService;
 
 class RolesController extends Controller
 {
@@ -41,6 +42,17 @@ class RolesController extends Controller
             $role->syncPermissions($validated['permissions']);
         }
 
+        AuditLogService::log(
+            'created',
+            'Role',
+            $role->id,
+            null,
+            [
+                'name' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->toArray()
+            ]
+        );
+
         return response()->json($role->load('permissions'), 201);
     }
 
@@ -65,6 +77,11 @@ class RolesController extends Controller
             'permissions.*' => 'string|exists:permissions,name',
         ]);
 
+        $oldData = [
+            'name' => $role->name,
+            'permissions' => $role->permissions->pluck('name')->toArray()
+        ];
+
         // Guard: Prevent renaming system default roles but allow editing their permissions
         if (in_array($role->name, $this->systemRoles)) {
             $role->syncPermissions($validated['permissions']);
@@ -75,6 +92,19 @@ class RolesController extends Controller
                 $role->syncPermissions($validated['permissions']);
             }
         }
+
+        $newData = [
+            'name' => $role->name,
+            'permissions' => $role->permissions->pluck('name')->toArray()
+        ];
+
+        AuditLogService::log(
+            'updated',
+            'Role',
+            $role->id,
+            $oldData,
+            $newData
+        );
 
         return response()->json($role->load('permissions'));
     }
@@ -88,7 +118,20 @@ class RolesController extends Controller
             return response()->json(['message' => 'System default roles cannot be deleted.'], 422);
         }
 
+        $oldData = [
+            'name' => $role->name,
+            'permissions' => $role->permissions->pluck('name')->toArray()
+        ];
+
         $role->delete();
+
+        AuditLogService::log(
+            'deleted',
+            'Role',
+            $id,
+            $oldData,
+            null
+        );
 
         return response()->json(['message' => 'Role deleted successfully.']);
     }

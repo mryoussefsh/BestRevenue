@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PeriodClosing;
+use App\Models\RevenueRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -220,6 +221,8 @@ class PeriodClosingController extends Controller
 
             \App\Services\AuditLogService::log('deleted', 'PeriodClosing', $id, $closing->toArray(), null);
 
+            RevenueRecord::clearCache();
+
             return response()->json(['message' => 'Period closing deleted and records unlocked successfully.']);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
@@ -313,6 +316,8 @@ class PeriodClosingController extends Controller
                 ['action' => 'api_abort', 'records_unlocked' => $unlocked, 'payouts_deleted' => $deletedPayouts]
             );
 
+            RevenueRecord::clearCache();
+
             return response()->json([
                 'message'         => 'Period closing aborted successfully. All records unlocked.',
                 'records_unlocked'=> $unlocked,
@@ -366,6 +371,8 @@ class PeriodClosingController extends Controller
                 ['status' => 'closing'],
                 ['status' => 'closed', 'action' => 'api_force_complete']
             );
+
+            RevenueRecord::clearCache();
 
             return response()->json([
                 'message' => 'Period closing completed successfully.',

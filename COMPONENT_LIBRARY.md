@@ -1,6 +1,6 @@
-# BestRevenue Component Library
+# Mindora X Component Library
 
-This catalog documents specifications, interactive states, styling, and design rules for the reusable components within the BestRevenue platform.
+This catalog documents specifications, interactive states, styling, and design rules for the reusable components within the Mindora X platform.
 
 ---
 

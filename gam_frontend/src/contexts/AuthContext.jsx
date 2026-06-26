@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
         const impUser = JSON.parse(impUserStr)
         sessionStorage.setItem('token', impToken)
         sessionStorage.setItem('user', JSON.stringify(impUser))
-        
+
         // Copy admin credentials from localStorage to sessionStorage in the new tab
         const adminToken = localStorage.getItem('token')
         const adminUser = localStorage.getItem('user')
@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
           sessionStorage.setItem('admin_token', adminToken)
           sessionStorage.setItem('admin_user', adminUser)
         }
-        
+
         // Clean URL query parameters so the URL looks clean
         const cleanUrl = window.location.pathname + window.location.hash
         window.history.replaceState({}, document.title, cleanUrl)
@@ -45,60 +45,66 @@ export function AuthProvider({ children }) {
     }
   })
 
+  // authLoading is true while we verify the stored token with the server.
+  // Only activate loading when there is actually a token to verify.
+  const hasStoredToken = !!(sessionStorage.getItem('token') || localStorage.getItem('token'))
+  const [authLoading, setAuthLoading] = useState(hasStoredToken)
+
   useEffect(() => {
     const token = sessionStorage.getItem('token') || localStorage.getItem('token')
     if (token) {
       authApi.me()
         .then(res => {
           const userData = res.data
-          if (sessionStorage.getItem('token')) {
-            sessionStorage.setItem('user', JSON.stringify(userData))
-          } else {
-            localStorage.setItem('user', JSON.stringify(userData))
-          }
+          // Always keep both storages in sync so cross-tab sessions work
+          localStorage.setItem('user', JSON.stringify(userData))
+          sessionStorage.setItem('user', JSON.stringify(userData))
           setUser(userData)
         })
         .catch(err => {
           console.error('Failed to sync user session on mount:', err)
+          // Token is invalid — clear everything and treat as logged out
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          sessionStorage.removeItem('token')
+          sessionStorage.removeItem('user')
+          setUser(null)
         })
+        .finally(() => {
+          setAuthLoading(false)
+        })
+    } else {
+      setAuthLoading(false)
     }
   }, [])
 
   const login = useCallback(async (email, password, remember = false) => {
     const res = await authApi.login(email, password, remember)
     const { access_token, user: userData } = res.data
-    if (remember) {
-      localStorage.setItem('token', access_token)
-      localStorage.setItem('user', JSON.stringify(userData))
-    } else {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-    }
+
+    // Always persist to localStorage so the session works across tabs.
+    // The "remember me" preference only affects whether we clear on explicit logout.
+    localStorage.setItem('token', access_token)
+    localStorage.setItem('user', JSON.stringify(userData))
+    localStorage.setItem('remember', remember ? 'true' : 'false')
     sessionStorage.setItem('token', access_token)
     sessionStorage.setItem('user', JSON.stringify(userData))
+
     setUser(userData)
     return userData
   }, [])
 
   const logout = useCallback(async () => {
     try { await authApi.logout() } catch {}
-    const sessToken = sessionStorage.getItem('token')
-    const localToken = localStorage.getItem('token')
-    if (sessToken && sessToken !== localToken) {
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('user')
-      sessionStorage.removeItem('admin_token')
-      sessionStorage.removeItem('admin_user')
-    } else {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('admin_token')
-      localStorage.removeItem('admin_user')
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('user')
-      sessionStorage.removeItem('admin_token')
-      sessionStorage.removeItem('admin_user')
-    }
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('remember')
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('admin_token')
+    sessionStorage.removeItem('admin_user')
     setUser(null)
   }, [])
 
@@ -110,7 +116,7 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem('admin_user', currentUser)
     sessionStorage.setItem('token', publisherToken)
     sessionStorage.setItem('user', JSON.stringify(publisherUser))
-    
+
     // Fallback updates for localStorage
     localStorage.setItem('admin_token', localStorage.getItem('token'))
     localStorage.setItem('admin_user', localStorage.getItem('user'))
@@ -129,12 +135,12 @@ export function AuthProvider({ children }) {
       sessionStorage.setItem('user', adminUser)
       sessionStorage.removeItem('admin_token')
       sessionStorage.removeItem('admin_user')
-      
+
       localStorage.setItem('token', adminToken)
       localStorage.setItem('user', adminUser)
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
-      
+
       setUser(JSON.parse(adminUser))
       window.location.href = '/'
     }
@@ -163,17 +169,17 @@ export function AuthProvider({ children }) {
   }, [])
 
   const hasPermission = useCallback((permission) => {
-    if (!user) return false;
+    if (!user) return false
     if (user.role === 'admin') {
       // Super Admin bypasses all checks
-      if (user.roles_list?.includes('Super Admin')) return true;
-      return user.permissions_list?.includes(permission) || false;
+      if (user.roles_list?.includes('Super Admin')) return true
+      return user.permissions_list?.includes(permission) || false
     }
-    return false;
-  }, [user]);
+    return false
+  }, [user])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, impersonate, stopImpersonating, updatePaymentInfo, updateUser, hasPermission }}>
+    <AuthContext.Provider value={{ user, authLoading, login, logout, impersonate, stopImpersonating, updatePaymentInfo, updateUser, hasPermission }}>
       {children}
     </AuthContext.Provider>
   )

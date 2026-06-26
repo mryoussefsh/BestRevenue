@@ -58,6 +58,14 @@ class PublisherSettingsTest extends TestCase
             'id'   => $user->id,
             'name' => 'New Publisher Name',
         ]);
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'profile_updated',
+            'entity_type' => 'Publisher',
+            'entity_id' => $publisher->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     public function test_publisher_can_change_password_with_correct_current_password(): void
@@ -91,6 +99,14 @@ class PublisherSettingsTest extends TestCase
         // Re-fetch user and check password
         $user->refresh();
         $this->assertTrue(Hash::check('new_password123', $user->password));
+
+        // Assert audit log was created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'password_changed',
+            'entity_type' => 'Publisher',
+            'entity_id' => $publisher->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     public function test_publisher_cannot_change_password_with_incorrect_current_password(): void

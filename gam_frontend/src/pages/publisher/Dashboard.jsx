@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { publisherApi } from '../../api/endpoints'
 import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -10,6 +10,7 @@ import CompactAmount from '../../components/CompactAmount'
 import { SearchableSelect } from '../../components/BulkAdUnitGeneratorModal'
 import AnnouncementsRenderer from '../../components/AnnouncementsRenderer'
 import { Sparkles, Clock, RefreshCw, FileText, DollarSign, Eye, MousePointer, Target, TrendingUp, Percent, CreditCard, Ban, Info, AlertCircle, Filter } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 const toLocalYYYYMMDD = (date) => {
   const y = date.getFullYear()
@@ -22,27 +23,18 @@ export default function PublisherDashboard() {
   const { user } = useAuth()
   const { settings, formatDateTime } = useSettings()
   const { t } = useI18n()
-  const [payouts, setPayouts] = useState([])
-  const [revenue, setRevenue] = useState([])
-  const [lastSyncAt, setLastSyncAt] = useState(null)
-  const [pendingAdjustment, setPendingAdjustment] = useState(0)
-  const [aggregates, setAggregates] = useState(null)
   
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [websites, setWebsites] = useState([])
   const [adUnits, setAdUnits] = useState([])
   
   const [filters, setFilters] = useState({
     preset: '30d',
-    date_from: toLocalYYYYMMDD(new Date(Date.now() - 30 * 86400000)),
+    date_from: toLocalYYYYMMDD(new Date(Date.now() - 29 * 86400000)),
     date_to: toLocalYYYYMMDD(new Date()),
     website_id: '',
     ad_unit_id: '',
   })
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
-
-  const isFirstRun = useRef(true)
 
   const [dailyPage, setDailyPage] = useState(1)
   const [dailySortField, setDailySortField] = useState('date')
@@ -79,10 +71,10 @@ export default function PublisherDashboard() {
       from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
       to = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 1)
     } else if (preset === '7d') {
-      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 7)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 6)
       to = platDate
     } else if (preset === '30d') {
-      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 30)
+      from = new Date(platDate.getFullYear(), platDate.getMonth(), platDate.getDate() - 29)
       to = platDate
     } else if (preset === 'this_month') {
       from = new Date(platDate.getFullYear(), platDate.getMonth(), 1)
@@ -114,67 +106,56 @@ export default function PublisherDashboard() {
     }
   }, [settings.platform_timezone])
 
-  // Initial loader: fetch websites and first batch of stats
+  // Queries
+  const { data: websitesRes } = useQuery({
+    queryKey: ['publisherWebsites'],
+    queryFn: () => publisherApi.getWebsites(),
+  })
+  
+  // Keep websites list updated in local state for compatibility and select lists
   useEffect(() => {
-    async function init() {
-      try {
-        const webRes = await publisherApi.getWebsites()
-        setWebsites(webRes.data?.data || [])
-      } catch (err) {
-        console.error('Failed to load websites list', err)
-      }
-
-      const defaultDates = getPresetDates('30d')
-      await fetchDashboardData({
-        date_from: defaultDates.date_from,
-        date_to: defaultDates.date_to,
-        website_id: '',
-        ad_unit_id: '',
-      })
-      setInitialLoading(false)
+    if (websitesRes?.data?.data) {
+      setWebsites(websitesRes.data.data)
     }
-    init()
-  }, [])
+  }, [websitesRes])
 
-  // Refetch when filters change (ignoring the preset state itself)
+  const { data: payoutsRes } = useQuery({
+    queryKey: ['publisherPayouts'],
+    queryFn: () => publisherApi.getPayouts(),
+  })
+  const payouts = payoutsRes?.data?.data || []
+
+  const { data: revenueRes, isLoading: revenueLoading, isFetching: revenueRefreshing, error: revenueError } = useQuery({
+    queryKey: ['publisherRevenue', filters.date_from, filters.date_to, filters.website_id, filters.ad_unit_id],
+    queryFn: () => publisherApi.getRevenue({
+      date_from: filters.date_from,
+      date_to: filters.date_to,
+      website_id: filters.website_id,
+      ad_unit_id: filters.ad_unit_id,
+      dashboard: 1,
+    }),
+  })
+
+  // Derived states
+  const revenue = revenueRes?.data?.data || []
+  const dailyStats = revenueRes?.data?.daily_stats || []
+  const pendingAdjustment = revenueRes?.data?.pending_balance_adjustment || 0
+  const aggregates = revenueRes?.data?.aggregates || null
+  const lastSyncAt = revenueRes?.data?.last_sync_at || null
+
+  const initialLoading = revenueLoading || !websitesRes || !payoutsRes
+  const refreshing = revenueRefreshing && !revenueLoading
+
   useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false
-      return
-    }
-
-    async function reloadData() {
-      setRefreshing(true)
-      setDailyPage(1)
-      await fetchDashboardData(filters)
-      setRefreshing(false)
-    }
-    reloadData()
-  }, [filters.date_from, filters.date_to, filters.website_id, filters.ad_unit_id])
-
-  // Core API loader
-  async function fetchDashboardData(activeFilters) {
-    try {
-      const queryParams = {
-        date_from: activeFilters.date_from,
-        date_to: activeFilters.date_to,
-        website_id: activeFilters.website_id,
-        ad_unit_id: activeFilters.ad_unit_id,
-        per_page: 1000, // retrieve larger dataset for accurate dashboard aggregate calculations
-      }
-      const [payRes, revRes] = await Promise.all([
-        publisherApi.getPayouts(),
-        publisherApi.getRevenue(queryParams),
-      ])
-      setPayouts(payRes.data?.data || [])
-      setRevenue(revRes.data?.data || [])
-      setPendingAdjustment(revRes.data?.pending_balance_adjustment || 0)
-      setAggregates(revRes.data?.aggregates || null)
-      setLastSyncAt(revRes.data?.last_sync_at || null)
-    } catch {
+    if (revenueError) {
       toast.error(t('dashboard.toast_failed', 'Failed to load dashboard data'))
     }
-  }
+  }, [revenueError, t])
+
+  // Reset daily page when filters change
+  useEffect(() => {
+    setDailyPage(1)
+  }, [filters.date_from, filters.date_to, filters.website_id, filters.ad_unit_id])
 
   // Dropdown change handlers
   const handleWebsiteChange = async (newWebId) => {
@@ -290,7 +271,6 @@ export default function PublisherDashboard() {
   const totalApprovedEarnings = Math.max(0, approvedEarningsTotal + pendingAdjustment)
   const totalPendingEarnings = pendingEarningsTotal
   const totalImpressions = impressionsTotal
-  const lastPayout      = payouts[0]
 
   const totalClicks = clicksTotal
   const totalUnfilled = unfilledTotal
@@ -300,70 +280,36 @@ export default function PublisherDashboard() {
   const totalHistoricalEarnings = totalHistoricalApprovedEarnings + totalPendingEarnings
 
   const averageCpm = totalImpressions > 0 ? (totalHistoricalEarnings / totalImpressions) * 1000 : 0
-  const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
+  const averageCtr = aggregates?.total_ctr ?? 0
 
-  const totalAvEligible = revenue.reduce((s, r) => s + parseInt(r.active_view_eligible_impressions || 0), 0)
-  const totalAvViewable = revenue.reduce((s, r) => s + parseInt(r.active_view_viewable_impressions || 0), 0)
+  const totalAvEligible = aggregates ? aggregates.total_active_view_eligible : 0
+  const totalAvViewable = aggregates ? aggregates.total_active_view_viewable : 0
   const viewabilityRate = totalAvEligible > 0 ? (totalAvViewable / totalAvEligible) * 100 : null
 
-  // Chart data aggregation — split by approved vs pending per day
-  const byDate = {}
-  revenue.forEach(r => {
-    const d = r.date?.slice?.(0, 10) || r.date
-    const isApproved = r.is_closed || r.is_approved
-    if (!byDate[d]) byDate[d] = { date: d, approved: 0, pending: 0, impressions: 0 }
-    byDate[d].impressions += parseInt(r.impressions || 0)
-    if (isApproved) byDate[d].approved += parseFloat(r.publisher_earnings || 0)
-    else            byDate[d].pending  += parseFloat(r.publisher_earnings || 0)
-  })
-  const chart = Object.values(byDate)
+  // Chart data aggregation — using pre-grouped dailyStats from backend
+  const chart = [...dailyStats]
     .sort((a, b) => a.date < b.date ? -1 : 1)
-    .map(d => ({ ...d, approved: +d.approved.toFixed(2), pending: +d.pending.toFixed(2) }))
+    .map(d => ({
+      ...d,
+      approved: +d.approved.toFixed(2),
+      pending: +d.pending.toFixed(2)
+    }))
 
-  // Group daily performance records
-  const dailyData = {}
-  revenue.forEach(r => {
-    const d = r.date?.slice?.(0, 10) || r.date
-    if (!dailyData[d]) {
-      dailyData[d] = {
-        date: d,
-        impressions: 0,
-        clicks: 0,
-        approved: 0,
-        pending: 0,
-        earnings: 0
-      }
-    }
-    const val = parseFloat(r.publisher_earnings || 0)
-    const isApproved = r.is_closed || r.is_approved
-    dailyData[d].impressions += parseInt(r.impressions || 0)
-    dailyData[d].clicks += parseInt(r.clicks || 0)
-    dailyData[d].earnings += val
-    if (isApproved) {
-      dailyData[d].approved += val
-    } else {
-      dailyData[d].pending += val
-    }
-  })
+  const dailyRecords = dailyStats
 
-  const dailyRecords = Object.values(dailyData)
+  // Find the best day in the selected range (based on earnings)
+  let bestDay = null
+  if (dailyStats && dailyStats.length > 0) {
+    const hasEarnings = dailyStats.some(d => (d.earnings || 0) > 0)
+    if (hasEarnings) {
+      bestDay = dailyStats.reduce((best, d) => (d.earnings || 0) > (best.earnings || 0) ? d : best, dailyStats[0])
+    }
+  }
 
   // Sort daily performance records
   const sortedDailyRecords = [...dailyRecords].sort((a, b) => {
-    let valA = a[dailySortField]
-    let valB = b[dailySortField]
-
-    if (dailySortField === 'ctr') {
-      const ctrA = a.impressions > 0 ? (a.clicks / a.impressions) : 0
-      const ctrB = b.impressions > 0 ? (b.clicks / b.impressions) : 0
-      valA = ctrA
-      valB = ctrB
-    } else if (dailySortField === 'cpm') {
-      const cpmA = a.impressions > 0 ? (a.earnings / a.impressions) * 1000 : 0
-      const cpmB = b.impressions > 0 ? (b.earnings / b.impressions) * 1000 : 0
-      valA = cpmA
-      valB = cpmB
-    }
+    const valA = a[dailySortField]
+    const valB = b[dailySortField]
 
     if (valA < valB) return dailySortOrder === 'asc' ? -1 : 1
     if (valA > valB) return dailySortOrder === 'asc' ? 1 : -1
@@ -372,14 +318,13 @@ export default function PublisherDashboard() {
 
   const paginatedDailyRecords = sortedDailyRecords.slice((dailyPage - 1) * 10, dailyPage * 10)
 
-  const dailyTotals = sortedDailyRecords.reduce((acc, r) => {
-    acc.impressions += r.impressions
-    acc.clicks += r.clicks
-    acc.approved += r.approved
-    acc.pending += r.pending
-    acc.earnings += r.earnings
-    return acc
-  }, { impressions: 0, clicks: 0, approved: 0, pending: 0, earnings: 0 })
+  const dailyTotals = {
+    impressions: aggregates?.total_impressions ?? 0,
+    clicks: aggregates?.total_clicks ?? 0,
+    approved: (aggregates?.closed_earnings ?? 0) + (aggregates?.approved_earnings ?? 0),
+    pending: aggregates?.pending_earnings ?? 0,
+    earnings: ((aggregates?.closed_earnings ?? 0) + (aggregates?.approved_earnings ?? 0) + (aggregates?.pending_earnings ?? 0)),
+  }
 
   const handleDailySort = (field) => {
     if (dailySortField === field) {
@@ -389,15 +334,6 @@ export default function PublisherDashboard() {
       setDailySortOrder('desc')
     }
     setDailyPage(1)
-  }
-
-  if (initialLoading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p>{t('dashboard.loading', 'Loading dashboard metrics...')}</p>
-      </div>
-    )
   }
 
   const activeFiltersCount = [
@@ -554,8 +490,14 @@ export default function PublisherDashboard() {
       </div>
       )}
 
-      {/* Main Stats and Charts Container with Fade Overlay for refreshing */}
-      <div style={{ opacity: refreshing ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
+      {/* Main Stats and Charts Container with localized loading spinner */}
+      {initialLoading ? (
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 350, margin: '24px 0', padding: 24 }}>
+          <div className="spinner" style={{ marginBottom: 16 }}></div>
+          <p style={{ color: 'var(--br-text-2)', fontSize: 14 }}>{t('dashboard.loading', 'Loading dashboard metrics...')}</p>
+        </div>
+      ) : (
+        <div style={{ opacity: refreshing ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
         
         {/* Stat Cards */}
         <div className="stat-grid">
@@ -575,16 +517,16 @@ export default function PublisherDashboard() {
           
           <div className="stat-card info">
             <div className="stat-icon"><Eye size={20} /></div>
-            <div className="stat-label">{t('dashboard.stats.total_impressions', 'Total Impressions')}</div>
+            <div className="stat-label">{t('dashboard.stats.total_impressions', 'Revenue Eligible Impressions')}</div>
             <div className="stat-value">
               <CompactAmount value={totalImpressions} prefix="" decimals={0} />
             </div>
-            <div className="stat-change text-muted">{t('dashboard.stats.page_ad_loads', 'Page ad loads')}</div>
+            <div className="stat-change text-muted">{t('dashboard.stats.eligible_loads', 'Revenue eligible')}</div>
           </div>
-          
+
           <div className="stat-card info">
             <div className="stat-icon"><Ban size={20} /></div>
-            <div className="stat-label">{t('dashboard.stats.unfilled_impressions', 'Unfilled Impressions')}</div>
+            <div className="stat-label">{t('dashboard.stats.unfilled_impressions', 'Revenue Eligible Unfilled')}</div>
             <div className="stat-value">
               <CompactAmount value={totalUnfilled} prefix="" decimals={0} />
             </div>
@@ -615,12 +557,7 @@ export default function PublisherDashboard() {
             </div>
             <div className="stat-change text-muted">
               {viewabilityRate !== null ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <CompactAmount value={totalAvViewable} prefix="" decimals={0} />
-                  <span>/</span>
-                  <CompactAmount value={totalAvEligible} prefix="" decimals={0} />
-                  <span>{t('dashboard.stats.measurable', 'measurable')}</span>
-                </span>
+                <span>{t('dashboard.stats.viewability_rate_desc', 'Active View rate')}</span>
               ) : (
                 t('dashboard.stats.no_av_data', 'No Active View data')
               )}
@@ -641,23 +578,10 @@ export default function PublisherDashboard() {
             <div className="stat-value money">${averageCpm.toFixed(2)}</div>
             <div className="stat-change text-muted">{t('dashboard.stats.cpm_desc', 'Earnings per 1k impressions')}</div>
           </div>
-          
-          <div className="stat-card primary">
-            <div className="stat-icon"><CreditCard size={20} /></div>
-            <div className="stat-label">{t('dashboard.stats.last_payout', 'Last Payout')}</div>
-            <div className="stat-value money">
-              {lastPayout ? <CompactAmount value={lastPayout.final_amount} /> : '—'}
-            </div>
-            <div className="stat-change">
-              {lastPayout ? (
-                <span className={`badge badge-${lastPayout.status}`}>{lastPayout.status}</span>
-              ) : t('dashboard.stats.no_payouts_yet', 'No payouts yet')}
-            </div>
-          </div>
         </div>
 
         {/* Charts Section */}
-        <div className="glass-card" style={{ marginBottom: 24 }}>
+        <div className="glass-card dashboard-chart-card" style={{ marginBottom: 24 }}>
           <div className="card-header" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div className="card-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
@@ -673,49 +597,57 @@ export default function PublisherDashboard() {
             </div>
             {/* Legend */}
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-accent)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-accent)', display: 'inline-block' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-primary)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-primary)', display: 'inline-block' }} />
                 {t('dashboard.status.approved', 'Approved')}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-warning)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-warning)', display: 'inline-block' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--br-violet)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--br-violet)', display: 'inline-block' }} />
                 {t('dashboard.status.pending', 'Pending')}
               </div>
             </div>
           </div>
           {chart.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={chart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="var(--br-accent)" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="var(--br-accent)" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="var(--br-warning)" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="var(--br-warning)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--br-border)" />
-                <XAxis dataKey="date" stroke="var(--br-text-3)" tick={{ fontSize: 11 }}
-                  tickFormatter={d => d?.slice?.(5) || d} />
-                <YAxis stroke="var(--br-text-3)" tick={{ fontSize: 11 }}
-                  tickFormatter={v => `$${v}`} />
-                <Tooltip
-                  contentStyle={{ background: 'var(--br-bg-2)', border: '0.5px solid var(--br-border)', borderRadius: 'var(--br-radius)', backdropFilter: 'blur(10px)' }}
-                  labelStyle={{ color: 'var(--br-text)', fontWeight: 600, marginBottom: 4 }}
-                  itemStyle={{ color: 'var(--br-text-2)' }}
-                  formatter={(v, name) => [
-                    `$${v}`,
-                    name === 'approved' ? t('dashboard.status.approved', 'Approved') : t('dashboard.status.pending', 'Pending')
-                  ]}
-                />
-                <Area type="monotone" dataKey="approved" stroke="var(--br-accent)"
-                  fill="url(#approvedGrad)" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="pending" stroke="var(--br-warning)"
-                  fill="url(#pendingGrad)" strokeWidth={2} dot={false} strokeDasharray="5 3" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div className="publisher-chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="var(--br-primary)" stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor="var(--br-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="pendingGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="var(--br-violet)" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="var(--br-violet)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" />
+                  <XAxis dataKey="date" stroke="var(--br-text-3)" tick={{ fontSize: 11 }}
+                    tickFormatter={d => d?.slice?.(5) || d} />
+                  <YAxis stroke="var(--br-text-3)" tick={{ fontSize: 11 }} width={40}
+                    tickFormatter={v => `$${v}`} />
+                  <Tooltip
+                    contentStyle={{ 
+                      background: 'rgba(15, 23, 42, 0.9)', 
+                      border: '1px solid rgba(255, 255, 255, 0.08)', 
+                      borderRadius: 12,
+                      backdropFilter: 'blur(12px)',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)'
+                    }}
+                    labelStyle={{ color: '#f8fafc', fontWeight: 700, marginBottom: 6 }}
+                    itemStyle={{ color: '#e2e8f0', fontSize: 13 }}
+                    formatter={(v, name) => [
+                      `$${v}`,
+                      name === 'approved' ? t('dashboard.status.approved', 'Approved') : t('dashboard.status.pending', 'Pending')
+                    ]}
+                  />
+                  <Area type="monotone" dataKey="approved" stroke="var(--br-primary)"
+                    fill="url(#approvedGrad)" strokeWidth={3} dot={false} />
+                  <Area type="monotone" dataKey="pending" stroke="var(--br-violet)"
+                    fill="url(#pendingGrad)" strokeWidth={2.5} dot={false} strokeDasharray="5 3" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="empty-state">
               <TrendingUp size={48} style={{ color: 'var(--br-text-3)', marginBottom: 16 }} />
@@ -737,7 +669,7 @@ export default function PublisherDashboard() {
                     {t('dashboard.table.date', 'Date')} {dailySortField === 'date' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('impressions')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    {t('dashboard.table.impressions', 'Impressions')} {dailySortField === 'impressions' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
+                    {t('dashboard.table.impressions', 'Revenue Eligible Impressions')} {dailySortField === 'impressions' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th onClick={() => handleDailySort('clicks')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     {t('dashboard.table.clicks', 'Clicks')} {dailySortField === 'clicks' ? (dailySortOrder === 'asc' ? '↑' : '↓') : ''}
@@ -771,11 +703,24 @@ export default function PublisherDashboard() {
                   </tr>
                 ) : (
                   paginatedDailyRecords.map(r => {
-                    const ctr = r.impressions > 0 ? (r.clicks / r.impressions) * 100 : 0
-                    const cpm = r.impressions > 0 ? (r.earnings / r.impressions) * 1000 : 0
+                    const ctr = r.ctr
+                    const cpm = r.cpm
+                    const isBest = bestDay && r.date === bestDay.date
                     return (
-                      <tr key={r.date}>
-                        <td className="text-sm td-primary" style={{ fontWeight: '500' }}>{formatDateString(r.date)}</td>
+                      <tr key={r.date} style={isBest ? {
+                        background: 'rgba(245,158,11,.07)',
+                        outline: '1px solid rgba(245,158,11,.2)',
+                        outlineOffset: '-1px',
+                      } : {}}>
+                        <td className="text-sm td-primary" style={{ fontWeight: '500' }}>
+                          {formatDateString(r.date)}
+                          {isBest && (
+                            <span style={{
+                              marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 6,
+                              background: 'rgba(245,158,11,.15)', color: '#f59e0b', fontWeight: 700,
+                            }}>{t('dashboard.table.best', 'Best')}</span>
+                          )}
+                        </td>
                         <td className="money">
                           <CompactAmount value={r.impressions} prefix="" decimals={0} />
                         </td>
@@ -809,7 +754,7 @@ export default function PublisherDashboard() {
                       <CompactAmount value={dailyTotals.clicks} prefix="" decimals={0} />
                     </td>
                     <td className="money">
-                      {(dailyTotals.impressions > 0 ? (dailyTotals.clicks / dailyTotals.impressions) * 100 : 0).toFixed(2)}%
+                      {(aggregates?.total_ctr ?? 0).toFixed(2)}%
                     </td>
                     <td className="money">
                       ${(dailyTotals.impressions > 0 ? (dailyTotals.earnings / dailyTotals.impressions) * 1000 : 0).toFixed(2)}
@@ -839,7 +784,8 @@ export default function PublisherDashboard() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useI18n } from '../contexts/I18nContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { publisherApi } from '../api/endpoints'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import MinPayoutAlertBanner from '../components/MinPayoutAlertBanner'
 import { LayoutDashboard, Globe, DollarSign, CreditCard, HelpCircle, Settings, LogOut, User, TrendingUp, Menu, X } from 'lucide-react'
 
 const navItems = [
@@ -46,9 +47,26 @@ export default function PublisherLayout({ children }) {
 
   return (
     <div className="app-shell">
+      {/* Portal Aurora Background */}
+      <div className="aurora-layer" aria-hidden="true" style={{ zIndex: 0 }}>
+        <div className="portal-glow-1"></div>
+        <div className="portal-glow-2"></div>
+        <div className="portal-glow-3"></div>
+        <div className="portal-glow-4"></div>
+        <div className="portal-glow-5"></div>
+        
+        <span className="portal-particle" style={{ top:'12%', left:'18%',  width:4, height:4, background:'#00f2fe', animationDelay:'0s',   animationDuration:'7s'  }}></span>
+        <span className="portal-particle" style={{ top:'48%', left:'32%',  width:3, height:3, background:'#8b5cf6', animationDelay:'1.5s', animationDuration:'9s'  }}></span>
+        <span className="portal-particle" style={{ top:'78%', left:'22%',  width:4, height:4, background:'#10b981', animationDelay:'3.0s', animationDuration:'8s'  }}></span>
+        <span className="portal-particle" style={{ top:'28%', left:'68%',  width:3, height:3, background:'#f59e0b', animationDelay:'0.8s', animationDuration:'10s' }}></span>
+        <span className="portal-particle" style={{ top:'65%', left:'78%',  width:5, height:5, background:'#00f2fe', animationDelay:'3.8s', animationDuration:'6.5s'}}></span>
+        <span className="portal-particle" style={{ top:'88%', left:'55%',  width:3, height:3, background:'#8b5cf6', animationDelay:'2.2s', animationDuration:'11s' }}></span>
+        <span className="portal-particle" style={{ top:'15%', left:'85%',  width:4, height:4, background:'#f43f5e', animationDelay:'4.5s', animationDuration:'8.5s'}}></span>
+      </div>
+
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} />
+        <div className="sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} style={{ zIndex: 99 }} />
       )}
 
       <aside className={`sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
@@ -62,7 +80,7 @@ export default function PublisherLayout({ children }) {
               <div className="sidebar-logo-icon">
                 <TrendingUp size={20} />
               </div>
-              <span className="sidebar-logo-text">{settings.site_name || 'BestRevenue'}</span>
+              <span className="sidebar-logo-text">{settings.site_name || 'Mindora X'}</span>
             </Link>
           )}
           <button
@@ -234,6 +252,9 @@ export default function PublisherLayout({ children }) {
             <LanguageSwitcher />
           </div>
         </header>
+        {['/publisher', '/publisher/payouts', '/publisher/settings'].includes(location.pathname) && (
+          <MinPayoutAlertBanner />
+        )}
         <main className="page-container">
           {children}
         </main>
@@ -249,7 +270,7 @@ export default function PublisherLayout({ children }) {
           fontSize: '12px',
           color: 'var(--color-text-subtle)',
         }}>
-          <div>{t('common.all_rights_reserved', '© {year} {site_name} Platform. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'BestRevenue' })}</div>
+          <div>{t('common.all_rights_reserved', '© {year} {site_name} Platform. All rights reserved.', { year: new Date().getFullYear(), site_name: settings.site_name || 'Mindora X' })}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{t('common.home_page', 'Home Page')}</Link>
             <a href="https://support.google.com/admanager" target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'var(--transition)' }} onMouseEnter={(e) => e.target.style.color = 'var(--color-text)'} onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}>{t('common.gam_help', 'Google Ad Manager Help')}</a>

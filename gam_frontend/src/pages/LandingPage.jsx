@@ -97,7 +97,7 @@ export default function LandingPage() {
       a: t('landing.faq.a1', "No, you do not need a personal GAM account. We manage the ad exchange bidding and setup. If you do have a GAM account, our platform can synchronize and deliver customized tags directly to your inventory.")
     },
     {
-      q: t('landing.faq.q2', "What is the revenue-sharing ratio on BestRevenue?"),
+      q: t('landing.faq.q2', "What is the revenue-sharing ratio on Mindora X?"),
       a: t('landing.faq.a2', "Our standard revenue share is 80% to the publisher. For high-volume publishers, custom revenue-sharing ratios can be configured directly by administrators in the platform settings.")
     },
     {
@@ -157,19 +157,37 @@ export default function LandingPage() {
 
   return (
     <div className="landing-wrapper">
-      <div className="landing-glow-1"></div>
-      <div className="landing-glow-2"></div>
+      {/* ── Aurora Background Layer ── */}
+      <div className="aurora-layer" aria-hidden="true">
+        {/* Large drifting color orbs */}
+        <div className="landing-glow-1"></div>
+        <div className="landing-glow-2"></div>
+        <div className="landing-glow-3"></div>
+        <div className="landing-glow-4"></div>
+        <div className="landing-glow-5"></div>
+
+        {/* Small floating particle dots */}
+        <span className="aurora-particle" style={{ top:'18%',  left:'12%',  width:5,  height:5,  background:'#00f2fe', animationDelay:'0s',   animationDuration:'6s'  }}></span>
+        <span className="aurora-particle" style={{ top:'42%',  left:'28%',  width:3,  height:3,  background:'#8b5cf6', animationDelay:'1.4s', animationDuration:'8s'  }}></span>
+        <span className="aurora-particle" style={{ top:'72%',  left:'18%',  width:4,  height:4,  background:'#10b981', animationDelay:'2.8s', animationDuration:'7s'  }}></span>
+        <span className="aurora-particle" style={{ top:'25%',  left:'58%',  width:3,  height:3,  background:'#f59e0b', animationDelay:'0.7s', animationDuration:'9s'  }}></span>
+        <span className="aurora-particle" style={{ top:'60%',  left:'70%',  width:5,  height:5,  background:'#00f2fe', animationDelay:'3.5s', animationDuration:'5.5s'}}></span>
+        <span className="aurora-particle" style={{ top:'85%',  left:'50%',  width:3,  height:3,  background:'#8b5cf6', animationDelay:'1.9s', animationDuration:'10s' }}></span>
+        <span className="aurora-particle" style={{ top:'10%',  left:'80%',  width:4,  height:4,  background:'#f43f5e', animationDelay:'4.2s', animationDuration:'7.5s'}}></span>
+        <span className="aurora-particle" style={{ top:'50%',  left:'88%',  width:3,  height:3,  background:'#10b981', animationDelay:'2.1s', animationDuration:'11s' }}></span>
+        <span className="aurora-particle" style={{ top:'35%',  left:'45%',  width:6,  height:6,  background:'#00f2fe', animationDelay:'5.0s', animationDuration:'8.5s'}}></span>
+      </div>
 
       {/* Header */}
       <header className={`landing-header ${menuOpen ? 'menu-open' : ''}`}>
         <div className="landing-nav-container">
           <Link to="/" className="landing-logo">
             {settings.site_logo ? (
-              <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} />
+              <img src={settings.site_logo} alt={settings.site_name || 'Mindora X'} />
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <TrendingUp size={18} style={{ color: 'var(--br-primary)' }} />
-                <span>{settings.site_name || 'BestRevenue'}</span>
+                <span>{settings.site_name || 'Mindora X'}</span>
               </span>
             )}
           </Link>
@@ -214,6 +232,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="landing-nav-ctas">
+            <LanguageSwitcher style={{ marginInlineEnd: '12px' }} />
             {user ? (
               <button onClick={handleDashboardRedirect} className="btn btn-primary btn-sm">
                 <LayoutDashboard size={14} /> {t('common.dashboard', 'Dashboard')}
@@ -232,7 +251,6 @@ export default function LandingPage() {
                 )}
               </>
             )}
-            <LanguageSwitcher style={{ marginInlineStart: '12px' }} />
           </div>
 
           <button className="mobile-nav-toggle" onClick={() => setMenuOpen(!menuOpen)}>
@@ -241,42 +259,170 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section — 2-column split */}
       <section className="hero-section">
-        <div className="hero-badge">
-          <Sparkles size={13} style={{ color: 'var(--br-accent)' }} /> {t('landing.hero.badge', 'Automated Google Ad Manager Optimization')}
-        </div>
-        <h1 className="hero-title">
-          {t('landing.hero.title_part1', 'Scale Your Publisher Earnings')} <br />
-          {t('landing.hero.title_part2', 'With')} <span className="hero-gradient-text">{settings.site_name || 'BestRevenue'}</span>
-        </h1>
-        <p className="hero-description">
-          {t('landing.hero.desc', 'A premium, high-performance platform for smart publishers. Seamlessly synchronize with Google Ad Manager, generate secure GPT codes, track real-time analytics, and secure payouts.')}
-        </p>
+        {/* Left Column */}
+        <div className="hero-left">
+          <div className="hero-badge">
+            <span className="hero-badge-dot"></span>
+            {t('landing.hero.badge', 'Automated Google Ad Manager Optimization')}
+          </div>
 
-        <div className="hero-ctas">
-          {user ? (
-            <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
-              <LayoutDashboard size={16} /> {t('common.access_dashboard', 'Access Dashboard')}
-            </button>
-          ) : (
-            <>
-              {settings.registration_status !== 'closed' ? (
-                <Link to="/register" className="btn btn-primary btn-lg">
-                  {t('common.create_free_account', 'Create Free Account')} <ArrowRight size={16} />
+          <h1 className="hero-title">
+            <span className="hero-title-line hero-word-1">{t('landing.hero.title_word1', locale === 'ar' ? 'ضاعف' : 'Scale')}</span>{' '}
+            <span className="hero-title-line hero-word-2">{t('landing.hero.title_word2', locale === 'ar' ? 'أرباحك' : 'Publisher')}</span>{' '}
+            <span className="hero-title-line hero-word-3">{t('landing.hero.title_word3', locale === 'ar' ? 'كناشر' : 'Revenue')}</span>
+            <br />
+            <span className="hero-title-line hero-word-4">{t('landing.hero.title_word4', locale === 'ar' ? 'مع' : 'with')}</span>{' '}
+            <span className="hero-gradient-text hero-word-5">{settings.site_name || 'Mindora X'}</span>
+          </h1>
+
+          <p className="hero-description">
+            {t('landing.hero.desc', 'Connect your inventory to 40+ premium demand partners through AI-driven GAM optimization and real-time yield management — delivering an average 3× revenue lift in days, not months.')}
+          </p>
+
+          <div className="hero-ctas">
+            {user ? (
+              <button onClick={handleDashboardRedirect} className="btn btn-primary btn-lg">
+                <LayoutDashboard size={16} /> {t('common.access_dashboard', 'Access Dashboard')}
+              </button>
+            ) : (
+              <>
+                {settings.registration_status !== 'closed' ? (
+                  <Link to="/register" className="btn btn-primary btn-lg">
+                    {t('common.create_free_account', 'Create Free Account')} <ArrowRight size={16} />
+                  </Link>
+                ) : (
+                  <button className="btn btn-secondary btn-lg" disabled>
+                    <Lock size={16} /> {t('common.registration_closed', 'Registration Closed')}
+                  </button>
+                )}
+                <Link to="/login" className="btn btn-secondary btn-lg">
+                  {t('common.sign_in', 'Sign In')}
                 </Link>
-              ) : (
-                <button className="btn btn-secondary btn-lg" disabled>
-                  <Lock size={16} /> {t('common.registration_closed', 'Registration Closed')}
-                </button>
-              )}
-              <Link to="/login" className="btn btn-secondary btn-lg">
-                {t('common.sign_in', 'Sign In')}
-              </Link>
-            </>
-          )}
+              </>
+            )}
+          </div>
+
+          {/* Feature highlights — 3 strongest platform features */}
+          <div className="hero-features">
+            <div className="hero-feature-chip">
+              <span className="hero-feature-icon"><RefreshCw size={13} /></span>
+              {t('landing.hero.feat1', locale === 'ar' ? 'مزامنة GAM التلقائية' : 'GAM Auto-Sync')}
+            </div>
+            <div className="hero-feature-chip">
+              <span className="hero-feature-icon"><Shield size={13} /></span>
+              {t('landing.hero.feat2', locale === 'ar' ? 'أكواد حماية التلاعب' : 'Anti-Tamper Tags')}
+            </div>
+            <div className="hero-feature-chip">
+              <span className="hero-feature-icon"><LineChart size={13} /></span>
+              {t('landing.hero.feat3', locale === 'ar' ? 'تقارير الوقت الفعلي' : 'Real-Time Reports')}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column — Animated Dashboard Mockup */}
+        <div className="hero-right">
+          {/* Floating orbit cards */}
+          <div className="hero-orbit-card hero-orbit-1">
+            <div className="orbit-card-label">FILL RATE</div>
+            <div className="orbit-card-value">97.2%</div>
+            <div className="orbit-card-bar">
+              <div className="orbit-card-bar-fill" style={{ width: '97%', background: 'var(--br-primary)' }}></div>
+            </div>
+          </div>
+
+          <div className="hero-orbit-card hero-orbit-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={14} style={{ color: 'var(--br-accent)' }} />
+              <span style={{ fontSize: '11px', color: 'var(--br-text-3)', fontWeight: 600 }}>ECPM LIFT</span>
+            </div>
+            <div className="orbit-card-value" style={{ color: 'var(--br-accent)', fontSize: '22px' }}>+183%</div>
+          </div>
+
+          {/* Main Dashboard Panel */}
+          <div className="hero-mockup">
+            {/* Mockup header */}
+            <div className="mockup-header">
+              <div className="mockup-header-dot-row">
+                <span className="mockup-dot red"></span>
+                <span className="mockup-dot yellow"></span>
+                <span className="mockup-dot green"></span>
+              </div>
+              <div className="mockup-header-title">
+                <span className="mockup-live-dot"></span>
+                {t('landing.mockup.live_auction', 'Live Auction')}
+              </div>
+              <div className="mockup-header-meta">
+                <span style={{ color: 'var(--br-text-3)', fontSize: '10px' }}>#A-00834</span>
+                <span style={{ color: 'var(--br-text-3)', fontSize: '10px', margin: '0 6px' }}>Floor</span>
+                <span style={{ color: 'var(--br-primary)', fontSize: '10px', fontWeight: 700 }}>$0.84</span>
+              </div>
+            </div>
+
+            {/* Auction rows */}
+            <div className="mockup-auction-list">
+              {[
+                { name: 'Google', color: '#4285f4', bid: '$2.07', winner: true },
+                { name: 'Magnite', color: '#ef4444', bid: '$1.76', winner: false },
+                { name: 'Criteo', color: '#f59e0b', bid: '$1.54', winner: false },
+                { name: 'PubMatic', color: '#00f2fe', bid: '$1.62', winner: false },
+                { name: 'OpenX', color: '#10b981', bid: '$1.92', winner: false },
+                { name: 'Index Exch.', color: '#8b5cf6', bid: '$1.79', winner: false },
+                { name: 'Xandr', color: '#f97316', bid: '$1.20', winner: false },
+              ].map((row) => (
+                <div key={row.name} className={`mockup-auction-row${row.winner ? ' winner' : ''}`}>
+                  <div className="auction-row-avatar" style={{ background: row.color }}>
+                    {row.name[0]}
+                  </div>
+                  <span className="auction-row-name">{row.name}</span>
+                  <div className="auction-row-bar">
+                    <div
+                      className="auction-row-bar-fill"
+                      style={{
+                        width: `${Math.round((parseFloat(row.bid.replace('$', '')) / 2.07) * 100)}%`,
+                        background: row.winner ? 'var(--br-primary)' : row.color,
+                      }}
+                    ></div>
+                  </div>
+                  <span className={`auction-row-bid${row.winner ? ' bid-winner' : ''}`}>{row.bid}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Winning bid footer */}
+            <div className="mockup-winning">
+              <div>
+                <div style={{ fontSize: '10px', color: 'var(--br-text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>
+                  {t('landing.mockup.winning_bid', 'Winning Bid')}
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--br-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                  $2.07 <span style={{ fontSize: '11px', color: 'var(--br-text-3)', fontWeight: 500 }}>CPM</span>
+                </div>
+              </div>
+              <div className="mockup-winning-badge">
+                <div className="auction-row-avatar" style={{ background: '#4285f4', width: 28, height: 28, fontSize: 12 }}>G</div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--br-text)' }}>Google</div>
+                  <div style={{ fontSize: '10px', color: 'var(--br-accent)' }}>+146% vs floor</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Partners mini card */}
+          <div className="hero-orbit-card hero-orbit-3">
+            <div className="orbit-card-label">PARTNERS</div>
+            <div className="orbit-card-value" style={{ fontSize: '26px' }}>40+</div>
+            <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+              {['#4285f4','#ef4444','#f59e0b','#00f2fe','#10b981'].map((c, i) => (
+                <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, display: 'inline-block' }}></span>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
+
 
       {/* Platform Performance Stats Banner */}
       <section className="landing-section" style={{ paddingTop: 0, paddingBottom: 40 }}>
@@ -648,11 +794,11 @@ export default function LandingPage() {
           <div className="footer-brand">
             <Link to="/" className="footer-logo">
               {settings.site_logo ? (
-                <img src={settings.site_logo} alt={settings.site_name || 'BestRevenue'} style={{ maxHeight: 50 }} />
+                <img src={settings.site_logo} alt={settings.site_name || 'Mindora X'} style={{ maxHeight: 50 }} />
               ) : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <TrendingUp size={20} style={{ color: 'var(--br-primary)' }} />
-                  <span>{settings.site_name || 'BestRevenue'}</span>
+                  <span>{settings.site_name || 'Mindora X'}</span>
                 </span>
               )}
             </Link>
@@ -740,7 +886,7 @@ export default function LandingPage() {
         </div>
 
         <div className="footer-bottom">
-          <div>© {new Date().getFullYear()} {settings.site_name || 'BestRevenue'}. {t('landing.footer.all_rights', 'All rights reserved.')}</div>
+          <div>© {new Date().getFullYear()} {settings.site_name || 'Mindora X'}. {t('landing.footer.all_rights', 'All rights reserved.')}</div>
           <div>{t('landing.footer.empowering', 'Empowering publishers through transparent ad metrics.')}</div>
         </div>
       </footer>
@@ -789,7 +935,7 @@ export default function LandingPage() {
             </div>
 
             <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--br-text-3)', lineHeight: 1.4 }}>
-              {t('landing.modal.note', 'This payout was verified via banking network records and signed by {site_name} Treasury.', { site_name: settings.site_name || 'BestRevenue' })}
+              {t('landing.modal.note', 'This payout was verified via banking network records and signed by {site_name} Treasury.', { site_name: settings.site_name || 'Mindora X' })}
             </div>
 
             <div className="modal-footer" style={{ marginTop: 24 }}>

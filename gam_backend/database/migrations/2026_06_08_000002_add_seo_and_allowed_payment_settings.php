@@ -38,7 +38,7 @@ return new class extends Migration
             ],
             [
                 'key'   => 'meta_title',
-                'value' => 'BestRevenue - Publisher Revenue Sharing Platform',
+                'value' => 'Mindora X - Publisher Revenue Sharing Platform',
                 'group' => 'seo',
                 'label' => 'SEO Meta Title',
                 'type'  => 'string',

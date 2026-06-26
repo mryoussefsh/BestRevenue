@@ -15,32 +15,37 @@ class PublisherPayoutController extends Controller
     public function index(Request $request): JsonResponse
     {
         $publisherId = $request->user()->publisher_id;
+        $cacheVersion = \App\Models\Payout::getCacheVersion();
+        $cacheKey = "publisher_payouts_{$publisherId}_v_{$cacheVersion}_" . md5(json_encode($request->all()));
 
-        $payouts = Payout::where('publisher_id', $publisherId)
-                          ->orderBy('created_at', 'desc')
-                          ->get();
+        $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($publisherId) {
+            $payouts = Payout::where('publisher_id', $publisherId)
+                              ->orderBy('created_at', 'desc')
+                              ->get();
 
-        // Map payouts to expose payment_account and rejection_reason (admin_note only when rejected)
-        return response()->json([
-            'data' => $payouts->map(function ($payout) {
-                return [
-                    'id'                => $payout->id,
-                    'period_year'       => $payout->period_year,
-                    'period_month'      => $payout->period_month,
-                    'amount'            => (float) $payout->amount,
-                    'adjustment'        => (float) $payout->adjustment,
-                    'final_amount'      => (float) $payout->final_amount,
-                    'status'            => $payout->status,
-                    'payment_method'    => $payout->payment_method,
-                    'payment_account'   => $payout->payment_account,
-                    'payment_reference' => $payout->status === 'paid' ? $payout->payment_reference : null,
-                    'rejection_reason'  => $payout->status === 'rejected' ? $payout->admin_note : null,
-                    'approved_at'       => $payout->approved_at,
-                    'paid_at'           => $payout->paid_at,
-                    'created_at'        => $payout->created_at,
-                ];
-            })
-        ]);
+            return [
+                'data' => $payouts->map(function ($payout) {
+                    return [
+                        'id'                => $payout->id,
+                        'period_year'       => $payout->period_year,
+                        'period_month'      => $payout->period_month,
+                        'amount'            => (float) $payout->amount,
+                        'adjustment'        => (float) $payout->adjustment,
+                        'final_amount'      => (float) $payout->final_amount,
+                        'status'            => $payout->status,
+                        'payment_method'    => $payout->payment_method,
+                        'payment_account'   => $payout->payment_account,
+                        'payment_reference' => $payout->status === 'paid' ? $payout->payment_reference : null,
+                        'rejection_reason'  => $payout->status === 'rejected' ? $payout->admin_note : null,
+                        'approved_at'       => $payout->approved_at,
+                        'paid_at'           => $payout->paid_at,
+                        'created_at'        => $payout->created_at,
+                    ];
+                })->all()
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**
@@ -86,11 +91,27 @@ class PublisherPayoutController extends Controller
                 ], 422);
             }
 
+            $oldPaymentInfo = $publisher->payment_info;
+
             $publisher->payment_info = [
                 'method'  => $request->method,
                 'account' => $request->account,
             ];
             $publisher->save();
+
+            \App\Services\AuditLogService::log(
+                'payment_info_updated',
+                'Publisher',
+                $publisher->id,
+                [
+                    'payment_method' => $oldPaymentInfo['method'] ?? null,
+                    'payment_account' => $oldPaymentInfo['account'] ?? null,
+                ],
+                [
+                    'payment_method' => $publisher->payment_info['method'] ?? null,
+                    'payment_account' => $publisher->payment_info['account'] ?? null,
+                ]
+            );
 
             \Log::info("updatePaymentInfo: Saved successfully for publisher {$publisher->id}");
 

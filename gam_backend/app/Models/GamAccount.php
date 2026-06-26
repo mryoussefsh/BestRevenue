@@ -19,6 +19,7 @@ class GamAccount extends Model
         'refresh_token',
         'token_expires_at',
         'status',
+        'sync_enabled',
         'last_synced_at',
         'notes',
         'ads_txt',
@@ -27,6 +28,7 @@ class GamAccount extends Model
     protected $casts = [
         'token_expires_at' => 'datetime',
         'last_synced_at'   => 'datetime',
+        'sync_enabled'     => 'boolean',
         // Tokens are encrypted at rest using Laravel's built-in encryption
         'access_token'     => 'encrypted',
         'refresh_token'    => 'encrypted',
@@ -68,6 +70,7 @@ class GamAccount extends Model
             'email'           => $this->email,
             'network_code'    => $this->network_code,
             'status'          => $this->getStatusBadge(),
+            'sync_enabled'    => (bool) $this->sync_enabled,
             'last_synced_at'  => $this->last_synced_at,
             'token_expires_at'=> $this->token_expires_at,
             'websites_count'  => $this->websites_count ?? 0,

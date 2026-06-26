@@ -33,7 +33,7 @@ export default function DesignSystemPreview() {
           <TrendingUp size={18} style={{ color: '#fff' }} />
         </div>
         <div>
-          <div className="page-brand-name">BestRevenue</div>
+          <div className="page-brand-name">Mindora X</div>
           <div className="page-brand-tag">Design System v1.0 — React Preview</div>
         </div>
         <span className="badge badge-info" style={{ marginLeft: 'auto' }}>
@@ -43,19 +43,33 @@ export default function DesignSystemPreview() {
 
       {/* Colors */}
       <div className="ds-section">
-        <div className="ds-section-title">Color System</div>
+        <div className="ds-section-title">Color System — Cosmic Neon Brand</div>
         <div className="ds-grid">
           <div className="swatch">
-            <div className="swatch-color" style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}></div>
+            <div className="swatch-color" style={{ background: 'linear-gradient(135deg,#00f2fe,#8b5cf6)', boxShadow: '0 0 20px rgba(0,242,254,0.3)' }}></div>
             <div className="swatch-info">
-              <div className="swatch-name">Primary</div>
-              <div className="swatch-hex">#6366f1 · #4f46e5</div>
+              <div className="swatch-name">Brand Gradient</div>
+              <div className="swatch-hex">#00f2fe → #8b5cf6</div>
+            </div>
+          </div>
+          <div className="swatch">
+            <div className="swatch-color" style={{ background: '#00f2fe', boxShadow: '0 0 16px rgba(0,242,254,0.4)' }}></div>
+            <div className="swatch-info">
+              <div className="swatch-name">Primary (Neon Cyan)</div>
+              <div className="swatch-hex">#00f2fe · hsl(185,100%,50%)</div>
+            </div>
+          </div>
+          <div className="swatch">
+            <div className="swatch-color" style={{ background: '#8b5cf6', boxShadow: '0 0 16px rgba(139,92,246,0.4)' }}></div>
+            <div className="swatch-info">
+              <div className="swatch-name">Secondary (Electric Violet)</div>
+              <div className="swatch-hex">#8b5cf6 · hsl(262,83%,63%)</div>
             </div>
           </div>
           <div className="swatch">
             <div className="swatch-color" style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}></div>
             <div className="swatch-info">
-              <div className="swatch-name">Accent</div>
+              <div className="swatch-name">Accent (Emerald)</div>
               <div className="swatch-hex">#10b981 · #059669</div>
             </div>
           </div>
@@ -67,28 +81,29 @@ export default function DesignSystemPreview() {
             </div>
           </div>
           <div className="swatch">
-            <div className="swatch-color" style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}></div>
+            <div className="swatch-color" style={{ background: '#030712', border: '0.5px solid rgba(0,242,254,0.12)' }}></div>
             <div className="swatch-info">
-              <div className="swatch-name">Warning</div>
-              <div className="swatch-hex">#f59e0b · #d97706</div>
+              <div className="swatch-name">Background (Deep Space)</div>
+              <div className="swatch-hex">#030712 · hsl(222,66%,4%)</div>
             </div>
           </div>
           <div className="swatch">
-            <div className="swatch-color" style={{ background: '#090a0f', borderBottom: '1px solid rgba(255,255,255,0.1)' }}></div>
+            <div className="swatch-color" style={{ background: '#02050c', border: '0.5px solid rgba(0,242,254,0.12)' }}></div>
             <div className="swatch-info">
-              <div className="swatch-name">Background</div>
-              <div className="swatch-hex">#090a0f · #030712</div>
+              <div className="swatch-name">Sidebar (Void)</div>
+              <div className="swatch-hex">#02050c · hsl(222,71%,4%)</div>
             </div>
           </div>
           <div className="swatch">
-            <div className="swatch-color" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}></div>
+            <div className="swatch-color" style={{ background: '#080f1d', border: '0.5px solid rgba(0,242,254,0.08)' }}></div>
             <div className="swatch-info">
-              <div className="swatch-name">Surface</div>
-              <div className="swatch-hex">rgba(255,255,255,0.04)</div>
+              <div className="swatch-name">Surface (Cosmic Slate)</div>
+              <div className="swatch-hex">#080f1d · hsl(221,57%,8%)</div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Typography */}
       <div className="ds-section">
@@ -364,7 +379,7 @@ export default function DesignSystemPreview() {
         <div className="ds-section-title">Navigation — Top Bar</div>
         <div className="nav-preview">
           <div className="nav-logo">
-            <div className="nav-logo-dot"></div>BestRevenue
+            <div className="nav-logo-dot"></div>Mindora X
           </div>
           <div className="nav-links">
             {['Dashboard', 'Reports', 'Payouts', 'Publishers'].map((item) => (
@@ -566,7 +581,7 @@ export default function DesignSystemPreview() {
 
       {/* Footer note */}
       <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '0.5px solid var(--br-border)' }}>
-        <div className="type-caption">BestRevenue Design System v1.0 · Interactive React Preview</div>
+        <div className="type-caption">Mindora X Design System v1.0 · Interactive React Preview</div>
       </div>
     </div>
   )

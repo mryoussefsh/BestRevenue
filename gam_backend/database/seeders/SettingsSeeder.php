@@ -189,6 +189,20 @@ class SettingsSeeder extends Seeder
                 'type'  => 'string',
             ],
             [
+                'key'   => 'company_address',
+                'value' => null,
+                'group' => 'display',
+                'label' => 'Company Physical Address (for email footer, CAN-SPAM compliance)',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'company_address_ar',
+                'value' => null,
+                'group' => 'display',
+                'label' => 'Company Physical Address (Arabic)',
+                'type'  => 'string',
+            ],
+            [
                 'key'   => 'site_favicon',
                 'value' => null,
                 'group' => 'display',
@@ -286,14 +300,14 @@ class SettingsSeeder extends Seeder
             // ── Support ───────────────────────────────────────
             [
                 'key'   => 'support_email',
-                'value' => 'support@bestrevenue.local',
+                'value' => 'support@mindorax.local',
                 'group' => 'support',
                 'label' => 'Support Destination & Contact Email',
                 'type'  => 'string',
             ],
             [
                 'key'   => 'support_telegram',
-                'value' => 'https://t.me/bestrevenue_support',
+                'value' => 'https://t.me/mindorax_support',
                 'group' => 'support',
                 'label' => 'Support Telegram Link',
                 'type'  => 'string',
@@ -303,6 +317,73 @@ class SettingsSeeder extends Seeder
                 'value' => 'https://wa.me/1234567890',
                 'group' => 'support',
                 'label' => 'Support WhatsApp Link',
+                'type'  => 'string',
+            ],
+
+            // ── Homepage Stats ────────────────────────────────
+            [
+                'key'   => 'homepage_stats_override',
+                'value' => 'false',
+                'group' => 'homepage_stats',
+                'label' => 'Override Homepage Statistics',
+                'type'  => 'boolean',
+            ],
+            [
+                'key'   => 'homepage_stats_publishers',
+                'value' => '250',
+                'group' => 'homepage_stats',
+                'label' => 'Homepage Stats: Active Global Publishers',
+                'type'  => 'integer',
+            ],
+            [
+                'key'   => 'homepage_stats_impressions',
+                'value' => '5400000000',
+                'group' => 'homepage_stats',
+                'label' => 'Homepage Stats: Ad Impressions Served',
+                'type'  => 'integer',
+            ],
+            [
+                'key'   => 'homepage_stats_total_paid',
+                'value' => '12400000',
+                'group' => 'homepage_stats',
+                'label' => 'Homepage Stats: Total Paid to Publishers',
+                'type'  => 'integer',
+            ],
+            [
+                'key'   => 'homepage_stats_websites',
+                'value' => '180',
+                'group' => 'homepage_stats',
+                'label' => 'Homepage Stats: Approved Domains',
+                'type'  => 'integer',
+            ],
+
+            // ── Social Media ──────────────────────────────────
+            [
+                'key'   => 'social_facebook',
+                'value' => null,
+                'group' => 'social',
+                'label' => 'Facebook Page Link',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'social_instagram',
+                'value' => null,
+                'group' => 'social',
+                'label' => 'Instagram Profile Link',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'social_x',
+                'value' => null,
+                'group' => 'social',
+                'label' => 'X / Twitter Profile Link',
+                'type'  => 'string',
+            ],
+            [
+                'key'   => 'social_telegram',
+                'value' => null,
+                'group' => 'social',
+                'label' => 'Telegram Channel Link',
                 'type'  => 'string',
             ],
         ];

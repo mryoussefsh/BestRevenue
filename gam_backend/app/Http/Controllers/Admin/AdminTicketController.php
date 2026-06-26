@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogService;
 
 class AdminTicketController extends Controller
 {
@@ -108,7 +109,29 @@ class AdminTicketController extends Controller
             }
         }
 
+        $oldData = [
+            'status'      => $ticket->status,
+            'priority'    => $ticket->priority,
+            'category'    => $ticket->category,
+            'assigned_to' => $ticket->assigned_to,
+        ];
+
         $ticket->update($request->only(['status', 'priority', 'category', 'assigned_to']));
+
+        $newData = [
+            'status'      => $ticket->status,
+            'priority'    => $ticket->priority,
+            'category'    => $ticket->category,
+            'assigned_to' => $ticket->assigned_to,
+        ];
+
+        AuditLogService::log(
+            'updated',
+            'Ticket',
+            $ticket->id,
+            $oldData,
+            $newData
+        );
 
         return response()->json([
             'message' => 'Ticket updated successfully.',
@@ -156,6 +179,14 @@ class AdminTicketController extends Controller
 
             return $message;
         });
+
+        AuditLogService::log(
+            'reply',
+            'Ticket',
+            $ticket->id,
+            null,
+            ['message' => $request->message]
+        );
 
         // Send Email Notification to Publisher
         try {

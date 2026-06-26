@@ -33,11 +33,8 @@ export default function Pagination({ currentPage, totalItems, pageSize = 15, onP
         <>
           <button
             type="button"
-            className="btn btn-xs"
+            className="btn btn-xs btn-pagination-link"
             style={{
-              background: 'transparent',
-              color: 'var(--color-text-muted)',
-              border: 'none',
               padding: '4px 8px',
               minWidth: 28,
             }}
@@ -45,7 +42,7 @@ export default function Pagination({ currentPage, totalItems, pageSize = 15, onP
           >
             1
           </button>
-          {startPage > 2 && <span style={{ color: 'var(--color-text-subtle)', fontSize: 12 }}>...</span>}
+          {startPage > 2 && <span style={{ color: 'var(--br-text-3)', fontSize: 12 }}>...</span>}
         </>
       )}
 
@@ -53,15 +50,12 @@ export default function Pagination({ currentPage, totalItems, pageSize = 15, onP
         <button
           key={page}
           type="button"
-          className="btn btn-xs"
+          className={`btn btn-xs ${page === currentPage ? 'btn-pagination-active' : 'btn-pagination-inactive'}`}
           style={{
-            background: page === currentPage ? 'var(--color-primary)' : 'var(--color-surface-3)',
-            color: 'var(--color-text)',
-            border: page === currentPage ? 'none' : '1px solid var(--color-border-light)',
             padding: '4px 10px',
             borderRadius: 'var(--radius-sm)',
-            fontWeight: page === currentPage ? '600' : 'normal',
             minWidth: 28,
+            border: 'none',
           }}
           onClick={() => onPageChange(page)}
         >
@@ -71,14 +65,11 @@ export default function Pagination({ currentPage, totalItems, pageSize = 15, onP
 
       {endPage < totalPages && (
         <>
-          {endPage < totalPages - 1 && <span style={{ color: 'var(--color-text-subtle)', fontSize: 12 }}>...</span>}
+          {endPage < totalPages - 1 && <span style={{ color: 'var(--br-text-3)', fontSize: 12 }}>...</span>}
           <button
             type="button"
-            className="btn btn-xs"
+            className="btn btn-xs btn-pagination-link"
             style={{
-              background: 'transparent',
-              color: 'var(--color-text-muted)',
-              border: 'none',
               padding: '4px 8px',
               minWidth: 28,
             }}
